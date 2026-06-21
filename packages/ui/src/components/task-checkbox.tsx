@@ -23,14 +23,16 @@ export function TaskCheckbox({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        'flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors',
-        checked ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300',
+        'flex h-6 w-6 flex-none items-center justify-center rounded-lg border-2 transition-colors duration-150',
+        checked
+          ? 'border-brand-600 bg-brand-600'
+          : 'border-ink-500/40 bg-white',
         disabled && 'cursor-not-allowed opacity-50',
       )}
     >
       <motion.svg
         viewBox="0 0 24 24"
-        className="h-4 w-4 text-white"
+        className="h-3.5 w-3.5 text-white"
         initial={false}
         animate={{ scale: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}

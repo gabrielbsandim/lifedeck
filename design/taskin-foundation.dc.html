@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:oklch(0.985 0.004 265);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:oklch(0.24 0.02 265);-webkit-font-smoothing:antialiased}
+  @keyframes tk-spin{to{transform:rotate(360deg)}}
+  @keyframes tk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @keyframes tk-celebrate{0%{transform:scaleY(1)}35%{transform:scaleY(1.6)}100%{transform:scaleY(1)}}
+  @keyframes tk-glow{0%{box-shadow:0 0 0 0 oklch(0.52 0.22 280/0.45)}70%{box-shadow:0 0 0 10px oklch(0.52 0.22 280/0)}100%{box-shadow:0 0 0 0 oklch(0.52 0.22 280/0)}}
+  @keyframes tk-toast{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+  @keyframes tk-bob{0%,100%{transform:translateX(0)}50%{transform:translateX(14px)}}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:oklch(0.985 0.004 265);color:oklch(0.24 0.02 265)">
+<div style="max-width:1180px;margin:0 auto;padding:0 24px 96px">
+
+  <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;margin-bottom:8px;background:oklch(0.985 0.004 265/0.86);backdrop-filter:blur(10px);border-bottom:1px solid oklch(0.92 0.005 265)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:30px;height:30px;border-radius:9px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px oklch(0.52 0.22 280/0.7)">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>
+      </div>
+      <span style="font-size:17px;font-weight:700;letter-spacing:-0.02em">TaskIn</span>
+      <span style="font-size:13px;font-weight:500;color:oklch(0.55 0.02 265);padding-left:10px;border-left:1px solid oklch(0.9 0.005 265)">Foundation · Stage 1</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:3px;background:oklch(0.96 0.006 265);border:1px solid oklch(0.92 0.005 265);border-radius:10px">
+      <button onClick="{{ setEn }}" style="{{ enStyle }}">EN</button>
+      <button onClick="{{ setPt }}" style="{{ ptStyle }}">PT</button>
+    </div>
+  </header>
+
+  <div style="padding:28px 0 12px">
+    <h1 style="font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-0.03em;margin:0 0 10px">Design foundation</h1>
+    <p style="max-width:560px;margin:0;font-size:16px;line-height:1.6;color:oklch(0.45 0.02 265)">Tokens, components and the Daily list — calm, accessible, motion with meaning. Every value below is OKLCH and named for Tailwind's <code style="font-family:ui-monospace,monospace;font-size:13px;background:oklch(0.95 0.006 265);padding:1px 6px;border-radius:6px">@theme</code> block.</p>
+  </div>
+
+  <!-- ============ TOKENS ============ -->
+  <section style="margin-top:40px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.52 0.02 265);margin-bottom:18px">01 — Tokens</div>
+
+    <!-- color: brand ramp -->
+    <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:600;margin:0 0 4px">Brand — indigo, hue 280</div>
+      <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:18px">Primary actions, focus, progress. <code style="font-family:ui-monospace,monospace;font-size:12px">--color-brand-*</code></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px">
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.97 0.02 280);border:1px solid oklch(0.92 0.005 265)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px">50</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.97 .02 280</div></div>
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.94 0.05 280)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px">100</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.94 .05 280</div></div>
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.8 0.11 280)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px">300</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.80 .11 280</div></div>
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.58 0.2 280)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px;color:oklch(0.4 0.02 265)">500</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.58 .20 280</div></div>
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.52 0.22 280)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px;color:oklch(0.52 0.22 280)">600 ·primary</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.52 .22 280</div></div>
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.45 0.2 280)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px">700</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.45 .20 280</div></div>
+        <div><div style="height:60px;border-radius:12px;background:oklch(0.3 0.12 280)"></div><div style="font:600 12px ui-monospace,monospace;margin-top:8px">900</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">.30 .12 280</div></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px">
+      <!-- neutrals -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 4px">Neutrals — slate, hue 265</div>
+        <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:18px">Text, surfaces, lines. <code style="font-family:ui-monospace,monospace;font-size:12px">--color-ink-* / --color-line</code></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.21 0.02 265)"></div><span style="font:600 13px ui-monospace,monospace">ink-900</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.21 .02 265</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.37 0.02 265)"></div><span style="font:600 13px ui-monospace,monospace">ink-700</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.37 .02 265</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.55 0.02 265)"></div><span style="font:600 13px ui-monospace,monospace">ink-500</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.55 .02 265</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.92 0.005 265)"></div><span style="font:600 13px ui-monospace,monospace">line</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.92 .005 265</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.985 0.004 265);border:1px solid oklch(0.92 0.005 265)"></div><span style="font:600 13px ui-monospace,monospace">bg</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.985 .004 265</span></div>
+        </div>
+      </div>
+      <!-- semantic -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 4px">Semantic + accent</div>
+        <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:18px">Status & the violet companion for celebrations.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.62 0.17 155)"></div><span style="font:600 13px ui-monospace,monospace">success</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.62 .17 155</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.58 0.21 25)"></div><span style="font:600 13px ui-monospace,monospace">danger</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.58 .21 25</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.76 0.15 75)"></div><span style="font:600 13px ui-monospace,monospace">warning</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.76 .15 75</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:32px;border-radius:8px;background:oklch(0.6 0.18 300)"></div><span style="font:600 13px ui-monospace,monospace">violet-500</span><span style="font:12px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-left:auto">.60 .18 300</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- type / spacing / radii / shadow / motion -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <!-- type -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">Type scale — system stack</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><span style="font-size:32px;font-weight:700;letter-spacing:-0.03em;line-height:1">Display</span><span style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">32/40 ·700</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><span style="font-size:24px;font-weight:700;letter-spacing:-0.02em;line-height:1">Heading 1</span><span style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">24/32 ·700</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><span style="font-size:18px;font-weight:600;line-height:1">Heading 3</span><span style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">18/26 ·600</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><span style="font-size:16px;line-height:1">Body</span><span style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">16/24 ·400</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><span style="font-size:14px;color:oklch(0.45 0.02 265);line-height:1">Body small</span><span style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">14/20 ·400</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><span style="font-size:13px;color:oklch(0.55 0.02 265);line-height:1">Caption</span><span style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265)">13/18 ·500</span></div>
+        </div>
+      </div>
+      <!-- spacing + radii -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 14px">Spacing — 4px base</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:24px">
+          <div style="text-align:center"><div style="width:16px;height:16px;background:oklch(0.8 0.11 280);border-radius:4px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">1</div></div>
+          <div style="text-align:center"><div style="width:16px;height:24px;background:oklch(0.7 0.14 280);border-radius:4px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">2</div></div>
+          <div style="text-align:center"><div style="width:16px;height:32px;background:oklch(0.62 0.18 280);border-radius:4px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">3</div></div>
+          <div style="text-align:center"><div style="width:16px;height:44px;background:oklch(0.56 0.21 280);border-radius:4px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">4</div></div>
+          <div style="text-align:center"><div style="width:16px;height:56px;background:oklch(0.52 0.22 280);border-radius:4px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">6</div></div>
+          <div style="text-align:center"><div style="width:16px;height:72px;background:oklch(0.45 0.2 280);border-radius:4px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">8</div></div>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin:0 0 14px">Radii</div>
+        <div style="display:flex;align-items:flex-end;gap:14px">
+          <div style="text-align:center"><div style="width:48px;height:48px;background:oklch(0.94 0.05 280);border:1px solid oklch(0.8 0.11 280);border-radius:8px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">lg·8</div></div>
+          <div style="text-align:center"><div style="width:48px;height:48px;background:oklch(0.94 0.05 280);border:1px solid oklch(0.8 0.11 280);border-radius:12px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">xl·12</div></div>
+          <div style="text-align:center"><div style="width:48px;height:48px;background:oklch(0.94 0.05 280);border:1px solid oklch(0.8 0.11 280);border-radius:16px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">2xl·16</div></div>
+          <div style="text-align:center"><div style="width:48px;height:48px;background:oklch(0.94 0.05 280);border:1px solid oklch(0.8 0.11 280);border-radius:9999px"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:6px">full</div></div>
+        </div>
+      </div>
+      <!-- shadow + motion -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">Shadows — soft</div>
+        <div style="display:flex;gap:14px;margin-bottom:24px">
+          <div style="flex:1;text-align:center"><div style="height:48px;background:#fff;border-radius:12px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06)"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">sm</div></div>
+          <div style="flex:1;text-align:center"><div style="height:48px;background:#fff;border-radius:12px;box-shadow:0 4px 16px -4px oklch(0.4 0.03 265/0.12)"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">md</div></div>
+          <div style="flex:1;text-align:center"><div style="height:48px;background:#fff;border-radius:12px;box-shadow:0 12px 32px -8px oklch(0.4 0.04 265/0.16)"></div><div style="font:10px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">lg</div></div>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin:0 0 12px">Motion</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:12px ui-monospace,monospace;color:oklch(0.4 0.02 265)">fast 120ms</span><span style="font:11px ui-monospace,monospace;color:oklch(0.62 0.02 265)">standard</span></div><div style="height:6px;border-radius:99px;background:oklch(0.94 0.01 265);overflow:hidden"><div style="width:14px;height:6px;border-radius:99px;background:oklch(0.52 0.22 280);animation:tk-bob 1.2s cubic-bezier(0.2,0,0,1) infinite"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:12px ui-monospace,monospace;color:oklch(0.4 0.02 265)">base 180ms</span><span style="font:11px ui-monospace,monospace;color:oklch(0.62 0.02 265)">spring</span></div><div style="height:6px;border-radius:99px;background:oklch(0.94 0.01 265);overflow:hidden"><div style="width:14px;height:6px;border-radius:99px;background:oklch(0.6 0.18 300);animation:tk-bob 1.2s cubic-bezier(0.34,1.56,0.64,1) infinite"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:12px ui-monospace,monospace;color:oklch(0.4 0.02 265)">slow 240ms</span><span style="font:11px ui-monospace,monospace;color:oklch(0.62 0.02 265)">emphasis</span></div><div style="height:6px;border-radius:99px;background:oklch(0.94 0.01 265);overflow:hidden"><div style="width:14px;height:6px;border-radius:99px;background:oklch(0.52 0.22 280);animation:tk-bob 1.8s cubic-bezier(0.2,0,0,1) infinite"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPONENTS ============ -->
+  <section style="margin-top:56px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.52 0.02 265);margin-bottom:18px">02 — Components</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+
+      <!-- Buttons -->
+      <div style="grid-column:1/-1;background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">Button — primary & ghost</div>
+        <div style="display:flex;flex-wrap:wrap;gap:24px">
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:#fff;background:oklch(0.52 0.22 280)">Add task</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">default</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:#fff;background:oklch(0.58 0.2 280)">Add task</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">hover</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:#fff;background:oklch(0.52 0.22 280);outline:2px solid oklch(0.58 0.2 280);outline-offset:2px">Add task</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">focus</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:#fff;background:oklch(0.52 0.22 280);opacity:0.5">Add task</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">disabled</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;gap:8px;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:#fff;background:oklch(0.52 0.22 280)"><span style="width:15px;height:15px;border-radius:99px;border:2px solid #fff;border-top-color:transparent;display:inline-block;animation:tk-spin 0.7s linear infinite"></span>Saving</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">loading</div></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;padding-top:18px;border-top:1px solid oklch(0.95 0.005 265)">
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:oklch(0.52 0.22 280);background:transparent">Cancel</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">ghost default</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:oklch(0.52 0.22 280);background:oklch(0.97 0.02 280)">Cancel</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">ghost hover</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:oklch(0.52 0.22 280);background:transparent;outline:2px solid oklch(0.8 0.11 280);outline-offset:2px">Cancel</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">ghost focus</div></div>
+          <div style="text-align:center"><div style="display:inline-flex;height:44px;align-items:center;border-radius:12px;padding:0 20px;font-size:14px;font-weight:500;color:oklch(0.52 0.22 280);background:transparent;opacity:0.5">Cancel</div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:8px">ghost disabled</div></div>
+        </div>
+      </div>
+
+      <!-- TaskCheckbox + TextField -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">TaskCheckbox — animated</div>
+        <div style="display:flex;gap:28px;align-items:flex-start;margin-bottom:8px">
+          <div style="text-align:center">
+            <button onClick="{{ toggleDemo }}" style="{{ demoBoxStyle }}" aria-label="demo task">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ demoCheckStyle }}"><path d="M5 13l4 4L19 7"></path></svg>
+            </button>
+            <div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:10px">tap me</div>
+          </div>
+          <div style="text-align:center"><div style="width:24px;height:24px;border-radius:8px;border:2px solid oklch(0.82 0.01 265);margin:0 auto"></div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:10px">empty</div></div>
+          <div style="text-align:center"><div style="width:24px;height:24px;border-radius:8px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:10px">checked</div></div>
+          <div style="text-align:center"><div style="width:24px;height:24px;border-radius:8px;border:2px solid oklch(0.82 0.01 265);opacity:0.5;margin:0 auto"></div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:10px">disabled</div></div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">TextField</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div><label style="display:block;font-size:13px;font-weight:500;color:oklch(0.37 0.02 265);margin-bottom:6px">Default</label><div style="height:44px;display:flex;align-items:center;padding:0 14px;border-radius:12px;border:1.5px solid oklch(0.9 0.005 265);background:#fff;font-size:14px;color:oklch(0.6 0.02 265)">Placeholder…</div></div>
+          <div><label style="display:block;font-size:13px;font-weight:500;color:oklch(0.37 0.02 265);margin-bottom:6px">Focused</label><div style="height:44px;display:flex;align-items:center;padding:0 14px;border-radius:12px;border:1.5px solid oklch(0.52 0.22 280);background:#fff;font-size:14px;color:oklch(0.24 0.02 265);box-shadow:0 0 0 3px oklch(0.52 0.22 280/0.15)">Send invitations<span style="width:1.5px;height:18px;background:oklch(0.52 0.22 280);margin-left:1px;animation:tk-bob 1s steps(1) infinite"></span></div></div>
+          <div><label style="display:block;font-size:13px;font-weight:500;color:oklch(0.58 0.21 25);margin-bottom:6px">Error</label><div style="height:44px;display:flex;align-items:center;padding:0 14px;border-radius:12px;border:1.5px solid oklch(0.58 0.21 25);background:oklch(0.98 0.02 25);font-size:14px;color:oklch(0.24 0.02 265)">.</div><div style="font-size:12px;color:oklch(0.58 0.21 25);margin-top:6px">Task name can’t be empty</div></div>
+        </div>
+      </div>
+
+      <!-- Avatar + Badge -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">Avatar</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+          <div style="width:40px;height:40px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">M</div>
+          <div style="width:40px;height:40px;border-radius:99px;background:oklch(0.6 0.18 300);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">A</div>
+          <div style="width:40px;height:40px;border-radius:99px;background:repeating-linear-gradient(45deg,oklch(0.93 0.005 265),oklch(0.93 0.005 265) 5px,oklch(0.96 0.005 265) 5px,oklch(0.96 0.005 265) 10px);border:1px dashed oklch(0.78 0.01 265)"></div>
+          <div style="display:flex">
+            <div style="width:34px;height:34px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid #fff">M</div>
+            <div style="width:34px;height:34px;border-radius:99px;background:oklch(0.6 0.18 300);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid #fff;margin-left:-12px">A</div>
+            <div style="width:34px;height:34px;border-radius:99px;background:oklch(0.94 0.01 265);color:oklch(0.45 0.02 265);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid #fff;margin-left:-12px">+3</div>
+          </div>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin:16px 0 14px">Badge / Pill</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:oklch(0.96 0.006 265);color:oklch(0.45 0.02 265)">Neutral</span>
+          <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:oklch(0.97 0.02 280);color:oklch(0.45 0.2 280)">Daily</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:oklch(0.96 0.04 155);color:oklch(0.42 0.13 155)">Done</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:oklch(0.96 0.01 265);color:oklch(0.45 0.02 265)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Private</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:oklch(0.97 0.03 300);color:oklch(0.45 0.18 300)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>Shared</span>
+        </div>
+      </div>
+
+      <!-- ProgressBar -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 18px">ProgressBar</div>
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div><div style="height:8px;border-radius:99px;background:oklch(0.95 0.006 265);overflow:hidden"><div style="width:15%;height:100%;border-radius:99px;background:oklch(0.52 0.22 280)"></div></div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:7px">15%</div></div>
+          <div><div style="height:8px;border-radius:99px;background:oklch(0.95 0.006 265);overflow:hidden"><div style="width:60%;height:100%;border-radius:99px;background:oklch(0.52 0.22 280)"></div></div><div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-top:7px">60%</div></div>
+          <div><div style="height:8px;border-radius:99px;background:oklch(0.95 0.006 265);overflow:hidden"><div style="width:100%;height:100%;border-radius:99px;background:linear-gradient(90deg,oklch(0.52 0.22 280),oklch(0.6 0.18 300));animation:tk-glow 1.6s ease-out infinite"></div></div><div style="font:11px ui-monospace,monospace;color:oklch(0.42 0.13 155);margin-top:7px">100% · celebrate</div></div>
+        </div>
+      </div>
+
+      <!-- Tabs + Toast -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">Tabs</div>
+        <div style="display:flex;gap:4px;padding:4px;background:oklch(0.96 0.006 265);border-radius:12px;margin-bottom:20px">
+          <button onClick="{{ setTabDay }}" style="{{ tabDayStyle }}">Daily</button>
+          <button onClick="{{ setTabWeek }}" style="{{ tabWeekStyle }}">Weekly</button>
+          <button onClick="{{ setTabMonth }}" style="{{ tabMonthStyle }}">Monthly</button>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin:0 0 14px">Toast</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid oklch(0.92 0.005 265);box-shadow:0 12px 32px -8px oklch(0.4 0.04 265/0.16);animation:tk-toast 0.3s cubic-bezier(0.2,0,0,1)"><span style="width:20px;height:20px;border-radius:99px;background:oklch(0.62 0.17 155);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></span><span style="font-size:14px;font-weight:500">Task added</span></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid oklch(0.9 0.04 25);box-shadow:0 12px 32px -8px oklch(0.4 0.04 265/0.16)"><span style="width:20px;height:20px;border-radius:99px;background:oklch(0.58 0.21 25);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">!</span><span style="font-size:14px;font-weight:500">Couldn’t save — retry</span></div>
+        </div>
+      </div>
+
+      <!-- EmptyState + Skeleton -->
+      <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">EmptyState</div>
+        <div style="text-align:center;padding:18px 10px 22px;background:oklch(0.985 0.004 265);border-radius:12px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:14px;background:oklch(0.97 0.02 280);display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(0.52 0.22 280)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">Nothing here yet</div>
+          <div style="font-size:13px;color:oklch(0.55 0.02 265);max-width:200px;margin:0 auto">Add your first task to get the day started.</div>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin:0 0 14px">Skeleton</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:24px;height:24px;border-radius:8px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.97 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div><div style="flex:1;height:12px;border-radius:99px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.97 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:24px;height:24px;border-radius:8px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.97 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div><div style="width:70%;height:12px;border-radius:99px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.97 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div></div>
+        </div>
+      </div>
+
+      <!-- Dialog / BottomSheet -->
+      <div style="grid-column:1/-1;background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);padding:24px">
+        <div style="font-size:15px;font-weight:600;margin:0 0 16px">BottomSheet / Dialog</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+          <div style="position:relative;border-radius:16px;overflow:hidden;background:oklch(0.45 0.02 265/0.28);padding:40px 16px 0;min-height:220px;display:flex;align-items:flex-end">
+            <div style="width:100%;background:#fff;border-radius:20px 20px 0 0;padding:18px 18px 22px;box-shadow:0 -12px 32px -8px oklch(0.4 0.04 265/0.2)">
+              <div style="width:36px;height:4px;border-radius:99px;background:oklch(0.9 0.005 265);margin:0 auto 16px"></div>
+              <div style="font-size:16px;font-weight:600;margin-bottom:4px">Edit task</div>
+              <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:16px">Mobile — bottom sheet</div>
+              <div style="height:40px;border-radius:10px;border:1.5px solid oklch(0.9 0.005 265);margin-bottom:12px"></div>
+              <div style="display:flex;gap:10px"><div style="flex:1;height:40px;border-radius:10px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500">Save</div></div>
+            </div>
+          </div>
+          <div style="position:relative;border-radius:16px;background:oklch(0.45 0.02 265/0.28);min-height:220px;display:flex;align-items:center;justify-content:center;padding:16px">
+            <div style="width:100%;max-width:280px;background:#fff;border-radius:18px;padding:20px;box-shadow:0 24px 48px -12px oklch(0.4 0.04 265/0.3)">
+              <div style="font-size:16px;font-weight:600;margin-bottom:4px">Edit task</div>
+              <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:16px">Desktop — centered dialog</div>
+              <div style="height:40px;border-radius:10px;border:1.5px solid oklch(0.9 0.005 265);margin-bottom:12px"></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end"><div style="height:40px;border-radius:10px;padding:0 16px;color:oklch(0.52 0.22 280);display:flex;align-items:center;font-size:14px;font-weight:500">Cancel</div><div style="height:40px;border-radius:10px;padding:0 16px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;font-size:14px;font-weight:500">Save</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ DAILY LIST ============ -->
+  <section style="margin-top:56px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.52 0.02 265);margin-bottom:6px">03 — Daily list</div>
+    <p style="margin:0 0 22px;font-size:14px;color:oklch(0.5 0.02 265)">Tap a checkbox to toggle. Complete all five to trigger the progress celebration. Copy follows the EN/PT switch above.</p>
+
+    <div style="display:grid;grid-template-columns:minmax(320px,400px) 1fr;gap:28px;align-items:start">
+
+      <!-- MOBILE in phone frame -->
+      <div>
+        <div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-bottom:10px">mobile · 390px</div>
+        <div style="width:100%;max-width:390px;background:oklch(0.22 0.01 265);border-radius:44px;padding:10px;box-shadow:0 24px 60px -20px oklch(0.3 0.04 265/0.5)">
+          <div style="background:oklch(0.985 0.004 265);border-radius:36px;overflow:hidden;position:relative">
+            <div style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600;color:oklch(0.3 0.02 265)"><span>9:41</span><span style="display:flex;gap:4px;align-items:center"><svg width="16" height="11" viewBox="0 0 18 12" fill="oklch(0.3 0.02 265)"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4" width="3" height="8" rx="1"></rect><rect x="10" y="1" width="3" height="11" rx="1"></rect><rect x="15" y="1" width="3" height="11" rx="1" opacity="0.3"></rect></svg></span></div>
+            <div style="padding:8px 18px 26px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+                <div>
+                  <div style="font-size:13px;color:oklch(0.55 0.02 265)">{{ t.dateLine }}</div>
+                  <div style="font-size:23px;font-weight:700;letter-spacing:-0.02em">{{ t.dailyTitle }}</div>
+                </div>
+                <div style="display:flex"><div style="width:32px;height:32px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid oklch(0.985 0.004 265)">M</div><div style="width:32px;height:32px;border-radius:99px;background:oklch(0.6 0.18 300);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid oklch(0.985 0.004 265);margin-left:-10px">A</div></div>
+              </div>
+
+              <div style="background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06)">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+                  <span style="font-size:14px;font-weight:500;color:oklch(0.37 0.02 265)">{{ progressText }}</span>
+                  <span style="font-size:20px;font-weight:700;color:oklch(0.52 0.22 280)">{{ pctText }}</span>
+                </div>
+                <div style="{{ celebrateWrapStyle }}"><div style="height:8px;border-radius:99px;background:oklch(0.95 0.006 265);overflow:hidden"><div style="{{ fillStyle }}"></div></div></div>
+                <div style="{{ celebrateStyle }}">{{ t.allDone }}</div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid oklch(0.91 0.005 265);border-radius:14px;padding:0 8px 0 14px;height:48px;margin-bottom:14px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0.02 265)" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                <input onKeyDown="{{ onAddKey }}" placeholder="{{ t.addTask }}" style="flex:1;border:none;outline:none;background:transparent;font-size:14px;font-family:inherit;color:oklch(0.24 0.02 265);height:100%" />
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ tasks }}" as="task" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:14px;padding:13px 14px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.05)">
+                    <button onClick="{{ task.toggle }}" style="{{ task.boxStyle }}" aria-label="{{ task.title }}">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ task.checkStyle }}"><path d="M5 13l4 4L19 7"></path></svg>
+                    </button>
+                    <div style="flex:1;min-width:0">
+                      <div style="{{ task.titleStyle }}">{{ task.title }}</div>
+                      <sc-if value="{{ task.hasObs }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:5px;margin-top:3px;font-size:12px;color:oklch(0.55 0.02 265)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{ task.obs }}</div>
+                      </sc-if>
+                    </div>
+                    <button onClick="{{ task.togglePriv }}" aria-label="private" style="{{ task.privStyle }}">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+                    </button>
+                    <div style="{{ task.avatarStyle }}">{{ task.initials }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESKTOP -->
+      <div>
+        <div style="font:11px ui-monospace,monospace;color:oklch(0.6 0.02 265);margin-bottom:10px">desktop · ≥1024px</div>
+        <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:20px;overflow:hidden;box-shadow:0 12px 32px -8px oklch(0.4 0.04 265/0.14)">
+          <div style="display:flex;min-height:480px">
+            <div style="width:200px;flex:none;background:oklch(0.985 0.004 265);border-right:1px solid oklch(0.93 0.005 265);padding:20px 14px;display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:9px;padding:0 8px 16px">
+                <div style="width:26px;height:26px;border-radius:8px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div>
+                <span style="font-size:16px;font-weight:700;letter-spacing:-0.02em">TaskIn</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:oklch(0.97 0.02 280);color:oklch(0.42 0.2 280);font-size:14px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>{{ t.today }}</div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:oklch(0.45 0.02 265);font-size:14px;font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H3v10h6zM21 3h-6v18h6zM15 7H9v14h6z"></path></svg>{{ t.lists }}</div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:oklch(0.45 0.02 265);font-size:14px;font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 12l-3 3-3-3-3 4"></path></svg>{{ t.analytics }}</div>
+            </div>
+            <div style="flex:1;padding:26px 28px;min-width:0">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+                <div>
+                  <div style="font-size:13px;color:oklch(0.55 0.02 265)">{{ t.dateLine }}</div>
+                  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em">{{ t.dailyTitle }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;flex:none">
+                  <div style="display:flex"><div style="width:34px;height:34px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;border:2px solid #fff">M</div><div style="width:34px;height:34px;border-radius:99px;background:oklch(0.6 0.18 300);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;border:2px solid #fff;margin-left:-11px">A</div></div>
+                  <div style="display:inline-flex;height:40px;align-items:center;gap:7px;border-radius:11px;padding:0 16px;font-size:14px;font-weight:500;color:#fff;background:oklch(0.52 0.22 280);white-space:nowrap;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>{{ t.addTask }}</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:18px;background:oklch(0.985 0.004 265);border:1px solid oklch(0.93 0.005 265);border-radius:16px;padding:16px 20px;margin-bottom:20px">
+                <div style="flex:1">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><span style="font-size:14px;font-weight:500;color:oklch(0.37 0.02 265)">{{ progressText }}</span></div>
+                  <div style="{{ celebrateWrapStyle }}"><div style="height:8px;border-radius:99px;background:oklch(0.93 0.006 265);overflow:hidden"><div style="{{ fillStyle }}"></div></div></div>
+                </div>
+                <div style="font-size:34px;font-weight:700;letter-spacing:-0.02em;color:oklch(0.52 0.22 280)">{{ pctText }}</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ tasks }}" as="task" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:14px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:14px;padding:14px 18px">
+                    <button onClick="{{ task.toggle }}" style="{{ task.boxStyle }}" aria-label="{{ task.title }}">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ task.checkStyle }}"><path d="M5 13l4 4L19 7"></path></svg>
+                    </button>
+                    <div style="flex:1;min-width:0">
+                      <div style="{{ task.titleStyle }}">{{ task.title }}</div>
+                      <sc-if value="{{ task.hasObs }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:5px;margin-top:3px;font-size:13px;color:oklch(0.55 0.02 265)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{ task.obs }}</div>
+                      </sc-if>
+                    </div>
+                    <button onClick="{{ task.togglePriv }}" aria-label="private" style="{{ task.privStyle }}">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+                    </button>
+                    <div style="{{ task.avatarStyle }}">{{ task.initials }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    lang: 'en',
+    demoChecked: true,
+    tab: 'day',
+    tasks: [
+      { id: 1, key: 'cake', done: true, assignee: 'M', obs: null, priv: false },
+      { id: 2, key: 'venue', done: true, assignee: 'A', obs: 'deposit', priv: false },
+      { id: 3, key: 'guests', done: false, assignee: 'M', obs: null, priv: false },
+      { id: 4, key: 'invites', done: false, assignee: 'A', obs: null, priv: true },
+      { id: 5, key: 'playlist', done: false, assignee: 'M', obs: null, priv: false },
+    ],
+  };
+
+  strings = {
+    en: {
+      dailyTitle: 'Daily list', today: 'Today', lists: 'Lists', analytics: 'Analytics',
+      dateLine: 'Saturday, June 21', addTask: 'Add a task', allDone: 'All done — lovely work, you two! 🎉',
+      tasks: { cake: 'Choose the wedding cake', venue: 'Confirm the venue', guests: 'Finalize the guest list', invites: 'Send the invitations', playlist: 'Build reception playlist' },
+      obs: { deposit: 'Deposit paid' },
+      doneOf: (d, t) => d + ' of ' + t + ' done',
+    },
+    pt: {
+      dailyTitle: 'Lista do dia', today: 'Hoje', lists: 'Listas', analytics: 'Análises',
+      dateLine: 'Sábado, 21 de junho', addTask: 'Adicionar tarefa', allDone: 'Tudo pronto — ótimo trabalho! 🎉',
+      tasks: { cake: 'Escolher o bolo do casamento', venue: 'Confirmar o local', guests: 'Finalizar lista de convidados', invites: 'Enviar os convites', playlist: 'Montar a playlist da festa' },
+      obs: { deposit: 'Sinal pago' },
+      doneOf: (d, t) => d + ' de ' + t + ' concluídas',
+    },
+  };
+
+  toggleTask(id) {
+    this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) }));
+  }
+  togglePriv(id) {
+    this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, priv: !t.priv } : t) }));
+  }
+  addTask(text) {
+    this.setState(s => ({ tasks: [...s.tasks, { id: Date.now(), key: '_custom', done: false, assignee: 'M', obs: null, priv: false, custom: text }] }));
+  }
+
+  renderVals() {
+    const t = this.strings[this.state.lang];
+    const total = this.state.tasks.length;
+    const done = this.state.tasks.filter(x => x.done).length;
+    const pct = Math.round((done / total) * 100);
+    const allDone = done === total;
+
+    const tasks = this.state.tasks.map(task => {
+      const d = task.done;
+      const title = task.custom || t.tasks[task.key] || task.key;
+      const boxStyle = 'flex:none;width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background 160ms cubic-bezier(0.2,0,0,1),border-color 160ms;' +
+        (d ? 'background:oklch(0.52 0.22 280);border:2px solid oklch(0.52 0.22 280);' : 'background:#fff;border:2px solid oklch(0.82 0.01 265);');
+      const checkStyle = 'transition:transform 200ms cubic-bezier(0.34,1.56,0.64,1),opacity 140ms;transform:scale(' + (d ? '1' : '0') + ');opacity:' + (d ? '1' : '0') + ';';
+      const titleStyle = 'font-size:14px;font-weight:500;line-height:1.35;transition:color 200ms,opacity 200ms;' +
+        (d ? 'color:oklch(0.62 0.02 265);text-decoration:line-through;text-decoration-color:oklch(0.78 0.01 265);' : 'color:oklch(0.24 0.02 265);');
+      const avatarStyle = 'flex:none;width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;background:' +
+        (task.assignee === 'A' ? 'oklch(0.6 0.18 300)' : 'oklch(0.52 0.22 280)') + ';';
+      const privStyle = 'flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;transition:all 160ms;' +
+        (task.priv ? 'background:oklch(0.96 0.01 265);color:oklch(0.4 0.02 265);' : 'background:transparent;color:oklch(0.78 0.01 265);');
+      return {
+        ...task, title, boxStyle, checkStyle, titleStyle, avatarStyle, privStyle,
+        initials: task.assignee,
+        hasObs: !!task.obs,
+        obs: task.obs ? t.obs[task.obs] : '',
+        toggle: () => this.toggleTask(task.id),
+        togglePriv: () => this.togglePriv(task.id),
+      };
+    });
+
+    const fillStyle = 'height:100%;border-radius:99px;width:' + pct + '%;' +
+      'transition:width 240ms cubic-bezier(0.34,1.56,0.64,1);background:' +
+      (allDone ? 'linear-gradient(90deg,oklch(0.52 0.22 280),oklch(0.6 0.18 300));' : 'oklch(0.52 0.22 280);');
+    const celebrateWrapStyle = allDone
+      ? 'border-radius:99px;animation:tk-celebrate 0.6s cubic-bezier(0.34,1.56,0.64,1),tk-glow 1.5s ease-out infinite;'
+      : 'border-radius:99px;';
+
+    const celebrateStyle = allDone
+      ? 'overflow:hidden;max-height:24px;opacity:1;margin-top:10px;font-size:13px;font-weight:600;color:oklch(0.45 0.18 300);transition:all 300ms cubic-bezier(0.2,0,0,1);'
+      : 'overflow:hidden;max-height:0;opacity:0;margin-top:0;font-size:13px;font-weight:600;color:oklch(0.45 0.18 300);transition:all 300ms cubic-bezier(0.2,0,0,1);';
+
+    const seg = (on) => 'flex:1;height:34px;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 160ms;' +
+      (on ? 'background:#fff;color:oklch(0.45 0.2 280);box-shadow:0 1px 2px oklch(0.45 0.02 265/0.1);' : 'background:transparent;color:oklch(0.5 0.02 265);');
+    const langBtn = (on) => 'border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;transition:all 160ms;' +
+      (on ? 'background:#fff;color:oklch(0.45 0.2 280);box-shadow:0 1px 2px oklch(0.45 0.02 265/0.12);' : 'background:transparent;color:oklch(0.55 0.02 265);');
+
+    return {
+      t, tasks, fillStyle, celebrateStyle, celebrateWrapStyle,
+      pctText: pct + '%',
+      progressText: t.doneOf(done, total),
+      setEn: () => this.setState({ lang: 'en' }),
+      setPt: () => this.setState({ lang: 'pt' }),
+      enStyle: langBtn(this.state.lang === 'en'),
+      ptStyle: langBtn(this.state.lang === 'pt'),
+      toggleDemo: () => this.setState(s => ({ demoChecked: !s.demoChecked })),
+      demoBoxStyle: 'width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:all 160ms;margin:0 auto;' +
+        (this.state.demoChecked ? 'background:oklch(0.52 0.22 280);border:2px solid oklch(0.52 0.22 280);' : 'background:#fff;border:2px solid oklch(0.82 0.01 265);'),
+      demoCheckStyle: 'transition:transform 200ms cubic-bezier(0.34,1.56,0.64,1),opacity 140ms;transform:scale(' + (this.state.demoChecked ? '1' : '0') + ');opacity:' + (this.state.demoChecked ? '1' : '0') + ';',
+      setTabDay: () => this.setState({ tab: 'day' }),
+      setTabWeek: () => this.setState({ tab: 'week' }),
+      setTabMonth: () => this.setState({ tab: 'month' }),
+      tabDayStyle: seg(this.state.tab === 'day'),
+      tabWeekStyle: seg(this.state.tab === 'week'),
+      tabMonthStyle: seg(this.state.tab === 'month'),
+      onAddKey: (e) => { if (e.key === 'Enter' && e.target.value.trim()) { this.addTask(e.target.value.trim()); e.target.value = ''; } },
+    };
+  }
+}
+</script>
+</body>
+</html>

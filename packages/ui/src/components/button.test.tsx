@@ -25,4 +25,18 @@ describe('Button', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Go' }))
     expect(onClick).toHaveBeenCalledOnce()
   })
+
+  it('disables and marks busy while loading', async () => {
+    const onClick = vi.fn()
+    render(
+      <Button isLoading onClick={onClick}>
+        Save
+      </Button>,
+    )
+    const button = screen.getByRole('button', { name: 'Save' })
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('aria-busy', 'true')
+    await userEvent.click(button)
+    expect(onClick).not.toHaveBeenCalled()
+  })
 })

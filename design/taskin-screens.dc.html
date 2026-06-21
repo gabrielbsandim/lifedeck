@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  input::placeholder{color:oklch(0.65 0.02 265)}
+  @keyframes tk-spin{to{transform:rotate(360deg)}}
+  @keyframes tk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @keyframes tk-celebrate{0%{transform:scaleY(1)}35%{transform:scaleY(1.6)}100%{transform:scaleY(1)}}
+  @keyframes tk-glow{0%{box-shadow:0 0 0 0 oklch(0.52 0.22 280/0.45)}70%{box-shadow:0 0 0 12px oklch(0.52 0.22 280/0)}100%{box-shadow:0 0 0 0 oklch(0.52 0.22 280/0)}}
+  @keyframes tk-pop{0%{transform:scale(0.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+  @keyframes tk-rise{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+  @keyframes tk-confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(120px) rotate(420deg);opacity:0}}
+  @keyframes tk-bar{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:oklch(0.955 0.006 265);color:oklch(0.24 0.02 265);padding:20px 16px 64px;display:flex;flex-direction:column;align-items:center">
+
+  <!-- toolbar -->
+  <div style="width:100%;max-width:1120px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;padding:12px 16px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.06);margin-bottom:24px">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="width:28px;height:28px;border-radius:8px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div>
+      <span style="font-size:16px;font-weight:700;letter-spacing:-0.02em">TaskIn</span>
+      <span style="font-size:12px;font-weight:500;color:oklch(0.55 0.02 265);padding-left:9px;border-left:1px solid oklch(0.9 0.005 265)">Stage 2</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+      <button onClick="{{ goOnboarding }}" style="{{ navOnboarding }}">{{ t.navOnboarding }}</button>
+      <button onClick="{{ goLists }}" style="{{ navLists }}">{{ t.navLists }}</button>
+      <button onClick="{{ goDetail }}" style="{{ navDetail }}">{{ t.navDetail }}</button>
+      <button onClick="{{ goShare }}" style="{{ navShare }}">{{ t.navShare }}</button>
+      <button onClick="{{ goAnalytics }}" style="{{ navAnalytics }}">{{ t.navAnalytics }}</button>
+      <button onClick="{{ goStates }}" style="{{ navStates }}">{{ t.navStates }}</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;gap:3px;padding:3px;background:oklch(0.96 0.006 265);border-radius:9px">
+        <button onClick="{{ setEn }}" style="{{ enStyle }}">EN</button>
+        <button onClick="{{ setPt }}" style="{{ ptStyle }}">PT</button>
+      </div>
+      <div style="display:flex;gap:3px;padding:3px;background:oklch(0.96 0.006 265);border-radius:9px">
+        <button onClick="{{ setMobile }}" style="{{ mobileStyle }}" aria-label="mobile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></button>
+        <button onClick="{{ setDesktop }}" style="{{ desktopStyle }}" aria-label="desktop"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE ============ -->
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
+  <div style="width:100%;max-width:392px">
+    <div style="width:100%;background:oklch(0.22 0.01 265);border-radius:46px;padding:11px;box-shadow:0 30px 70px -24px oklch(0.3 0.04 265/0.55)">
+      <div style="background:oklch(0.985 0.004 265);border-radius:36px;overflow:hidden;position:relative;min-height:720px">
+        <div style="height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:600;color:oklch(0.3 0.02 265)"><span>9:41</span><svg width="16" height="11" viewBox="0 0 18 12" fill="oklch(0.3 0.02 265)"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4" width="3" height="8" rx="1"></rect><rect x="10" y="1" width="3" height="11" rx="1"></rect><rect x="15" y="1" width="3" height="11" rx="1"></rect></svg></div>
+
+        <!-- ONBOARDING -->
+        <sc-if value="{{ scrOnboarding }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:30px 22px 26px;display:flex;flex-direction:column;min-height:680px">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+              <div style="width:60px;height:60px;border-radius:18px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center;margin-bottom:26px;box-shadow:0 14px 30px -10px oklch(0.52 0.22 280/0.7)"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div>
+              <h1 style="font-size:30px;line-height:1.12;font-weight:700;letter-spacing:-0.03em;margin:0 0 10px">{{ t.onbTitle }}</h1>
+              <p style="font-size:15px;line-height:1.55;color:oklch(0.5 0.02 265);margin:0 0 26px">{{ t.onbSub }}</p>
+              <label style="font-size:13px;font-weight:600;color:oklch(0.37 0.02 265);margin-bottom:7px">{{ t.onbNameLabel }}</label>
+              <input value="{{ name }}" onInput="{{ onName }}" placeholder="{{ t.onbNamePh }}" style="height:50px;border-radius:13px;border:1.5px solid oklch(0.9 0.005 265);padding:0 16px;font-size:15px;font-family:inherit;outline:none;color:oklch(0.24 0.02 265);margin-bottom:14px" />
+              <button onClick="{{ startApp }}" style="{{ onbContinueStyle }}">{{ t.onbContinue }}</button>
+              <div style="display:flex;align-items:center;gap:12px;margin:20px 0"><div style="flex:1;height:1px;background:oklch(0.92 0.005 265)"></div><span style="font-size:12px;color:oklch(0.6 0.02 265)">{{ t.or }}</span><div style="flex:1;height:1px;background:oklch(0.92 0.005 265)"></div></div>
+              <button onClick="{{ startApp }}" style="height:48px;border-radius:13px;border:1.5px solid oklch(0.9 0.005 265);background:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;font-family:inherit;color:oklch(0.3 0.02 265);cursor:pointer;margin-bottom:10px"><span style="width:18px;height:18px;border-radius:99px;background:conic-gradient(from -45deg,#ea4335,#fbbc05,#34a853,#4285f4,#ea4335);display:inline-block"></span>{{ t.onbGoogle }}</button>
+              <button onClick="{{ startApp }}" style="height:48px;border-radius:13px;border:1.5px solid oklch(0.9 0.005 265);background:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;font-family:inherit;color:oklch(0.3 0.02 265);cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M2 7l10 6 10-6"></path></svg>{{ t.onbEmail }}</button>
+            </div>
+            <p style="text-align:center;font-size:12px;color:oklch(0.6 0.02 265);margin:22px 0 0">{{ t.onbFootnote }}</p>
+          </div>
+        </sc-if>
+
+        <!-- LISTS OVERVIEW -->
+        <sc-if value="{{ scrLists }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 18px 26px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+              <div><div style="font-size:13px;color:oklch(0.55 0.02 265)">{{ t.greeting }}</div><div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">{{ t.yourLists }}</div></div>
+              <div style="width:38px;height:38px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">{{ initial }}</div>
+            </div>
+            <button onClick="{{ goDetail }}" style="width:100%;text-align:left;border:none;cursor:pointer;background:linear-gradient(135deg,oklch(0.52 0.22 280),oklch(0.56 0.2 295));border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 14px 30px -12px oklch(0.52 0.22 280/0.6)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:12px;font-weight:600;color:#fff;background:oklch(1 0 0/0.2);padding:3px 10px;border-radius:99px">{{ t.todayTag }}</span><div style="display:flex"><div style="width:26px;height:26px;border-radius:99px;background:oklch(0.985 0.004 265);color:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid oklch(0.54 0.21 285)">M</div><div style="width:26px;height:26px;border-radius:99px;background:oklch(0.7 0.16 320);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid oklch(0.54 0.21 285);margin-left:-9px">A</div></div></div>
+              <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:3px">{{ t.dailyList }}</div>
+              <div style="font-size:13px;color:oklch(1 0 0/0.8);margin-bottom:12px">{{ dailyMeta }}</div>
+              <div style="height:7px;border-radius:99px;background:oklch(1 0 0/0.25);overflow:hidden"><div style="width:40%;height:100%;border-radius:99px;background:#fff"></div></div>
+            </button>
+            <sc-for list="{{ lists }}" as="ls" hint-placeholder-count="3">
+              <button onClick="{{ goDetail }}" style="width:100%;text-align:left;border:1px solid oklch(0.93 0.005 265);cursor:pointer;background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.05)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <div style="display:flex;align-items:center;gap:10px"><div style="{{ ls.dotStyle }}"></div><span style="font-size:16px;font-weight:600">{{ ls.title }}</span></div>
+                  <div style="{{ ls.badgeStyle }}">{{ ls.badge }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="flex:1;height:6px;border-radius:99px;background:oklch(0.94 0.006 265);overflow:hidden"><div style="{{ ls.fillStyle }}"></div></div>
+                  <span style="font-size:13px;font-weight:600;color:oklch(0.45 0.02 265);min-width:62px;text-align:right">{{ ls.metaText }}</span>
+                </div>
+              </button>
+            </sc-for>
+            <button style="width:100%;height:48px;margin-top:6px;border-radius:14px;border:1.5px dashed oklch(0.84 0.02 280);background:oklch(0.98 0.01 280);color:oklch(0.5 0.2 280);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>{{ t.newList }}</button>
+          </div>
+        </sc-if>
+
+        <!-- LIST DETAIL -->
+        <sc-if value="{{ scrDetail }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:8px 18px 26px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <button onClick="{{ goLists }}" style="width:36px;height:36px;border-radius:10px;border:none;background:oklch(0.96 0.006 265);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(0.35 0.02 265)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
+              <button onClick="{{ openShare }}" style="height:36px;border-radius:10px;border:none;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;gap:7px;padding:0 14px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>{{ t.share }}</button>
+            </div>
+            <h1 style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin:4px 0 6px">{{ t.weddingPlans }}</h1>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <div style="display:flex"><div style="width:26px;height:26px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid oklch(0.985 0.004 265)">M</div><div style="width:26px;height:26px;border-radius:99px;background:oklch(0.6 0.18 300);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid oklch(0.985 0.004 265);margin-left:-9px">A</div></div>
+              <span style="font-size:13px;color:oklch(0.55 0.02 265)">{{ detailMeta }}</span>
+            </div>
+            <div style="{{ detailWrapStyle }}"><div style="height:8px;border-radius:99px;background:oklch(0.94 0.006 265);overflow:hidden;margin-bottom:0"><div style="{{ detailFillStyle }}"></div></div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:18px">
+              <sc-for list="{{ detailTasks }}" as="task" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:14px;padding:12px 12px 12px 8px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.05)">
+                  <span style="cursor:grab;color:oklch(0.78 0.01 265);display:flex;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></span>
+                  <button onClick="{{ task.toggle }}" style="{{ task.boxStyle }}" aria-label="{{ task.title }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ task.checkStyle }}"><path d="M5 13l4 4L19 7"></path></svg></button>
+                  <span style="{{ task.titleStyle }}">{{ task.title }}</span>
+                  <div style="{{ task.avatarStyle }}">{{ task.initials }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid oklch(0.91 0.005 265);border-radius:14px;padding:0 8px 0 14px;height:48px;margin-top:12px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0.02 265)" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              <input onKeyDown="{{ onAddDetail }}" placeholder="{{ t.addTask }}" style="flex:1;border:none;outline:none;background:transparent;font-size:14px;font-family:inherit;height:100%;color:oklch(0.24 0.02 265)" />
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- SHARE / PUBLIC VIEW -->
+        <sc-if value="{{ scrShare }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 18px 26px">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:20px"><div style="width:24px;height:24px;border-radius:7px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div><span style="font-size:15px;font-weight:700">TaskIn</span><span style="margin-left:auto;font-size:12px;font-weight:600;color:oklch(0.5 0.2 280);background:oklch(0.97 0.02 280);padding:4px 10px;border-radius:99px">{{ t.publicTag }}</span></div>
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px"><div style="width:36px;height:36px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600">M</div><div><div style="font-size:14px;font-weight:600">{{ t.sharedBy }}</div><div style="font-size:12px;color:oklch(0.55 0.02 265)">{{ t.sharedWhen }}</div></div></div>
+            <h1 style="font-size:23px;font-weight:700;letter-spacing:-0.02em;margin:14px 0 4px">{{ t.weddingPlans }}</h1>
+            <p style="font-size:14px;color:oklch(0.5 0.02 265);margin:0 0 16px">{{ shareTagline }}</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+              <sc-for list="{{ publicTasks }}" as="task" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:13px;padding:12px 14px">
+                  <div style="{{ task.boxStyle }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ task.checkStyle }}"><path d="M5 13l4 4L19 7"></path></svg></div>
+                  <span style="{{ task.titleStyle }}">{{ task.title }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ joined }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:10px;background:oklch(0.96 0.04 155);border:1px solid oklch(0.85 0.08 155);border-radius:14px;padding:14px;animation:tk-rise 0.3s ease"><span style="width:26px;height:26px;border-radius:99px;background:oklch(0.62 0.17 155);display:flex;align-items:center;justify-content:center;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></span><div><div style="font-size:14px;font-weight:600;color:oklch(0.36 0.12 155)">{{ t.joinedTitle }}</div><div style="font-size:12px;color:oklch(0.45 0.1 155)">{{ t.joinedSub }}</div></div></div>
+            </sc-if>
+            <sc-if value="{{ notJoined }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:16px;padding:16px;box-shadow:0 8px 24px -10px oklch(0.4 0.04 265/0.18)">
+                <div style="font-size:15px;font-weight:600;margin-bottom:3px">{{ t.joinTitle }}</div>
+                <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:12px">{{ t.joinSub }}</div>
+                <div style="display:flex;gap:8px"><input value="{{ joinName }}" onInput="{{ onJoinName }}" placeholder="{{ t.onbNamePh }}" style="flex:1;height:44px;border-radius:11px;border:1.5px solid oklch(0.9 0.005 265);padding:0 14px;font-size:14px;font-family:inherit;outline:none" /><button onClick="{{ doJoin }}" style="{{ joinBtnStyle }}">{{ t.joinCta }}</button></div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ANALYTICS -->
+        <sc-if value="{{ scrAnalytics }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 18px 26px">
+            <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px">{{ t.navAnalytics }}</div>
+            <div style="display:flex;gap:4px;padding:4px;background:oklch(0.96 0.006 265);border-radius:12px;margin-bottom:18px">
+              <button onClick="{{ setDaily }}" style="{{ dailyTabStyle }}">{{ t.daily }}</button>
+              <button onClick="{{ setWeekly }}" style="{{ weeklyTabStyle }}">{{ t.weekly }}</button>
+              <button onClick="{{ setMonthly }}" style="{{ monthlyTabStyle }}">{{ t.monthly }}</button>
+            </div>
+            <div style="background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:18px;padding:20px;margin-bottom:12px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.05)">
+              <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:4px">{{ t.completionRate }}</div>
+              <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:18px"><span style="font-size:52px;font-weight:800;letter-spacing:-0.03em;line-height:0.9;color:oklch(0.52 0.22 280)">{{ rate }}</span><span style="{{ deltaStyle }}">{{ delta }}</span></div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:120px">
+                <sc-for list="{{ bars }}" as="bar" hint-placeholder-count="7">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end">
+                    <div style="{{ bar.style }}"></div>
+                    <span style="font-size:10px;color:oklch(0.6 0.02 265)">{{ bar.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px">
+              <div style="flex:1;background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:16px;padding:16px"><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:oklch(0.6 0.18 300)">{{ streak }}</div><div style="font-size:12px;color:oklch(0.55 0.02 265);margin-top:2px">{{ t.dayStreak }}</div></div>
+              <div style="flex:1;background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:16px;padding:16px"><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">{{ tasksDone }}</div><div style="font-size:12px;color:oklch(0.55 0.02 265);margin-top:2px">{{ t.tasksDone }}</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- TASK ITEM STATES -->
+        <sc-if value="{{ scrStates }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 18px 26px">
+            <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px">{{ t.statesTitle }}</div>
+            <p style="font-size:13px;color:oklch(0.55 0.02 265);margin:0 0 18px">{{ t.statesSub }}</p>
+
+            <div style="font:600 11px ui-monospace,monospace;color:oklch(0.55 0.02 265);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">{{ t.stEmpty }}</div>
+            <div style="text-align:center;padding:22px;background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:16px;margin-bottom:18px"><div style="width:46px;height:46px;border-radius:14px;background:oklch(0.97 0.02 280);display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(0.52 0.22 280)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div><div style="font-size:15px;font-weight:600;margin-bottom:3px">{{ t.emptyHead }}</div><div style="font-size:13px;color:oklch(0.55 0.02 265)">{{ t.emptyBody }}</div></div>
+
+            <div style="font:600 11px ui-monospace,monospace;color:oklch(0.55 0.02 265);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">{{ t.stLoading }}</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+              <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:13px;padding:14px"><div style="width:22px;height:22px;border-radius:7px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.975 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div><div style="flex:1;height:11px;border-radius:99px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.975 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div></div>
+              <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:13px;padding:14px"><div style="width:22px;height:22px;border-radius:7px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.975 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div><div style="width:65%;height:11px;border-radius:99px;background:linear-gradient(90deg,oklch(0.95 0.005 265) 25%,oklch(0.975 0.005 265) 50%,oklch(0.95 0.005 265) 75%);background-size:200% 100%;animation:tk-shimmer 1.4s linear infinite"></div></div>
+            </div>
+
+            <div style="font:600 11px ui-monospace,monospace;color:oklch(0.55 0.02 265);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">{{ t.stDone }}</div>
+            <div style="position:relative;overflow:hidden;background:linear-gradient(135deg,oklch(0.97 0.03 280),oklch(0.97 0.03 300));border:1px solid oklch(0.88 0.06 285);border-radius:16px;padding:18px;margin-bottom:18px;text-align:center">
+              <div style="position:absolute;left:20%;top:8px;width:7px;height:7px;border-radius:2px;background:oklch(0.6 0.18 300);animation:tk-confetti 1.4s ease-in infinite"></div>
+              <div style="position:absolute;left:50%;top:8px;width:6px;height:6px;border-radius:2px;background:oklch(0.52 0.22 280);animation:tk-confetti 1.6s ease-in infinite 0.2s"></div>
+              <div style="position:absolute;left:75%;top:8px;width:7px;height:7px;border-radius:2px;background:oklch(0.62 0.17 155);animation:tk-confetti 1.5s ease-in infinite 0.4s"></div>
+              <div style="width:44px;height:44px;border-radius:99px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;animation:tk-pop 0.5s cubic-bezier(0.34,1.56,0.64,1)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div>
+              <div style="font-size:16px;font-weight:700;color:oklch(0.4 0.18 290)">{{ t.celebrateHead }}</div>
+              <div style="font-size:13px;color:oklch(0.5 0.1 290);margin-top:2px">{{ t.celebrateBody }}</div>
+            </div>
+
+            <div style="font:600 11px ui-monospace,monospace;color:oklch(0.55 0.02 265);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">{{ t.stError }}</div>
+            <div style="display:flex;align-items:center;gap:12px;background:oklch(0.98 0.015 25);border:1px solid oklch(0.88 0.06 25);border-radius:14px;padding:13px 14px"><span style="width:24px;height:24px;border-radius:99px;background:oklch(0.58 0.21 25);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none">!</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:oklch(0.45 0.16 25)">{{ t.errorHead }}</div></div><button style="height:32px;border-radius:9px;border:1px solid oklch(0.7 0.12 25);background:#fff;color:oklch(0.5 0.18 25);font-size:13px;font-weight:600;font-family:inherit;padding:0 12px;cursor:pointer">{{ t.retry }}</button></div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <!-- share bottom sheet (mobile) -->
+    <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeShare }}" style="position:fixed;inset:0;background:oklch(0.3 0.03 265/0.4);z-index:50;display:flex;align-items:flex-end;justify-content:center">
+        <div onClick="{{ stop }}" style="width:100%;max-width:414px;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px 28px;animation:tk-rise 0.28s cubic-bezier(0.2,0,0,1)">
+          <div style="width:38px;height:4px;border-radius:99px;background:oklch(0.9 0.005 265);margin:0 auto 18px"></div>
+          <div style="font-size:18px;font-weight:700;margin-bottom:4px">{{ t.shareSheetTitle }}</div>
+          <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:16px">{{ shareTagline }}</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px"><div style="flex:1;height:46px;border-radius:12px;background:oklch(0.96 0.006 265);border:1px solid oklch(0.92 0.005 265);display:flex;align-items:center;padding:0 14px;font-size:13px;font-family:ui-monospace,monospace;color:oklch(0.4 0.02 265);overflow:hidden;white-space:nowrap">{{ shareLink }}</div><button onClick="{{ copyLink }}" style="{{ copyBtnStyle }}">{{ copyLabel }}</button></div>
+          <div style="display:flex;gap:10px">
+            <button onClick="{{ setCollab }}" style="{{ collabStyle }}"><div style="font-size:14px;font-weight:600">{{ t.collaborate }}</div><div style="font-size:12px;opacity:0.75;margin-top:2px">{{ t.collaborateSub }}</div></button>
+            <button onClick="{{ setReadonly }}" style="{{ readonlyStyle }}"><div style="font-size:14px;font-weight:600">{{ t.readonly }}</div><div style="font-size:12px;opacity:0.75;margin-top:2px">{{ t.readonlySub }}</div></button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ============ DESKTOP ============ -->
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ false }}">
+  <div style="width:100%;max-width:1120px;background:#fff;border:1px solid oklch(0.92 0.005 265);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px -24px oklch(0.4 0.04 265/0.3);display:flex;min-height:640px">
+    <div style="width:230px;flex:none;background:oklch(0.985 0.004 265);border-right:1px solid oklch(0.93 0.005 265);padding:22px 16px;display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:9px;padding:0 10px 18px"><div style="width:28px;height:28px;border-radius:8px;background:oklch(0.52 0.22 280);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></div><span style="font-size:17px;font-weight:700;letter-spacing:-0.02em">TaskIn</span></div>
+      <button onClick="{{ goDetail }}" style="{{ sideToday }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>{{ t.today }}</button>
+      <button onClick="{{ goLists }}" style="{{ sideLists }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H3v10h6zM21 3h-6v18h6zM15 7H9v14h6z"></path></svg>{{ t.lists }}</button>
+      <button onClick="{{ goAnalytics }}" style="{{ sideAnalytics }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 12l-3 3-3-3-3 4"></path></svg>{{ t.navAnalytics }}</button>
+      <button onClick="{{ goShare }}" style="{{ sideShare }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>{{ t.navShare }}</button>
+      <div style="margin-top:auto;display:flex;align-items:center;gap:9px;padding:10px;border-radius:11px;background:oklch(0.97 0.006 265)"><div style="width:32px;height:32px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">{{ initial }}</div><div style="min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ displayName }}</div><div style="font-size:11px;color:oklch(0.55 0.02 265)">{{ t.freePlan }}</div></div></div>
+    </div>
+
+    <div style="flex:1;padding:32px 36px;min-width:0">
+
+      <sc-if value="{{ deskLists }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px"><div><div style="font-size:13px;color:oklch(0.55 0.02 265)">{{ t.greeting }}</div><div style="font-size:28px;font-weight:700;letter-spacing:-0.02em">{{ t.yourLists }}</div></div><button onClick="{{ goDetail }}" style="height:42px;border-radius:12px;border:none;background:oklch(0.52 0.22 280);color:#fff;font-size:14px;font-weight:600;font-family:inherit;padding:0 18px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>{{ t.newList }}</button></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+          <button onClick="{{ goDetail }}" style="text-align:left;border:none;cursor:pointer;background:linear-gradient(135deg,oklch(0.52 0.22 280),oklch(0.56 0.2 295));border-radius:18px;padding:20px;box-shadow:0 14px 30px -14px oklch(0.52 0.22 280/0.6);color:#fff;min-height:150px;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:auto"><span style="font-size:12px;font-weight:600;background:oklch(1 0 0/0.2);padding:3px 10px;border-radius:99px">{{ t.todayTag }}</span></div>
+            <div style="font-size:19px;font-weight:700;margin:14px 0 3px">{{ t.dailyList }}</div>
+            <div style="font-size:13px;color:oklch(1 0 0/0.8);margin-bottom:12px">{{ dailyMeta }}</div>
+            <div style="height:7px;border-radius:99px;background:oklch(1 0 0/0.25);overflow:hidden"><div style="width:40%;height:100%;border-radius:99px;background:#fff"></div></div>
+          </button>
+          <sc-for list="{{ lists }}" as="ls" hint-placeholder-count="3">
+            <button onClick="{{ goDetail }}" style="text-align:left;border:1px solid oklch(0.93 0.005 265);cursor:pointer;background:#fff;border-radius:18px;padding:20px;box-shadow:0 1px 2px oklch(0.45 0.02 265/0.05);min-height:150px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:auto"><div style="{{ ls.dotStyle }}"></div><div style="{{ ls.badgeStyle }}">{{ ls.badge }}</div></div>
+              <div style="font-size:18px;font-weight:600;margin:14px 0 6px">{{ ls.title }}</div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:99px;background:oklch(0.94 0.006 265);overflow:hidden"><div style="{{ ls.fillStyle }}"></div></div><span style="font-size:13px;font-weight:600;color:oklch(0.45 0.02 265)">{{ ls.pctText }}</span></div>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ deskDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:680px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px">
+            <div><h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;margin:0 0 8px">{{ t.weddingPlans }}</h1><div style="display:flex;align-items:center;gap:10px"><div style="display:flex"><div style="width:28px;height:28px;border-radius:99px;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid #fff">M</div><div style="width:28px;height:28px;border-radius:99px;background:oklch(0.6 0.18 300);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid #fff;margin-left:-10px">A</div></div><span style="font-size:13px;color:oklch(0.55 0.02 265)">{{ detailMeta }}</span></div></div>
+            <button onClick="{{ openShare }}" style="height:42px;border-radius:12px;border:none;background:oklch(0.52 0.22 280);color:#fff;display:flex;align-items:center;gap:8px;padding:0 18px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;white-space:nowrap;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>{{ t.share }}</button>
+          </div>
+          <div style="{{ detailWrapStyle }}"><div style="height:8px;border-radius:99px;background:oklch(0.94 0.006 265);overflow:hidden;margin:18px 0 0"><div style="{{ detailFillStyle }}"></div></div></div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:18px">
+            <sc-for list="{{ detailTasks }}" as="task" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:13px;background:#fff;border:1px solid oklch(0.94 0.005 265);border-radius:14px;padding:14px 16px 14px 10px">
+                <span style="cursor:grab;color:oklch(0.78 0.01 265);display:flex;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></span>
+                <button onClick="{{ task.toggle }}" style="{{ task.boxStyle }}" aria-label="{{ task.title }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ task.checkStyle }}"><path d="M5 13l4 4L19 7"></path></svg></button>
+                <span style="{{ task.titleStyle }}">{{ task.title }}</span>
+                <div style="{{ task.avatarStyle }}">{{ task.initials }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ deskAnalytics }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:28px;font-weight:700;letter-spacing:-0.02em;margin-bottom:18px">{{ t.navAnalytics }}</div>
+        <div style="display:inline-flex;gap:4px;padding:4px;background:oklch(0.96 0.006 265);border-radius:12px;margin-bottom:20px">
+          <button onClick="{{ setDaily }}" style="{{ dailyTabStyleW }}">{{ t.daily }}</button>
+          <button onClick="{{ setWeekly }}" style="{{ weeklyTabStyleW }}">{{ t.weekly }}</button>
+          <button onClick="{{ setMonthly }}" style="{{ monthlyTabStyleW }}">{{ t.monthly }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px">
+          <div style="background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:18px;padding:24px">
+            <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:4px">{{ t.completionRate }}</div>
+            <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:24px"><span style="font-size:60px;font-weight:800;letter-spacing:-0.03em;line-height:0.9;color:oklch(0.52 0.22 280)">{{ rate }}</span><span style="{{ deltaStyle }}">{{ delta }}</span></div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;height:160px">
+              <sc-for list="{{ bars }}" as="bar" hint-placeholder-count="7">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end"><div style="{{ bar.styleLg }}"></div><span style="font-size:11px;color:oklch(0.6 0.02 265)">{{ bar.label }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:18px;padding:22px"><div style="font-size:40px;font-weight:800;letter-spacing:-0.02em;color:oklch(0.6 0.18 300)">{{ streak }}</div><div style="font-size:13px;color:oklch(0.55 0.02 265);margin-top:2px">{{ t.dayStreak }}</div></div>
+            <div style="background:#fff;border:1px solid oklch(0.93 0.005 265);border-radius:18px;padding:22px"><div style="font-size:40px;font-weight:800;letter-spacing:-0.02em">{{ tasksDone }}</div><div style="font-size:13px;color:oklch(0.55 0.02 265);margin-top:2px">{{ t.tasksDone }}</div></div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+    <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeShare }}" style="position:fixed;inset:0;background:oklch(0.3 0.03 265/0.4);z-index:50;display:flex;align-items:center;justify-content:center">
+        <div onClick="{{ stop }}" style="width:100%;max-width:420px;background:#fff;border-radius:20px;padding:24px;box-shadow:0 24px 60px -16px oklch(0.4 0.04 265/0.4);animation:tk-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)">
+          <div style="font-size:19px;font-weight:700;margin-bottom:4px">{{ t.shareSheetTitle }}</div>
+          <div style="font-size:13px;color:oklch(0.55 0.02 265);margin-bottom:16px">{{ shareTagline }}</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px"><div style="flex:1;height:46px;border-radius:12px;background:oklch(0.96 0.006 265);border:1px solid oklch(0.92 0.005 265);display:flex;align-items:center;padding:0 14px;font-size:13px;font-family:ui-monospace,monospace;color:oklch(0.4 0.02 265);overflow:hidden;white-space:nowrap">{{ shareLink }}</div><button onClick="{{ copyLink }}" style="{{ copyBtnStyle }}">{{ copyLabel }}</button></div>
+          <div style="display:flex;gap:10px"><button onClick="{{ setCollab }}" style="{{ collabStyle }}"><div style="font-size:14px;font-weight:600">{{ t.collaborate }}</div><div style="font-size:12px;opacity:0.75;margin-top:2px">{{ t.collaborateSub }}</div></button><button onClick="{{ setReadonly }}" style="{{ readonlyStyle }}"><div style="font-size:14px;font-weight:600">{{ t.readonly }}</div><div style="font-size:12px;opacity:0.75;margin-top:2px">{{ t.readonlySub }}</div></button></div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  state = {
+    lang: 'en', view: 'mobile', screen: 'onboarding',
+    name: '', joinName: '', joined: false,
+    shareOpen: false, copied: false, shareMode: 'collab',
+    range: 'weekly',
+    detail: [
+      { id: 1, key: 'venue', done: true, assignee: 'M' },
+      { id: 2, key: 'cake', done: true, assignee: 'A' },
+      { id: 3, key: 'guests', done: false, assignee: 'M' },
+      { id: 4, key: 'invites', done: false, assignee: 'A' },
+      { id: 5, key: 'photographer', done: false, assignee: 'M' },
+    ],
+    publicDone: [true, true, false, false],
+  };
+
+  S = {
+    en: {
+      navOnboarding: 'Start', navLists: 'Lists', navDetail: 'List', navShare: 'Share', navAnalytics: 'Analytics', navStates: 'States',
+      today: 'Today', lists: 'Lists', freePlan: 'Free plan',
+      onbTitle: 'Plan your day, together.', onbSub: 'A calm, shareable to-do list for the two of you — no signup needed to start.',
+      onbNameLabel: 'What should we call you?', onbNamePh: 'Your name', onbContinue: 'Continue', or: 'or',
+      onbGoogle: 'Continue with Google', onbEmail: 'Sign up with email', onbFootnote: 'No account required. Add one later to sync.',
+      greeting: 'Good morning', yourLists: 'Your lists', todayTag: 'Today', dailyList: 'Daily list', newList: 'New list',
+      weddingPlans: 'Wedding plans', share: 'Share', addTask: 'Add a task',
+      publicTag: 'Public', sharedBy: 'Marina shared a list', sharedWhen: 'Updated 2h ago',
+      joinTitle: 'Join to collaborate', joinSub: 'Add your name to check off tasks together.', joinCta: 'Join',
+      joinedTitle: "You're in!", joinedSub: 'You can now check off tasks together.',
+      completionRate: 'Completion rate', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly',
+      dayStreak: 'Day streak', tasksDone: 'Tasks done',
+      statesTitle: 'Task item states', statesSub: 'Every state a task can be in.',
+      stEmpty: 'Empty', stLoading: 'Loading', stDone: 'Completed', stError: 'Error',
+      emptyHead: 'Nothing here yet', emptyBody: 'Add your first task to get started.',
+      celebrateHead: 'List complete!', celebrateBody: 'Every task is done — nicely played.',
+      errorHead: "Couldn't save your task", retry: 'Retry',
+      shareSheetTitle: 'Share this list', collaborate: 'Collaborate', collaborateSub: 'Anyone can edit', readonly: 'Read-only', readonlySub: 'View only',
+      tagline: 'See my wedding steps on TaskIn',
+      tasks: { venue: 'Confirm the venue', cake: 'Choose the wedding cake', guests: 'Finalize the guest list', invites: 'Send the invitations', photographer: 'Book the photographer' },
+    },
+    pt: {
+      navOnboarding: 'Início', navLists: 'Listas', navDetail: 'Lista', navShare: 'Compartilhar', navAnalytics: 'Análises', navStates: 'Estados',
+      today: 'Hoje', lists: 'Listas', freePlan: 'Plano grátis',
+      onbTitle: 'Planejem o dia, juntos.', onbSub: 'Uma lista de tarefas calma e compartilhável para vocês dois — sem cadastro para começar.',
+      onbNameLabel: 'Como podemos te chamar?', onbNamePh: 'Seu nome', onbContinue: 'Continuar', or: 'ou',
+      onbGoogle: 'Continuar com Google', onbEmail: 'Cadastrar com e-mail', onbFootnote: 'Sem conta necessária. Adicione depois para sincronizar.',
+      greeting: 'Bom dia', yourLists: 'Suas listas', todayTag: 'Hoje', dailyList: 'Lista do dia', newList: 'Nova lista',
+      weddingPlans: 'Planos do casamento', share: 'Compartilhar', addTask: 'Adicionar tarefa',
+      publicTag: 'Pública', sharedBy: 'Marina compartilhou uma lista', sharedWhen: 'Atualizada há 2h',
+      joinTitle: 'Entre para colaborar', joinSub: 'Adicione seu nome para concluir tarefas juntos.', joinCta: 'Entrar',
+      joinedTitle: 'Você entrou!', joinedSub: 'Agora podem concluir tarefas juntos.',
+      completionRate: 'Taxa de conclusão', daily: 'Diário', weekly: 'Semanal', monthly: 'Mensal',
+      dayStreak: 'Dias seguidos', tasksDone: 'Tarefas feitas',
+      statesTitle: 'Estados da tarefa', statesSub: 'Todos os estados de uma tarefa.',
+      stEmpty: 'Vazio', stLoading: 'Carregando', stDone: 'Concluída', stError: 'Erro',
+      emptyHead: 'Nada aqui ainda', emptyBody: 'Adicione sua primeira tarefa.',
+      celebrateHead: 'Lista concluída!', celebrateBody: 'Todas as tarefas feitas — muito bem.',
+      errorHead: 'Não foi possível salvar', retry: 'Tentar de novo',
+      shareSheetTitle: 'Compartilhar lista', collaborate: 'Colaborar', collaborateSub: 'Todos podem editar', readonly: 'Somente leitura', readonlySub: 'Apenas ver',
+      tagline: 'Veja os passos do meu casamento no TaskIn',
+      tasks: { venue: 'Confirmar o local', cake: 'Escolher o bolo', guests: 'Finalizar convidados', invites: 'Enviar os convites', photographer: 'Contratar o fotógrafo' },
+    },
+  };
+
+  RANGE = {
+    daily:   { rate: '76%', delta: '+4%', streak: '9', tasks: '7',  bars: [40, 65, 30, 80, 55, 90, 76], labels: ['6a', '9a', '12p', '3p', '6p', '9p', 'Now'] },
+    weekly:  { rate: '82%', delta: '+12%', streak: '9', tasks: '47', bars: [60, 80, 45, 90, 70, 100, 82], labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'] },
+    monthly: { rate: '79%', delta: '+8%', streak: '23', tasks: '186', bars: [70, 85, 78, 82], labels: ['W1', 'W2', 'W3', 'W4'] },
+  };
+
+  toggleDetail(id) { this.setState(s => ({ detail: s.detail.map(t => t.id === id ? { ...t, done: !t.done } : t) })); }
+  go(screen) { this.setState({ screen, shareOpen: false }); }
+
+  renderVals() {
+    const t = this.S[this.state.lang];
+    const isMobile = this.state.view === 'mobile';
+    const isDesktop = this.state.view === 'desktop';
+    const sc = this.state.screen;
+    const name = this.state.name;
+    const displayName = name.trim() || 'Marina';
+    const initial = (displayName[0] || 'M').toUpperCase();
+
+    const navStyle = (on) => 'border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:9px;transition:all 150ms;white-space:nowrap;' +
+      (on ? 'background:oklch(0.52 0.22 280);color:#fff;' : 'background:transparent;color:oklch(0.5 0.02 265);');
+    const seg = (on) => 'flex:1;height:34px;padding:0 14px;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 150ms;white-space:nowrap;' +
+      (on ? 'background:#fff;color:oklch(0.45 0.2 280);box-shadow:0 1px 2px oklch(0.45 0.02 265/0.12);' : 'background:transparent;color:oklch(0.5 0.02 265);');
+    const tog = (on) => 'border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:6px 11px;border-radius:7px;transition:all 150ms;display:flex;align-items:center;' +
+      (on ? 'background:#fff;color:oklch(0.45 0.2 280);box-shadow:0 1px 2px oklch(0.45 0.02 265/0.12);' : 'background:transparent;color:oklch(0.5 0.02 265);');
+    const side = (on) => 'display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;text-align:left;transition:all 150ms;' +
+      (on ? 'background:oklch(0.97 0.02 280);color:oklch(0.42 0.2 280);' : 'background:transparent;color:oklch(0.45 0.02 265);');
+
+    const listsRaw = [
+      { title: t.weddingPlans, pct: 67, badge: 'shared', dot: 'oklch(0.6 0.18 300)', meta: '8/12' },
+      { title: this.state.lang === 'en' ? 'Groceries' : 'Compras', pct: 25, badge: 'owner', dot: 'oklch(0.62 0.17 155)', meta: '2/8' },
+      { title: this.state.lang === 'en' ? 'Honeymoon' : 'Lua de mel', pct: 100, badge: 'shared', dot: 'oklch(0.76 0.15 75)', meta: '5/5' },
+    ];
+    const lists = listsRaw.map(l => ({
+      title: l.title,
+      pctText: l.pct + '%',
+      metaText: l.meta + ' · ' + l.pct + '%',
+      dotStyle: 'width:10px;height:10px;border-radius:99px;flex:none;background:' + l.dot + ';',
+      fillStyle: 'width:' + l.pct + '%;height:100%;border-radius:99px;background:' + (l.pct === 100 ? 'oklch(0.62 0.17 155)' : 'oklch(0.52 0.22 280)') + ';',
+      badge: l.badge === 'shared' ? (this.state.lang === 'en' ? 'Shared' : 'Compart.') : (this.state.lang === 'en' ? 'You' : 'Você'),
+      badgeStyle: l.badge === 'shared'
+        ? 'display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:99px;font-size:11px;font-weight:600;background:oklch(0.97 0.03 300);color:oklch(0.45 0.18 300);'
+        : 'display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:99px;font-size:11px;font-weight:600;background:oklch(0.96 0.006 265);color:oklch(0.5 0.02 265);',
+    }));
+
+    const detailDone = this.state.detail.filter(x => x.done).length;
+    const detailPct = Math.round(detailDone / this.state.detail.length * 100);
+    const detailAll = detailDone === this.state.detail.length;
+    const detailTasks = this.state.detail.map(task => {
+      const d = task.done;
+      return {
+        title: task.custom || t.tasks[task.key] || task.key,
+        initials: task.assignee,
+        boxStyle: 'flex:none;width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background 160ms,border-color 160ms;' +
+          (d ? 'background:oklch(0.52 0.22 280);border:2px solid oklch(0.52 0.22 280);' : 'background:#fff;border:2px solid oklch(0.82 0.01 265);'),
+        checkStyle: 'transition:transform 200ms cubic-bezier(0.34,1.56,0.64,1),opacity 140ms;transform:scale(' + (d ? '1' : '0') + ');opacity:' + (d ? '1' : '0') + ';',
+        titleStyle: 'flex:1;min-width:0;font-size:14px;font-weight:500;transition:color 200ms;' + (d ? 'color:oklch(0.62 0.02 265);text-decoration:line-through;text-decoration-color:oklch(0.78 0.01 265);' : 'color:oklch(0.24 0.02 265);'),
+        avatarStyle: 'flex:none;width:26px;height:26px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;background:' + (task.assignee === 'A' ? 'oklch(0.6 0.18 300)' : 'oklch(0.52 0.22 280)') + ';',
+        toggle: () => this.toggleDetail(task.id),
+      };
+    });
+    const detailFillStyle = 'height:100%;border-radius:99px;width:' + detailPct + '%;transition:width 240ms cubic-bezier(0.34,1.56,0.64,1);background:' +
+      (detailAll ? 'linear-gradient(90deg,oklch(0.52 0.22 280),oklch(0.6 0.18 300));' : 'oklch(0.52 0.22 280);');
+    const detailWrapStyle = detailAll ? 'border-radius:99px;animation:tk-celebrate 0.6s cubic-bezier(0.34,1.56,0.64,1),tk-glow 1.5s ease-out infinite;' : 'border-radius:99px;';
+
+    const publicKeys = ['venue', 'cake', 'guests', 'invites'];
+    const publicTasks = publicKeys.map((k, i) => {
+      const d = this.state.publicDone[i];
+      return {
+        title: t.tasks[k],
+        boxStyle: 'flex:none;width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;' + (d ? 'background:oklch(0.52 0.22 280);border:2px solid oklch(0.52 0.22 280);' : 'background:#fff;border:2px solid oklch(0.85 0.01 265);'),
+        checkStyle: 'transform:scale(' + (d ? '1' : '0') + ');opacity:' + (d ? '1' : '0') + ';',
+        titleStyle: 'font-size:14px;font-weight:500;' + (d ? 'color:oklch(0.62 0.02 265);text-decoration:line-through;' : 'color:oklch(0.24 0.02 265);'),
+      };
+    });
+
+    const r = this.RANGE[this.state.range];
+    const maxBar = Math.max.apply(null, r.bars);
+    const bars = r.bars.map((v, i) => {
+      const hP = Math.round(v / maxBar * 100);
+      const isLast = i === r.bars.length - 1;
+      const col = isLast ? 'linear-gradient(180deg,oklch(0.6 0.18 300),oklch(0.52 0.22 280))' : 'oklch(0.85 0.08 285)';
+      return {
+        label: r.labels[i],
+        style: 'width:100%;max-width:26px;border-radius:7px 7px 3px 3px;transition:height 240ms cubic-bezier(0.34,1.56,0.64,1);height:' + hP + '%;background:' + col + ';',
+        styleLg: 'width:100%;max-width:40px;border-radius:8px 8px 3px 3px;transition:height 240ms cubic-bezier(0.34,1.56,0.64,1);height:' + hP + '%;background:' + col + ';',
+      };
+    });
+
+    return {
+      t, isMobile, isDesktop, initial, displayName,
+      scrOnboarding: sc === 'onboarding', scrLists: sc === 'lists', scrDetail: sc === 'detail',
+      scrShare: sc === 'share', scrAnalytics: sc === 'analytics', scrStates: sc === 'states',
+      deskLists: sc === 'lists' || sc === 'onboarding' || sc === 'states',
+      deskDetail: sc === 'detail' || sc === 'share',
+      deskAnalytics: sc === 'analytics',
+      name, joinName: this.state.joinName,
+      onName: (e) => this.setState({ name: e.target.value }),
+      onJoinName: (e) => this.setState({ joinName: e.target.value }),
+      startApp: () => this.go('lists'),
+      onbContinueStyle: 'height:50px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;color:#fff;transition:all 150ms;background:oklch(0.52 0.22 280);' + (name.trim() ? '' : 'opacity:0.55;'),
+      goOnboarding: () => this.go('onboarding'), goLists: () => this.go('lists'), goDetail: () => this.go('detail'),
+      goShare: () => this.go('share'), goAnalytics: () => this.go('analytics'), goStates: () => this.go('states'),
+      navOnboarding: navStyle(sc === 'onboarding'), navLists: navStyle(sc === 'lists'), navDetail: navStyle(sc === 'detail'),
+      navShare: navStyle(sc === 'share'), navAnalytics: navStyle(sc === 'analytics'), navStates: navStyle(sc === 'states'),
+      sideToday: side(sc === 'detail'), sideLists: side(sc === 'lists' || sc === 'onboarding' || sc === 'states'), sideAnalytics: side(sc === 'analytics'), sideShare: side(sc === 'share'),
+      setEn: () => this.setState({ lang: 'en' }), setPt: () => this.setState({ lang: 'pt' }),
+      enStyle: tog(this.state.lang === 'en'), ptStyle: tog(this.state.lang === 'pt'),
+      setMobile: () => this.setState({ view: 'mobile' }), setDesktop: () => this.setState({ view: 'desktop' }),
+      mobileStyle: tog(isMobile), desktopStyle: tog(isDesktop),
+      lists, dailyMeta: this.state.lang === 'en' ? '2 of 5 done' : '2 de 5 concluídas',
+      detailTasks, detailFillStyle, detailWrapStyle,
+      detailMeta: detailDone + (this.state.lang === 'en' ? ' of ' : ' de ') + this.state.detail.length + (this.state.lang === 'en' ? ' done' : ' concluídas'),
+      onAddDetail: (e) => { if (e.key === 'Enter' && e.target.value.trim()) { const v = e.target.value.trim(); this.setState(s => ({ detail: [...s.detail, { id: Date.now(), key: '_c', done: false, assignee: 'M', custom: v }] })); e.target.value = ''; } },
+      openShare: () => this.setState({ shareOpen: true, copied: false }), closeShare: () => this.setState({ shareOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      shareLink: 'taskin.app/s/wedding-7f3a', shareTagline: '“' + t.tagline + '”',
+      copyLink: () => { this.setState({ copied: true }); clearTimeout(this._ct); this._ct = setTimeout(() => this.setState({ copied: false }), 1600); },
+      copyLabel: this.state.copied ? (this.state.lang === 'en' ? 'Copied' : 'Copiado') : (this.state.lang === 'en' ? 'Copy' : 'Copiar'),
+      copyBtnStyle: 'flex:none;height:46px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;padding:0 18px;transition:all 150ms;' + (this.state.copied ? 'background:oklch(0.62 0.17 155);color:#fff;' : 'background:oklch(0.52 0.22 280);color:#fff;'),
+      setCollab: () => this.setState({ shareMode: 'collab' }), setReadonly: () => this.setState({ shareMode: 'read' }),
+      collabStyle: 'flex:1;text-align:left;padding:13px;border-radius:13px;cursor:pointer;font-family:inherit;transition:all 150ms;' + (this.state.shareMode === 'collab' ? 'border:1.5px solid oklch(0.52 0.22 280);background:oklch(0.98 0.02 280);color:oklch(0.42 0.2 280);' : 'border:1.5px solid oklch(0.92 0.005 265);background:#fff;color:oklch(0.4 0.02 265);'),
+      readonlyStyle: 'flex:1;text-align:left;padding:13px;border-radius:13px;cursor:pointer;font-family:inherit;transition:all 150ms;' + (this.state.shareMode === 'read' ? 'border:1.5px solid oklch(0.52 0.22 280);background:oklch(0.98 0.02 280);color:oklch(0.42 0.2 280);' : 'border:1.5px solid oklch(0.92 0.005 265);background:#fff;color:oklch(0.4 0.02 265);'),
+      publicTasks, joined: this.state.joined, notJoined: !this.state.joined,
+      doJoin: () => this.setState({ joined: true }),
+      joinBtnStyle: 'flex:none;height:44px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:#fff;padding:0 18px;background:oklch(0.52 0.22 280);' + (this.state.joinName.trim() ? '' : 'opacity:0.55;'),
+      setDaily: () => this.setState({ range: 'daily' }), setWeekly: () => this.setState({ range: 'weekly' }), setMonthly: () => this.setState({ range: 'monthly' }),
+      dailyTabStyle: seg(this.state.range === 'daily'), weeklyTabStyle: seg(this.state.range === 'weekly'), monthlyTabStyle: seg(this.state.range === 'monthly'),
+      dailyTabStyleW: seg(this.state.range === 'daily'), weeklyTabStyleW: seg(this.state.range === 'weekly'), monthlyTabStyleW: seg(this.state.range === 'monthly'),
+      rate: r.rate, delta: r.delta, streak: r.streak, tasksDone: r.tasks, bars,
+      deltaStyle: 'font-size:14px;font-weight:600;color:oklch(0.42 0.13 155);padding-bottom:10px;',
+    };
+  }
+}
+</script>
+</body>
+</html>
