@@ -62,5 +62,52 @@ export const openApiDocument = {
         },
       },
     },
+    '/sessions/guest': {
+      post: {
+        summary: 'Start a guest session',
+        operationId: 'createGuestSession',
+        description:
+          'Creates a guest user from a display name and sets a signed HttpOnly session cookie.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['displayName'],
+                properties: {
+                  displayName: { type: 'string', maxLength: 80 },
+                  locale: { type: 'string', example: 'en' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Guest session created.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
+    '/sessions/me': {
+      get: {
+        summary: 'Get the current user',
+        operationId: 'getCurrentUser',
+        responses: {
+          '200': { description: 'Current user.' },
+          '401': { description: 'No active session.' },
+        },
+      },
+    },
+    '/sessions': {
+      delete: {
+        summary: 'Sign out',
+        operationId: 'signOut',
+        description: 'Clears the session cookie.',
+        responses: {
+          '200': { description: 'Signed out.' },
+        },
+      },
+    },
   },
 } as const

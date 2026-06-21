@@ -13,21 +13,22 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.62.11",
     "@taskin/application": "workspace:*",
     "@taskin/domain": "workspace:*",
     "@taskin/i18n": "workspace:*",
     "@taskin/infrastructure": "workspace:*",
     "@taskin/ui": "workspace:*",
-    "@tanstack/react-query": "5.62.11",
     "framer-motion": "11.15.0",
+    "jose": "6.2.3",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zod": "3.24.1"
   },
   "devDependencies": {
-    "@taskin/config": "workspace:*",
     "@tailwindcss/postcss": "4.1.13",
+    "@taskin/config": "workspace:*",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
     "@types/node": "22.10.2",

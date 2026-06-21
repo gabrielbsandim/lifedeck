@@ -12,6 +12,7 @@ export default mergeConfig(
         'src/**/*.types.ts',
         'src/database/prisma-client.ts',
         'src/database/prisma-task-repository.ts',
+        'src/database/prisma-user-repository.ts',
         'src/email/resend-email-sender.ts',
       ],
     }),

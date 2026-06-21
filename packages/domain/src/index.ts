@@ -8,3 +8,4 @@ export {
   type TaskStatus,
 } from '@/value-objects/task-status'
 export { Task, type TaskProps } from '@/entities/task'
+export { User, type UserProps } from '@/entities/user'
