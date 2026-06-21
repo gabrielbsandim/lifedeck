@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { toDomainTask, toTaskRecord, type TaskRecord } from './task-record'
+import {
+  toDomainTask,
+  toTaskRecord,
+  type TaskRecord,
+} from '@/database/task-record'
 
 const RECORD: TaskRecord = {
   id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',

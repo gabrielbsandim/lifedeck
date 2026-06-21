@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { renderEmail } from './render-email'
+import { renderEmail } from '@/email/render-email'
 
 describe('renderEmail', () => {
   it('renders a verification code email', () => {

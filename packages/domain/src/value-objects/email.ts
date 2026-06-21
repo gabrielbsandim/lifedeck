@@ -1,4 +1,4 @@
-import { ValidationError } from '../shared/domain-error'
+import { ValidationError } from '@/shared/domain-error'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

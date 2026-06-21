@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isTaskStatus } from './task-status'
+import { isTaskStatus } from '@/value-objects/task-status'
 
 describe('isTaskStatus', () => {
   it('recognizes valid statuses', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectLocale } from './detect'
+import { detectLocale } from '@/detect'
 
 describe('detectLocale', () => {
   it('falls back when no header is provided', () => {

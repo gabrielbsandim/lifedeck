@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveLocaleFromHeader } from './get-locale'
+import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
 
 describe('resolveLocaleFromHeader', () => {
   it('detects a supported locale from the header', () => {

@@ -24,8 +24,8 @@ Legend: **[x]** done · **[ ]** todo.
 
 ## Phase 1 - Tooling & CI hardening
 
-- [ ] GitHub Actions CI: install, lint, typecheck, coverage, build on PRs.
-- [ ] Wire `eslint-config-next` flat config into `apps/web` (remove plugin warning).
+- [x] GitHub Actions CI: install, lint, typecheck, coverage, build on PRs.
+- [x] Wire `eslint-config-next` flat config into `apps/web` (remove plugin warning).
 - [ ] Add `pnpm audit` + dependency review to CI.
 - [ ] Commitlint + Conventional Commits check.
 - [ ] Vercel project linked; preview deploys on PRs.

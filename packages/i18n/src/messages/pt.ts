@@ -1,4 +1,4 @@
-import type { Messages } from './types'
+import type { Messages } from '@/messages/types'
 
 export const pt: Messages = {
   app: {

@@ -66,9 +66,18 @@ database, the email provider, or even the web framework touches only the
 infrastructure and composition layers - the domain and application code never
 changes.
 
+## Imports & build
+
+Every package builds with **tsup** to `dist/` (ESM + type declarations) and is
+consumed through its package name. Internal modules are imported with the `@/`
+alias (mapped to each package's `src/`), never with `./` or `../`. tsup resolves
+`@/` at build time, so the published `dist/` is fully portable. The Next.js app
+consumes the built packages directly (no `transpilePackages`).
+
 ## Naming conventions
 
 - Files: `kebab-case.ts`; React components: `kebab-case.tsx` exporting `PascalCase`.
+- Imports: `@/...` within a package, `@taskin/<pkg>` across packages.
 - Types and classes: `PascalCase`. Functions and variables: `camelCase`.
 - Use-case factories are named `makeXxx` and return a verb-named function.
 - Prisma models are `PascalCase` singular; tables are `snake_case` plural via `@@map`.

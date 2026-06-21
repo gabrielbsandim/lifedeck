@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { makeCreateTask } from './create-task'
-import { InMemoryTaskRepository } from '../testing/in-memory-task-repository'
-import { FixedClock, ID, SequentialIdGenerator } from '../testing/fakes'
+import { makeCreateTask } from '@/use-cases/create-task'
+import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
 function setup() {
   const tasks = new InMemoryTaskRepository()

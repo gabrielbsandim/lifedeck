@@ -1,5 +1,5 @@
 import type { Task } from '@taskin/domain'
-import type { TaskView } from '../dtos/task-dto'
+import type { TaskView } from '@/dtos/task-dto'
 
 export function toTaskView(task: Task): TaskView {
   const props = task.toJSON()

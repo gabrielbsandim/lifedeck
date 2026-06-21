@@ -1,4 +1,4 @@
-import { ValidationError } from './domain-error'
+import { ValidationError } from '@/shared/domain-error'
 
 export const guard = {
   notEmpty(value: string, field: string): string {

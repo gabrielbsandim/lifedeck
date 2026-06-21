@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { TaskCheckbox } from './task-checkbox'
+import { TaskCheckbox } from '@/components/task-checkbox'
 
 describe('TaskCheckbox', () => {
   it('reflects the checked state through aria', () => {

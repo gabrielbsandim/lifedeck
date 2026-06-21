@@ -1,8 +1,12 @@
-import base from '@taskin/config/eslint/react'
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTs from 'eslint-config-next/typescript'
 
-export default [
-  ...base,
+const config = [
   {
-    ignores: ['.next/**'],
+    ignores: ['.next/**', 'coverage/**', 'node_modules/**'],
   },
+  ...nextVitals,
+  ...nextTs,
 ]
+
+export default config

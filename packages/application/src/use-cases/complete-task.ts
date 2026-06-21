@@ -1,9 +1,9 @@
 import { asEntityId } from '@taskin/domain'
-import type { TaskView } from '../dtos/task-dto'
-import { toTaskView } from '../mappers/task-mapper'
-import { NotFoundError } from '../errors/use-case-error'
-import type { Clock } from '../ports/clock'
-import type { TaskRepository } from '../ports/task-repository'
+import type { TaskView } from '@/dtos/task-dto'
+import { toTaskView } from '@/mappers/task-mapper'
+import { NotFoundError } from '@/errors/use-case-error'
+import type { Clock } from '@/ports/clock'
+import type { TaskRepository } from '@/ports/task-repository'
 
 type Dependencies = {
   tasks: TaskRepository

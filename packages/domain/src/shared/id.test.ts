@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { asEntityId } from './id'
-import { ValidationError } from './domain-error'
+import { asEntityId } from '@/shared/id'
+import { ValidationError } from '@/shared/domain-error'
 
 describe('asEntityId', () => {
   it('accepts a valid UUID', () => {

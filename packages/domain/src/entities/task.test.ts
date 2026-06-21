@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { Task } from './task'
-import { asEntityId } from '../shared/id'
-import { ValidationError } from '../shared/domain-error'
+import { Task } from '@/entities/task'
+import { asEntityId } from '@/shared/id'
+import { ValidationError } from '@/shared/domain-error'
 
 const TASK_ID = asEntityId('3f2504e0-4f89-41d3-9a0c-0305e82c3301')
 const LIST_ID = asEntityId('1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed')

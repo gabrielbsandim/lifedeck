@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { makeCompleteTask } from './complete-task'
-import { makeCreateTask } from './create-task'
-import { NotFoundError } from '../errors/use-case-error'
-import { InMemoryTaskRepository } from '../testing/in-memory-task-repository'
-import { FixedClock, ID, SequentialIdGenerator } from '../testing/fakes'
+import { makeCompleteTask } from '@/use-cases/complete-task'
+import { makeCreateTask } from '@/use-cases/create-task'
+import { NotFoundError } from '@/errors/use-case-error'
+import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
 function setup() {
   const tasks = new InMemoryTaskRepository()

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_LOCALE, isLocale, SUPPORTED_LOCALES } from './locales'
+import { DEFAULT_LOCALE, isLocale, SUPPORTED_LOCALES } from '@/locales'
 
 describe('locales', () => {
   it('exposes a default within the supported set', () => {

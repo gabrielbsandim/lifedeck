@@ -3,11 +3,11 @@ import {
   createTaskSchema,
   type CreateTaskInput,
   type TaskView,
-} from '../dtos/task-dto'
-import { toTaskView } from '../mappers/task-mapper'
-import type { Clock } from '../ports/clock'
-import type { IdGenerator } from '../ports/id-generator'
-import type { TaskRepository } from '../ports/task-repository'
+} from '@/dtos/task-dto'
+import { toTaskView } from '@/mappers/task-mapper'
+import type { Clock } from '@/ports/clock'
+import type { IdGenerator } from '@/ports/id-generator'
+import type { TaskRepository } from '@/ports/task-repository'
 
 type Dependencies = {
   tasks: TaskRepository

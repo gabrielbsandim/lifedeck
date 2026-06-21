@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { getMessages } from '@taskin/i18n'
 import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
-import { Providers } from './providers'
-import './globals.css'
+import { Providers } from '@/app/providers'
+import '@/app/globals.css'
 
 export const metadata: Metadata = {
   title: 'TaskIn',

@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, isLocale, type Locale } from './locales'
+import { DEFAULT_LOCALE, isLocale, type Locale } from '@/locales'
 
 type LanguageEntry = {
   tag: string

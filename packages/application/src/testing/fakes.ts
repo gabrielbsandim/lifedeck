@@ -1,6 +1,6 @@
 import { asEntityId, type EntityId } from '@taskin/domain'
-import type { Clock } from '../ports/clock'
-import type { IdGenerator } from '../ports/id-generator'
+import type { Clock } from '@/ports/clock'
+import type { IdGenerator } from '@/ports/id-generator'
 
 export class FixedClock implements Clock {
   constructor(private readonly value: Date) {}

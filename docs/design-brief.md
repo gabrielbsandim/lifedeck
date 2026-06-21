@@ -8,7 +8,7 @@ can read `@taskin/ui`, `apps/web`, and the docs for context.
 ## Prompt
 
 > You are designing **TaskIn**, a shareable, multilingual to-do web app. The
-> codebase already exists in this repo (Next.js 15 App Router, React 19, Tailwind
+> codebase already exists in this repo (Next.js 16 App Router, React 19, Tailwind
 > CSS v4, a `@taskin/ui` design system, and Framer Motion). Design high-fidelity,
 > responsive screens that I can translate 1:1 into Tailwind + `@taskin/ui`
 > components. Reuse the existing tokens in `packages/ui/src/styles.css` and extend

@@ -1,4 +1,4 @@
-import type { EmailTemplate, RenderedEmail } from './email-message'
+import type { EmailTemplate, RenderedEmail } from '@/email/email-message'
 
 function layout(title: string, body: string): string {
   return `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px"><div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:32px"><h1 style="font-size:20px;margin:0 0 16px">${title}</h1>${body}</div></body></html>`

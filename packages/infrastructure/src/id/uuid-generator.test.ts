@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { UuidGenerator } from './uuid-generator'
+import { UuidGenerator } from '@/id/uuid-generator'
 
 describe('UuidGenerator', () => {
   it('generates distinct valid entity ids', () => {

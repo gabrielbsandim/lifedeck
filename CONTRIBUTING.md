@@ -35,6 +35,9 @@ Keep the subject as the whole message - no body required for small changes.
 ## Code style
 
 - Prettier and ESLint are authoritative; do not hand-format around them.
+- Imports use the `@/` alias for in-package modules (e.g. `@/shared/guard`) and
+  the package name for cross-package imports (e.g. `@taskin/domain`). Do not use
+  `./` or `../` relative paths.
 - `kebab-case` filenames; `PascalCase` types/components; `camelCase` values.
 - Prefer pure functions and explicit dependencies (constructor/parameter
   injection) over hidden singletons.

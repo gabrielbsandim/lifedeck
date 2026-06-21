@@ -1,5 +1,5 @@
 import type { EntityId, Task } from '@taskin/domain'
-import type { TaskRepository } from '../ports/task-repository'
+import type { TaskRepository } from '@/ports/task-repository'
 
 export class InMemoryTaskRepository implements TaskRepository {
   private readonly store = new Map<string, Task>()

@@ -1,6 +1,6 @@
-import { guard } from '../shared/guard'
-import type { EntityId } from '../shared/id'
-import type { TaskStatus } from '../value-objects/task-status'
+import { guard } from '@/shared/guard'
+import type { EntityId } from '@/shared/id'
+import type { TaskStatus } from '@/value-objects/task-status'
 
 const MAX_TITLE_LENGTH = 280
 const MAX_OBSERVATION_LENGTH = 2000

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SystemClock } from './system-clock'
+import { SystemClock } from '@/clock/system-clock'
 
 describe('SystemClock', () => {
   it('returns the current date', () => {

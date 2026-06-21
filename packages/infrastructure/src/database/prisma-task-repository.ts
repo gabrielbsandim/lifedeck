@@ -1,7 +1,7 @@
 import type { EntityId, Task } from '@taskin/domain'
 import type { TaskRepository } from '@taskin/application'
 import type { PrismaClient } from '@prisma/client'
-import { toDomainTask, toTaskRecord } from './task-record'
+import { toDomainTask, toTaskRecord } from '@/database/task-record'
 
 export class PrismaTaskRepository implements TaskRepository {
   constructor(private readonly prisma: PrismaClient) {}

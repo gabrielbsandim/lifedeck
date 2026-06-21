@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
-import type { EmailSender, EmailTemplate } from './email-message'
-import { renderEmail } from './render-email'
+import type { EmailSender, EmailTemplate } from '@/email/email-message'
+import { renderEmail } from '@/email/render-email'
 
 export class ResendEmailSender implements EmailSender {
   private readonly client: Resend

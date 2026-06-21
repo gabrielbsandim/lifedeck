@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ValidationError } from '@taskin/domain'
 import { NotFoundError } from '@taskin/application'
-import { fail, handleError, ok } from './respond'
+import { fail, handleError, ok } from '@/server/api/respond'
 
 describe('respond helpers', () => {
   it('wraps data with the given status', async () => {

@@ -2,10 +2,12 @@
   "extends": "@taskin/config/tsconfig/library.json",
   "compilerOptions": {
     "rootDir": ".",
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
     "noEmit": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "jsx": "react-jsx",
     "types": ["@testing-library/jest-dom"]
   },
-  "include": ["src", "vitest.config.ts", "vitest.setup.ts"]
+  "include": ["src", "vitest.config.ts", "vitest.setup.ts", "tsup.config.ts"]
 }

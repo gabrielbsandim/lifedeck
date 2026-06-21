@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { guard } from './guard'
-import { ValidationError } from './domain-error'
+import { guard } from '@/shared/guard'
+import { ValidationError } from '@/shared/domain-error'
 
 describe('guard.notEmpty', () => {
   it('returns the trimmed value when not empty', () => {

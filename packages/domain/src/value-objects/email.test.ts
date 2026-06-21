@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Email } from './email'
-import { ValidationError } from '../shared/domain-error'
+import { Email } from '@/value-objects/email'
+import { ValidationError } from '@/shared/domain-error'
 
 describe('Email', () => {
   it('normalizes and accepts a valid address', () => {
