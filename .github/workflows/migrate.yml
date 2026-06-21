@@ -1,0 +1,37 @@
+name: Migrate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/infrastructure/prisma/**'
+  workflow_dispatch:
+
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply pending migrations
+        run: pnpm --filter @taskin/infrastructure run db:deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
