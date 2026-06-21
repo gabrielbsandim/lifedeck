@@ -70,6 +70,19 @@ Legend: **[x]** done · **[ ]** todo.
 - [ ] Analytics endpoints + caching.
 - [ ] Analytics screen with charts and big legible numbers.
 
+## Phase 6.5 - AI list generation
+
+See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
+
+- [ ] `ListGenerator` port in the application layer + `GenerationBrief` / `GeneratedPlan` Zod schemas.
+- [ ] `generateList` use case (validate brief -> generate -> validate plan -> draft).
+- [ ] `ClaudeListGenerator` adapter in infrastructure (structured output, prompt caching).
+- [ ] `FakeListGenerator` + unit tests (happy path, clamped output, rejected output).
+- [ ] `POST /api/v1/lists/generate` endpoint + OpenAPI entry; returns an editable draft.
+- [ ] UI: guided questions + description, streamed draft, edit-then-save flow.
+- [ ] Rate limiting + per-plan generation quotas (monetization hook).
+- [ ] Prompt-injection safeguards (user text as data, fixed system prompt).
+
 ## Phase 7 - Polish: design & motion
 
 - [ ] Implement the Claude Design screens in `@taskin/ui`.

@@ -87,6 +87,7 @@ More detail in [docs/getting-started.md](./docs/getting-started.md).
 - [Security](./docs/security.md)
 - [Testing](./docs/testing.md)
 - [Design system](./docs/design-system.md)
+- [AI list generation](./docs/ai-generation.md)
 - [Internationalization](./docs/i18n.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Development plan](./DEVELOPMENT_PLAN.md)
