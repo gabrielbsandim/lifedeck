@@ -13,6 +13,7 @@ export default mergeConfig(
         'src/database/prisma-client.ts',
         'src/database/prisma-task-repository.ts',
         'src/database/prisma-user-repository.ts',
+        'src/database/prisma-list-repository.ts',
         'src/email/resend-email-sender.ts',
       ],
     }),

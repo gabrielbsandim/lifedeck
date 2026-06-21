@@ -109,5 +109,61 @@ export const openApiDocument = {
         },
       },
     },
+    '/lists': {
+      get: {
+        summary: "List the current user's lists",
+        operationId: 'listLists',
+        responses: {
+          '200': { description: 'Lists owned by the current user.' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+      post: {
+        summary: 'Create a list',
+        operationId: 'createList',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['title'],
+                properties: {
+                  title: { type: 'string', maxLength: 120 },
+                  type: { type: 'string', enum: ['daily', 'standalone'] },
+                  visibility: { type: 'string', enum: ['private', 'link'] },
+                  referenceDate: { type: 'string', format: 'date' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'List created.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
+    '/lists/{id}': {
+      get: {
+        summary: 'Get a list by id',
+        operationId: 'getList',
+        description:
+          'Returns the list if owned by the requester or shared by link; otherwise responds 404.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'The requested list.' },
+          '404': { description: 'List not found or not accessible.' },
+        },
+      },
+    },
   },
 } as const

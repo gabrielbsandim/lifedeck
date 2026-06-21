@@ -3,6 +3,7 @@ export { UuidGenerator } from '@/id/uuid-generator'
 export { prisma } from '@/database/prisma-client'
 export { PrismaTaskRepository } from '@/database/prisma-task-repository'
 export { PrismaUserRepository } from '@/database/prisma-user-repository'
+export { PrismaListRepository } from '@/database/prisma-list-repository'
 export {
   toDomainTask,
   toTaskRecord,
@@ -13,6 +14,11 @@ export {
   toUserRecord,
   type UserRecord,
 } from '@/database/user-record'
+export {
+  toDomainList,
+  toListRecord,
+  type ListRecord,
+} from '@/database/list-record'
 export { renderEmail } from '@/email/render-email'
 export {
   type EmailSender,

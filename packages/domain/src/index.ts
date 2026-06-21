@@ -7,5 +7,16 @@ export {
   isTaskStatus,
   type TaskStatus,
 } from '@/value-objects/task-status'
+export {
+  LIST_TYPES,
+  isListType,
+  type ListType,
+} from '@/value-objects/list-type'
+export {
+  VISIBILITIES,
+  isVisibility,
+  type Visibility,
+} from '@/value-objects/visibility'
 export { Task, type TaskProps } from '@/entities/task'
 export { User, type UserProps } from '@/entities/user'
+export { List, type ListProps } from '@/entities/list'

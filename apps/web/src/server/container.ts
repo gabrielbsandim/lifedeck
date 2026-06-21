@@ -1,12 +1,17 @@
 import {
   makeCompleteTask,
   makeCreateGuestUser,
+  makeCreateList,
   makeCreateTask,
+  makeGetList,
   makeGetUser,
+  makeListUserLists,
+  type ListRepository,
   type TaskRepository,
   type UserRepository,
 } from '@taskin/application'
 import {
+  PrismaListRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
   SystemClock,
@@ -19,9 +24,18 @@ type Container = {
   completeTask: ReturnType<typeof makeCompleteTask>
   createGuestUser: ReturnType<typeof makeCreateGuestUser>
   getUser: ReturnType<typeof makeGetUser>
+  createList: ReturnType<typeof makeCreateList>
+  getList: ReturnType<typeof makeGetList>
+  listUserLists: ReturnType<typeof makeListUserLists>
 }
 
-function build(tasks: TaskRepository, users: UserRepository): Container {
+type Repositories = {
+  tasks: TaskRepository
+  users: UserRepository
+  lists: ListRepository
+}
+
+function build({ tasks, users, lists }: Repositories): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
   return {
@@ -29,6 +43,9 @@ function build(tasks: TaskRepository, users: UserRepository): Container {
     completeTask: makeCompleteTask({ tasks, clock }),
     createGuestUser: makeCreateGuestUser({ users, ids, clock }),
     getUser: makeGetUser({ users }),
+    createList: makeCreateList({ lists, ids, clock }),
+    getList: makeGetList({ lists }),
+    listUserLists: makeListUserLists({ lists }),
   }
 }
 
@@ -36,10 +53,11 @@ let container: Container | null = null
 
 export function getContainer(): Container {
   if (!container) {
-    container = build(
-      new PrismaTaskRepository(prisma),
-      new PrismaUserRepository(prisma),
-    )
+    container = build({
+      tasks: new PrismaTaskRepository(prisma),
+      users: new PrismaUserRepository(prisma),
+      lists: new PrismaListRepository(prisma),
+    })
   }
   return container
 }
