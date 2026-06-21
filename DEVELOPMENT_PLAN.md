@@ -123,6 +123,18 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 - [ ] SEO/meta, social share cards, favicon, PWA manifest.
 - [ ] Production launch on Vercel + Neon.
 
+## Phase 13 - Mobile app (Expo) - future
+
+Not started until the web product is mature and validated. The clean
+architecture already positions for this (see
+[docs/architecture.md](./docs/architecture.md), "Clients").
+
+- [ ] `apps/mobile` with Expo / React Native (iOS + Android).
+- [ ] Reuse `@taskin/domain`, `@taskin/application`, `@taskin/i18n` unchanged.
+- [ ] `@taskin/ui-native` design system mirroring the web tokens.
+- [ ] Bearer-token auth flow against `/api/v1` (no cookies on mobile).
+- [ ] Store submission (App Store + Play Store), OTA updates.
+
 ---
 
 ### Working agreement

@@ -58,6 +58,24 @@ thin: parse the request, call a use case, map errors to HTTP.
 - `@taskin/i18n` - locale detection and message catalogs.
 - `@taskin/config` - shared tsconfig, ESLint, and Vitest presets.
 
+## Clients (web today, mobile later)
+
+Business logic lives in framework-agnostic packages, not in the web app, so a
+future mobile client reuses it without a rewrite. This is a deliberate
+positioning decision; the mobile app itself is **not** planned until the web
+product is mature (see [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md), Phase 13).
+
+| Layer | Web | Mobile (future) |
+| ----- | --- | --------------- |
+| `@taskin/domain`, `@taskin/application` | shared | shared (pure TypeScript, no DOM) |
+| `@taskin/i18n` | shared | shared |
+| REST API `/api/v1` | consumed | consumed (same OpenAPI contract) |
+| `@taskin/ui` | yes (Tailwind + DOM) | no - a separate `@taskin/ui-native` would own React Native UI |
+
+Planned direction for the mobile client is **Expo / React Native** (iOS +
+Android), consuming the same API and the shared logic packages. The only
+platform-specific work is the UI layer.
+
 ## Dependency rule in practice
 
 A use case depends on a `TaskRepository` interface, not on Prisma. Tests inject

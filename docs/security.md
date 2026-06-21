@@ -19,8 +19,11 @@ Security is a first-class requirement, not a later hardening pass.
 - **Guest:** a display name creates a guest user. No credentials, scoped session.
 - **Registered:** email + password with an email verification code, or Google
   OAuth. Passwords are hashed with a memory-hard algorithm (Argon2id).
-- **Sessions:** signed JWT stored in an `HttpOnly`, `Secure`, `SameSite=Lax`
-  cookie. Tokens are short-lived and refreshed server-side.
+- **Sessions (web):** signed JWT stored in an `HttpOnly`, `Secure`,
+  `SameSite=Lax` cookie. Tokens are short-lived and refreshed server-side.
+- **Sessions (non-web clients):** the white-label API and a future mobile app
+  authenticate with a `Bearer` token instead of a cookie. The token issuance and
+  validation share the same signing layer; only the transport differs.
 
 ## Authorization
 
