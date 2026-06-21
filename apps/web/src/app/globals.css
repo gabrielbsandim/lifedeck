@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+@source '../../../../packages/ui/src/**/*.{ts,tsx}';
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: radial-gradient(
+      60rem 60rem at 110% -10%,
+      oklch(0.95 0.05 280),
+      transparent
+    ),
+    #f8fafc;
+  min-height: 100dvh;
+}

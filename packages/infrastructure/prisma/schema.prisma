@@ -1,0 +1,124 @@
+// TaskIn data model.
+// Conventions: Prisma models are PascalCase singular; database tables are
+// snake_case plural via @@map; fields are camelCase mapped to snake_case.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ListType {
+  daily
+  standalone
+
+  @@map("list_type")
+}
+
+enum TaskStatus {
+  pending
+  completed
+
+  @@map("task_status")
+}
+
+enum MemberRole {
+  owner
+  editor
+  viewer
+
+  @@map("member_role")
+}
+
+enum Visibility {
+  private
+  link
+
+  @@map("visibility")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  displayName   String    @map("display_name")
+  email         String?   @unique
+  passwordHash  String?   @map("password_hash")
+  emailVerified DateTime? @map("email_verified")
+  isGuest       Boolean   @default(true) @map("is_guest")
+  locale        String    @default("en")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  ownedLists  List[]         @relation("ListOwner")
+  memberships ListMember[]
+  assignedTo  Task[]         @relation("TaskAssignee")
+
+  @@map("users")
+}
+
+model List {
+  id         String     @id @default(uuid())
+  ownerId    String     @map("owner_id")
+  title      String
+  type       ListType   @default(standalone)
+  visibility Visibility @default(private)
+  referenceDate DateTime? @map("reference_date") @db.Date
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  owner   User         @relation("ListOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+  members ListMember[]
+  shares  ShareLink[]
+
+  @@index([ownerId])
+  @@map("lists")
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  listId      String     @map("list_id")
+  title       String
+  status      TaskStatus @default(pending)
+  observation String?
+  assigneeId  String?    @map("assignee_id")
+  position    Int        @default(0)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  completedAt DateTime?  @map("completed_at")
+
+  list     List  @relation(fields: [listId], references: [id], onDelete: Cascade)
+  assignee User? @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([listId])
+  @@map("tasks")
+}
+
+model ListMember {
+  id      String     @id @default(uuid())
+  listId  String     @map("list_id")
+  userId  String     @map("user_id")
+  role    MemberRole @default(viewer)
+  addedAt DateTime   @default(now()) @map("added_at")
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, userId])
+  @@map("list_members")
+}
+
+model ShareLink {
+  id        String   @id @default(uuid())
+  listId    String   @map("list_id")
+  token     String   @unique
+  role      MemberRole @default(viewer)
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@index([listId])
+  @@map("share_links")
+}
