@@ -9,6 +9,7 @@ export type TaskRecord = {
   assigneeId: string | null
   recurringTaskId: string | null
   isPrivate: boolean
+  position: number
   createdAt: Date
   completedAt: Date | null
 }
@@ -25,6 +26,7 @@ export function toDomainTask(record: TaskRecord): Task {
       ? asEntityId(record.recurringTaskId)
       : null,
     isPrivate: record.isPrivate,
+    position: record.position,
     createdAt: record.createdAt,
     completedAt: record.completedAt,
   })
@@ -41,6 +43,7 @@ export function toTaskRecord(task: Task): TaskRecord {
     assigneeId: props.assigneeId,
     recurringTaskId: props.recurringTaskId,
     isPrivate: props.isPrivate,
+    position: props.position,
     createdAt: props.createdAt,
     completedAt: props.completedAt,
   }

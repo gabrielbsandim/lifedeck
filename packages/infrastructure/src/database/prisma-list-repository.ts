@@ -26,6 +26,10 @@ export class PrismaListRepository implements ListRepository {
     return record ? toDomainList(record) : null
   }
 
+  async delete(id: EntityId): Promise<void> {
+    await this.prisma.list.delete({ where: { id } })
+  }
+
   async listByOwner(ownerId: EntityId): Promise<List[]> {
     const records = await this.prisma.list.findMany({
       where: { ownerId },
