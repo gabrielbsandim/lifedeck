@@ -20,6 +20,7 @@ export default mergeConfig(
         'src/database/prisma-email-verification-repository.ts',
         'src/database/prisma-analytics-repository.ts',
         'src/database/prisma-notification-repository.ts',
+        'src/database/prisma-api-key-repository.ts',
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',

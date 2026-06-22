@@ -93,6 +93,17 @@ export {
   type NotificationListView,
 } from '@/dtos/notification-dto'
 export { toNotificationView } from '@/mappers/notification-mapper'
+export type { ApiKeyRepository } from '@/ports/api-key-repository'
+export type { KeyHasher } from '@/ports/key-hasher'
+export {
+  createApiKeySchema,
+  apiKeyViewSchema,
+  createdApiKeyViewSchema,
+  type CreateApiKeyInput,
+  type ApiKeyView,
+  type CreatedApiKeyView,
+} from '@/dtos/api-key-dto'
+export { toApiKeyView } from '@/mappers/api-key-mapper'
 export { analyticsViewSchema, type AnalyticsView } from '@/dtos/analytics-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
@@ -146,10 +157,19 @@ export {
   makeMarkNotificationRead,
   makeMarkAllNotificationsRead,
 } from '@/use-cases/mark-notifications-read'
+export { makeCreateApiKey } from '@/use-cases/create-api-key'
+export { makeListApiKeys } from '@/use-cases/list-api-keys'
+export { makeRevokeApiKey } from '@/use-cases/revoke-api-key'
+export {
+  makeAuthenticateApiKey,
+  type ApiKeyPrincipal,
+} from '@/use-cases/authenticate-api-key'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-verification-repository'
 export { FakePasswordHasher } from '@/testing/fake-password-hasher'
+export { FakeKeyHasher } from '@/testing/fake-key-hasher'
+export { InMemoryApiKeyRepository } from '@/testing/in-memory-api-key-repository'
 export { FakeEmailSender } from '@/testing/fake-email-sender'
 export { FakeCodeGenerator } from '@/testing/fake-code-generator'
 export { FakeOAuthProvider } from '@/testing/fake-oauth-provider'

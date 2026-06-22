@@ -43,3 +43,13 @@ export {
   type EmailVerificationProps,
 } from '@/entities/email-verification'
 export { Notification, type NotificationProps } from '@/entities/notification'
+export {
+  API_SCOPES,
+  isApiScope,
+  type ApiScope,
+} from '@/value-objects/api-scope'
+export {
+  ApiKey,
+  API_KEY_NAME_MAX_LENGTH,
+  type ApiKeyProps,
+} from '@/entities/api-key'

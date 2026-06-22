@@ -1,19 +1,22 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { PrismaClient } from '@prisma/client'
-import { List, Task, User, asEntityId } from '@taskin/domain'
+import { ApiKey, List, Task, User, asEntityId } from '@taskin/domain'
 import { PrismaListRepository } from '@/database/prisma-list-repository'
 import { PrismaTaskRepository } from '@/database/prisma-task-repository'
 import { PrismaUserRepository } from '@/database/prisma-user-repository'
+import { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
 
 const prisma = new PrismaClient()
 const users = new PrismaUserRepository(prisma)
 const lists = new PrismaListRepository(prisma)
 const tasks = new PrismaTaskRepository(prisma)
+const apiKeys = new PrismaApiKeyRepository(prisma)
 
 const USER = asEntityId('1a000000-0000-4000-8000-0000000000a1')
 const LIST_A = asEntityId('1a000000-0000-4000-8000-0000000000b1')
 const LIST_B = asEntityId('1a000000-0000-4000-8000-0000000000b2')
 const TASK = asEntityId('1a000000-0000-4000-8000-0000000000c1')
+const API_KEY = asEntityId('1a000000-0000-4000-8000-0000000000d1')
 const NOW = new Date('2026-06-22T10:00:00.000Z')
 
 function standalone(id: typeof LIST_A, title: string): List {
@@ -91,6 +94,25 @@ describe('Prisma repositories (integration)', () => {
 
     const byEmail = await users.findByEmail('integration@taskin.app')
     expect(byEmail?.id).toBe(USER)
+  })
+
+  it('looks up an api key by its secret hash', async () => {
+    await apiKeys.save(
+      ApiKey.create({
+        id: API_KEY,
+        userId: USER,
+        name: 'Integration key',
+        prefix: 'tk_live_intg',
+        hashedSecret: 'integration-secret-hash',
+        scopes: ['tasks:read'],
+        expiresAt: null,
+        createdAt: NOW,
+      }),
+    )
+    const found = await apiKeys.findBySecretHash('integration-secret-hash')
+    expect(found?.id).toBe(API_KEY)
+    expect(found?.scopes).toEqual(['tasks:read'])
+    expect(await apiKeys.listByUser(USER)).toHaveLength(1)
   })
 
   it('cascades task deletion when a list is deleted', async () => {

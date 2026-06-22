@@ -10,8 +10,10 @@ export { PrismaMembershipRepository } from '@/database/prisma-membership-reposit
 export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verification-repository'
 export { PrismaAnalyticsRepository } from '@/database/prisma-analytics-repository'
 export { PrismaNotificationRepository } from '@/database/prisma-notification-repository'
+export { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
 export { ScryptPasswordHasher } from '@/security/scrypt-password-hasher'
+export { Sha256KeyHasher } from '@/security/sha256-key-hasher'
 export { NumericCodeGenerator } from '@/security/numeric-code-generator'
 export {
   GoogleOAuthProvider,
@@ -63,3 +65,8 @@ export {
   toNotificationRecord,
   type NotificationRecord,
 } from '@/database/notification-record'
+export {
+  toDomainApiKey,
+  toApiKeyRecord,
+  type ApiKeyRecord,
+} from '@/database/api-key-record'
