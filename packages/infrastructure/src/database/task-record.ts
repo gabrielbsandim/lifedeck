@@ -7,6 +7,7 @@ export type TaskRecord = {
   status: 'pending' | 'completed'
   observation: string | null
   assigneeId: string | null
+  recurringTaskId: string | null
   createdAt: Date
   completedAt: Date | null
 }
@@ -19,6 +20,9 @@ export function toDomainTask(record: TaskRecord): Task {
     status: record.status,
     observation: record.observation,
     assigneeId: record.assigneeId ? asEntityId(record.assigneeId) : null,
+    recurringTaskId: record.recurringTaskId
+      ? asEntityId(record.recurringTaskId)
+      : null,
     createdAt: record.createdAt,
     completedAt: record.completedAt,
   })
@@ -33,6 +37,7 @@ export function toTaskRecord(task: Task): TaskRecord {
     status: props.status,
     observation: props.observation,
     assigneeId: props.assigneeId,
+    recurringTaskId: props.recurringTaskId,
     createdAt: props.createdAt,
     completedAt: props.completedAt,
   }

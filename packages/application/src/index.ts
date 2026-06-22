@@ -3,6 +3,7 @@ export type { IdGenerator } from '@/ports/id-generator'
 export type { TaskRepository } from '@/ports/task-repository'
 export type { UserRepository } from '@/ports/user-repository'
 export type { ListRepository } from '@/ports/list-repository'
+export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -39,3 +40,4 @@ export { makeGetDailyList } from '@/use-cases/get-daily-list'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
+export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'

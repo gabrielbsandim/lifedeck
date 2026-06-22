@@ -22,6 +22,7 @@ export const taskViewSchema = z.object({
   status: z.enum(['pending', 'completed']),
   observation: z.string().nullable(),
   assigneeId: z.string().uuid().nullable(),
+  recurringTaskId: z.string().uuid().nullable(),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
 })

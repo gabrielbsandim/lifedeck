@@ -12,6 +12,7 @@ export type TaskProps = {
   status: TaskStatus
   observation: string | null
   assigneeId: EntityId | null
+  recurringTaskId: EntityId | null
   createdAt: Date
   completedAt: Date | null
 }
@@ -24,6 +25,7 @@ export class Task {
     listId: EntityId
     title: string
     createdAt: Date
+    recurringTaskId?: EntityId | null
   }): Task {
     const title = guard.maxLength(
       guard.notEmpty(input.title, 'Task title'),
@@ -38,6 +40,7 @@ export class Task {
       status: 'pending',
       observation: null,
       assigneeId: null,
+      recurringTaskId: input.recurringTaskId ?? null,
       createdAt: input.createdAt,
       completedAt: null,
     })

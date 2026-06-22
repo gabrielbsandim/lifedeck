@@ -4,6 +4,7 @@ export { prisma } from '@/database/prisma-client'
 export { PrismaTaskRepository } from '@/database/prisma-task-repository'
 export { PrismaUserRepository } from '@/database/prisma-user-repository'
 export { PrismaListRepository } from '@/database/prisma-list-repository'
+export { PrismaRecurringTaskRepository } from '@/database/prisma-recurring-task-repository'
 export {
   toDomainTask,
   toTaskRecord,
@@ -19,6 +20,11 @@ export {
   toListRecord,
   type ListRecord,
 } from '@/database/list-record'
+export {
+  toDomainRecurringTask,
+  toRecurringTaskRecord,
+  type RecurringTaskRecord,
+} from '@/database/recurring-task-record'
 export { renderEmail } from '@/email/render-email'
 export {
   type EmailSender,

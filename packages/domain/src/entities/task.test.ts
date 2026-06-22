@@ -20,12 +20,24 @@ describe('Task.create', () => {
     expect(task.toJSON()).toMatchObject({
       observation: null,
       assigneeId: null,
+      recurringTaskId: null,
       completedAt: null,
     })
   })
 
   it('trims the title', () => {
     expect(makeTask('  Walk the dog ').toJSON().title).toBe('Walk the dog')
+  })
+
+  it('links to a recurring task definition when provided', () => {
+    const task = Task.create({
+      id: TASK_ID,
+      listId: LIST_ID,
+      title: 'Drink water',
+      createdAt: NOW,
+      recurringTaskId: MEMBER_ID,
+    })
+    expect(task.toJSON().recurringTaskId).toBe(MEMBER_ID)
   })
 
   it('rejects an empty title', () => {
@@ -98,6 +110,7 @@ describe('Task.restore', () => {
       status: 'completed',
       observation: 'note',
       assigneeId: MEMBER_ID,
+      recurringTaskId: null,
       createdAt: NOW,
       completedAt: NOW,
     })

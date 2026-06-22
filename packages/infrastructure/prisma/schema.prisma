@@ -52,9 +52,10 @@ model User {
   locale        String    @default("en")
   createdAt     DateTime  @default(now()) @map("created_at")
 
-  ownedLists  List[]         @relation("ListOwner")
-  memberships ListMember[]
-  assignedTo  Task[]         @relation("TaskAssignee")
+  ownedLists     List[]          @relation("ListOwner")
+  memberships    ListMember[]
+  assignedTo     Task[]          @relation("TaskAssignee")
+  recurringTasks RecurringTask[] @relation("RecurringTaskOwner")
 
   @@map("users")
 }
@@ -79,21 +80,38 @@ model List {
 }
 
 model Task {
-  id          String     @id @default(uuid())
-  listId      String     @map("list_id")
-  title       String
-  status      TaskStatus @default(pending)
-  observation String?
-  assigneeId  String?    @map("assignee_id")
-  position    Int        @default(0)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  completedAt DateTime?  @map("completed_at")
+  id              String     @id @default(uuid())
+  listId          String     @map("list_id")
+  title           String
+  status          TaskStatus @default(pending)
+  observation     String?
+  assigneeId      String?    @map("assignee_id")
+  recurringTaskId String?    @map("recurring_task_id")
+  position        Int        @default(0)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  completedAt     DateTime?  @map("completed_at")
 
-  list     List  @relation(fields: [listId], references: [id], onDelete: Cascade)
-  assignee User? @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  list      List           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  assignee  User?          @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  recurring RecurringTask? @relation(fields: [recurringTaskId], references: [id], onDelete: SetNull)
 
   @@index([listId])
+  @@index([recurringTaskId])
   @@map("tasks")
+}
+
+model RecurringTask {
+  id        String   @id @default(uuid())
+  ownerId   String   @map("owner_id")
+  title     String
+  rule      Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner User   @relation("RecurringTaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@index([ownerId])
+  @@map("recurring_tasks")
 }
 
 model ListMember {
