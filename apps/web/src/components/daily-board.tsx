@@ -22,6 +22,7 @@ import { useMembers } from '@/lib/api/use-share'
 import { useSession } from '@/lib/api/use-session'
 import { ShareDialog } from '@/components/share-dialog'
 import { DailyTaskRow } from '@/components/daily-task-row'
+import { AccountMenu } from '@/components/account-menu'
 
 function formatDate(date: string, locale: string): string {
   const parsed = new Date(`${date}T00:00:00.000Z`)
@@ -98,9 +99,12 @@ export function DailyBoard({ date }: { date: string }) {
   return (
     <section className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <p className="text-brand-600 text-sm font-medium">
-          {messages.app.name}
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-brand-600 text-sm font-medium">
+            {messages.app.name}
+          </p>
+          <AccountMenu />
+        </div>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {messages.app.tagline}
         </h1>

@@ -4,10 +4,12 @@ import { useState, type FormEvent } from 'react'
 import { Button, Card, TextField } from '@taskin/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateGuest } from '@/lib/api/use-session'
+import { AuthDialog } from '@/components/auth-dialog'
 
 export function OnboardingCard() {
   const { messages, locale } = useI18n()
   const [name, setName] = useState('')
+  const [signInOpen, setSignInOpen] = useState(false)
   const createGuest = useCreateGuest()
 
   function handleSubmit(event: FormEvent) {
@@ -48,6 +50,20 @@ export function OnboardingCard() {
           <p className="text-danger text-sm">{messages.common.error}</p>
         )}
       </form>
+
+      <button
+        type="button"
+        onClick={() => setSignInOpen(true)}
+        className="text-brand-600 hover:text-brand-700 mt-4 text-sm font-medium"
+      >
+        {messages.auth.haveAccount}
+      </button>
+
+      <AuthDialog
+        open={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        initialMode="signin"
+      />
     </Card>
   )
 }

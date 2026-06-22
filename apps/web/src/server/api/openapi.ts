@@ -154,6 +154,174 @@ export const openApiDocument = {
         },
       },
     },
+    '/auth/register': {
+      post: {
+        summary: 'Upgrade a guest to an email account',
+        operationId: 'registerWithEmail',
+        description:
+          'Sets an email and password on the current guest and emails a verification code.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'password'],
+                properties: {
+                  email: { type: 'string', format: 'email' },
+                  password: { type: 'string', minLength: 8 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Account registered; verification code sent.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
+    '/auth/verify': {
+      post: {
+        summary: 'Verify the account email',
+        operationId: 'verifyEmail',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['code'],
+                properties: { code: { type: 'string', example: '123456' } },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Email verified.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Invalid or expired code.' },
+        },
+      },
+    },
+    '/auth/resend-code': {
+      post: {
+        summary: 'Resend the verification code',
+        operationId: 'resendVerificationCode',
+        responses: {
+          '200': { description: 'A new code was sent.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Nothing to verify.' },
+        },
+      },
+    },
+    '/auth/sign-in': {
+      post: {
+        summary: 'Sign in with email and password',
+        operationId: 'signInWithEmail',
+        description: 'Verifies credentials and sets a session cookie.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'password'],
+                properties: {
+                  email: { type: 'string', format: 'email' },
+                  password: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Signed in.' },
+          '422': { description: 'Invalid email or password.' },
+        },
+      },
+    },
+    '/auth/google': {
+      get: {
+        summary: 'Start Google sign-in',
+        operationId: 'startGoogleSignIn',
+        description: 'Redirects to Google with a CSRF state cookie.',
+        responses: {
+          '302': { description: 'Redirect to Google consent.' },
+        },
+      },
+    },
+    '/auth/google/callback': {
+      get: {
+        summary: 'Google sign-in callback',
+        operationId: 'googleSignInCallback',
+        description:
+          'Exchanges the code, signs the user in, and redirects home.',
+        responses: {
+          '302': { description: 'Redirect home with a session cookie.' },
+        },
+      },
+    },
+    '/account': {
+      patch: {
+        summary: 'Rename the current user',
+        operationId: 'renameUser',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['displayName'],
+                properties: { displayName: { type: 'string', maxLength: 80 } },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'User renamed.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+      delete: {
+        summary: 'Delete the current account',
+        operationId: 'deleteAccount',
+        description:
+          'Deletes the user and all owned data, then clears the cookie.',
+        responses: {
+          '200': { description: 'Account deleted.' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+    },
+    '/account/password': {
+      patch: {
+        summary: 'Change the account password',
+        operationId: 'changePassword',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['currentPassword', 'newPassword'],
+                properties: {
+                  currentPassword: { type: 'string' },
+                  newPassword: { type: 'string', minLength: 8 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Password changed.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
     '/lists': {
       get: {
         summary: "List the current user's lists",
