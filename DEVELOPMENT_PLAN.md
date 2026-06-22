@@ -26,8 +26,8 @@ Legend: **[x]** done · **[ ]** todo.
 
 - [x] GitHub Actions CI: install, lint, typecheck, coverage, build on PRs.
 - [x] Wire `eslint-config-next` flat config into `apps/web` (remove plugin warning).
-- [ ] Add `pnpm audit` + dependency review to CI.
-- [ ] Commitlint + Conventional Commits check.
+- [x] Add `pnpm audit` (prod / high) + dependency review to CI.
+- [x] Commitlint + Conventional Commits check (commit-msg hook + CI on PRs).
 - [x] Vercel project linked and deployed (preview-on-PR not yet confirmed).
 - [x] Neon database provisioned; `DATABASE_URL` set in Vercel + GitHub Secrets.
 
@@ -36,11 +36,12 @@ Legend: **[x]** done · **[ ]** todo.
 - [x] Finalize Prisma schema for v1 (users, lists, tasks, members, share links,
       recurring tasks, email verifications).
 - [x] First migration (`0_init` … `3_email_verifications`, applied via CI).
-- [ ] Seed script.
+- [x] Seed script (`prisma db seed`, idempotent demo data).
 - [x] Repository implementations: `ListRepository`, `UserRepository`,
       `MembershipRepository`, `ShareLinkRepository` (+ recurring, email
       verification, analytics).
-- [ ] Integration tests against a Neon branch (covered separately from unit gate).
+- [x] Integration tests against a real Postgres (CI service container; runs
+      separately from the unit coverage gate).
 
 ## Phase 3 - Identity (no-account-first)
 
