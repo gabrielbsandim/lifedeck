@@ -296,6 +296,26 @@ export const openApiDocument = {
         },
       },
     },
+    '/analytics': {
+      get: {
+        summary: 'Completion analytics',
+        operationId: 'getAnalytics',
+        description:
+          'Daily completion counts, totals, completion rate, and current streak for the current user.',
+        parameters: [
+          {
+            name: 'days',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, maximum: 365, default: 30 },
+          },
+        ],
+        responses: {
+          '200': { description: 'Analytics for the requested window.' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+    },
     '/account/password': {
       patch: {
         summary: 'Change the account password',

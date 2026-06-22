@@ -77,6 +77,21 @@ export type Messages = {
     join: string
     close: string
   }
+  analytics: {
+    manage: string
+    title: string
+    subtitle: string
+    completed: string
+    completionRate: string
+    streak: string
+    streakUnit: string
+    perDay: string
+    range7: string
+    range30: string
+    range90: string
+    empty: string
+    backToToday: string
+  }
   auth: {
     createAccount: string
     createAccountSubtitle: string

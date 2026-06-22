@@ -133,6 +133,12 @@ export function DailyBoard({ date }: { date: string }) {
               {messages.lists.manage}
             </Link>
             <Link
+              href="/analytics"
+              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            >
+              {messages.analytics.manage}
+            </Link>
+            <Link
               href="/recurring"
               className="text-brand-600 hover:text-brand-700 text-sm font-medium"
             >

@@ -7,6 +7,7 @@ import {
   makeCreateTask,
   makeDeleteRecurringTask,
   makeDeleteUser,
+  makeGetAnalytics,
   makeGetDailyBoard,
   makeGetGoogleAuthUrl,
   makeGetList,
@@ -28,6 +29,7 @@ import {
   makeUpdateRecurringTask,
   makeUpdateTask,
   makeVerifyEmail,
+  type AnalyticsRepository,
   type EmailSender,
   type EmailVerificationRepository,
   type ListRepository,
@@ -43,6 +45,7 @@ import {
   ConsoleEmailSender,
   GoogleOAuthProvider,
   NumericCodeGenerator,
+  PrismaAnalyticsRepository,
   PrismaEmailVerificationRepository,
   PrismaListRepository,
   PrismaMembershipRepository,
@@ -88,6 +91,7 @@ type Container = {
   joinListByToken: ReturnType<typeof makeJoinListByToken>
   listMembers: ReturnType<typeof makeListMembers>
   removeMember: ReturnType<typeof makeRemoveMember>
+  getAnalytics: ReturnType<typeof makeGetAnalytics>
 }
 
 type Repositories = {
@@ -98,6 +102,7 @@ type Repositories = {
   shareLinks: ShareLinkRepository
   memberships: MembershipRepository
   emailVerifications: EmailVerificationRepository
+  analytics: AnalyticsRepository
 }
 
 type Services = {
@@ -115,6 +120,7 @@ function build(
     shareLinks,
     memberships,
     emailVerifications,
+    analytics,
   }: Repositories,
   { hasher, emailSender, oauth }: Services,
 ): Container {
@@ -191,6 +197,7 @@ function build(
     }),
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
+    getAnalytics: makeGetAnalytics({ analytics, clock }),
   }
 }
 
@@ -226,6 +233,7 @@ export function getContainer(): Container {
         shareLinks: new PrismaShareLinkRepository(prisma),
         memberships: new PrismaMembershipRepository(prisma),
         emailVerifications: new PrismaEmailVerificationRepository(prisma),
+        analytics: new PrismaAnalyticsRepository(prisma),
       },
       {
         hasher: new ScryptPasswordHasher(),
