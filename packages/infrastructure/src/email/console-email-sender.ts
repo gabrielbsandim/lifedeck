@@ -19,4 +19,15 @@ export class ConsoleEmailSender implements EmailSender {
       `[taskin] invitation to "${listTitle}" for ${to} (${locale}): ${url}`,
     )
   }
+
+  async sendTaskAssignment(
+    to: string,
+    taskTitle: string,
+    listTitle: string,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    console.info(
+      `[taskin] assignment "${taskTitle}" on "${listTitle}" for ${to} (${locale})`,
+    )
+  }
 }

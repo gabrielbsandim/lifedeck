@@ -144,7 +144,14 @@ function build(
   const codes = new NumericCodeGenerator()
   return {
     createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
-    updateTask: makeUpdateTask({ tasks, lists, memberships, clock }),
+    updateTask: makeUpdateTask({
+      tasks,
+      lists,
+      memberships,
+      users,
+      emailSender,
+      clock,
+    }),
     listListTasks: makeListListTasks({ tasks, lists, memberships }),
     createGuestUser: makeCreateGuestUser({ users, ids, clock }),
     getUser: makeGetUser({ users }),

@@ -37,4 +37,17 @@ export class ResendEmailSender implements EmailSender {
     )
     await this.client.emails.send({ from: this.from, to, subject, html })
   }
+
+  async sendTaskAssignment(
+    to: string,
+    taskTitle: string,
+    listTitle: string,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    const { subject, html } = renderEmail(
+      { type: 'task-assignment', data: { taskTitle, listTitle } },
+      locale,
+    )
+    await this.client.emails.send({ from: this.from, to, subject, html })
+  }
 }

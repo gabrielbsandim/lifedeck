@@ -30,6 +30,27 @@ const VERIFICATION_COPY: Record<EmailLocale, VerificationCopy> = {
   },
 }
 
+type AssignmentCopy = {
+  subject: (taskTitle: string) => string
+  title: string
+  body: (taskTitle: string, listTitle: string) => string
+}
+
+const ASSIGNMENT_COPY: Record<EmailLocale, AssignmentCopy> = {
+  en: {
+    subject: taskTitle => `You were assigned "${taskTitle}"`,
+    title: 'A task is yours',
+    body: (taskTitle, listTitle) =>
+      `<p>You were assigned <strong>${taskTitle}</strong> on <strong>${listTitle}</strong>.</p>`,
+  },
+  pt: {
+    subject: taskTitle => `Você recebeu a tarefa "${taskTitle}"`,
+    title: 'Uma tarefa é sua',
+    body: (taskTitle, listTitle) =>
+      `<p>Você foi designado para <strong>${taskTitle}</strong> em <strong>${listTitle}</strong>.</p>`,
+  },
+}
+
 const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
   en: {
     subject: listTitle => `You were invited to "${listTitle}"`,
@@ -67,6 +88,16 @@ export function renderEmail(
         html: layout(
           copy.title,
           copy.body(template.data.listTitle, template.data.url),
+        ),
+      }
+    }
+    case 'task-assignment': {
+      const copy = ASSIGNMENT_COPY[locale]
+      return {
+        subject: copy.subject(template.data.taskTitle),
+        html: layout(
+          copy.title,
+          copy.body(template.data.taskTitle, template.data.listTitle),
         ),
       }
     }

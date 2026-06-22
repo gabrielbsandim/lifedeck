@@ -1,6 +1,10 @@
 export type EmailTemplate =
   | { type: 'verification-code'; data: { code: string; appName: string } }
   | { type: 'list-invitation'; data: { listTitle: string; url: string } }
+  | {
+      type: 'task-assignment'
+      data: { taskTitle: string; listTitle: string }
+    }
 
 export type RenderedEmail = {
   subject: string

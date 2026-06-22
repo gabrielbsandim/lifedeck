@@ -12,4 +12,10 @@ export interface EmailSender {
     url: string,
     locale?: EmailLocale,
   ): Promise<void>
+  sendTaskAssignment(
+    to: string,
+    taskTitle: string,
+    listTitle: string,
+    locale?: EmailLocale,
+  ): Promise<void>
 }

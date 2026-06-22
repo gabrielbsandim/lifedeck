@@ -1,4 +1,4 @@
-import { ValidationError, asEntityId } from '@taskin/domain'
+import { ValidationError, asEntityId, type EntityId } from '@taskin/domain'
 import {
   updateTaskSchema,
   type UpdateTaskInput,
@@ -8,14 +8,18 @@ import { toTaskView } from '@/mappers/task-mapper'
 import { resolveListAccess } from '@/access/list-access'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
+import type { EmailLocale, EmailSender } from '@/ports/email-sender'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
 import type { TaskRepository } from '@/ports/task-repository'
+import type { UserRepository } from '@/ports/user-repository'
 
 type Dependencies = {
   tasks: TaskRepository
   lists: ListRepository
   memberships: MembershipRepository
+  users: UserRepository
+  emailSender: EmailSender
   clock: Clock
 }
 
@@ -23,6 +27,8 @@ export function makeUpdateTask({
   tasks,
   lists,
   memberships,
+  users,
+  emailSender,
   clock,
 }: Dependencies) {
   return async function updateTask(
@@ -64,10 +70,12 @@ export function makeUpdateTask({
     if (data.isPrivate !== undefined) {
       task.setPrivacy(data.isPrivate)
     }
+    let newlyAssigned: EntityId | null = null
     if (data.assigneeId !== undefined) {
       if (data.assigneeId === null) {
         task.assignTo(null)
       } else {
+        const previousAssignee = task.toJSON().assigneeId
         const assignee = asEntityId(data.assigneeId)
         const isOwnerAssignee = list.isOwnedBy(assignee)
         const member = await memberships.findByListAndUser(list.id, assignee)
@@ -77,11 +85,43 @@ export function makeUpdateTask({
           )
         }
         task.assignTo(assignee)
+        if (
+          assignee !== previousAssignee &&
+          assignee !== asEntityId(requesterId)
+        ) {
+          newlyAssigned = assignee
+        }
       }
     }
 
     await tasks.save(task)
 
+    if (newlyAssigned) {
+      await notifyAssignee(
+        newlyAssigned,
+        task.toJSON().title,
+        list.toJSON().title,
+      )
+    }
+
     return toTaskView(task)
+  }
+
+  async function notifyAssignee(
+    assignee: EntityId,
+    taskTitle: string,
+    listTitle: string,
+  ): Promise<void> {
+    const user = await users.findById(assignee)
+    if (!user?.email) {
+      return
+    }
+    const locale: EmailLocale = user.locale === 'pt' ? 'pt' : 'en'
+    await emailSender.sendTaskAssignment(
+      user.email,
+      taskTitle,
+      listTitle,
+      locale,
+    )
   }
 }

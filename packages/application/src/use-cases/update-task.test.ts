@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { List, ListMember, Task, ValidationError } from '@taskin/domain'
+import { List, ListMember, Task, User, ValidationError } from '@taskin/domain'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { makeUpdateTask } from '@/use-cases/update-task'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
+import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+import { FakeEmailSender } from '@/testing/fake-email-sender'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
 const NOW = new Date('2026-06-21T10:00:00.000Z')
@@ -26,6 +28,8 @@ async function setup(visibility: 'private' | 'link' = 'private') {
   const tasks = new InMemoryTaskRepository()
   const lists = new InMemoryListRepository()
   const memberships = new InMemoryMembershipRepository()
+  const users = new InMemoryUserRepository()
+  const emailSender = new FakeEmailSender()
   await lists.save(makeList(visibility))
   const createTask = makeCreateTask({
     tasks,
@@ -37,10 +41,14 @@ async function setup(visibility: 'private' | 'link' = 'private') {
   await createTask(ID.user, { listId: ID.list, title: 'Buy flowers' })
   return {
     memberships,
+    users,
+    emailSender,
     updateTask: makeUpdateTask({
       tasks,
       lists,
       memberships,
+      users,
+      emailSender,
       clock: new FixedClock(NOW),
     }),
   }
@@ -112,6 +120,48 @@ describe('updateTask', () => {
     ).rejects.toThrow(ValidationError)
   })
 
+  it('emails a member with an address when newly assigned, in their locale', async () => {
+    const { updateTask, memberships, users, emailSender } = await setup()
+    await memberships.save(
+      ListMember.create({
+        id: ID.list,
+        listId: ID.list,
+        userId: ID.otherUser,
+        role: 'editor',
+        addedAt: NOW,
+      }),
+    )
+    const member = User.createGuest({
+      id: ID.otherUser,
+      displayName: 'Partner',
+      locale: 'pt',
+      createdAt: NOW,
+    })
+    member.register({
+      email: 'partner@example.com',
+      passwordHash: 'x',
+      emailVerifiedAt: null,
+    })
+    await users.save(member)
+
+    await updateTask(ID.user, ID.task, { assigneeId: ID.otherUser })
+
+    expect(emailSender.assignments).toEqual([
+      {
+        to: 'partner@example.com',
+        taskTitle: 'Buy flowers',
+        listTitle: 'Wedding',
+        locale: 'pt',
+      },
+    ])
+  })
+
+  it('does not email when assigning to yourself', async () => {
+    const { updateTask, emailSender } = await setup()
+    await updateTask(ID.user, ID.task, { assigneeId: ID.user })
+    expect(emailSender.assignments).toHaveLength(0)
+  })
+
   it('throws NotFound for a missing task', async () => {
     const { updateTask } = await setup()
     await expect(updateTask(ID.user, ID.user, { title: 'X' })).rejects.toThrow(
@@ -135,6 +185,8 @@ describe('updateTask', () => {
       tasks,
       lists,
       memberships,
+      users: new InMemoryUserRepository(),
+      emailSender: new FakeEmailSender(),
       clock: new FixedClock(NOW),
     })
     await expect(updateTask(ID.user, ID.task, { title: 'X' })).rejects.toThrow(

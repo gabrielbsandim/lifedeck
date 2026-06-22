@@ -17,6 +17,13 @@ export class FakeEmailSender implements EmailSender {
     this.sent.push({ to, code, locale })
   }
 
+  readonly assignments: Array<{
+    to: string
+    taskTitle: string
+    listTitle: string
+    locale: EmailLocale
+  }> = []
+
   async sendListInvitation(
     to: string,
     listTitle: string,
@@ -24,5 +31,14 @@ export class FakeEmailSender implements EmailSender {
     locale: EmailLocale = 'en',
   ): Promise<void> {
     this.invitations.push({ to, listTitle, url, locale })
+  }
+
+  async sendTaskAssignment(
+    to: string,
+    taskTitle: string,
+    listTitle: string,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    this.assignments.push({ to, taskTitle, listTitle, locale })
   }
 }

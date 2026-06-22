@@ -44,4 +44,23 @@ describe('renderEmail', () => {
     expect(email.subject).toContain('Casamento')
     expect(email.html).toContain('Abrir a lista')
   })
+
+  it('renders a task assignment email (en and pt)', () => {
+    const en = renderEmail({
+      type: 'task-assignment',
+      data: { taskTitle: 'Book venue', listTitle: 'Wedding' },
+    })
+    expect(en.subject).toContain('Book venue')
+    expect(en.html).toContain('Wedding')
+
+    const pt = renderEmail(
+      {
+        type: 'task-assignment',
+        data: { taskTitle: 'Reservar local', listTitle: 'Casamento' },
+      },
+      'pt',
+    )
+    expect(pt.subject).toContain('Reservar local')
+    expect(pt.html).toContain('Casamento')
+  })
 })
