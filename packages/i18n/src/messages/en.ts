@@ -5,6 +5,17 @@ export const en: Messages = {
     name: 'TaskIn',
     tagline: 'Plan your day, share your lists.',
   },
+  onboarding: {
+    title: 'Welcome to TaskIn',
+    subtitle: 'Tell us your name to start your daily list.',
+    namePlaceholder: 'Your name',
+    start: 'Start',
+  },
+  common: {
+    loading: 'Loading…',
+    error: 'Something went wrong.',
+    retry: 'Try again',
+  },
   nav: {
     today: 'Today',
     lists: 'Lists',

@@ -3,6 +3,17 @@ export type Messages = {
     name: string
     tagline: string
   }
+  onboarding: {
+    title: string
+    subtitle: string
+    namePlaceholder: string
+    start: string
+  }
+  common: {
+    loading: string
+    error: string
+    retry: string
+  }
   nav: {
     today: string
     lists: string
