@@ -63,6 +63,13 @@ export function ListsManager() {
 
         {lists.isPending ? (
           <Skeleton className="h-24 w-full rounded-2xl" />
+        ) : lists.isError ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-ink-500 text-sm">{messages.common.error}</p>
+            <Button variant="ghost" onClick={() => lists.refetch()}>
+              {messages.common.retry}
+            </Button>
+          </div>
         ) : standalone.length === 0 ? (
           <EmptyState title={messages.lists.empty} />
         ) : (

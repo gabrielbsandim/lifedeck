@@ -117,7 +117,9 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
       `ProgressBar` (animated fill + 100% glow) already animate; added a `Celebration`
       particle burst that fires once on the 100% transition, wired into the daily board and
       standalone lists, and honoring `prefers-reduced-motion`.
-- [ ] Empty / loading (skeleton) / error states for every screen (core screens covered; audit the rest).
+- [x] Empty / loading (skeleton) / error states for every screen. Audited all screens;
+      added the missing error + retry state to the lists and recurring-tasks managers
+      (the rest already had loading skeletons, empty states, and error/retry).
 - [ ] Responsiveness pass at all breakpoints; reduced-motion support (celebration done; sweep the rest).
 
 ## Phase 8 - Internationalization (full)

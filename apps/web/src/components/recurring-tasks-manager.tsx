@@ -76,6 +76,15 @@ export function RecurringTasksManager() {
 
         {list.isPending && <Skeleton className="h-24 w-full rounded-2xl" />}
 
+        {list.isError && (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-ink-500 text-sm">{messages.common.error}</p>
+            <Button variant="ghost" onClick={() => list.refetch()}>
+              {messages.common.retry}
+            </Button>
+          </div>
+        )}
+
         {list.isSuccess && list.data.length === 0 && !adding && (
           <EmptyState title={messages.recurring.empty} />
         )}
