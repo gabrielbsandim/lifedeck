@@ -7,6 +7,7 @@ import type { TaskView, UpdateTaskInput } from '@taskin/application'
 import {
   Button,
   Card,
+  Celebration,
   EmptyState,
   ProgressBar,
   Skeleton,
@@ -170,7 +171,8 @@ export function DailyBoard({ date }: { date: string }) {
           onClose={() => setShareOpen(false)}
         />
 
-        <div className="border-line bg-bg mb-6 rounded-2xl border p-4">
+        <div className="border-line bg-bg relative mb-6 rounded-2xl border p-4">
+          <Celebration active={allDone} />
           <div className="mb-2 flex items-baseline justify-between">
             <span className="text-ink-700 text-sm font-medium">
               {progressLabel}

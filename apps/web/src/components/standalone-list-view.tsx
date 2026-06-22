@@ -7,6 +7,7 @@ import type { TaskView, UpdateTaskInput } from '@taskin/application'
 import {
   Button,
   Card,
+  Celebration,
   EmptyState,
   ProgressBar,
   Skeleton,
@@ -62,6 +63,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
   const rows = tasks.data
   const doneCount = rows.filter(task => task.status === 'completed').length
   const pct = rows.length ? Math.round((doneCount / rows.length) * 100) : 0
+  const allDone = rows.length > 0 && doneCount === rows.length
   const progressLabel = messages.task.progress
     .replace('{done}', String(doneCount))
     .replace('{total}', String(rows.length))
@@ -182,7 +184,8 @@ export function StandaloneListView({ listId }: { listId: string }) {
       />
 
       <Card className="p-6 sm:p-8">
-        <div className="border-line bg-bg mb-6 rounded-2xl border p-4">
+        <div className="border-line bg-bg relative mb-6 rounded-2xl border p-4">
+          <Celebration active={allDone} />
           <div className="mb-2 flex items-baseline justify-between">
             <span className="text-ink-700 text-sm font-medium">
               {progressLabel}

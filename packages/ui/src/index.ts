@@ -5,6 +5,7 @@ export {
   type TaskCheckboxProps,
 } from '@/components/task-checkbox'
 export { ProgressBar, type ProgressBarProps } from '@/components/progress-bar'
+export { Celebration, type CelebrationProps } from '@/components/celebration'
 export { Card, type CardProps } from '@/components/card'
 export { Avatar, type AvatarProps } from '@/components/avatar'
 export { Badge, type BadgeProps } from '@/components/badge'

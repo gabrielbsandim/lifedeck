@@ -112,10 +112,13 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 
 ## Phase 7 - Polish: design & motion
 
-- [ ] Implement the Claude Design screens in `@taskin/ui`.
-- [ ] Completion micro-animations + 100% celebration.
-- [ ] Empty / loading (skeleton) / error states for every screen.
-- [ ] Responsiveness pass at all breakpoints; reduced-motion support.
+- [ ] Implement the Claude Design screens in `@taskin/ui` (blocked on the design deliverables).
+- [x] Completion micro-animations + 100% celebration. `TaskCheckbox` (spring check) and
+      `ProgressBar` (animated fill + 100% glow) already animate; added a `Celebration`
+      particle burst that fires once on the 100% transition, wired into the daily board and
+      standalone lists, and honoring `prefers-reduced-motion`.
+- [ ] Empty / loading (skeleton) / error states for every screen (core screens covered; audit the rest).
+- [ ] Responsiveness pass at all breakpoints; reduced-motion support (celebration done; sweep the rest).
 
 ## Phase 8 - Internationalization (full)
 
