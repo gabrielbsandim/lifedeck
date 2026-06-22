@@ -98,8 +98,10 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 
 - [x] `ListGenerator` port in the application layer + `GenerationBrief` / `GeneratedPlan` Zod schemas.
 - [x] `generateList` use case (validate brief -> generate -> validate plan -> draft).
-- [x] `ClaudeListGenerator` adapter in infrastructure (structured output, prompt caching).
-      `StubListGenerator` fallback when `ANTHROPIC_API_KEY` is unset (like the console email sender).
+- [x] Provider-agnostic `AiSdkListGenerator` behind the `ListGenerator` port, built on the
+      Vercel AI SDK (`generateObject` + AI Gateway). Provider/model is the `AI_MODEL` string
+      (`anthropic/claude-opus-4-8`, `google/gemini-2.5-flash`, `openai/...`); unset falls back
+      to `StubListGenerator` offline. Switching providers is an env change, not a code change.
 - [x] `FakeListGenerator` + unit tests (happy path, clamped output, rejected output).
 - [x] `POST /api/v1/lists/generate` endpoint + OpenAPI entry; returns an editable draft.
 - [x] UI: guided questions + description, edit-then-save flow (`/generate`). Token-by-token

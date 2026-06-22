@@ -47,7 +47,7 @@ import {
   type UserRepository,
 } from '@taskin/application'
 import {
-  ClaudeListGenerator,
+  AiSdkListGenerator,
   ConsoleEmailSender,
   GoogleOAuthProvider,
   NumericCodeGenerator,
@@ -218,12 +218,9 @@ function build(
 }
 
 function buildListGenerator(): ListGenerator {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (apiKey) {
-    return new ClaudeListGenerator({
-      apiKey,
-      model: process.env.CLAUDE_MODEL,
-    })
+  const model = process.env.AI_MODEL?.trim()
+  if (model) {
+    return new AiSdkListGenerator(model)
   }
   return new StubListGenerator()
 }
