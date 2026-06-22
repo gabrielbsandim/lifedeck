@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   CreateShareLinkInput,
+  InviteToListInput,
   MemberView,
   ShareLinkView,
 } from '@taskin/application'
@@ -21,6 +22,20 @@ export function useCreateShareLink(listId: string) {
   return useMutation({
     mutationFn: (input: CreateShareLinkInput) =>
       apiRequest<ShareLinkView>(`/api/v1/lists/${listId}/share`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shareLinksKey(listId) })
+    },
+  })
+}
+
+export function useInviteToList(listId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: InviteToListInput) =>
+      apiRequest<ShareLinkView>(`/api/v1/lists/${listId}/invite`, {
         method: 'POST',
         body: JSON.stringify(input),
       }),

@@ -63,8 +63,10 @@ export {
 } from '@/dtos/recurring-task-dto'
 export {
   createShareLinkSchema,
+  inviteToListSchema,
   shareLinkViewSchema,
   type CreateShareLinkInput,
+  type InviteToListInput,
   type ShareLinkView,
 } from '@/dtos/share-link-dto'
 export { memberViewSchema, type MemberView } from '@/dtos/member-dto'
@@ -114,6 +116,7 @@ export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'
 export { makeDeleteRecurringTask } from '@/use-cases/delete-recurring-task'
 export { makeCreateShareLink } from '@/use-cases/create-share-link'
+export { makeInviteToList } from '@/use-cases/invite-to-list'
 export { makeListShareLinks } from '@/use-cases/list-share-links'
 export { makeRevokeShareLink } from '@/use-cases/revoke-share-link'
 export {

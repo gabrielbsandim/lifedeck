@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { ShareLinkView } from '@taskin/application'
-import { Button, Dialog, EmptyState } from '@taskin/ui'
+import { Button, Dialog, EmptyState, TextField } from '@taskin/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useCreateShareLink,
+  useInviteToList,
   useMembers,
   useRemoveMember,
   useRevokeShareLink,
@@ -67,7 +68,18 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
   const createLink = useCreateShareLink(listId)
   const members = useMembers(listId, open)
   const removeMember = useRemoveMember(listId)
+  const invite = useInviteToList(listId)
   const [role, setRole] = useState<'viewer' | 'editor'>('viewer')
+  const [inviteEmail, setInviteEmail] = useState('')
+
+  function submitInvite(event: FormEvent) {
+    event.preventDefault()
+    const email = inviteEmail.trim()
+    if (!email) {
+      return
+    }
+    invite.mutate({ email, role }, { onSuccess: () => setInviteEmail('') })
+  }
 
   return (
     <Dialog open={open} onClose={onClose} title={messages.share.title}>
@@ -109,6 +121,33 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
           ))}
         </ul>
       )}
+
+      <form onSubmit={submitInvite} className="mb-4 flex flex-col gap-2">
+        <span className="text-ink-700 text-sm font-medium">
+          {messages.share.inviteTitle}
+        </span>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <TextField
+              type="email"
+              value={inviteEmail}
+              onChange={event => setInviteEmail(event.target.value)}
+              placeholder={messages.share.emailPlaceholder}
+              aria-label={messages.share.inviteTitle}
+            />
+          </div>
+          <Button
+            type="submit"
+            isLoading={invite.isPending}
+            disabled={!inviteEmail.trim()}
+          >
+            {messages.share.sendInvite}
+          </Button>
+        </div>
+        {invite.isSuccess && (
+          <p className="text-success text-xs">{messages.share.invited}</p>
+        )}
+      </form>
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">

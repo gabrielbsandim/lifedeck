@@ -8,4 +8,15 @@ export class ConsoleEmailSender implements EmailSender {
   ): Promise<void> {
     console.info(`[taskin] verification code for ${to} (${locale}): ${code}`)
   }
+
+  async sendListInvitation(
+    to: string,
+    listTitle: string,
+    url: string,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    console.info(
+      `[taskin] invitation to "${listTitle}" for ${to} (${locale}): ${url}`,
+    )
+  }
 }

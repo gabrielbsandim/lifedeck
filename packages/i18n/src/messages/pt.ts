@@ -91,6 +91,10 @@ export const pt: Messages = {
     join: 'Entrar e editar',
     close: 'Fechar',
     role: 'Papel do compartilhamento',
+    inviteTitle: 'Convidar por e-mail',
+    emailPlaceholder: 'nome@email.com',
+    sendInvite: 'Enviar convite',
+    invited: 'Convite enviado',
   },
   analytics: {
     manage: 'Análises',

@@ -24,4 +24,17 @@ export class ResendEmailSender implements EmailSender {
     )
     await this.client.emails.send({ from: this.from, to, subject, html })
   }
+
+  async sendListInvitation(
+    to: string,
+    listTitle: string,
+    url: string,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    const { subject, html } = renderEmail(
+      { type: 'list-invitation', data: { listTitle, url } },
+      locale,
+    )
+    await this.client.emails.send({ from: this.from, to, subject, html })
+  }
 }

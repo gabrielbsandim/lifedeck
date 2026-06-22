@@ -89,6 +89,10 @@ export type Messages = {
     join: string
     close: string
     role: string
+    inviteTitle: string
+    emailPlaceholder: string
+    sendInvite: string
+    invited: string
   }
   analytics: {
     manage: string

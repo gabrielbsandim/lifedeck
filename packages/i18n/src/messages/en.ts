@@ -91,6 +91,10 @@ export const en: Messages = {
     join: 'Join & edit',
     close: 'Close',
     role: 'Share role',
+    inviteTitle: 'Invite by email',
+    emailPlaceholder: 'name@email.com',
+    sendInvite: 'Send invite',
+    invited: 'Invitation sent',
   },
   analytics: {
     manage: 'Analytics',

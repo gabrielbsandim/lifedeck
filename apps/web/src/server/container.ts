@@ -17,6 +17,7 @@ import {
   makeGetList,
   makeGetSharedBoard,
   makeGetUser,
+  makeInviteToList,
   makeJoinListByToken,
   makeListListTasks,
   makeListMembers,
@@ -95,6 +96,7 @@ type Container = {
   updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
   deleteRecurringTask: ReturnType<typeof makeDeleteRecurringTask>
   createShareLink: ReturnType<typeof makeCreateShareLink>
+  inviteToList: ReturnType<typeof makeInviteToList>
   listShareLinks: ReturnType<typeof makeListShareLinks>
   revokeShareLink: ReturnType<typeof makeRevokeShareLink>
   getSharedBoard: ReturnType<typeof makeGetSharedBoard>
@@ -198,6 +200,14 @@ function build(
       tokens,
       ids,
       clock,
+    }),
+    inviteToList: makeInviteToList({
+      shareLinks,
+      lists,
+      tokens,
+      ids,
+      clock,
+      emailSender,
     }),
     listShareLinks: makeListShareLinks({ shareLinks, lists }),
     revokeShareLink: makeRevokeShareLink({ shareLinks, lists }),

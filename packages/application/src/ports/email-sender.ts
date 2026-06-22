@@ -6,4 +6,10 @@ export interface EmailSender {
     code: string,
     locale?: EmailLocale,
   ): Promise<void>
+  sendListInvitation(
+    to: string,
+    listTitle: string,
+    url: string,
+    locale?: EmailLocale,
+  ): Promise<void>
 }

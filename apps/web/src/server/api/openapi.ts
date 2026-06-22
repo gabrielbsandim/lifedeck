@@ -664,6 +664,44 @@ export const openApiDocument = {
         },
       },
     },
+    '/lists/{id}/invite': {
+      post: {
+        summary: 'Invite a collaborator by email',
+        operationId: 'inviteToList',
+        description:
+          'Creates a share link and emails a localized join link to the address (owner only).',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email'],
+                properties: {
+                  email: { type: 'string', format: 'email' },
+                  role: { type: 'string', enum: ['viewer', 'editor'] },
+                  expiresInDays: { type: 'integer', minimum: 1, maximum: 365 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Invitation sent.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'List not found.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
     '/lists/{id}/share': {
       get: {
         summary: 'List share links for a list',
