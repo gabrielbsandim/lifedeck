@@ -75,7 +75,20 @@ export class Task {
     return this.props.position
   }
 
+  get listId(): EntityId {
+    return this.props.listId
+  }
+
+  get recurringTaskId(): EntityId | null {
+    return this.props.recurringTaskId
+  }
+
   setPosition(position: number): void {
+    this.props.position = position
+  }
+
+  moveTo(listId: EntityId, position: number): void {
+    this.props.listId = listId
     this.props.position = position
   }
 

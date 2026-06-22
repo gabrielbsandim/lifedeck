@@ -12,6 +12,12 @@ import type { TaskRepository } from '@/ports/task-repository'
 
 const dateSchema = z.string().date()
 
+function startOfUtcDay(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  )
+}
+
 export type DailyBoardView = {
   list: ListView
   tasks: TaskView[]
@@ -44,10 +50,44 @@ export function makeGetDailyBoard({
       (await lists.findDailyByOwnerAndDate(owner, referenceDate)) ??
       (await provisionDailyList())
 
+    await carryOverUnfinished(list)
     await materializeRecurring(list)
 
     const items = await tasks.listByList(list.id)
     return { list: toListView(list), tasks: items.map(toTaskView) }
+
+    async function carryOverUnfinished(todayList: List): Promise<void> {
+      const today = startOfUtcDay(clock.now())
+      if (referenceDate.getTime() !== today.getTime()) {
+        return
+      }
+
+      const owned = await lists.listByOwner(owner)
+      const priorDailyLists = owned.filter(candidate => {
+        const props = candidate.toJSON()
+        return (
+          props.type === 'daily' &&
+          props.referenceDate !== null &&
+          props.referenceDate.getTime() < referenceDate.getTime()
+        )
+      })
+      if (priorDailyLists.length === 0) {
+        return
+      }
+
+      let position = (await tasks.listByList(todayList.id)).length
+      for (const priorList of priorDailyLists) {
+        const priorTasks = await tasks.listByList(priorList.id)
+        for (const task of priorTasks) {
+          const props = task.toJSON()
+          if (props.status === 'pending' && props.recurringTaskId === null) {
+            task.moveTo(todayList.id, position)
+            position += 1
+            await tasks.save(task)
+          }
+        }
+      }
+    }
 
     async function provisionDailyList(): Promise<List> {
       const created = List.create({

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { RecurringTask, asEntityId, type RecurrenceRule } from '@taskin/domain'
+import {
+  List,
+  RecurringTask,
+  Task,
+  asEntityId,
+  type RecurrenceRule,
+} from '@taskin/domain'
 import { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
@@ -90,5 +96,111 @@ describe('getDailyBoard', () => {
     const board = await getDailyBoard(ID.user, '2026-06-21')
 
     expect(board.tasks).toEqual([])
+  })
+
+  it('carries unfinished, non-recurring tasks from prior days into today', async () => {
+    const PRIOR_LIST = asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+    const TODAY_LIST = asEntityId('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
+    const PENDING = asEntityId('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+    const DONE = asEntityId('dddddddd-dddd-4ddd-8ddd-dddddddddddd')
+    const RECUR = asEntityId('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee')
+
+    const lists = new InMemoryListRepository()
+    const tasks = new InMemoryTaskRepository()
+    const recurringTasks = new InMemoryRecurringTaskRepository()
+
+    await lists.save(
+      List.create({
+        id: PRIOR_LIST,
+        ownerId: ID.user,
+        title: '2026-06-20',
+        type: 'daily',
+        visibility: 'private',
+        referenceDate: new Date('2026-06-20T00:00:00.000Z'),
+        createdAt: new Date('2026-06-20T10:00:00.000Z'),
+      }),
+    )
+    await tasks.save(
+      Task.create({
+        id: PENDING,
+        listId: PRIOR_LIST,
+        title: 'Buy rings',
+        createdAt: NOW,
+      }),
+    )
+    const done = Task.create({
+      id: DONE,
+      listId: PRIOR_LIST,
+      title: 'Send invites',
+      createdAt: NOW,
+    })
+    done.complete(NOW)
+    await tasks.save(done)
+    await tasks.save(
+      Task.create({
+        id: RECUR,
+        listId: PRIOR_LIST,
+        title: 'Drink water',
+        createdAt: NOW,
+        recurringTaskId: DEF_ID,
+      }),
+    )
+
+    const getDailyBoard = makeGetDailyBoard({
+      lists,
+      tasks,
+      recurringTasks,
+      ids: new SequentialIdGenerator([TODAY_LIST]),
+      clock: new FixedClock(NOW),
+    })
+
+    const board = await getDailyBoard(ID.user, '2026-06-21')
+
+    expect(board.tasks.map(task => task.title)).toEqual(['Buy rings'])
+    expect(await tasks.listByList(PRIOR_LIST)).toHaveLength(2)
+    expect(await tasks.listByList(TODAY_LIST)).toHaveLength(1)
+  })
+
+  it('does not carry over when viewing a date that is not today', async () => {
+    const PRIOR_LIST = asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+    const PAST_LIST = asEntityId('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
+    const PENDING = asEntityId('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+
+    const lists = new InMemoryListRepository()
+    const tasks = new InMemoryTaskRepository()
+    const recurringTasks = new InMemoryRecurringTaskRepository()
+
+    await lists.save(
+      List.create({
+        id: PRIOR_LIST,
+        ownerId: ID.user,
+        title: '2026-06-19',
+        type: 'daily',
+        visibility: 'private',
+        referenceDate: new Date('2026-06-19T00:00:00.000Z'),
+        createdAt: new Date('2026-06-19T10:00:00.000Z'),
+      }),
+    )
+    await tasks.save(
+      Task.create({
+        id: PENDING,
+        listId: PRIOR_LIST,
+        title: 'Old task',
+        createdAt: NOW,
+      }),
+    )
+
+    const getDailyBoard = makeGetDailyBoard({
+      lists,
+      tasks,
+      recurringTasks,
+      ids: new SequentialIdGenerator([PAST_LIST]),
+      clock: new FixedClock(NOW),
+    })
+
+    const board = await getDailyBoard(ID.user, '2026-06-20')
+
+    expect(board.tasks).toEqual([])
+    expect(await tasks.listByList(PRIOR_LIST)).toHaveLength(1)
   })
 })

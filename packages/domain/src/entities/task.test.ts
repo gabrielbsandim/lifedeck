@@ -126,6 +126,25 @@ describe('Task.restore', () => {
     })
     expect(restored.isCompleted).toBe(true)
     expect(restored.position).toBe(3)
-    expect(restored.toJSON().title).toBe('Restored')
+  })
+
+  it('moves to another list at a new position', () => {
+    const restored = Task.restore({
+      id: TASK_ID,
+      listId: LIST_ID,
+      title: 'Carry me',
+      status: 'pending',
+      observation: null,
+      assigneeId: null,
+      recurringTaskId: null,
+      isPrivate: false,
+      position: 0,
+      createdAt: NOW,
+      completedAt: null,
+    })
+    restored.moveTo(MEMBER_ID, 5)
+    expect(restored.listId).toBe(MEMBER_ID)
+    expect(restored.position).toBe(5)
+    expect(restored.toJSON().title).toBe('Carry me')
   })
 })
