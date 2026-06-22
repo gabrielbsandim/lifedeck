@@ -7,6 +7,7 @@ export {
   SUPPORTED_LOCALES,
   DEFAULT_LOCALE,
   isLocale,
+  resolveLocale,
   type Locale,
 } from '@/locales'
 export { detectLocale } from '@/detect'

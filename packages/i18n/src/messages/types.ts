@@ -49,6 +49,17 @@ export type Messages = {
     pending: string
     allDone: string
     progress: string
+    moveUp: string
+    moveDown: string
+    assignee: string
+    togglePrivacy: string
+    private: string
+    visible: string
+    recurring: string
+    addNote: string
+    editNote: string
+    note: string
+    notePlaceholder: string
   }
   list: {
     daily: string
@@ -77,6 +88,7 @@ export type Messages = {
     editable: string
     join: string
     close: string
+    role: string
   }
   analytics: {
     manage: string

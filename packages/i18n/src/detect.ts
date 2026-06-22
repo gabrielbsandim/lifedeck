@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, isLocale, type Locale } from '@/locales'
+import { DEFAULT_LOCALE, resolveLocale, type Locale } from '@/locales'
 
 type LanguageEntry = {
   tag: string
@@ -30,9 +30,9 @@ export function detectLocale(
   }
 
   for (const { tag } of parseAcceptLanguage(acceptLanguage)) {
-    const base = tag.replace(/-.*$/, '')
-    if (isLocale(base)) {
-      return base
+    const resolved = resolveLocale(tag)
+    if (resolved) {
+      return resolved
     }
   }
 
