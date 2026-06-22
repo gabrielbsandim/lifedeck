@@ -1,5 +1,7 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
 import { handleError, ok } from '@/server/api/respond'
+import { enforceAuthRateLimit } from '@/server/api/auth-guard'
 import {
   SESSION_COOKIE,
   SESSION_TTL_SECONDS,
@@ -10,6 +12,12 @@ import {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    const email =
+      typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
+    const limited = await enforceAuthRateLimit(request, 'sign-in', email)
+    if (limited instanceof NextResponse) {
+      return limited
+    }
     const user = await getContainer().signInWithEmail(body)
     const token = await createSessionToken(user.id, new Date())
 

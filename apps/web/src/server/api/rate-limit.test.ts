@@ -1,6 +1,29 @@
 // @vitest-environment node
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { checkRateLimit, rateLimitHeaders } from '@/server/api/rate-limit'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const limit = vi.fn()
+
+vi.mock('@upstash/redis', () => ({
+  Redis: class {
+    constructor() {}
+  },
+}))
+
+vi.mock('@upstash/ratelimit', () => ({
+  Ratelimit: class {
+    static slidingWindow() {
+      return {}
+    }
+    limit = limit
+  },
+}))
+
+import {
+  checkAuthRateLimit,
+  checkRateLimit,
+  clientIp,
+  rateLimitHeaders,
+} from '@/server/api/rate-limit'
 
 describe('rate limit', () => {
   beforeEach(() => {
@@ -17,6 +40,30 @@ describe('rate limit', () => {
     const result = await checkRateLimit('apikey:test')
     expect(result.ok).toBe(true)
     expect(result.remaining).toBeGreaterThan(0)
+  })
+
+  it('allows auth attempts when Upstash is not configured', async () => {
+    const result = await checkAuthRateLimit('sign-in:gab@example.com:1.2.3.4')
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(8)
+  })
+
+  it('reads the client IP from x-forwarded-for then x-real-ip', () => {
+    expect(
+      clientIp(
+        new Request('https://taskin.app', {
+          headers: { 'x-forwarded-for': '9.9.9.9, 10.0.0.1' },
+        }),
+      ),
+    ).toBe('9.9.9.9')
+    expect(
+      clientIp(
+        new Request('https://taskin.app', {
+          headers: { 'x-real-ip': '8.8.8.8' },
+        }),
+      ),
+    ).toBe('8.8.8.8')
+    expect(clientIp(new Request('https://taskin.app'))).toBe('unknown')
   })
 
   it('exposes standard rate-limit headers', () => {
@@ -41,5 +88,21 @@ describe('rate limit', () => {
       reset: 1000,
     }) as Record<string, string>
     expect(headers['x-ratelimit-remaining']).toBe('0')
+  })
+
+  it('delegates to Upstash when configured', async () => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://upstash.test'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'token'
+    limit.mockResolvedValue({
+      success: false,
+      limit: 60,
+      remaining: 0,
+      reset: 2000,
+    })
+    vi.resetModules()
+    const mod = await import('@/server/api/rate-limit')
+    const result = await mod.checkRateLimit('apikey:abc')
+    expect(limit).toHaveBeenCalledWith('apikey:abc')
+    expect(result).toEqual({ ok: false, limit: 60, remaining: 0, reset: 2000 })
   })
 })
