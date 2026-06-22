@@ -10,6 +10,9 @@ out
 .turbo
 *.tsbuildinfo
 
+# Vendored at build time
+apps/web/public/scalar
+
 # Test / coverage
 coverage
 .vitest

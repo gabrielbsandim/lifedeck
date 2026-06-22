@@ -1,4 +1,6 @@
-export function GET() {
+export function GET(request: Request) {
+  const nonce = request.headers.get('x-nonce') ?? ''
+  const nonceAttr = nonce ? ` nonce="${nonce}"` : ''
   const html = `<!doctype html>
 <html>
   <head>
@@ -7,8 +9,8 @@ export function GET() {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <script id="api-reference" data-url="/api/v1/openapi"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.25.0"></script>
+    <script id="api-reference" data-url="/api/v1/openapi"${nonceAttr}></script>
+    <script src="/scalar/standalone.js"${nonceAttr}></script>
   </body>
 </html>`
 
