@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { TaskView } from '@taskin/application'
 import {
@@ -91,11 +92,19 @@ export function DailyBoard({ date }: { date: string }) {
       </header>
 
       <Card className="p-6 sm:p-8">
-        <div className="mb-6">
-          <p className="text-ink-500 text-sm capitalize">
-            {formatDate(date, locale)}
-          </p>
-          <h2 className="text-xl font-semibold">{messages.list.daily}</h2>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <p className="text-ink-500 text-sm capitalize">
+              {formatDate(date, locale)}
+            </p>
+            <h2 className="text-xl font-semibold">{messages.list.daily}</h2>
+          </div>
+          <Link
+            href="/recurring"
+            className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+          >
+            ↻ {messages.recurring.manage}
+          </Link>
         </div>
 
         <div className="border-line bg-bg mb-6 rounded-2xl border p-4">
