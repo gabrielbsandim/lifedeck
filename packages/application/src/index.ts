@@ -7,6 +7,11 @@ export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 export type { ShareLinkRepository } from '@/ports/share-link-repository'
 export type { TokenGenerator } from '@/ports/token-generator'
 export type { MembershipRepository } from '@/ports/membership-repository'
+export type { PasswordHasher } from '@/ports/password-hasher'
+export type { CodeGenerator } from '@/ports/code-generator'
+export type { EmailSender } from '@/ports/email-sender'
+export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
+export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -18,8 +23,18 @@ export {
 } from '@/dtos/task-dto'
 export {
   guestSignInSchema,
+  registerSchema,
+  signInSchema,
+  verifyEmailSchema,
+  changePasswordSchema,
+  renameUserSchema,
   userViewSchema,
   type GuestSignInInput,
+  type RegisterInput,
+  type SignInInput,
+  type VerifyEmailInput,
+  type ChangePasswordInput,
+  type RenameUserInput,
   type UserView,
 } from '@/dtos/user-dto'
 export {
@@ -54,6 +69,15 @@ export { makeUpdateTask } from '@/use-cases/update-task'
 export { makeListListTasks } from '@/use-cases/list-list-tasks'
 export { makeCreateGuestUser } from '@/use-cases/create-guest-user'
 export { makeGetUser } from '@/use-cases/get-user'
+export { makeRegisterWithEmail } from '@/use-cases/register-with-email'
+export { makeRequestEmailVerification } from '@/use-cases/request-email-verification'
+export { makeVerifyEmail } from '@/use-cases/verify-email'
+export { makeSignInWithEmail } from '@/use-cases/sign-in-with-email'
+export { makeSignInWithGoogle } from '@/use-cases/sign-in-with-google'
+export { makeGetGoogleAuthUrl } from '@/use-cases/get-google-auth-url'
+export { makeChangePassword } from '@/use-cases/change-password'
+export { makeRenameUser } from '@/use-cases/rename-user'
+export { makeDeleteUser } from '@/use-cases/delete-user'
 export { makeCreateList } from '@/use-cases/create-list'
 export { makeGetList } from '@/use-cases/get-list'
 export { makeListUserLists } from '@/use-cases/list-user-lists'
@@ -77,6 +101,11 @@ export { makeListMembers } from '@/use-cases/list-members'
 export { makeRemoveMember } from '@/use-cases/remove-member'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+export { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-verification-repository'
+export { FakePasswordHasher } from '@/testing/fake-password-hasher'
+export { FakeEmailSender } from '@/testing/fake-email-sender'
+export { FakeCodeGenerator } from '@/testing/fake-code-generator'
+export { FakeOAuthProvider } from '@/testing/fake-oauth-provider'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'

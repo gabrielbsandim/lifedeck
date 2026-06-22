@@ -46,4 +46,5 @@ export const ID = {
   list: asEntityId('1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'),
   user: asEntityId('a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f'),
   otherUser: asEntityId('b2d9e3f5-6c7e-4d8f-9a01-2b3c4d5e6f70'),
+  verification: asEntityId('7c9e6679-7425-40de-944b-e07fc1f90ae7'),
 }

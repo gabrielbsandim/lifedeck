@@ -6,7 +6,9 @@ export function toUserView(user: User): UserView {
   return {
     id: props.id,
     displayName: props.displayName,
+    email: props.email,
     isGuest: props.isGuest,
+    isEmailVerified: props.emailVerifiedAt !== null,
     locale: props.locale,
     createdAt: props.createdAt.toISOString(),
   }

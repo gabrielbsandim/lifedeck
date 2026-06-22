@@ -11,4 +11,18 @@ export class InMemoryUserRepository implements UserRepository {
   async findById(id: EntityId): Promise<User | null> {
     return this.store.get(id) ?? null
   }
+
+  async findByEmail(email: string): Promise<User | null> {
+    const normalized = email.trim().toLowerCase()
+    for (const user of this.store.values()) {
+      if (user.email === normalized) {
+        return user
+      }
+    }
+    return null
+  }
+
+  async delete(id: EntityId): Promise<void> {
+    this.store.delete(id)
+  }
 }
