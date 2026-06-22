@@ -1,0 +1,26 @@
+import { asEntityId } from '@taskin/domain'
+import { type MemberView } from '@/dtos/member-dto'
+import { toMemberView } from '@/mappers/member-mapper'
+import { NotFoundError } from '@/errors/use-case-error'
+import type { ListRepository } from '@/ports/list-repository'
+import type { MembershipRepository } from '@/ports/membership-repository'
+
+type Dependencies = {
+  lists: ListRepository
+  memberships: MembershipRepository
+}
+
+export function makeListMembers({ lists, memberships }: Dependencies) {
+  return async function listMembers(
+    requesterId: string,
+    listId: string,
+  ): Promise<MemberView[]> {
+    const list = await lists.findById(asEntityId(listId))
+    if (!list || !list.isOwnedBy(asEntityId(requesterId))) {
+      throw new NotFoundError('List')
+    }
+
+    const members = await memberships.listByList(list.id)
+    return members.map(toMemberView)
+  }
+}

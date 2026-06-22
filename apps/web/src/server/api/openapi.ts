@@ -437,6 +437,71 @@ export const openApiDocument = {
         },
       },
     },
+    '/shared/{token}/join': {
+      post: {
+        summary: 'Join a list via its share token',
+        operationId: 'joinList',
+        description:
+          'Adds the current user as a member of the list with the link role.',
+        parameters: [
+          {
+            name: 'token',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '201': { description: 'Joined; membership returned.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'Invalid or expired token.' },
+        },
+      },
+    },
+    '/lists/{id}/members': {
+      get: {
+        summary: 'List members of a list',
+        operationId: 'listMembers',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Members of the list.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'List not found.' },
+        },
+      },
+    },
+    '/lists/{id}/members/{userId}': {
+      delete: {
+        summary: 'Remove a member from a list',
+        operationId: 'removeMember',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+          {
+            name: 'userId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Member removed.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'List or member not found.' },
+        },
+      },
+    },
   },
   components: {
     schemas: {

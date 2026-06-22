@@ -72,6 +72,9 @@ export {
   makeGetSharedBoard,
   type SharedBoardView,
 } from '@/use-cases/get-shared-board'
+export { makeJoinListByToken } from '@/use-cases/join-list-by-token'
+export { makeListMembers } from '@/use-cases/list-members'
+export { makeRemoveMember } from '@/use-cases/remove-member'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
