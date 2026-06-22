@@ -11,6 +11,8 @@ export const updateTaskSchema = z.object({
   title: z.string().trim().min(1).max(280).optional(),
   observation: z.string().max(2000).nullable().optional(),
   status: z.enum(['pending', 'completed']).optional(),
+  assigneeId: z.string().uuid().nullable().optional(),
+  isPrivate: z.boolean().optional(),
 })
 
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
@@ -23,6 +25,7 @@ export const taskViewSchema = z.object({
   observation: z.string().nullable(),
   assigneeId: z.string().uuid().nullable(),
   recurringTaskId: z.string().uuid().nullable(),
+  isPrivate: z.boolean(),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
 })

@@ -87,6 +87,7 @@ model Task {
   observation     String?
   assigneeId      String?    @map("assignee_id")
   recurringTaskId String?    @map("recurring_task_id")
+  isPrivate       Boolean    @default(false) @map("is_private")
   position        Int        @default(0)
   createdAt       DateTime   @default(now()) @map("created_at")
   completedAt     DateTime?  @map("completed_at")

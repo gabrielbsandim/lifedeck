@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ShareLink, asEntityId } from '@taskin/domain'
+import { List, ShareLink, Task, asEntityId } from '@taskin/domain'
 import { makeCreateShareLink } from '@/use-cases/create-share-link'
 import { makeListShareLinks } from '@/use-cases/list-share-links'
 import { makeRevokeShareLink } from '@/use-cases/revoke-share-link'
@@ -111,6 +111,27 @@ describe('share links', () => {
     expect(board.role).toBe('viewer')
     expect(board.list.id).toBe(ID.list)
     expect(board.tasks).toHaveLength(1)
+  })
+
+  it('omits private tasks from the shared board', async () => {
+    const { lists, tasks, createShareLink, getSharedBoard, createTask } =
+      setup()
+    await lists.save(makeList())
+    await createTask(ID.user, { listId: ID.list, title: 'Public' })
+    const secret = Task.create({
+      id: asEntityId('9c858901-8a57-4791-81fe-4c455b099bc9'),
+      listId: ID.list,
+      title: 'Secret',
+      createdAt: NOW,
+    })
+    secret.setPrivacy(true)
+    await tasks.save(secret)
+    await createShareLink(ID.user, ID.list, {})
+
+    const board = await getSharedBoard('secret-token')
+
+    expect(board.tasks).toHaveLength(1)
+    expect(board.tasks[0]?.title).toBe('Public')
   })
 
   it('rejects an unknown token', async () => {

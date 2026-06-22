@@ -13,6 +13,7 @@ const RECORD: TaskRecord = {
   observation: 'Red roses',
   assigneeId: '9c858901-8a57-4791-81fe-4c455b099bc9',
   recurringTaskId: 'a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f',
+  isPrivate: true,
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
   completedAt: new Date('2026-06-21T12:00:00.000Z'),
 }

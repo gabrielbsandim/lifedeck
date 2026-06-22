@@ -44,7 +44,7 @@ export function makeGetSharedBoard({
     const items = await tasks.listByList(list.id)
     return {
       list: toListView(list),
-      tasks: items.map(toTaskView),
+      tasks: items.filter(task => !task.isPrivate).map(toTaskView),
       role: link.role,
     }
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List } from '@taskin/domain'
+import { List, ListMember, Task, ValidationError } from '@taskin/domain'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { makeUpdateTask } from '@/use-cases/update-task'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
@@ -71,9 +71,73 @@ describe('updateTask', () => {
     expect(view).toMatchObject({ title: 'Buy roses', observation: 'Red ones' })
   })
 
+  it('toggles privacy', async () => {
+    const { updateTask } = await setup()
+    const view = await updateTask(ID.user, ID.task, { isPrivate: true })
+    expect(view.isPrivate).toBe(true)
+  })
+
+  it('assigns to the owner and unassigns', async () => {
+    const { updateTask } = await setup()
+
+    const assigned = await updateTask(ID.user, ID.task, { assigneeId: ID.user })
+    expect(assigned.assigneeId).toBe(ID.user)
+
+    const cleared = await updateTask(ID.user, ID.task, { assigneeId: null })
+    expect(cleared.assigneeId).toBeNull()
+  })
+
+  it('assigns to a member of the list', async () => {
+    const { updateTask, memberships } = await setup()
+    await memberships.save(
+      ListMember.create({
+        id: ID.list,
+        listId: ID.list,
+        userId: ID.otherUser,
+        role: 'editor',
+        addedAt: NOW,
+      }),
+    )
+
+    const view = await updateTask(ID.user, ID.task, {
+      assigneeId: ID.otherUser,
+    })
+    expect(view.assigneeId).toBe(ID.otherUser)
+  })
+
+  it('rejects assigning to a non-member', async () => {
+    const { updateTask } = await setup()
+    await expect(
+      updateTask(ID.user, ID.task, { assigneeId: ID.otherUser }),
+    ).rejects.toThrow(ValidationError)
+  })
+
   it('throws NotFound for a missing task', async () => {
     const { updateTask } = await setup()
     await expect(updateTask(ID.user, ID.user, { title: 'X' })).rejects.toThrow(
+      NotFoundError,
+    )
+  })
+
+  it('throws NotFound when the task list no longer exists', async () => {
+    const tasks = new InMemoryTaskRepository()
+    const lists = new InMemoryListRepository()
+    const memberships = new InMemoryMembershipRepository()
+    await tasks.save(
+      Task.create({
+        id: ID.task,
+        listId: ID.list,
+        title: 'Orphan',
+        createdAt: NOW,
+      }),
+    )
+    const updateTask = makeUpdateTask({
+      tasks,
+      lists,
+      memberships,
+      clock: new FixedClock(NOW),
+    })
+    await expect(updateTask(ID.user, ID.task, { title: 'X' })).rejects.toThrow(
       NotFoundError,
     )
   })

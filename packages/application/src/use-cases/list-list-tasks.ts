@@ -28,7 +28,10 @@ export function makeListListTasks({ tasks, lists, memberships }: Dependencies) {
       throw new NotFoundError('List')
     }
 
+    const isOwner =
+      requesterId !== null && list.isOwnedBy(asEntityId(requesterId))
     const items = await tasks.listByList(asEntityId(listId))
-    return items.map(toTaskView)
+    const visible = isOwner ? items : items.filter(task => !task.isPrivate)
+    return visible.map(toTaskView)
   }
 }

@@ -99,6 +99,14 @@ describe('Task behavior', () => {
     task.assignTo(null)
     expect(task.toJSON().assigneeId).toBeNull()
   })
+
+  it('toggles privacy', () => {
+    expect(task.isPrivate).toBe(false)
+    task.setPrivacy(true)
+    expect(task.isPrivate).toBe(true)
+    task.setPrivacy(false)
+    expect(task.isPrivate).toBe(false)
+  })
 })
 
 describe('Task.restore', () => {
@@ -111,6 +119,7 @@ describe('Task.restore', () => {
       observation: 'note',
       assigneeId: MEMBER_ID,
       recurringTaskId: null,
+      isPrivate: true,
       createdAt: NOW,
       completedAt: NOW,
     })

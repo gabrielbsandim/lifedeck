@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List } from '@taskin/domain'
+import { List, ListMember, Task, asEntityId } from '@taskin/domain'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { makeListListTasks } from '@/use-cases/list-list-tasks'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -34,6 +34,7 @@ function setup() {
     clock: new FixedClock(NOW),
   })
   return {
+    tasks,
     lists,
     memberships,
     createTask,
@@ -67,5 +68,40 @@ describe('listListTasks', () => {
     await expect(listListTasks(ID.otherUser, ID.list)).rejects.toThrow(
       NotFoundError,
     )
+  })
+
+  it('hides private tasks from members but not the owner', async () => {
+    const { lists, memberships, tasks, listListTasks } = setup()
+    await lists.save(makeList())
+    await memberships.save(
+      ListMember.create({
+        id: ID.user,
+        listId: ID.list,
+        userId: ID.otherUser,
+        role: 'viewer',
+        addedAt: NOW,
+      }),
+    )
+    await tasks.save(
+      Task.create({
+        id: ID.task,
+        listId: ID.list,
+        title: 'Public',
+        createdAt: NOW,
+      }),
+    )
+    const secret = Task.create({
+      id: asEntityId('9c858901-8a57-4791-81fe-4c455b099bc9'),
+      listId: ID.list,
+      title: 'Secret',
+      createdAt: NOW,
+    })
+    secret.setPrivacy(true)
+    await tasks.save(secret)
+
+    expect(await listListTasks(ID.user, ID.list)).toHaveLength(2)
+    const memberView = await listListTasks(ID.otherUser, ID.list)
+    expect(memberView).toHaveLength(1)
+    expect(memberView[0]?.title).toBe('Public')
   })
 })

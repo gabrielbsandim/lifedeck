@@ -13,6 +13,7 @@ export type TaskProps = {
   observation: string | null
   assigneeId: EntityId | null
   recurringTaskId: EntityId | null
+  isPrivate: boolean
   createdAt: Date
   completedAt: Date | null
 }
@@ -41,6 +42,7 @@ export class Task {
       observation: null,
       assigneeId: null,
       recurringTaskId: input.recurringTaskId ?? null,
+      isPrivate: false,
       createdAt: input.createdAt,
       completedAt: null,
     })
@@ -60,6 +62,10 @@ export class Task {
 
   get isCompleted(): boolean {
     return this.props.status === 'completed'
+  }
+
+  get isPrivate(): boolean {
+    return this.props.isPrivate
   }
 
   complete(completedAt: Date): void {
@@ -97,6 +103,10 @@ export class Task {
 
   assignTo(assigneeId: EntityId | null): void {
     this.props.assigneeId = assigneeId
+  }
+
+  setPrivacy(isPrivate: boolean): void {
+    this.props.isPrivate = isPrivate
   }
 
   toJSON(): TaskProps {

@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { ValidationError, asEntityId } from '@taskin/domain'
 import {
   updateTaskSchema,
   type UpdateTaskInput,
@@ -60,6 +60,24 @@ export function makeUpdateTask({
     }
     if (data.status === 'pending') {
       task.reopen()
+    }
+    if (data.isPrivate !== undefined) {
+      task.setPrivacy(data.isPrivate)
+    }
+    if (data.assigneeId !== undefined) {
+      if (data.assigneeId === null) {
+        task.assignTo(null)
+      } else {
+        const assignee = asEntityId(data.assigneeId)
+        const isOwnerAssignee = list.isOwnedBy(assignee)
+        const member = await memberships.findByListAndUser(list.id, assignee)
+        if (!isOwnerAssignee && !member) {
+          throw new ValidationError(
+            'Assignee must be the owner or a member of the list.',
+          )
+        }
+        task.assignTo(assignee)
+      }
     }
 
     await tasks.save(task)
