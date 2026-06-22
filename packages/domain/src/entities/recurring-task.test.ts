@@ -47,6 +47,34 @@ describe('RecurringTask', () => {
     )
   })
 
+  it('checks ownership', () => {
+    const task = create()
+    expect(task.isOwnedBy(OWNER)).toBe(true)
+    expect(task.isOwnedBy(ID)).toBe(false)
+  })
+
+  it('renames with validation', () => {
+    const task = create()
+    task.rename('  Stretch  ')
+    expect(task.title).toBe('Stretch')
+    expect(() => task.rename('')).toThrow(ValidationError)
+  })
+
+  it('changes the rule with validation', () => {
+    const task = create()
+    const next: RecurrenceRule = {
+      freq: 'weekly',
+      interval: 1,
+      byWeekday: [1, 3],
+      startDate: '2026-06-21',
+    }
+    task.changeRule(next)
+    expect(task.rule).toEqual(next)
+    expect(() => task.changeRule({ ...next, interval: 0 })).toThrow(
+      ValidationError,
+    )
+  })
+
   it('restores from persisted props', () => {
     const props = create().toJSON()
     expect(RecurringTask.restore(props).toJSON()).toEqual(props)

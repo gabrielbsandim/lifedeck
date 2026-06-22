@@ -17,4 +17,8 @@ export class InMemoryRecurringTaskRepository
   async listByOwner(ownerId: EntityId): Promise<RecurringTask[]> {
     return [...this.store.values()].filter(task => task.ownerId === ownerId)
   }
+
+  async delete(id: EntityId): Promise<void> {
+    this.store.delete(id)
+  }
 }

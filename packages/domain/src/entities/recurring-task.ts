@@ -58,6 +58,22 @@ export class RecurringTask {
     return this.props.rule
   }
 
+  isOwnedBy(userId: EntityId): boolean {
+    return this.props.ownerId === userId
+  }
+
+  rename(title: string): void {
+    this.props.title = guard.maxLength(
+      guard.notEmpty(title, 'Recurring task title'),
+      MAX_TITLE_LENGTH,
+      'Recurring task title',
+    )
+  }
+
+  changeRule(rule: RecurrenceRule): void {
+    this.props.rule = validateRecurrenceRule(rule)
+  }
+
   toJSON(): RecurringTaskProps {
     return { ...this.props }
   }

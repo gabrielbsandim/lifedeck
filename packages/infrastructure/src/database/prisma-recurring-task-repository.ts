@@ -57,4 +57,8 @@ export class PrismaRecurringTaskRepository implements RecurringTaskRepository {
     })
     return rows.map(fromRow)
   }
+
+  async delete(id: EntityId): Promise<void> {
+    await this.prisma.recurringTask.delete({ where: { id } })
+  }
 }

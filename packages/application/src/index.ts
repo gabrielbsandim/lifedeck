@@ -25,9 +25,19 @@ export {
   type CreateListInput,
   type ListView,
 } from '@/dtos/list-dto'
+export {
+  recurrenceRuleSchema,
+  createRecurringTaskSchema,
+  updateRecurringTaskSchema,
+  recurringTaskViewSchema,
+  type CreateRecurringTaskInput,
+  type UpdateRecurringTaskInput,
+  type RecurringTaskView,
+} from '@/dtos/recurring-task-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
+export { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
 export { makeCreateTask } from '@/use-cases/create-task'
 export { makeUpdateTask } from '@/use-cases/update-task'
 export { makeListListTasks } from '@/use-cases/list-list-tasks'
@@ -40,6 +50,10 @@ export {
   makeGetDailyBoard,
   type DailyBoardView,
 } from '@/use-cases/get-daily-board'
+export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
+export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
+export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'
+export { makeDeleteRecurringTask } from '@/use-cases/delete-recurring-task'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'

@@ -233,6 +233,93 @@ export const openApiDocument = {
         },
       },
     },
+    '/recurring-tasks': {
+      get: {
+        summary: "List the current user's recurring task definitions",
+        operationId: 'listRecurringTasks',
+        responses: {
+          '200': { description: 'Recurring task definitions.' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+      post: {
+        summary: 'Create a recurring task definition',
+        operationId: 'createRecurringTask',
+        description:
+          'Defines a task that materializes into the daily list on each matching date.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['title', 'rule'],
+                properties: {
+                  title: { type: 'string', maxLength: 280 },
+                  rule: { $ref: '#/components/schemas/RecurrenceRule' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Recurring task created.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
+    '/recurring-tasks/{id}': {
+      patch: {
+        summary: 'Update a recurring task definition',
+        operationId: 'updateRecurringTask',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', maxLength: 280 },
+                  rule: { $ref: '#/components/schemas/RecurrenceRule' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Recurring task updated.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'Recurring task not found.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+      delete: {
+        summary: 'Delete a recurring task definition',
+        operationId: 'deleteRecurringTask',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Recurring task deleted.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'Recurring task not found.' },
+        },
+      },
+    },
     '/lists/{id}/tasks': {
       get: {
         summary: 'List the tasks of a list',
@@ -250,6 +337,31 @@ export const openApiDocument = {
         responses: {
           '200': { description: 'Tasks of the list.' },
           '404': { description: 'List not found or not accessible.' },
+        },
+      },
+    },
+  },
+  components: {
+    schemas: {
+      RecurrenceRule: {
+        type: 'object',
+        required: ['freq', 'interval', 'startDate'],
+        properties: {
+          freq: { type: 'string', enum: ['daily', 'weekly', 'monthly'] },
+          interval: { type: 'integer', minimum: 1 },
+          byWeekday: {
+            type: 'array',
+            items: { type: 'integer', minimum: 0, maximum: 6 },
+            description: '0 = Sunday .. 6 = Saturday (used by weekly).',
+          },
+          byMonthday: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 31,
+            description: 'Day of month (used by monthly).',
+          },
+          startDate: { type: 'string', format: 'date' },
+          until: { type: 'string', format: 'date', nullable: true },
         },
       },
     },

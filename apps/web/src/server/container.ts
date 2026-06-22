@@ -1,12 +1,16 @@
 import {
   makeCreateGuestUser,
   makeCreateList,
+  makeCreateRecurringTask,
   makeCreateTask,
+  makeDeleteRecurringTask,
   makeGetDailyBoard,
   makeGetList,
   makeGetUser,
   makeListListTasks,
+  makeListRecurringTasks,
   makeListUserLists,
+  makeUpdateRecurringTask,
   makeUpdateTask,
   type ListRepository,
   type RecurringTaskRepository,
@@ -33,6 +37,10 @@ type Container = {
   getList: ReturnType<typeof makeGetList>
   listUserLists: ReturnType<typeof makeListUserLists>
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
+  createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
+  listRecurringTasks: ReturnType<typeof makeListRecurringTasks>
+  updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
+  deleteRecurringTask: ReturnType<typeof makeDeleteRecurringTask>
 }
 
 type Repositories = {
@@ -66,6 +74,14 @@ function build({
       ids,
       clock,
     }),
+    createRecurringTask: makeCreateRecurringTask({
+      recurringTasks,
+      ids,
+      clock,
+    }),
+    listRecurringTasks: makeListRecurringTasks({ recurringTasks }),
+    updateRecurringTask: makeUpdateRecurringTask({ recurringTasks }),
+    deleteRecurringTask: makeDeleteRecurringTask({ recurringTasks }),
   }
 }
 
