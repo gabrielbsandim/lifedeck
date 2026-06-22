@@ -52,12 +52,25 @@ model User {
   locale        String    @default("en")
   createdAt     DateTime  @default(now()) @map("created_at")
 
-  ownedLists     List[]          @relation("ListOwner")
-  memberships    ListMember[]
-  assignedTo     Task[]          @relation("TaskAssignee")
-  recurringTasks RecurringTask[] @relation("RecurringTaskOwner")
+  ownedLists        List[]             @relation("ListOwner")
+  memberships       ListMember[]
+  assignedTo        Task[]             @relation("TaskAssignee")
+  recurringTasks    RecurringTask[]    @relation("RecurringTaskOwner")
+  emailVerification EmailVerification?
 
   @@map("users")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  codeHash  String   @map("code_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
 }
 
 model List {

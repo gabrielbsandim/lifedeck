@@ -26,4 +26,13 @@ export class PrismaUserRepository implements UserRepository {
     const record = await this.prisma.user.findUnique({ where: { id } })
     return record ? toDomainUser(record) : null
   }
+
+  async findByEmail(email: string): Promise<User | null> {
+    const record = await this.prisma.user.findUnique({ where: { email } })
+    return record ? toDomainUser(record) : null
+  }
+
+  async delete(id: EntityId): Promise<void> {
+    await this.prisma.user.delete({ where: { id } })
+  }
 }

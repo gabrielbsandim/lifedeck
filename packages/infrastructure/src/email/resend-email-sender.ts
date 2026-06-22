@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import type { EmailSender, EmailTemplate } from '@/email/email-message'
+import type { EmailSender } from '@taskin/application'
 import { renderEmail } from '@/email/render-email'
 
 export class ResendEmailSender implements EmailSender {
@@ -8,12 +8,16 @@ export class ResendEmailSender implements EmailSender {
   constructor(
     apiKey: string,
     private readonly from: string,
+    private readonly appName = 'TaskIn',
   ) {
     this.client = new Resend(apiKey)
   }
 
-  async send(to: string, template: EmailTemplate): Promise<void> {
-    const { subject, html } = renderEmail(template)
+  async sendVerificationCode(to: string, code: string): Promise<void> {
+    const { subject, html } = renderEmail({
+      type: 'verification-code',
+      data: { code, appName: this.appName },
+    })
     await this.client.emails.send({ from: this.from, to, subject, html })
   }
 }

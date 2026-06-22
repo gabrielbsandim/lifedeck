@@ -7,7 +7,14 @@ export { PrismaListRepository } from '@/database/prisma-list-repository'
 export { PrismaRecurringTaskRepository } from '@/database/prisma-recurring-task-repository'
 export { PrismaShareLinkRepository } from '@/database/prisma-share-link-repository'
 export { PrismaMembershipRepository } from '@/database/prisma-membership-repository'
+export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verification-repository'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
+export { ScryptPasswordHasher } from '@/security/scrypt-password-hasher'
+export { NumericCodeGenerator } from '@/security/numeric-code-generator'
+export {
+  GoogleOAuthProvider,
+  type GoogleOAuthConfig,
+} from '@/auth/google-oauth-provider'
 export {
   toDomainTask,
   toTaskRecord,
@@ -39,9 +46,11 @@ export {
   type RecurringTaskRecord,
 } from '@/database/recurring-task-record'
 export { renderEmail } from '@/email/render-email'
-export {
-  type EmailSender,
-  type EmailTemplate,
-  type RenderedEmail,
-} from '@/email/email-message'
+export { type EmailTemplate, type RenderedEmail } from '@/email/email-message'
 export { ResendEmailSender } from '@/email/resend-email-sender'
+export { ConsoleEmailSender } from '@/email/console-email-sender'
+export {
+  toDomainEmailVerification,
+  toEmailVerificationRecord,
+  type EmailVerificationRecord,
+} from '@/database/email-verification-record'
