@@ -29,6 +29,7 @@ import {
   makeRenameUser,
   makeRequestEmailVerification,
   makeRevokeShareLink,
+  makeSendDailyDigest,
   makeSignInWithEmail,
   makeSignInWithGoogle,
   makeUpdateRecurringTask,
@@ -105,6 +106,7 @@ type Container = {
   removeMember: ReturnType<typeof makeRemoveMember>
   getAnalytics: ReturnType<typeof makeGetAnalytics>
   generateList: ReturnType<typeof makeGenerateList>
+  sendDailyDigest: ReturnType<typeof makeSendDailyDigest>
 }
 
 type Repositories = {
@@ -142,6 +144,13 @@ function build(
   const ids = new UuidGenerator()
   const tokens = new RandomTokenGenerator()
   const codes = new NumericCodeGenerator()
+  const getDailyBoard = makeGetDailyBoard({
+    lists,
+    tasks,
+    recurringTasks,
+    ids,
+    clock,
+  })
   return {
     createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
     updateTask: makeUpdateTask({
@@ -186,13 +195,7 @@ function build(
     reorderTasks: makeReorderTasks({ tasks, lists, memberships }),
     getList: makeGetList({ lists, memberships }),
     listUserLists: makeListUserLists({ lists }),
-    getDailyBoard: makeGetDailyBoard({
-      lists,
-      tasks,
-      recurringTasks,
-      ids,
-      clock,
-    }),
+    getDailyBoard,
     createRecurringTask: makeCreateRecurringTask({
       recurringTasks,
       ids,
@@ -231,6 +234,12 @@ function build(
     removeMember: makeRemoveMember({ lists, memberships }),
     getAnalytics: makeGetAnalytics({ analytics, clock }),
     generateList: makeGenerateList({ generator: listGenerator }),
+    sendDailyDigest: makeSendDailyDigest({
+      getDailyBoard,
+      users,
+      emailSender,
+      clock,
+    }),
   }
 }
 

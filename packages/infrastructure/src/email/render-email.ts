@@ -66,6 +66,45 @@ const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
   },
 }
 
+type DigestCopy = {
+  subject: string
+  title: string
+  summary: (completed: number, total: number) => string
+  pendingLabel: string
+  allDone: string
+}
+
+const DIGEST_COPY: Record<EmailLocale, DigestCopy> = {
+  en: {
+    subject: 'Your TaskIn daily summary',
+    title: 'Today on TaskIn',
+    summary: (completed, total) =>
+      `You completed ${completed} of ${total} tasks.`,
+    pendingLabel: 'Still pending:',
+    allDone: 'Everything is done. Lovely work! 🎉',
+  },
+  pt: {
+    subject: 'Seu resumo diário do TaskIn',
+    title: 'Hoje no TaskIn',
+    summary: (completed, total) =>
+      `Você concluiu ${completed} de ${total} tarefas.`,
+    pendingLabel: 'Ainda pendentes:',
+    allDone: 'Tudo concluído. Ótimo trabalho! 🎉',
+  },
+}
+
+function digestBody(
+  copy: DigestCopy,
+  data: { total: number; completed: number; pendingTitles: string[] },
+): string {
+  const summary = `<p>${copy.summary(data.completed, data.total)}</p>`
+  if (data.pendingTitles.length === 0) {
+    return `${summary}<p>${copy.allDone}</p>`
+  }
+  const items = data.pendingTitles.map(title => `<li>${title}</li>`).join('')
+  return `${summary}<p style="font-weight:600;margin-top:16px">${copy.pendingLabel}</p><ul>${items}</ul>`
+}
+
 export function renderEmail(
   template: EmailTemplate,
   locale: EmailLocale = 'en',
@@ -99,6 +138,13 @@ export function renderEmail(
           copy.title,
           copy.body(template.data.taskTitle, template.data.listTitle),
         ),
+      }
+    }
+    case 'daily-digest': {
+      const copy = DIGEST_COPY[locale]
+      return {
+        subject: copy.subject,
+        html: layout(copy.title, digestBody(copy, template.data)),
       }
     }
   }

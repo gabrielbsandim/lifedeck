@@ -1,4 +1,8 @@
-import type { EmailLocale, EmailSender } from '@taskin/application'
+import type {
+  DailyDigestSummary,
+  EmailLocale,
+  EmailSender,
+} from '@taskin/application'
 
 export class ConsoleEmailSender implements EmailSender {
   async sendVerificationCode(
@@ -28,6 +32,16 @@ export class ConsoleEmailSender implements EmailSender {
   ): Promise<void> {
     console.info(
       `[taskin] assignment "${taskTitle}" on "${listTitle}" for ${to} (${locale})`,
+    )
+  }
+
+  async sendDailyDigest(
+    to: string,
+    summary: DailyDigestSummary,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    console.info(
+      `[taskin] digest for ${to} (${locale}): ${summary.completed}/${summary.total} done on ${summary.date}`,
     )
   }
 }

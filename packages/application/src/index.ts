@@ -9,7 +9,11 @@ export type { TokenGenerator } from '@/ports/token-generator'
 export type { MembershipRepository } from '@/ports/membership-repository'
 export type { PasswordHasher } from '@/ports/password-hasher'
 export type { CodeGenerator } from '@/ports/code-generator'
-export type { EmailSender, EmailLocale } from '@/ports/email-sender'
+export type {
+  EmailSender,
+  EmailLocale,
+  DailyDigestSummary,
+} from '@/ports/email-sender'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 export type {
@@ -128,6 +132,7 @@ export { makeListMembers } from '@/use-cases/list-members'
 export { makeRemoveMember } from '@/use-cases/remove-member'
 export { makeGetAnalytics } from '@/use-cases/get-analytics'
 export { makeGenerateList } from '@/use-cases/generate-list'
+export { makeSendDailyDigest } from '@/use-cases/send-daily-digest'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-verification-repository'

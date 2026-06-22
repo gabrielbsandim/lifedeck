@@ -1,4 +1,8 @@
-import type { EmailLocale, EmailSender } from '@/ports/email-sender'
+import type {
+  DailyDigestSummary,
+  EmailLocale,
+  EmailSender,
+} from '@/ports/email-sender'
 
 export class FakeEmailSender implements EmailSender {
   readonly sent: Array<{ to: string; code: string; locale: EmailLocale }> = []
@@ -40,5 +44,19 @@ export class FakeEmailSender implements EmailSender {
     locale: EmailLocale = 'en',
   ): Promise<void> {
     this.assignments.push({ to, taskTitle, listTitle, locale })
+  }
+
+  readonly digests: Array<{
+    to: string
+    summary: DailyDigestSummary
+    locale: EmailLocale
+  }> = []
+
+  async sendDailyDigest(
+    to: string,
+    summary: DailyDigestSummary,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    this.digests.push({ to, summary, locale })
   }
 }

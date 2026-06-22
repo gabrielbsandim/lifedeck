@@ -5,6 +5,15 @@ export type EmailTemplate =
       type: 'task-assignment'
       data: { taskTitle: string; listTitle: string }
     }
+  | {
+      type: 'daily-digest'
+      data: {
+        date: string
+        total: number
+        completed: number
+        pendingTitles: string[]
+      }
+    }
 
 export type RenderedEmail = {
   subject: string

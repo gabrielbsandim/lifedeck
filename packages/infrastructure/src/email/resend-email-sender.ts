@@ -1,5 +1,9 @@
 import { Resend } from 'resend'
-import type { EmailLocale, EmailSender } from '@taskin/application'
+import type {
+  DailyDigestSummary,
+  EmailLocale,
+  EmailSender,
+} from '@taskin/application'
 import { renderEmail } from '@/email/render-email'
 
 export class ResendEmailSender implements EmailSender {
@@ -46,6 +50,18 @@ export class ResendEmailSender implements EmailSender {
   ): Promise<void> {
     const { subject, html } = renderEmail(
       { type: 'task-assignment', data: { taskTitle, listTitle } },
+      locale,
+    )
+    await this.client.emails.send({ from: this.from, to, subject, html })
+  }
+
+  async sendDailyDigest(
+    to: string,
+    summary: DailyDigestSummary,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    const { subject, html } = renderEmail(
+      { type: 'daily-digest', data: summary },
       locale,
     )
     await this.client.emails.send({ from: this.from, to, subject, html })

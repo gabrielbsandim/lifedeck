@@ -296,6 +296,18 @@ export const openApiDocument = {
         },
       },
     },
+    '/digest': {
+      post: {
+        summary: "Email the current user today's digest",
+        operationId: 'sendDailyDigest',
+        description:
+          "Sends the daily summary email (in the user's locale) and reports whether an email was sent. Designed to be triggered by a scheduler.",
+        responses: {
+          '200': { description: 'Digest processed (sent flag in the body).' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+    },
     '/analytics': {
       get: {
         summary: 'Completion analytics',

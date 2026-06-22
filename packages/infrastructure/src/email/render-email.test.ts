@@ -45,6 +45,33 @@ describe('renderEmail', () => {
     expect(email.html).toContain('Abrir a lista')
   })
 
+  it('renders a daily digest with pending tasks', () => {
+    const email = renderEmail({
+      type: 'daily-digest',
+      data: {
+        date: '2026-06-22',
+        total: 3,
+        completed: 1,
+        pendingTitles: ['Choose cake', 'Send invitations'],
+      },
+    })
+    expect(email.subject).toBe('Your TaskIn daily summary')
+    expect(email.html).toContain('Choose cake')
+    expect(email.html).toContain('Still pending:')
+  })
+
+  it('renders a daily digest celebrating an empty pending list in pt', () => {
+    const email = renderEmail(
+      {
+        type: 'daily-digest',
+        data: { date: '2026-06-22', total: 2, completed: 2, pendingTitles: [] },
+      },
+      'pt',
+    )
+    expect(email.subject).toBe('Seu resumo diário do TaskIn')
+    expect(email.html).toContain('Tudo concluído')
+  })
+
   it('renders a task assignment email (en and pt)', () => {
     const en = renderEmail({
       type: 'task-assignment',

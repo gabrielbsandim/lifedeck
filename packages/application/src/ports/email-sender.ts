@@ -1,5 +1,12 @@
 export type EmailLocale = 'en' | 'pt'
 
+export type DailyDigestSummary = {
+  date: string
+  total: number
+  completed: number
+  pendingTitles: string[]
+}
+
 export interface EmailSender {
   sendVerificationCode(
     to: string,
@@ -16,6 +23,11 @@ export interface EmailSender {
     to: string,
     taskTitle: string,
     listTitle: string,
+    locale?: EmailLocale,
+  ): Promise<void>
+  sendDailyDigest(
+    to: string,
+    summary: DailyDigestSummary,
     locale?: EmailLocale,
   ): Promise<void>
 }
