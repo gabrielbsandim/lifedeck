@@ -2,18 +2,20 @@ import {
   makeCreateGuestUser,
   makeCreateList,
   makeCreateTask,
-  makeGetDailyList,
+  makeGetDailyBoard,
   makeGetList,
   makeGetUser,
   makeListListTasks,
   makeListUserLists,
   makeUpdateTask,
   type ListRepository,
+  type RecurringTaskRepository,
   type TaskRepository,
   type UserRepository,
 } from '@taskin/application'
 import {
   PrismaListRepository,
+  PrismaRecurringTaskRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
   SystemClock,
@@ -30,16 +32,22 @@ type Container = {
   createList: ReturnType<typeof makeCreateList>
   getList: ReturnType<typeof makeGetList>
   listUserLists: ReturnType<typeof makeListUserLists>
-  getDailyList: ReturnType<typeof makeGetDailyList>
+  getDailyBoard: ReturnType<typeof makeGetDailyBoard>
 }
 
 type Repositories = {
   tasks: TaskRepository
   users: UserRepository
   lists: ListRepository
+  recurringTasks: RecurringTaskRepository
 }
 
-function build({ tasks, users, lists }: Repositories): Container {
+function build({
+  tasks,
+  users,
+  lists,
+  recurringTasks,
+}: Repositories): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
   return {
@@ -51,7 +59,13 @@ function build({ tasks, users, lists }: Repositories): Container {
     createList: makeCreateList({ lists, ids, clock }),
     getList: makeGetList({ lists }),
     listUserLists: makeListUserLists({ lists }),
-    getDailyList: makeGetDailyList({ lists, ids, clock }),
+    getDailyBoard: makeGetDailyBoard({
+      lists,
+      tasks,
+      recurringTasks,
+      ids,
+      clock,
+    }),
   }
 }
 
@@ -63,6 +77,7 @@ export function getContainer(): Container {
       tasks: new PrismaTaskRepository(prisma),
       users: new PrismaUserRepository(prisma),
       lists: new PrismaListRepository(prisma),
+      recurringTasks: new PrismaRecurringTaskRepository(prisma),
     })
   }
   return container

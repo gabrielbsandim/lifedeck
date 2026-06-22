@@ -9,8 +9,8 @@ export async function GET(request: Request) {
       return fail('UNAUTHORIZED', 'Authentication required.', 401)
     }
     const date = new URL(request.url).searchParams.get('date') ?? ''
-    const list = await getContainer().getDailyList(userId, date)
-    return ok(list)
+    const board = await getContainer().getDailyBoard(userId, date)
+    return ok(board)
   } catch (error) {
     return handleError(error)
   }

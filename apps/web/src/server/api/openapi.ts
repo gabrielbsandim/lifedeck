@@ -212,10 +212,10 @@ export const openApiDocument = {
     },
     '/daily': {
       get: {
-        summary: "Get the current user's daily list for a date",
-        operationId: 'getDailyList',
+        summary: "Get the current user's daily board for a date",
+        operationId: 'getDailyBoard',
         description:
-          'Returns the daily list for the given date, provisioning it on first access.',
+          'Returns the daily list and its tasks for the given date, provisioning the list and materializing matching recurring tasks on access.',
         parameters: [
           {
             name: 'date',
@@ -225,7 +225,9 @@ export const openApiDocument = {
           },
         ],
         responses: {
-          '200': { description: 'The daily list for the date.' },
+          '200': {
+            description: 'The daily board (list + tasks) for the date.',
+          },
           '401': { description: 'Authentication required.' },
           '422': { description: 'Invalid date.' },
         },
