@@ -44,6 +44,13 @@ export const en: Messages = {
     analytics: 'Analytics',
     generate: 'Generate',
   },
+  notifications: {
+    title: 'Notifications',
+    empty: 'No notifications yet.',
+    markAllRead: 'Mark all read',
+    assigned: 'Assigned to you: {task}',
+    open: 'Notifications',
+  },
   task: {
     add: 'Add a task',
     empty: 'Nothing here yet. Add your first task.',

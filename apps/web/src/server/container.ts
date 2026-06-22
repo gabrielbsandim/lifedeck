@@ -21,6 +21,9 @@ import {
   makeJoinListByToken,
   makeListListTasks,
   makeListMembers,
+  makeListNotifications,
+  makeMarkAllNotificationsRead,
+  makeMarkNotificationRead,
   makeListRecurringTasks,
   makeListShareLinks,
   makeListUserLists,
@@ -41,6 +44,7 @@ import {
   type ListGenerator,
   type ListRepository,
   type MembershipRepository,
+  type NotificationRepository,
   type OAuthProvider,
   type PasswordHasher,
   type RecurringTaskRepository,
@@ -57,6 +61,7 @@ import {
   PrismaEmailVerificationRepository,
   PrismaListRepository,
   PrismaMembershipRepository,
+  PrismaNotificationRepository,
   PrismaRecurringTaskRepository,
   PrismaShareLinkRepository,
   PrismaTaskRepository,
@@ -107,6 +112,9 @@ type Container = {
   getAnalytics: ReturnType<typeof makeGetAnalytics>
   generateList: ReturnType<typeof makeGenerateList>
   sendDailyDigest: ReturnType<typeof makeSendDailyDigest>
+  listNotifications: ReturnType<typeof makeListNotifications>
+  markNotificationRead: ReturnType<typeof makeMarkNotificationRead>
+  markAllNotificationsRead: ReturnType<typeof makeMarkAllNotificationsRead>
 }
 
 type Repositories = {
@@ -118,6 +126,7 @@ type Repositories = {
   memberships: MembershipRepository
   emailVerifications: EmailVerificationRepository
   analytics: AnalyticsRepository
+  notifications: NotificationRepository
 }
 
 type Services = {
@@ -137,6 +146,7 @@ function build(
     memberships,
     emailVerifications,
     analytics,
+    notifications,
   }: Repositories,
   { hasher, emailSender, oauth, listGenerator }: Services,
 ): Container {
@@ -158,7 +168,9 @@ function build(
       lists,
       memberships,
       users,
+      notifications,
       emailSender,
+      ids,
       clock,
     }),
     listListTasks: makeListListTasks({ tasks, lists, memberships }),
@@ -240,6 +252,12 @@ function build(
       emailSender,
       clock,
     }),
+    listNotifications: makeListNotifications({ notifications }),
+    markNotificationRead: makeMarkNotificationRead({ notifications, clock }),
+    markAllNotificationsRead: makeMarkAllNotificationsRead({
+      notifications,
+      clock,
+    }),
   }
 }
 
@@ -284,6 +302,7 @@ export function getContainer(): Container {
         memberships: new PrismaMembershipRepository(prisma),
         emailVerifications: new PrismaEmailVerificationRepository(prisma),
         analytics: new PrismaAnalyticsRepository(prisma),
+        notifications: new PrismaNotificationRepository(prisma),
       },
       {
         hasher: new ScryptPasswordHasher(),

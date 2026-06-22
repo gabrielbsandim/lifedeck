@@ -9,6 +9,7 @@ export { PrismaShareLinkRepository } from '@/database/prisma-share-link-reposito
 export { PrismaMembershipRepository } from '@/database/prisma-membership-repository'
 export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verification-repository'
 export { PrismaAnalyticsRepository } from '@/database/prisma-analytics-repository'
+export { PrismaNotificationRepository } from '@/database/prisma-notification-repository'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
 export { ScryptPasswordHasher } from '@/security/scrypt-password-hasher'
 export { NumericCodeGenerator } from '@/security/numeric-code-generator'
@@ -57,3 +58,8 @@ export {
   toEmailVerificationRecord,
   type EmailVerificationRecord,
 } from '@/database/email-verification-record'
+export {
+  toDomainNotification,
+  toNotificationRecord,
+  type NotificationRecord,
+} from '@/database/notification-record'

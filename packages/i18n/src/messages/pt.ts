@@ -44,6 +44,13 @@ export const pt: Messages = {
     analytics: 'Análises',
     generate: 'Gerar',
   },
+  notifications: {
+    title: 'Notificações',
+    empty: 'Nenhuma notificação ainda.',
+    markAllRead: 'Marcar tudo como lido',
+    assigned: 'Atribuída a você: {task}',
+    open: 'Notificações',
+  },
   task: {
     add: 'Adicionar tarefa',
     empty: 'Nada aqui ainda. Adicione sua primeira tarefa.',

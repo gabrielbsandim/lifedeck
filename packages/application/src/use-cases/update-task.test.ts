@@ -7,6 +7,7 @@ import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 import { FakeEmailSender } from '@/testing/fake-email-sender'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
@@ -29,6 +30,7 @@ async function setup(visibility: 'private' | 'link' = 'private') {
   const lists = new InMemoryListRepository()
   const memberships = new InMemoryMembershipRepository()
   const users = new InMemoryUserRepository()
+  const notifications = new InMemoryNotificationRepository()
   const emailSender = new FakeEmailSender()
   await lists.save(makeList(visibility))
   const createTask = makeCreateTask({
@@ -42,13 +44,16 @@ async function setup(visibility: 'private' | 'link' = 'private') {
   return {
     memberships,
     users,
+    notifications,
     emailSender,
     updateTask: makeUpdateTask({
       tasks,
       lists,
       memberships,
       users,
+      notifications,
       emailSender,
+      ids: new SequentialIdGenerator([ID.verification]),
       clock: new FixedClock(NOW),
     }),
   }
@@ -121,7 +126,8 @@ describe('updateTask', () => {
   })
 
   it('emails a member with an address when newly assigned, in their locale', async () => {
-    const { updateTask, memberships, users, emailSender } = await setup()
+    const { updateTask, memberships, users, emailSender, notifications } =
+      await setup()
     await memberships.save(
       ListMember.create({
         id: ID.list,
@@ -154,6 +160,27 @@ describe('updateTask', () => {
         locale: 'pt',
       },
     ])
+    const inbox = await notifications.listByUser(ID.otherUser, 10)
+    expect(inbox).toHaveLength(1)
+    expect(inbox[0]?.toJSON().type).toBe('task-assigned')
+  })
+
+  it('notifies a guest assignee without an email in-app', async () => {
+    const ctx = await setup()
+    await ctx.memberships.save(
+      ListMember.create({
+        id: ID.list,
+        listId: ID.list,
+        userId: ID.otherUser,
+        role: 'editor',
+        addedAt: NOW,
+      }),
+    )
+
+    await ctx.updateTask(ID.user, ID.task, { assigneeId: ID.otherUser })
+
+    expect(ctx.emailSender.assignments).toHaveLength(0)
+    expect(await ctx.notifications.countUnread(ID.otherUser)).toBe(1)
   })
 
   it('does not email when assigning to yourself', async () => {
@@ -186,7 +213,9 @@ describe('updateTask', () => {
       lists,
       memberships,
       users: new InMemoryUserRepository(),
+      notifications: new InMemoryNotificationRepository(),
       emailSender: new FakeEmailSender(),
+      ids: new SequentialIdGenerator([ID.verification]),
       clock: new FixedClock(NOW),
     })
     await expect(updateTask(ID.user, ID.task, { title: 'X' })).rejects.toThrow(

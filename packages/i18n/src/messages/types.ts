@@ -42,6 +42,13 @@ export type Messages = {
     analytics: string
     generate: string
   }
+  notifications: {
+    title: string
+    empty: string
+    markAllRead: string
+    assigned: string
+    open: string
+  }
   task: {
     add: string
     empty: string

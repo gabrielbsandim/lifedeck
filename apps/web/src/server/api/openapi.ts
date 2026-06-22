@@ -296,6 +296,46 @@ export const openApiDocument = {
         },
       },
     },
+    '/notifications': {
+      get: {
+        summary: "List the current user's notifications",
+        operationId: 'listNotifications',
+        description: 'Returns recent notifications and the unread count.',
+        responses: {
+          '200': { description: 'Notifications and unread count.' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+    },
+    '/notifications/read': {
+      post: {
+        summary: 'Mark all notifications as read',
+        operationId: 'markAllNotificationsRead',
+        responses: {
+          '200': { description: 'All notifications marked read.' },
+          '401': { description: 'Authentication required.' },
+        },
+      },
+    },
+    '/notifications/{id}/read': {
+      post: {
+        summary: 'Mark a single notification as read',
+        operationId: 'markNotificationRead',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Notification marked read.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'Notification not found.' },
+        },
+      },
+    },
     '/digest': {
       post: {
         summary: "Email the current user today's digest",

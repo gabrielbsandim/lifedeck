@@ -42,3 +42,4 @@ export {
   EmailVerification,
   type EmailVerificationProps,
 } from '@/entities/email-verification'
+export { Notification, type NotificationProps } from '@/entities/notification'

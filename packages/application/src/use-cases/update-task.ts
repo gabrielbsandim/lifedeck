@@ -1,4 +1,9 @@
-import { ValidationError, asEntityId, type EntityId } from '@taskin/domain'
+import {
+  Notification,
+  ValidationError,
+  asEntityId,
+  type EntityId,
+} from '@taskin/domain'
 import {
   updateTaskSchema,
   type UpdateTaskInput,
@@ -9,8 +14,10 @@ import { resolveListAccess } from '@/access/list-access'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { EmailLocale, EmailSender } from '@/ports/email-sender'
+import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
+import type { NotificationRepository } from '@/ports/notification-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 import type { UserRepository } from '@/ports/user-repository'
 
@@ -19,7 +26,9 @@ type Dependencies = {
   lists: ListRepository
   memberships: MembershipRepository
   users: UserRepository
+  notifications: NotificationRepository
   emailSender: EmailSender
+  ids: IdGenerator
   clock: Clock
 }
 
@@ -28,7 +37,9 @@ export function makeUpdateTask({
   lists,
   memberships,
   users,
+  notifications,
   emailSender,
+  ids,
   clock,
 }: Dependencies) {
   return async function updateTask(
@@ -112,6 +123,16 @@ export function makeUpdateTask({
     taskTitle: string,
     listTitle: string,
   ): Promise<void> {
+    await notifications.save(
+      Notification.create({
+        id: ids.generate(),
+        userId: assignee,
+        type: 'task-assigned',
+        data: { taskTitle, listTitle },
+        createdAt: clock.now(),
+      }),
+    )
+
     const user = await users.findById(assignee)
     if (!user?.email) {
       return
