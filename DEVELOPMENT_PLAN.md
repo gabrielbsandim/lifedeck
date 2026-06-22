@@ -41,12 +41,13 @@ Legend: **[x]** done · **[ ]** todo.
 
 ## Phase 3 - Identity (no-account-first)
 
-- [ ] Guest sessions: create a user from a display name; signed `HttpOnly` cookie.
-- [ ] Session middleware + `requireUser` helper.
-- [ ] Upgrade guest -> registered (email + password).
-- [ ] Email verification code flow (Resend template).
-- [ ] Google OAuth sign-in.
-- [ ] Account settings: rename, change password, sign out, delete account.
+- [x] Guest sessions: create a user from a display name; signed `HttpOnly` cookie.
+- [x] Session middleware + `requireUser` helper (`getUserIdFromRequest`).
+- [x] Upgrade guest -> registered (email + password); `ScryptPasswordHasher`.
+- [x] Email verification code flow (6-digit code, Resend template + console
+      fallback for local dev). See `docs/auth.md`.
+- [x] Google OAuth sign-in (`GoogleOAuthProvider`, CSRF state cookie).
+- [x] Account settings: rename, change password, sign out, delete account.
 
 ## Phase 4 - Lists & tasks (core)
 
