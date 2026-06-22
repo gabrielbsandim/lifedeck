@@ -65,6 +65,8 @@ export const pt: Messages = {
     revoke: 'Revogar',
     empty: 'Nenhum link de compartilhamento ainda.',
     readOnly: 'Lista compartilhada · somente leitura',
+    editable: 'Lista compartilhada · você pode editar',
+    join: 'Entrar e editar',
     close: 'Fechar',
   },
 }

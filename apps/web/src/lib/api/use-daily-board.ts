@@ -16,6 +16,7 @@ export function useDailyBoard(date: string) {
       apiRequest<DailyBoardView>(
         `/api/v1/daily?date=${encodeURIComponent(date)}`,
       ),
+    refetchInterval: 10_000,
   })
 }
 

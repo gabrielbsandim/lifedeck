@@ -120,10 +120,11 @@ function build({
       shareLinks,
       lists,
       memberships,
+      users,
       ids,
       clock,
     }),
-    listMembers: makeListMembers({ lists, memberships }),
+    listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
   }
 }

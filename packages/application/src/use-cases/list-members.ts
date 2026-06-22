@@ -4,13 +4,15 @@ import { toMemberView } from '@/mappers/member-mapper'
 import { NotFoundError } from '@/errors/use-case-error'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
+import type { UserRepository } from '@/ports/user-repository'
 
 type Dependencies = {
   lists: ListRepository
   memberships: MembershipRepository
+  users: UserRepository
 }
 
-export function makeListMembers({ lists, memberships }: Dependencies) {
+export function makeListMembers({ lists, memberships, users }: Dependencies) {
   return async function listMembers(
     requesterId: string,
     listId: string,
@@ -21,6 +23,11 @@ export function makeListMembers({ lists, memberships }: Dependencies) {
     }
 
     const members = await memberships.listByList(list.id)
-    return members.map(toMemberView)
+    return Promise.all(
+      members.map(async member => {
+        const user = await users.findById(member.userId)
+        return toMemberView(member, user?.displayName ?? 'Member')
+      }),
+    )
   }
 }

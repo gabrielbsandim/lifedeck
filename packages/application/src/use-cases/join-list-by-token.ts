@@ -7,11 +7,13 @@ import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
 import type { ShareLinkRepository } from '@/ports/share-link-repository'
+import type { UserRepository } from '@/ports/user-repository'
 
 type Dependencies = {
   shareLinks: ShareLinkRepository
   lists: ListRepository
   memberships: MembershipRepository
+  users: UserRepository
   ids: IdGenerator
   clock: Clock
 }
@@ -20,6 +22,7 @@ export function makeJoinListByToken({
   shareLinks,
   lists,
   memberships,
+  users,
   ids,
   clock,
 }: Dependencies) {
@@ -39,9 +42,12 @@ export function makeJoinListByToken({
     }
 
     const userId = asEntityId(requesterId)
+    const user = await users.findById(userId)
+    const displayName = user?.displayName ?? 'Member'
+
     const existing = await memberships.findByListAndUser(list.id, userId)
     if (existing) {
-      return toMemberView(existing)
+      return toMemberView(existing, displayName)
     }
 
     const member = ListMember.create({
@@ -53,6 +59,6 @@ export function makeJoinListByToken({
     })
     await memberships.save(member)
 
-    return toMemberView(member)
+    return toMemberView(member, displayName)
   }
 }

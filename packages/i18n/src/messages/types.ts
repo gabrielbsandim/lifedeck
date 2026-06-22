@@ -63,6 +63,8 @@ export type Messages = {
     revoke: string
     empty: string
     readOnly: string
+    editable: string
+    join: string
     close: string
   }
 }

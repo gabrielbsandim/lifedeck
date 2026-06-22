@@ -3,14 +3,13 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { TaskView } from '@taskin/application'
+import type { TaskView, UpdateTaskInput } from '@taskin/application'
 import {
   Button,
   Card,
   EmptyState,
   ProgressBar,
   Skeleton,
-  TaskCheckbox,
   TextField,
 } from '@taskin/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
@@ -19,7 +18,10 @@ import {
   useDailyBoard,
   useUpdateTask,
 } from '@/lib/api/use-daily-board'
+import { useMembers } from '@/lib/api/use-share'
+import { useSession } from '@/lib/api/use-session'
 import { ShareDialog } from '@/components/share-dialog'
+import { DailyTaskRow } from '@/components/daily-task-row'
 
 function formatDate(date: string, locale: string): string {
   const parsed = new Date(`${date}T00:00:00.000Z`)
@@ -34,6 +36,9 @@ function formatDate(date: string, locale: string): string {
 export function DailyBoard({ date }: { date: string }) {
   const { messages, locale } = useI18n()
   const board = useDailyBoard(date)
+  const session = useSession()
+  const listId = board.data?.list.id ?? ''
+  const members = useMembers(listId, listId !== '')
   const createTask = useCreateTask(date)
   const updateTask = useUpdateTask(date)
   const [title, setTitle] = useState('')
@@ -81,6 +86,14 @@ export function DailyBoard({ date }: { date: string }) {
       },
     })
   }
+
+  function update(id: string, input: UpdateTaskInput) {
+    updateTask.mutate({ id, input })
+  }
+
+  const self = session.data
+    ? { id: session.data.id, name: session.data.displayName }
+    : null
 
   return (
     <section className="flex flex-col gap-8">
@@ -160,39 +173,16 @@ export function DailyBoard({ date }: { date: string }) {
           <EmptyState title={messages.task.empty} />
         ) : (
           <ul className="flex flex-col gap-2">
-            {tasks.map(task => {
-              const completed = task.status === 'completed'
-              return (
-                <li
-                  key={task.id}
-                  className="border-line flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3"
-                >
-                  <TaskCheckbox
-                    checked={completed}
-                    label={task.title}
-                    onChange={() => toggle(task)}
-                  />
-                  <span
-                    className={
-                      completed
-                        ? 'text-ink-500 flex-1 text-sm line-through'
-                        : 'text-ink-800 flex-1 text-sm'
-                    }
-                  >
-                    {task.title}
-                  </span>
-                  {task.recurringTaskId && (
-                    <span
-                      aria-hidden
-                      title="Recurring"
-                      className="text-brand-500 text-sm"
-                    >
-                      ↻
-                    </span>
-                  )}
-                </li>
-              )
-            })}
+            {tasks.map(task => (
+              <DailyTaskRow
+                key={task.id}
+                task={task}
+                members={members.data ?? []}
+                self={self}
+                onToggle={toggle}
+                onUpdate={update}
+              />
+            ))}
           </ul>
         )}
       </Card>

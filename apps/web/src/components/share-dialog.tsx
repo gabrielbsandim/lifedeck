@@ -6,6 +6,8 @@ import { Button, Dialog, EmptyState } from '@taskin/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useCreateShareLink,
+  useMembers,
+  useRemoveMember,
   useRevokeShareLink,
   useShareLinks,
 } from '@/lib/api/use-share'
@@ -63,6 +65,9 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
   const { messages } = useI18n()
   const links = useShareLinks(listId)
   const createLink = useCreateShareLink(listId)
+  const members = useMembers(listId, open)
+  const removeMember = useRemoveMember(listId)
+  const [role, setRole] = useState<'viewer' | 'editor'>('viewer')
 
   return (
     <Dialog open={open} onClose={onClose} title={messages.share.title}>
@@ -80,13 +85,51 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
         </ul>
       )}
 
-      <div className="flex justify-between gap-2">
-        <Button
-          isLoading={createLink.isPending}
-          onClick={() => createLink.mutate({})}
-        >
-          {messages.share.create}
-        </Button>
+      {members.isSuccess && members.data.length > 0 && (
+        <ul className="mb-4 flex flex-col gap-2">
+          {members.data.map(member => (
+            <li
+              key={member.id}
+              className="border-line flex items-center gap-2 rounded-xl border bg-white px-3 py-2"
+            >
+              <span className="text-ink-700 flex-1 text-sm">
+                {member.displayName}
+              </span>
+              <span className="text-ink-500 text-xs capitalize">
+                {member.role}
+              </span>
+              <Button
+                variant="ghost"
+                className="text-danger h-8 px-2 text-xs"
+                onClick={() => removeMember.mutate(member.userId)}
+              >
+                {messages.share.revoke}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button
+            isLoading={createLink.isPending}
+            onClick={() => createLink.mutate({ role })}
+          >
+            {messages.share.create}
+          </Button>
+          <select
+            aria-label="Share role"
+            value={role}
+            onChange={event =>
+              setRole(event.target.value as 'viewer' | 'editor')
+            }
+            className="border-line text-ink-600 rounded-lg border bg-white px-2 py-1 text-xs outline-none"
+          >
+            <option value="viewer">viewer</option>
+            <option value="editor">editor</option>
+          </select>
+        </div>
         <Button variant="ghost" onClick={onClose}>
           {messages.share.close}
         </Button>

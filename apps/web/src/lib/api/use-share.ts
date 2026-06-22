@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateShareLinkInput, ShareLinkView } from '@taskin/application'
+import type {
+  CreateShareLinkInput,
+  MemberView,
+  ShareLinkView,
+} from '@taskin/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const shareLinksKey = (listId: string) =>
@@ -36,6 +40,30 @@ export function useRevokeShareLink(listId: string) {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: shareLinksKey(listId) })
+    },
+  })
+}
+
+export const membersKey = (listId: string) => ['members', listId] as const
+
+export function useMembers(listId: string, enabled = true) {
+  return useQuery({
+    queryKey: membersKey(listId),
+    queryFn: () => apiRequest<MemberView[]>(`/api/v1/lists/${listId}/members`),
+    enabled,
+  })
+}
+
+export function useRemoveMember(listId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiRequest<{ removed: boolean }>(
+        `/api/v1/lists/${listId}/members/${userId}`,
+        { method: 'DELETE' },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: membersKey(listId) })
     },
   })
 }

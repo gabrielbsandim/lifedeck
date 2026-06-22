@@ -65,6 +65,8 @@ export const en: Messages = {
     revoke: 'Revoke',
     empty: 'No share links yet.',
     readOnly: 'Shared list · read-only',
+    editable: 'Shared list · you can edit',
+    join: 'Join & edit',
     close: 'Close',
   },
 }

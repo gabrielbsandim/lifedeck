@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ShareLink, asEntityId } from '@taskin/domain'
+import { List, ShareLink, User, asEntityId } from '@taskin/domain'
 import { makeJoinListByToken } from '@/use-cases/join-list-by-token'
 import { makeListMembers } from '@/use-cases/list-members'
 import { makeRemoveMember } from '@/use-cases/remove-member'
@@ -7,6 +7,7 @@ import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
+import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
 const NOW = new Date('2026-06-21T10:00:00.000Z')
@@ -28,6 +29,15 @@ async function setup(role: 'editor' | 'viewer' = 'editor') {
   const lists = new InMemoryListRepository()
   const shareLinks = new InMemoryShareLinkRepository()
   const memberships = new InMemoryMembershipRepository()
+  const users = new InMemoryUserRepository()
+  await users.save(
+    User.createGuest({
+      id: ID.otherUser,
+      displayName: 'Ana',
+      locale: 'en',
+      createdAt: NOW,
+    }),
+  )
   await lists.save(makeList())
   await shareLinks.save(
     ShareLink.create({
@@ -45,10 +55,11 @@ async function setup(role: 'editor' | 'viewer' = 'editor') {
       shareLinks,
       lists,
       memberships,
+      users,
       ids: new SequentialIdGenerator([MEMBER_ID]),
       clock: new FixedClock(NOW),
     }),
-    listMembers: makeListMembers({ lists, memberships }),
+    listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
   }
 }
