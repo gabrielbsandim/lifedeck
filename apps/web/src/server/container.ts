@@ -2,26 +2,33 @@ import {
   makeCreateGuestUser,
   makeCreateList,
   makeCreateRecurringTask,
+  makeCreateShareLink,
   makeCreateTask,
   makeDeleteRecurringTask,
   makeGetDailyBoard,
   makeGetList,
+  makeGetSharedBoard,
   makeGetUser,
   makeListListTasks,
   makeListRecurringTasks,
+  makeListShareLinks,
   makeListUserLists,
+  makeRevokeShareLink,
   makeUpdateRecurringTask,
   makeUpdateTask,
   type ListRepository,
   type RecurringTaskRepository,
+  type ShareLinkRepository,
   type TaskRepository,
   type UserRepository,
 } from '@taskin/application'
 import {
   PrismaListRepository,
   PrismaRecurringTaskRepository,
+  PrismaShareLinkRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
+  RandomTokenGenerator,
   SystemClock,
   UuidGenerator,
   prisma,
@@ -41,6 +48,10 @@ type Container = {
   listRecurringTasks: ReturnType<typeof makeListRecurringTasks>
   updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
   deleteRecurringTask: ReturnType<typeof makeDeleteRecurringTask>
+  createShareLink: ReturnType<typeof makeCreateShareLink>
+  listShareLinks: ReturnType<typeof makeListShareLinks>
+  revokeShareLink: ReturnType<typeof makeRevokeShareLink>
+  getSharedBoard: ReturnType<typeof makeGetSharedBoard>
 }
 
 type Repositories = {
@@ -48,6 +59,7 @@ type Repositories = {
   users: UserRepository
   lists: ListRepository
   recurringTasks: RecurringTaskRepository
+  shareLinks: ShareLinkRepository
 }
 
 function build({
@@ -55,9 +67,11 @@ function build({
   users,
   lists,
   recurringTasks,
+  shareLinks,
 }: Repositories): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
+  const tokens = new RandomTokenGenerator()
   return {
     createTask: makeCreateTask({ tasks, lists, ids, clock }),
     updateTask: makeUpdateTask({ tasks, lists, clock }),
@@ -82,6 +96,16 @@ function build({
     listRecurringTasks: makeListRecurringTasks({ recurringTasks }),
     updateRecurringTask: makeUpdateRecurringTask({ recurringTasks }),
     deleteRecurringTask: makeDeleteRecurringTask({ recurringTasks }),
+    createShareLink: makeCreateShareLink({
+      shareLinks,
+      lists,
+      tokens,
+      ids,
+      clock,
+    }),
+    listShareLinks: makeListShareLinks({ shareLinks, lists }),
+    revokeShareLink: makeRevokeShareLink({ shareLinks, lists }),
+    getSharedBoard: makeGetSharedBoard({ shareLinks, lists, tasks, clock }),
   }
 }
 
@@ -94,6 +118,7 @@ export function getContainer(): Container {
       users: new PrismaUserRepository(prisma),
       lists: new PrismaListRepository(prisma),
       recurringTasks: new PrismaRecurringTaskRepository(prisma),
+      shareLinks: new PrismaShareLinkRepository(prisma),
     })
   }
   return container

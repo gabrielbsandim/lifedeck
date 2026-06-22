@@ -19,6 +19,7 @@ import {
   useDailyBoard,
   useUpdateTask,
 } from '@/lib/api/use-daily-board'
+import { ShareDialog } from '@/components/share-dialog'
 
 function formatDate(date: string, locale: string): string {
   const parsed = new Date(`${date}T00:00:00.000Z`)
@@ -36,6 +37,7 @@ export function DailyBoard({ date }: { date: string }) {
   const createTask = useCreateTask(date)
   const updateTask = useUpdateTask(date)
   const [title, setTitle] = useState('')
+  const [shareOpen, setShareOpen] = useState(false)
 
   if (board.isPending) {
     return <Skeleton className="h-72 w-full rounded-2xl" />
@@ -99,13 +101,28 @@ export function DailyBoard({ date }: { date: string }) {
             </p>
             <h2 className="text-xl font-semibold">{messages.list.daily}</h2>
           </div>
-          <Link
-            href="/recurring"
-            className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-          >
-            ↻ {messages.recurring.manage}
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            >
+              {messages.list.share}
+            </button>
+            <Link
+              href="/recurring"
+              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            >
+              ↻ {messages.recurring.manage}
+            </Link>
+          </div>
         </div>
+
+        <ShareDialog
+          listId={list.id}
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
 
         <div className="border-line bg-bg mb-6 rounded-2xl border p-4">
           <div className="mb-2 flex items-baseline justify-between">

@@ -4,6 +4,8 @@ export type { TaskRepository } from '@/ports/task-repository'
 export type { UserRepository } from '@/ports/user-repository'
 export type { ListRepository } from '@/ports/list-repository'
 export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
+export type { ShareLinkRepository } from '@/ports/share-link-repository'
+export type { TokenGenerator } from '@/ports/token-generator'
 export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -34,6 +36,12 @@ export {
   type UpdateRecurringTaskInput,
   type RecurringTaskView,
 } from '@/dtos/recurring-task-dto'
+export {
+  createShareLinkSchema,
+  shareLinkViewSchema,
+  type CreateShareLinkInput,
+  type ShareLinkView,
+} from '@/dtos/share-link-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
@@ -54,7 +62,15 @@ export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
 export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'
 export { makeDeleteRecurringTask } from '@/use-cases/delete-recurring-task'
+export { makeCreateShareLink } from '@/use-cases/create-share-link'
+export { makeListShareLinks } from '@/use-cases/list-share-links'
+export { makeRevokeShareLink } from '@/use-cases/revoke-share-link'
+export {
+  makeGetSharedBoard,
+  type SharedBoardView,
+} from '@/use-cases/get-shared-board'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
+export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'

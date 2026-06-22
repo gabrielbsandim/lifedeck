@@ -56,4 +56,15 @@ export const pt: Messages = {
     shared: 'Compartilhadas com você',
     share: 'Compartilhar',
   },
+  share: {
+    title: 'Compartilhar esta lista',
+    description: 'Qualquer pessoa com o link pode ver esta lista.',
+    create: 'Criar link de compartilhamento',
+    copy: 'Copiar',
+    copied: 'Copiado!',
+    revoke: 'Revogar',
+    empty: 'Nenhum link de compartilhamento ainda.',
+    readOnly: 'Lista compartilhada · somente leitura',
+    close: 'Fechar',
+  },
 }

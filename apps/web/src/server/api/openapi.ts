@@ -340,6 +340,103 @@ export const openApiDocument = {
         },
       },
     },
+    '/lists/{id}/share': {
+      get: {
+        summary: 'List share links for a list',
+        operationId: 'listShareLinks',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Share links for the list.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'List not found.' },
+        },
+      },
+      post: {
+        summary: 'Create a share link',
+        operationId: 'createShareLink',
+        description:
+          'Generates a tokenized share link and marks the list shareable by link.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  role: { type: 'string', enum: ['editor', 'viewer'] },
+                  expiresInDays: { type: 'integer', minimum: 1, maximum: 365 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Share link created.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'List not found.' },
+        },
+      },
+    },
+    '/lists/{id}/share/{linkId}': {
+      delete: {
+        summary: 'Revoke a share link',
+        operationId: 'revokeShareLink',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+          {
+            name: 'linkId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Share link revoked.' },
+          '401': { description: 'Authentication required.' },
+          '404': { description: 'Share link not found.' },
+        },
+      },
+    },
+    '/shared/{token}': {
+      get: {
+        summary: 'Get a publicly shared board by token',
+        operationId: 'getSharedBoard',
+        description:
+          'Read-only board (list + tasks) for a valid, non-expired share token. No authentication required.',
+        parameters: [
+          {
+            name: 'token',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': { description: 'The shared board.' },
+          '404': { description: 'Invalid or expired token.' },
+        },
+      },
+    },
   },
   components: {
     schemas: {

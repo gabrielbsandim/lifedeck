@@ -5,6 +5,8 @@ export { PrismaTaskRepository } from '@/database/prisma-task-repository'
 export { PrismaUserRepository } from '@/database/prisma-user-repository'
 export { PrismaListRepository } from '@/database/prisma-list-repository'
 export { PrismaRecurringTaskRepository } from '@/database/prisma-recurring-task-repository'
+export { PrismaShareLinkRepository } from '@/database/prisma-share-link-repository'
+export { RandomTokenGenerator } from '@/security/random-token-generator'
 export {
   toDomainTask,
   toTaskRecord,
@@ -20,6 +22,11 @@ export {
   toListRecord,
   type ListRecord,
 } from '@/database/list-record'
+export {
+  toDomainShareLink,
+  toShareLinkRecord,
+  type ShareLinkRecord,
+} from '@/database/share-link-record'
 export {
   toDomainRecurringTask,
   toRecurringTaskRecord,

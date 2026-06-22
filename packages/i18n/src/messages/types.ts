@@ -54,4 +54,15 @@ export type Messages = {
     shared: string
     share: string
   }
+  share: {
+    title: string
+    description: string
+    create: string
+    copy: string
+    copied: string
+    revoke: string
+    empty: string
+    readOnly: string
+    close: string
+  }
 }

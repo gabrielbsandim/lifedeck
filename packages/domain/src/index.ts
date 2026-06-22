@@ -18,6 +18,11 @@ export {
   type Visibility,
 } from '@/value-objects/visibility'
 export {
+  MEMBER_ROLES,
+  isMemberRole,
+  type MemberRole,
+} from '@/value-objects/member-role'
+export {
   RECURRENCE_FREQUENCIES,
   validateRecurrenceRule,
   occursOn,
@@ -31,3 +36,4 @@ export {
   RecurringTask,
   type RecurringTaskProps,
 } from '@/entities/recurring-task'
+export { ShareLink, type ShareLinkProps } from '@/entities/share-link'

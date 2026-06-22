@@ -56,4 +56,15 @@ export const en: Messages = {
     shared: 'Shared with you',
     share: 'Share',
   },
+  share: {
+    title: 'Share this list',
+    description: 'Anyone with the link can view this list.',
+    create: 'Create share link',
+    copy: 'Copy',
+    copied: 'Copied!',
+    revoke: 'Revoke',
+    empty: 'No share links yet.',
+    readOnly: 'Shared list · read-only',
+    close: 'Close',
+  },
 }

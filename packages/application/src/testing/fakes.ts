@@ -1,6 +1,7 @@
 import { asEntityId, type EntityId } from '@taskin/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
+import type { TokenGenerator } from '@/ports/token-generator'
 
 export class FixedClock implements Clock {
   constructor(private readonly value: Date) {}
@@ -22,6 +23,21 @@ export class SequentialIdGenerator implements IdGenerator {
     }
     this.index += 1
     return id
+  }
+}
+
+export class FixedTokenGenerator implements TokenGenerator {
+  private index = 0
+
+  constructor(private readonly tokens: string[] = ['token-1', 'token-2']) {}
+
+  generate(): string {
+    const token = this.tokens[this.index]
+    if (!token) {
+      throw new Error('FixedTokenGenerator ran out of tokens.')
+    }
+    this.index += 1
+    return token
   }
 }
 
