@@ -28,15 +28,18 @@ Legend: **[x]** done · **[ ]** todo.
 - [x] Wire `eslint-config-next` flat config into `apps/web` (remove plugin warning).
 - [ ] Add `pnpm audit` + dependency review to CI.
 - [ ] Commitlint + Conventional Commits check.
-- [ ] Vercel project linked; preview deploys on PRs.
-- [ ] Neon database provisioned; `DATABASE_URL` set in Vercel.
+- [x] Vercel project linked and deployed (preview-on-PR not yet confirmed).
+- [x] Neon database provisioned; `DATABASE_URL` set in Vercel + GitHub Secrets.
 
 ## Phase 2 - Data model & persistence
 
-- [ ] Finalize Prisma schema for v1 (users, lists, tasks, members, share links).
-- [ ] First migration + seed script.
-- [ ] Repository implementations: `ListRepository`, `UserRepository`,
-      `MembershipRepository`, `ShareLinkRepository`.
+- [x] Finalize Prisma schema for v1 (users, lists, tasks, members, share links,
+      recurring tasks, email verifications).
+- [x] First migration (`0_init` … `3_email_verifications`, applied via CI).
+- [ ] Seed script.
+- [x] Repository implementations: `ListRepository`, `UserRepository`,
+      `MembershipRepository`, `ShareLinkRepository` (+ recurring, email
+      verification, analytics).
 - [ ] Integration tests against a Neon branch (covered separately from unit gate).
 
 ## Phase 3 - Identity (no-account-first)
@@ -51,11 +54,11 @@ Legend: **[x]** done · **[ ]** todo.
 
 ## Phase 4 - Lists & tasks (core)
 
-- [ ] Use cases: create/rename/delete list; list lists; get list with tasks.
-- [ ] Daily list: auto-provision per day; carry-over rules.
-- [ ] Task use cases: reorder, edit, reopen, observation, assignee.
-- [ ] REST endpoints for all of the above + OpenAPI entries.
-- [ ] React Query hooks + optimistic updates in the UI.
+- [x] Use cases: create / rename / delete list; list lists; get list with tasks.
+- [x] Daily list: auto-provision per day; carry-over of unfinished tasks.
+- [x] Task use cases: reorder, edit, reopen, observation, assignee.
+- [x] REST endpoints for all of the above + OpenAPI entries.
+- [x] React Query hooks + optimistic updates for task completion.
 
 ## Phase 4.5 - Recurring tasks (daily lists)
 
