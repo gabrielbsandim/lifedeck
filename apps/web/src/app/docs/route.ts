@@ -1,6 +1,8 @@
+const NONCE_PATTERN = /^[A-Za-z0-9+/=_-]{16,128}$/
+
 export function GET(request: Request) {
-  const nonce = request.headers.get('x-nonce') ?? ''
-  const nonceAttr = nonce ? ` nonce="${nonce}"` : ''
+  const rawNonce = request.headers.get('x-nonce') ?? ''
+  const nonceAttr = NONCE_PATTERN.test(rawNonce) ? ` nonce="${rawNonce}"` : ''
   const html = `<!doctype html>
 <html>
   <head>
