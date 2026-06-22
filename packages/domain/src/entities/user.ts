@@ -1,5 +1,6 @@
 import { guard } from '@/shared/guard'
 import type { EntityId } from '@/shared/id'
+import { Email } from '@/value-objects/email'
 
 const MAX_DISPLAY_NAME_LENGTH = 80
 
@@ -55,6 +56,22 @@ export class User {
     return this.props.isGuest
   }
 
+  get email(): string | null {
+    return this.props.email
+  }
+
+  get passwordHash(): string | null {
+    return this.props.passwordHash
+  }
+
+  get emailVerifiedAt(): Date | null {
+    return this.props.emailVerifiedAt
+  }
+
+  get isEmailVerified(): boolean {
+    return this.props.emailVerifiedAt !== null
+  }
+
   get locale(): string {
     return this.props.locale
   }
@@ -65,6 +82,25 @@ export class User {
       MAX_DISPLAY_NAME_LENGTH,
       'Display name',
     )
+  }
+
+  register(input: {
+    email: string
+    passwordHash: string | null
+    emailVerifiedAt: Date | null
+  }): void {
+    this.props.email = Email.create(input.email).value
+    this.props.passwordHash = input.passwordHash
+    this.props.emailVerifiedAt = input.emailVerifiedAt
+    this.props.isGuest = false
+  }
+
+  verifyEmail(at: Date): void {
+    this.props.emailVerifiedAt = at
+  }
+
+  changePassword(passwordHash: string): void {
+    this.props.passwordHash = guard.notEmpty(passwordHash, 'Password hash')
   }
 
   toJSON(): UserProps {

@@ -38,3 +38,7 @@ export {
 } from '@/entities/recurring-task'
 export { ShareLink, type ShareLinkProps } from '@/entities/share-link'
 export { ListMember, type ListMemberProps } from '@/entities/list-member'
+export {
+  EmailVerification,
+  type EmailVerificationProps,
+} from '@/entities/email-verification'

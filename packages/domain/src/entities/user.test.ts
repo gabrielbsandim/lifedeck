@@ -54,4 +54,64 @@ describe('User', () => {
     const props = createGuest().toJSON()
     expect(User.restore(props).toJSON()).toEqual(props)
   })
+
+  it('registers a guest with email and password, normalizing the address', () => {
+    const user = createGuest()
+    user.register({
+      email: '  Gabriel@Example.COM ',
+      passwordHash: 'hashed',
+      emailVerifiedAt: null,
+    })
+
+    expect(user.email).toBe('gabriel@example.com')
+    expect(user.passwordHash).toBe('hashed')
+    expect(user.isGuest).toBe(false)
+    expect(user.isEmailVerified).toBe(false)
+  })
+
+  it('registers without a password (OAuth) and trusts the verified email', () => {
+    const user = createGuest()
+    const verifiedAt = new Date('2026-06-22T08:00:00.000Z')
+    user.register({
+      email: 'gabriel@example.com',
+      passwordHash: null,
+      emailVerifiedAt: verifiedAt,
+    })
+
+    expect(user.passwordHash).toBeNull()
+    expect(user.isEmailVerified).toBe(true)
+    expect(user.emailVerifiedAt).toEqual(verifiedAt)
+  })
+
+  it('rejects registering with an invalid email', () => {
+    const user = createGuest()
+    expect(() =>
+      user.register({
+        email: 'not-an-email',
+        passwordHash: 'hashed',
+        emailVerifiedAt: null,
+      }),
+    ).toThrow(ValidationError)
+  })
+
+  it('marks the email verified at a given time', () => {
+    const user = createGuest()
+    user.register({
+      email: 'gabriel@example.com',
+      passwordHash: 'hashed',
+      emailVerifiedAt: null,
+    })
+    const at = new Date('2026-06-22T09:00:00.000Z')
+    user.verifyEmail(at)
+
+    expect(user.isEmailVerified).toBe(true)
+    expect(user.emailVerifiedAt).toEqual(at)
+  })
+
+  it('changes the password hash with validation', () => {
+    const user = createGuest()
+    user.changePassword('new-hash')
+    expect(user.passwordHash).toBe('new-hash')
+    expect(() => user.changePassword('')).toThrow(ValidationError)
+  })
 })
