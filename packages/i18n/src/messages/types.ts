@@ -54,6 +54,16 @@ export type Messages = {
     shared: string
     share: string
   }
+  lists: {
+    manage: string
+    title: string
+    subtitle: string
+    create: string
+    namePlaceholder: string
+    empty: string
+    back: string
+    backToToday: string
+  }
   share: {
     title: string
     description: string

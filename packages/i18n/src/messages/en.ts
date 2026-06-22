@@ -56,6 +56,16 @@ export const en: Messages = {
     shared: 'Shared with you',
     share: 'Share',
   },
+  lists: {
+    manage: 'My lists',
+    title: 'My lists',
+    subtitle: 'Lists that live beyond today — like wedding planning.',
+    create: 'Create list',
+    namePlaceholder: 'List name',
+    empty: 'No lists yet. Create your first one.',
+    back: 'Back to lists',
+    backToToday: 'Back to today',
+  },
   share: {
     title: 'Share this list',
     description: 'Anyone with the link can view this list.',

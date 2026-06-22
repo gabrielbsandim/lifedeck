@@ -56,6 +56,16 @@ export const pt: Messages = {
     shared: 'Compartilhadas com você',
     share: 'Compartilhar',
   },
+  lists: {
+    manage: 'Minhas listas',
+    title: 'Minhas listas',
+    subtitle: 'Listas que vão além de hoje — como o casamento.',
+    create: 'Criar lista',
+    namePlaceholder: 'Nome da lista',
+    empty: 'Nenhuma lista ainda. Crie a primeira.',
+    back: 'Voltar para listas',
+    backToToday: 'Voltar para hoje',
+  },
   share: {
     title: 'Compartilhar esta lista',
     description: 'Qualquer pessoa com o link pode ver esta lista.',

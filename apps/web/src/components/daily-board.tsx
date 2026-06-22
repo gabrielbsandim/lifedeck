@@ -127,6 +127,12 @@ export function DailyBoard({ date }: { date: string }) {
               {messages.list.share}
             </button>
             <Link
+              href="/lists"
+              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            >
+              {messages.lists.manage}
+            </Link>
+            <Link
               href="/recurring"
               className="text-brand-600 hover:text-brand-700 text-sm font-medium"
             >
