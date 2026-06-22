@@ -51,6 +51,11 @@ export { type EmailTemplate, type RenderedEmail } from '@/email/email-message'
 export { ResendEmailSender } from '@/email/resend-email-sender'
 export { ConsoleEmailSender } from '@/email/console-email-sender'
 export {
+  ClaudeListGenerator,
+  type ClaudeListGeneratorConfig,
+} from '@/ai/claude-list-generator'
+export { StubListGenerator } from '@/ai/stub-list-generator'
+export {
   toDomainEmailVerification,
   toEmailVerificationRecord,
   type EmailVerificationRecord,

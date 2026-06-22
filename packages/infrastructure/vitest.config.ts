@@ -22,6 +22,8 @@ export default mergeConfig(
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',
+        'src/ai/claude-list-generator.ts',
+        'src/ai/stub-list-generator.ts',
       ],
     }),
   ),
