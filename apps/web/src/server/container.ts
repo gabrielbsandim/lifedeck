@@ -1,5 +1,7 @@
 import {
+  makeAuthenticateApiKey,
   makeChangePassword,
+  makeCreateApiKey,
   makeCreateGuestUser,
   makeCreateList,
   makeDeleteList,
@@ -19,6 +21,7 @@ import {
   makeGetUser,
   makeInviteToList,
   makeJoinListByToken,
+  makeListApiKeys,
   makeListListTasks,
   makeListMembers,
   makeListNotifications,
@@ -31,6 +34,7 @@ import {
   makeRemoveMember,
   makeRenameUser,
   makeRequestEmailVerification,
+  makeRevokeApiKey,
   makeRevokeShareLink,
   makeSendDailyDigest,
   makeSignInWithEmail,
@@ -39,7 +43,9 @@ import {
   makeUpdateTask,
   makeVerifyEmail,
   type AnalyticsRepository,
+  type ApiKeyRepository,
   type EmailSender,
+  type KeyHasher,
   type EmailVerificationRepository,
   type ListGenerator,
   type ListRepository,
@@ -58,6 +64,7 @@ import {
   GoogleOAuthProvider,
   NumericCodeGenerator,
   PrismaAnalyticsRepository,
+  PrismaApiKeyRepository,
   PrismaEmailVerificationRepository,
   PrismaListRepository,
   PrismaMembershipRepository,
@@ -69,6 +76,7 @@ import {
   RandomTokenGenerator,
   ResendEmailSender,
   ScryptPasswordHasher,
+  Sha256KeyHasher,
   StubListGenerator,
   SystemClock,
   UuidGenerator,
@@ -115,6 +123,10 @@ type Container = {
   listNotifications: ReturnType<typeof makeListNotifications>
   markNotificationRead: ReturnType<typeof makeMarkNotificationRead>
   markAllNotificationsRead: ReturnType<typeof makeMarkAllNotificationsRead>
+  createApiKey: ReturnType<typeof makeCreateApiKey>
+  listApiKeys: ReturnType<typeof makeListApiKeys>
+  revokeApiKey: ReturnType<typeof makeRevokeApiKey>
+  authenticateApiKey: ReturnType<typeof makeAuthenticateApiKey>
 }
 
 type Repositories = {
@@ -127,10 +139,12 @@ type Repositories = {
   emailVerifications: EmailVerificationRepository
   analytics: AnalyticsRepository
   notifications: NotificationRepository
+  apiKeys: ApiKeyRepository
 }
 
 type Services = {
   hasher: PasswordHasher
+  keyHasher: KeyHasher
   emailSender: EmailSender
   oauth: OAuthProvider
   listGenerator: ListGenerator
@@ -147,8 +161,9 @@ function build(
     emailVerifications,
     analytics,
     notifications,
+    apiKeys,
   }: Repositories,
-  { hasher, emailSender, oauth, listGenerator }: Services,
+  { hasher, keyHasher, emailSender, oauth, listGenerator }: Services,
 ): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
@@ -258,6 +273,20 @@ function build(
       notifications,
       clock,
     }),
+    createApiKey: makeCreateApiKey({
+      apiKeys,
+      hasher: keyHasher,
+      tokens,
+      ids,
+      clock,
+    }),
+    listApiKeys: makeListApiKeys({ apiKeys }),
+    revokeApiKey: makeRevokeApiKey({ apiKeys, clock }),
+    authenticateApiKey: makeAuthenticateApiKey({
+      apiKeys,
+      hasher: keyHasher,
+      clock,
+    }),
   }
 }
 
@@ -303,9 +332,11 @@ export function getContainer(): Container {
         emailVerifications: new PrismaEmailVerificationRepository(prisma),
         analytics: new PrismaAnalyticsRepository(prisma),
         notifications: new PrismaNotificationRepository(prisma),
+        apiKeys: new PrismaApiKeyRepository(prisma),
       },
       {
         hasher: new ScryptPasswordHasher(),
+        keyHasher: new Sha256KeyHasher(),
         emailSender: buildEmailSender(),
         oauth: buildGoogleProvider(),
         listGenerator: buildListGenerator(),

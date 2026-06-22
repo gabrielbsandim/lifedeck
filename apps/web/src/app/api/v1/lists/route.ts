@@ -1,15 +1,16 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { requireScope } from '@/server/api/authenticate'
 
 export async function POST(request: Request) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'lists:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const body = await request.json()
-    const list = await getContainer().createList(userId, body)
+    const list = await getContainer().createList(auth.userId, body)
     return ok(list, 201)
   } catch (error) {
     return handleError(error)
@@ -18,11 +19,11 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'lists:read')
+    if (auth instanceof NextResponse) {
+      return auth
     }
-    const lists = await getContainer().listUserLists(userId)
+    const lists = await getContainer().listUserLists(auth.userId)
     return ok(lists)
   } catch (error) {
     return handleError(error)

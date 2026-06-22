@@ -1,6 +1,7 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { optionalUserId, requireScope } from '@/server/api/authenticate'
 
 export async function GET(
   request: Request,
@@ -8,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const userId = await getUserIdFromRequest(request)
+    const userId = await optionalUserId(request, 'tasks:read')
     const tasks = await getContainer().listListTasks(userId, id)
     return ok(tasks)
   } catch (error) {
@@ -22,12 +23,12 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'tasks:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const body = await request.json()
-    const tasks = await getContainer().reorderTasks(userId, id, body)
+    const tasks = await getContainer().reorderTasks(auth.userId, id, body)
     return ok(tasks)
   } catch (error) {
     return handleError(error)

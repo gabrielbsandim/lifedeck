@@ -20,8 +20,12 @@ export function fail(
   message: string,
   status: number,
   details?: unknown,
+  init?: { headers?: HeadersInit },
 ): NextResponse<ApiErrorBody> {
-  return NextResponse.json({ error: { code, message, details } }, { status })
+  return NextResponse.json(
+    { error: { code, message, details } },
+    { status, headers: init?.headers },
+  )
 }
 
 export function handleError(error: unknown): NextResponse<ApiErrorBody> {

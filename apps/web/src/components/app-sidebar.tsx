@@ -6,7 +6,13 @@ import { usePathname } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/messages-provider'
 
 type NavItem = {
-  href: '/' | '/lists' | '/analytics' | '/generate' | '/recurring'
+  href:
+    | '/'
+    | '/lists'
+    | '/analytics'
+    | '/generate'
+    | '/recurring'
+    | '/developers'
   label: string
   icon: ReactNode
 }
@@ -77,6 +83,15 @@ export function AppSidebar() {
       icon: (
         <Icon>
           <path d="M17 2l4 4-4 4M21 6H8a4 4 0 0 0-4 4M7 22l-4-4 4-4M3 18h13a4 4 0 0 0 4-4" />
+        </Icon>
+      ),
+    },
+    {
+      href: '/developers',
+      label: messages.nav.developers,
+      icon: (
+        <Icon>
+          <path d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
         </Icon>
       ),
     },

@@ -1,15 +1,16 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { requireScope } from '@/server/api/authenticate'
 
 export async function GET(request: Request) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'tasks:read')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const date = new URL(request.url).searchParams.get('date') ?? ''
-    const board = await getContainer().getDailyBoard(userId, date)
+    const board = await getContainer().getDailyBoard(auth.userId, date)
     return ok(board)
   } catch (error) {
     return handleError(error)

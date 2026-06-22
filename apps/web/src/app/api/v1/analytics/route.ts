@@ -1,17 +1,18 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { requireScope } from '@/server/api/authenticate'
 
 export async function GET(request: Request) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'analytics:read')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const url = new URL(request.url)
     const parsed = Number(url.searchParams.get('days'))
     const days = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
-    const analytics = await getContainer().getAnalytics(userId, { days })
+    const analytics = await getContainer().getAnalytics(auth.userId, { days })
     return ok(analytics)
   } catch (error) {
     return handleError(error)

@@ -41,6 +41,7 @@ export type Messages = {
     lists: string
     analytics: string
     generate: string
+    developers: string
   }
   notifications: {
     title: string
@@ -48,6 +49,28 @@ export type Messages = {
     markAllRead: string
     assigned: string
     open: string
+  }
+  developers: {
+    title: string
+    subtitle: string
+    name: string
+    namePlaceholder: string
+    scopes: string
+    expiry: string
+    noExpiry: string
+    generate: string
+    empty: string
+    createdTitle: string
+    createdHint: string
+    copy: string
+    copied: string
+    done: string
+    revoke: string
+    revokedBadge: string
+    expiredBadge: string
+    lastUsed: string
+    neverUsed: string
+    docsLink: string
   }
   task: {
     add: string

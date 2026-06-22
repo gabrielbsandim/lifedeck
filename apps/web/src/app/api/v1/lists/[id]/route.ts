@@ -1,6 +1,7 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { optionalUserId, requireScope } from '@/server/api/authenticate'
 
 export async function GET(
   request: Request,
@@ -8,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const userId = await getUserIdFromRequest(request)
+    const userId = await optionalUserId(request, 'lists:read')
     const list = await getContainer().getList(id, userId)
     return ok(list)
   } catch (error) {
@@ -22,12 +23,12 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'lists:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const body = await request.json()
-    const list = await getContainer().renameList(userId, id, body)
+    const list = await getContainer().renameList(auth.userId, id, body)
     return ok(list)
   } catch (error) {
     return handleError(error)
@@ -40,11 +41,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'lists:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
-    await getContainer().deleteList(userId, id)
+    await getContainer().deleteList(auth.userId, id)
     return ok({ deleted: true })
   } catch (error) {
     return handleError(error)
