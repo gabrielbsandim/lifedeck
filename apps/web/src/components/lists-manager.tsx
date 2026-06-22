@@ -4,12 +4,13 @@ import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { Button, Card, EmptyState, Skeleton, TextField } from '@taskin/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
-import { useCreateList, useUserLists } from '@/lib/api/use-lists'
+import { useCreateList, useDeleteList, useUserLists } from '@/lib/api/use-lists'
 
 export function ListsManager() {
   const { messages } = useI18n()
   const lists = useUserLists()
   const createList = useCreateList()
+  const deleteList = useDeleteList()
   const [title, setTitle] = useState('')
 
   function submit(event: FormEvent) {
@@ -67,16 +68,27 @@ export function ListsManager() {
         ) : (
           <ul className="flex flex-col gap-2">
             {standalone.map(list => (
-              <li key={list.id}>
+              <li
+                key={list.id}
+                className="border-line hover:border-brand-600 flex items-center rounded-xl border bg-white transition"
+              >
                 <Link
                   href={`/lists/${list.id}`}
-                  className="border-line hover:border-brand-600 flex items-center justify-between rounded-xl border bg-white px-4 py-3 transition"
+                  className="flex flex-1 items-center justify-between px-4 py-3"
                 >
                   <span className="text-ink-800 text-sm font-medium">
                     {list.title}
                   </span>
                   <span className="text-ink-400 text-sm">→</span>
                 </Link>
+                <button
+                  type="button"
+                  aria-label={`${messages.recurring.delete} ${list.title}`}
+                  onClick={() => deleteList.mutate(list.id)}
+                  className="text-danger px-3 text-sm"
+                >
+                  ✕
+                </button>
               </li>
             ))}
           </ul>

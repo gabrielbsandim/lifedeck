@@ -14,6 +14,9 @@ type DailyTaskRowProps = {
   self: { id: string; name: string } | null
   onToggle: (task: TaskView) => void
   onUpdate: (id: string, input: UpdateTaskInput) => void
+  onMove?: (direction: 'up' | 'down') => void
+  canMoveUp?: boolean
+  canMoveDown?: boolean
 }
 
 export function DailyTaskRow({
@@ -22,6 +25,9 @@ export function DailyTaskRow({
   self,
   onToggle,
   onUpdate,
+  onMove,
+  canMoveUp = false,
+  canMoveDown = false,
 }: DailyTaskRowProps) {
   const completed = task.status === 'completed'
 
@@ -34,6 +40,28 @@ export function DailyTaskRow({
 
   return (
     <li className="border-line flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3">
+      {onMove && (
+        <div className="flex flex-col">
+          <button
+            type="button"
+            aria-label="Move up"
+            disabled={!canMoveUp}
+            onClick={() => onMove('up')}
+            className="text-ink-400 hover:text-ink-700 text-xs leading-none disabled:opacity-30"
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            aria-label="Move down"
+            disabled={!canMoveDown}
+            onClick={() => onMove('down')}
+            className="text-ink-400 hover:text-ink-700 text-xs leading-none disabled:opacity-30"
+          >
+            ▼
+          </button>
+        </div>
+      )}
       <TaskCheckbox
         checked={completed}
         label={task.title}

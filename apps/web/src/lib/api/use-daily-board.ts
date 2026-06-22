@@ -29,7 +29,7 @@ export function useCreateTask(date: string) {
         body: JSON.stringify(input),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
+      void queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
     },
   })
 }
@@ -42,8 +42,64 @@ export function useUpdateTask(date: string) {
         method: 'PATCH',
         body: JSON.stringify(input),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
+    onMutate: async ({ id, input }) => {
+      await queryClient.cancelQueries({ queryKey: dailyBoardKey(date) })
+      const previous = queryClient.getQueryData<DailyBoardView>(
+        dailyBoardKey(date),
+      )
+      if (previous) {
+        queryClient.setQueryData<DailyBoardView>(dailyBoardKey(date), {
+          ...previous,
+          tasks: previous.tasks.map(task =>
+            task.id === id ? { ...task, ...input } : task,
+          ),
+        })
+      }
+      return { previous }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(dailyBoardKey(date), context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
+    },
+  })
+}
+
+export function useReorderDailyTasks(date: string, listId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskIds: string[]) =>
+      apiRequest<TaskView[]>(`/api/v1/lists/${listId}/tasks`, {
+        method: 'PATCH',
+        body: JSON.stringify({ taskIds }),
+      }),
+    onMutate: async (taskIds: string[]) => {
+      await queryClient.cancelQueries({ queryKey: dailyBoardKey(date) })
+      const previous = queryClient.getQueryData<DailyBoardView>(
+        dailyBoardKey(date),
+      )
+      if (previous) {
+        const byId = new Map(previous.tasks.map(task => [task.id, task]))
+        const reordered = taskIds
+          .map(id => byId.get(id))
+          .filter((task): task is TaskView => task !== undefined)
+        queryClient.setQueryData<DailyBoardView>(dailyBoardKey(date), {
+          ...previous,
+          tasks: reordered,
+        })
+      }
+      return { previous }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(dailyBoardKey(date), context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
     },
   })
 }

@@ -3,8 +3,11 @@ import { renderHook, waitFor } from '@testing-library/react'
 import {
   useCreateList,
   useCreateListTask,
+  useDeleteList,
   useList,
   useListTasks,
+  useRenameList,
+  useReorderListTasks,
   useUpdateListTask,
   useUserLists,
 } from '@/lib/api/use-lists'
@@ -95,6 +98,43 @@ describe('lists hooks', () => {
     })
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/tasks/t1',
+      expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('renames a list via PATCH', async () => {
+    const fetchMock = mockFetchOnce({ data: LIST })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useRenameList(LIST_ID), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync({ title: 'Honeymoon' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/lists/${LIST_ID}`,
+      expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('deletes a list via DELETE', async () => {
+    const fetchMock = mockFetchOnce({ data: { deleted: true } })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useDeleteList(), { wrapper: Wrapper })
+    await result.current.mutateAsync(LIST_ID)
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/lists/${LIST_ID}`,
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('reorders list tasks via PATCH', async () => {
+    const fetchMock = mockFetchOnce({ data: [] })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useReorderListTasks(LIST_ID), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync(['t2', 't1'])
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/lists/${LIST_ID}/tasks`,
       expect.objectContaining({ method: 'PATCH' }),
     )
   })

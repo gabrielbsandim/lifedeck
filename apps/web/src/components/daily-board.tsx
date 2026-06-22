@@ -16,8 +16,10 @@ import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useCreateTask,
   useDailyBoard,
+  useReorderDailyTasks,
   useUpdateTask,
 } from '@/lib/api/use-daily-board'
+import { moveInOrder } from '@/lib/api/reorder'
 import { useMembers } from '@/lib/api/use-share'
 import { useSession } from '@/lib/api/use-session'
 import { ShareDialog } from '@/components/share-dialog'
@@ -42,6 +44,7 @@ export function DailyBoard({ date }: { date: string }) {
   const members = useMembers(listId, listId !== '')
   const createTask = useCreateTask(date)
   const updateTask = useUpdateTask(date)
+  const reorderTasks = useReorderDailyTasks(date, listId)
   const [title, setTitle] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
 
@@ -90,6 +93,14 @@ export function DailyBoard({ date }: { date: string }) {
 
   function update(id: string, input: UpdateTaskInput) {
     updateTask.mutate({ id, input })
+  }
+
+  function move(index: number, direction: 'up' | 'down') {
+    const ids = tasks.map(task => task.id)
+    const next = moveInOrder(ids, index, direction)
+    if (next !== ids) {
+      reorderTasks.mutate(next)
+    }
   }
 
   const self = session.data
@@ -189,7 +200,7 @@ export function DailyBoard({ date }: { date: string }) {
           <EmptyState title={messages.task.empty} />
         ) : (
           <ul className="flex flex-col gap-2">
-            {tasks.map(task => (
+            {tasks.map((task, index) => (
               <DailyTaskRow
                 key={task.id}
                 task={task}
@@ -197,6 +208,9 @@ export function DailyBoard({ date }: { date: string }) {
                 self={self}
                 onToggle={toggle}
                 onUpdate={update}
+                onMove={direction => move(index, direction)}
+                canMoveUp={index > 0}
+                canMoveDown={index < tasks.length - 1}
               />
             ))}
           </ul>

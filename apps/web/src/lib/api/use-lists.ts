@@ -3,6 +3,7 @@ import type {
   CreateListInput,
   CreateTaskInput,
   ListView,
+  RenameListInput,
   TaskView,
   UpdateTaskInput,
 } from '@taskin/application'
@@ -29,6 +30,48 @@ export function useCreateList() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: userListsKey })
+    },
+  })
+}
+
+export function useRenameList(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RenameListInput) =>
+      apiRequest<ListView>(`/api/v1/lists/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userListsKey })
+      void queryClient.invalidateQueries({ queryKey: listKey(id) })
+    },
+  })
+}
+
+export function useDeleteList() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest<{ deleted: boolean }>(`/api/v1/lists/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userListsKey })
+    },
+  })
+}
+
+export function useReorderListTasks(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskIds: string[]) =>
+      apiRequest<TaskView[]>(`/api/v1/lists/${id}/tasks`, {
+        method: 'PATCH',
+        body: JSON.stringify({ taskIds }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: listTasksKey(id) })
     },
   })
 }

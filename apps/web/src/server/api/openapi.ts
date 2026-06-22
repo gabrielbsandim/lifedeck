@@ -397,6 +397,56 @@ export const openApiDocument = {
           '404': { description: 'List not found or not accessible.' },
         },
       },
+      patch: {
+        summary: 'Rename a list',
+        operationId: 'renameList',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['title'],
+                properties: { title: { type: 'string', maxLength: 120 } },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'List renamed.' },
+          '401': { description: 'Authentication required.' },
+          '403': { description: 'Not the list owner.' },
+          '404': { description: 'List not found.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+      delete: {
+        summary: 'Delete a list',
+        operationId: 'deleteList',
+        description: 'Deletes the list and all its tasks, members, and shares.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'List deleted.' },
+          '401': { description: 'Authentication required.' },
+          '403': { description: 'Not the list owner.' },
+          '404': { description: 'List not found.' },
+        },
+      },
     },
     '/daily': {
       get: {
@@ -524,6 +574,42 @@ export const openApiDocument = {
         ],
         responses: {
           '200': { description: 'Tasks of the list.' },
+          '404': { description: 'List not found or not accessible.' },
+        },
+      },
+      patch: {
+        summary: 'Reorder the tasks of a list',
+        operationId: 'reorderTasks',
+        description: 'Persists the given task order as 0-based positions.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['taskIds'],
+                properties: {
+                  taskIds: {
+                    type: 'array',
+                    items: { type: 'string', format: 'uuid' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Tasks reordered.' },
+          '401': { description: 'Authentication required.' },
+          '403': { description: 'Not allowed to edit this list.' },
           '404': { description: 'List not found or not accessible.' },
         },
       },

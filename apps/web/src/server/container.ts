@@ -2,6 +2,9 @@ import {
   makeChangePassword,
   makeCreateGuestUser,
   makeCreateList,
+  makeDeleteList,
+  makeRenameList,
+  makeReorderTasks,
   makeCreateRecurringTask,
   makeCreateShareLink,
   makeCreateTask,
@@ -77,6 +80,9 @@ type Container = {
   renameUser: ReturnType<typeof makeRenameUser>
   deleteUser: ReturnType<typeof makeDeleteUser>
   createList: ReturnType<typeof makeCreateList>
+  renameList: ReturnType<typeof makeRenameList>
+  deleteList: ReturnType<typeof makeDeleteList>
+  reorderTasks: ReturnType<typeof makeReorderTasks>
   getList: ReturnType<typeof makeGetList>
   listUserLists: ReturnType<typeof makeListUserLists>
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
@@ -160,6 +166,9 @@ function build(
     renameUser: makeRenameUser({ users }),
     deleteUser: makeDeleteUser({ users }),
     createList: makeCreateList({ lists, ids, clock }),
+    renameList: makeRenameList({ lists, clock }),
+    deleteList: makeDeleteList({ lists }),
+    reorderTasks: makeReorderTasks({ tasks, lists, memberships }),
     getList: makeGetList({ lists, memberships }),
     listUserLists: makeListUserLists({ lists }),
     getDailyBoard: makeGetDailyBoard({
