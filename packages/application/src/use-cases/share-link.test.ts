@@ -9,6 +9,7 @@ import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 import { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
+import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import {
   FixedClock,
   FixedTokenGenerator,
@@ -54,6 +55,7 @@ function setup() {
     createTask: makeCreateTask({
       tasks,
       lists,
+      memberships: new InMemoryMembershipRepository(),
       ids: new SequentialIdGenerator([ID.task]),
       clock,
     }),

@@ -16,6 +16,7 @@ export default mergeConfig(
         'src/database/prisma-list-repository.ts',
         'src/database/prisma-recurring-task-repository.ts',
         'src/database/prisma-share-link-repository.ts',
+        'src/database/prisma-membership-repository.ts',
         'src/email/resend-email-sender.ts',
       ],
     }),

@@ -6,6 +6,7 @@ export type { ListRepository } from '@/ports/list-repository'
 export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 export type { ShareLinkRepository } from '@/ports/share-link-repository'
 export type { TokenGenerator } from '@/ports/token-generator'
+export type { MembershipRepository } from '@/ports/membership-repository'
 export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -42,10 +43,12 @@ export {
   type CreateShareLinkInput,
   type ShareLinkView,
 } from '@/dtos/share-link-dto'
+export { memberViewSchema, type MemberView } from '@/dtos/member-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
 export { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
+export { toMemberView } from '@/mappers/member-mapper'
 export { makeCreateTask } from '@/use-cases/create-task'
 export { makeUpdateTask } from '@/use-cases/update-task'
 export { makeListListTasks } from '@/use-cases/list-list-tasks'
@@ -74,3 +77,4 @@ export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
+export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'

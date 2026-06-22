@@ -37,3 +37,4 @@ export {
   type RecurringTaskProps,
 } from '@/entities/recurring-task'
 export { ShareLink, type ShareLinkProps } from '@/entities/share-link'
+export { ListMember, type ListMemberProps } from '@/entities/list-member'

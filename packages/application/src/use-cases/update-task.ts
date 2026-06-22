@@ -5,19 +5,26 @@ import {
   type TaskView,
 } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
-import { canEditList, canReadList } from '@/access/list-access'
+import { resolveListAccess } from '@/access/list-access'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { ListRepository } from '@/ports/list-repository'
+import type { MembershipRepository } from '@/ports/membership-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 
 type Dependencies = {
   tasks: TaskRepository
   lists: ListRepository
+  memberships: MembershipRepository
   clock: Clock
 }
 
-export function makeUpdateTask({ tasks, lists, clock }: Dependencies) {
+export function makeUpdateTask({
+  tasks,
+  lists,
+  memberships,
+  clock,
+}: Dependencies) {
   return async function updateTask(
     requesterId: string,
     taskId: string,
@@ -31,10 +38,14 @@ export function makeUpdateTask({ tasks, lists, clock }: Dependencies) {
     }
 
     const list = await lists.findById(task.toJSON().listId)
-    if (!list || !canReadList(list, requesterId)) {
+    if (!list) {
       throw new NotFoundError('Task')
     }
-    if (!canEditList(list, requesterId)) {
+    const access = await resolveListAccess(list, requesterId, memberships)
+    if (!access.canRead) {
+      throw new NotFoundError('Task')
+    }
+    if (!access.canEdit) {
       throw new ForbiddenError('task')
     }
 

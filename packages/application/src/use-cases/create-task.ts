@@ -5,21 +5,29 @@ import {
   type TaskView,
 } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
-import { canEditList, canReadList } from '@/access/list-access'
+import { resolveListAccess } from '@/access/list-access'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
+import type { MembershipRepository } from '@/ports/membership-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 
 type Dependencies = {
   tasks: TaskRepository
   lists: ListRepository
+  memberships: MembershipRepository
   ids: IdGenerator
   clock: Clock
 }
 
-export function makeCreateTask({ tasks, lists, ids, clock }: Dependencies) {
+export function makeCreateTask({
+  tasks,
+  lists,
+  memberships,
+  ids,
+  clock,
+}: Dependencies) {
   return async function createTask(
     requesterId: string,
     input: CreateTaskInput,
@@ -27,10 +35,14 @@ export function makeCreateTask({ tasks, lists, ids, clock }: Dependencies) {
     const { listId, title } = createTaskSchema.parse(input)
 
     const list = await lists.findById(asEntityId(listId))
-    if (!list || !canReadList(list, requesterId)) {
+    if (!list) {
       throw new NotFoundError('List')
     }
-    if (!canEditList(list, requesterId)) {
+    const access = await resolveListAccess(list, requesterId, memberships)
+    if (!access.canRead) {
+      throw new NotFoundError('List')
+    }
+    if (!access.canEdit) {
       throw new ForbiddenError('list')
     }
 

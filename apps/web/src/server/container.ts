@@ -17,6 +17,7 @@ import {
   makeUpdateRecurringTask,
   makeUpdateTask,
   type ListRepository,
+  type MembershipRepository,
   type RecurringTaskRepository,
   type ShareLinkRepository,
   type TaskRepository,
@@ -24,6 +25,7 @@ import {
 } from '@taskin/application'
 import {
   PrismaListRepository,
+  PrismaMembershipRepository,
   PrismaRecurringTaskRepository,
   PrismaShareLinkRepository,
   PrismaTaskRepository,
@@ -60,6 +62,7 @@ type Repositories = {
   lists: ListRepository
   recurringTasks: RecurringTaskRepository
   shareLinks: ShareLinkRepository
+  memberships: MembershipRepository
 }
 
 function build({
@@ -68,18 +71,19 @@ function build({
   lists,
   recurringTasks,
   shareLinks,
+  memberships,
 }: Repositories): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
   const tokens = new RandomTokenGenerator()
   return {
-    createTask: makeCreateTask({ tasks, lists, ids, clock }),
-    updateTask: makeUpdateTask({ tasks, lists, clock }),
-    listListTasks: makeListListTasks({ tasks, lists }),
+    createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
+    updateTask: makeUpdateTask({ tasks, lists, memberships, clock }),
+    listListTasks: makeListListTasks({ tasks, lists, memberships }),
     createGuestUser: makeCreateGuestUser({ users, ids, clock }),
     getUser: makeGetUser({ users }),
     createList: makeCreateList({ lists, ids, clock }),
-    getList: makeGetList({ lists }),
+    getList: makeGetList({ lists, memberships }),
     listUserLists: makeListUserLists({ lists }),
     getDailyBoard: makeGetDailyBoard({
       lists,
@@ -119,6 +123,7 @@ export function getContainer(): Container {
       lists: new PrismaListRepository(prisma),
       recurringTasks: new PrismaRecurringTaskRepository(prisma),
       shareLinks: new PrismaShareLinkRepository(prisma),
+      memberships: new PrismaMembershipRepository(prisma),
     })
   }
   return container

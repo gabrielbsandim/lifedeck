@@ -3,16 +3,23 @@ import { makeCreateList } from '@/use-cases/create-list'
 import { makeGetList } from '@/use-cases/get-list'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
+import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
 function setup() {
   const lists = new InMemoryListRepository()
+  const memberships = new InMemoryMembershipRepository()
   const createList = makeCreateList({
     lists,
     ids: new SequentialIdGenerator([ID.list]),
     clock: new FixedClock(new Date('2026-06-21T10:00:00.000Z')),
   })
-  return { lists, createList, getList: makeGetList({ lists }) }
+  return {
+    lists,
+    memberships,
+    createList,
+    getList: makeGetList({ lists, memberships }),
+  }
 }
 
 describe('getList', () => {
