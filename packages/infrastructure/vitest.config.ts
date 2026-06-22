@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url'
-import { defineConfig, mergeConfig } from 'vitest/config'
+import { configDefaults, defineConfig, mergeConfig } from 'vitest/config'
 import { createVitestConfig } from '@taskin/config/vitest/base'
 
 export default mergeConfig(
@@ -26,6 +26,9 @@ export default mergeConfig(
     }),
   ),
   defineConfig({
+    test: {
+      exclude: [...configDefaults.exclude, '**/*.integration.test.ts'],
+    },
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
