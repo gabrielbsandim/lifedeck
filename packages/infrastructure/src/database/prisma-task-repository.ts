@@ -12,6 +12,7 @@ export class PrismaTaskRepository implements TaskRepository {
       where: { id: record.id },
       create: record,
       update: {
+        listId: record.listId,
         title: record.title,
         status: record.status,
         observation: record.observation,
