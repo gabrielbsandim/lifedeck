@@ -6,3 +6,12 @@ export class NotFoundError extends Error {
     this.name = 'NotFoundError'
   }
 }
+
+export class ForbiddenError extends Error {
+  readonly code = 'FORBIDDEN'
+
+  constructor(resource: string) {
+    super(`You are not allowed to modify this ${resource}.`)
+    this.name = 'ForbiddenError'
+  }
+}

@@ -1,0 +1,85 @@
+import { describe, expect, it } from 'vitest'
+import { List } from '@taskin/domain'
+import { makeCreateTask } from '@/use-cases/create-task'
+import { makeUpdateTask } from '@/use-cases/update-task'
+import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
+import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
+import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+
+const NOW = new Date('2026-06-21T10:00:00.000Z')
+
+function makeList(visibility: 'private' | 'link' = 'private') {
+  return List.create({
+    id: ID.list,
+    ownerId: ID.user,
+    title: 'Wedding',
+    type: 'standalone',
+    visibility,
+    referenceDate: null,
+    createdAt: NOW,
+  })
+}
+
+async function setup(visibility: 'private' | 'link' = 'private') {
+  const tasks = new InMemoryTaskRepository()
+  const lists = new InMemoryListRepository()
+  await lists.save(makeList(visibility))
+  const createTask = makeCreateTask({
+    tasks,
+    lists,
+    ids: new SequentialIdGenerator([ID.task]),
+    clock: new FixedClock(NOW),
+  })
+  await createTask(ID.user, { listId: ID.list, title: 'Buy flowers' })
+  return {
+    updateTask: makeUpdateTask({ tasks, lists, clock: new FixedClock(NOW) }),
+  }
+}
+
+describe('updateTask', () => {
+  it('completes and reopens a task', async () => {
+    const { updateTask } = await setup()
+
+    const done = await updateTask(ID.user, ID.task, { status: 'completed' })
+    expect(done).toMatchObject({
+      status: 'completed',
+      completedAt: NOW.toISOString(),
+    })
+
+    const reopened = await updateTask(ID.user, ID.task, { status: 'pending' })
+    expect(reopened).toMatchObject({ status: 'pending', completedAt: null })
+  })
+
+  it('renames and sets an observation', async () => {
+    const { updateTask } = await setup()
+
+    const view = await updateTask(ID.user, ID.task, {
+      title: 'Buy roses',
+      observation: 'Red ones',
+    })
+
+    expect(view).toMatchObject({ title: 'Buy roses', observation: 'Red ones' })
+  })
+
+  it('throws NotFound for a missing task', async () => {
+    const { updateTask } = await setup()
+    await expect(updateTask(ID.user, ID.user, { title: 'X' })).rejects.toThrow(
+      NotFoundError,
+    )
+  })
+
+  it('hides the task from non-owners of a private list', async () => {
+    const { updateTask } = await setup()
+    await expect(
+      updateTask(ID.otherUser, ID.task, { title: 'X' }),
+    ).rejects.toThrow(NotFoundError)
+  })
+
+  it('forbids editing on a link-shared list owned by someone else', async () => {
+    const { updateTask } = await setup('link')
+    await expect(
+      updateTask(ID.otherUser, ID.task, { title: 'X' }),
+    ).rejects.toThrow(ForbiddenError)
+  })
+})

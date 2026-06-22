@@ -1,11 +1,12 @@
 import {
-  makeCompleteTask,
   makeCreateGuestUser,
   makeCreateList,
   makeCreateTask,
   makeGetList,
   makeGetUser,
+  makeListListTasks,
   makeListUserLists,
+  makeUpdateTask,
   type ListRepository,
   type TaskRepository,
   type UserRepository,
@@ -21,7 +22,8 @@ import {
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
-  completeTask: ReturnType<typeof makeCompleteTask>
+  updateTask: ReturnType<typeof makeUpdateTask>
+  listListTasks: ReturnType<typeof makeListListTasks>
   createGuestUser: ReturnType<typeof makeCreateGuestUser>
   getUser: ReturnType<typeof makeGetUser>
   createList: ReturnType<typeof makeCreateList>
@@ -39,8 +41,9 @@ function build({ tasks, users, lists }: Repositories): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
   return {
-    createTask: makeCreateTask({ tasks, ids, clock }),
-    completeTask: makeCompleteTask({ tasks, clock }),
+    createTask: makeCreateTask({ tasks, lists, ids, clock }),
+    updateTask: makeUpdateTask({ tasks, lists, clock }),
+    listListTasks: makeListListTasks({ tasks, lists }),
     createGuestUser: makeCreateGuestUser({ users, ids, clock }),
     getUser: makeGetUser({ users }),
     createList: makeCreateList({ lists, ids, clock }),

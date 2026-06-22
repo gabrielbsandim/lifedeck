@@ -58,6 +58,51 @@ export const openApiDocument = {
         },
         responses: {
           '201': { description: 'Task created.' },
+          '401': { description: 'Authentication required.' },
+          '403': { description: 'Not allowed to edit this list.' },
+          '404': { description: 'List not found or not accessible.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
+    '/tasks/{id}': {
+      patch: {
+        summary: 'Update a task',
+        operationId: 'updateTask',
+        description:
+          'Edits a task: rename, set an observation, or change status (complete / reopen).',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', maxLength: 280 },
+                  observation: {
+                    type: 'string',
+                    maxLength: 2000,
+                    nullable: true,
+                  },
+                  status: { type: 'string', enum: ['pending', 'completed'] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Task updated.' },
+          '401': { description: 'Authentication required.' },
+          '403': { description: 'Not allowed to edit this task.' },
+          '404': { description: 'Task not found or not accessible.' },
           '422': { description: 'Validation error.' },
         },
       },
@@ -161,6 +206,26 @@ export const openApiDocument = {
         ],
         responses: {
           '200': { description: 'The requested list.' },
+          '404': { description: 'List not found or not accessible.' },
+        },
+      },
+    },
+    '/lists/{id}/tasks': {
+      get: {
+        summary: 'List the tasks of a list',
+        operationId: 'listListTasks',
+        description:
+          'Returns the tasks if the list is owned by the requester or shared by link; otherwise 404.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Tasks of the list.' },
           '404': { description: 'List not found or not accessible.' },
         },
       },

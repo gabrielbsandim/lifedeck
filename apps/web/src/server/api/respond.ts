@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { ValidationError } from '@taskin/domain'
-import { NotFoundError } from '@taskin/application'
+import { ForbiddenError, NotFoundError } from '@taskin/application'
 
 export type ApiErrorBody = {
   error: {
@@ -35,6 +35,9 @@ export function handleError(error: unknown): NextResponse<ApiErrorBody> {
   }
   if (error instanceof NotFoundError) {
     return fail('NOT_FOUND', error.message, 404)
+  }
+  if (error instanceof ForbiddenError) {
+    return fail('FORBIDDEN', error.message, 403)
   }
   return fail('INTERNAL_ERROR', 'Something went wrong.', 500)
 }

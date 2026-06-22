@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ValidationError } from '@taskin/domain'
-import { NotFoundError } from '@taskin/application'
+import { ForbiddenError, NotFoundError } from '@taskin/application'
 import { fail, handleError, ok } from '@/server/api/respond'
 
 describe('respond helpers', () => {
@@ -34,6 +34,10 @@ describe('respond helpers', () => {
 
   it('maps a NotFoundError to 404', () => {
     expect(handleError(new NotFoundError('Task')).status).toBe(404)
+  })
+
+  it('maps a ForbiddenError to 403', () => {
+    expect(handleError(new ForbiddenError('task')).status).toBe(403)
   })
 
   it('maps an unknown error to 500', () => {
