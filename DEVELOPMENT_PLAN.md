@@ -154,8 +154,15 @@ client-side i18next rewrite, and keeps the typed message catalogs for compile-ti
 
 ## Phase 9 - Email & notifications
 
-- [ ] Resend templates: verification, invitation, list digest.
-- [ ] Optional notifications (assignment, shared list activity).
+- [x] Resend templates (localized, HTML-escaped): verification, invitation, task
+      assignment, and daily digest. Console fallback locally.
+- [x] Invite collaborators by email (`POST /api/v1/lists/{id}/invite`) + share-dialog UI.
+- [x] Daily digest email + trigger endpoint (`POST /api/v1/digest`); scheduled delivery
+      (Vercel Cron) is left for infra setup.
+- [x] In-app notifications: `Notification` entity + table, repository, list/mark-read use
+      cases, `GET/POST /api/v1/notifications*`, and a header bell with unread count + polling.
+      Task assignment creates both an email (if the assignee has one) and an in-app
+      notification (so guests are notified too).
 
 ## Phase 10 - White-label API maturity
 
