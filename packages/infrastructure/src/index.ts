@@ -8,6 +8,7 @@ export { PrismaRecurringTaskRepository } from '@/database/prisma-recurring-task-
 export { PrismaShareLinkRepository } from '@/database/prisma-share-link-repository'
 export { PrismaMembershipRepository } from '@/database/prisma-membership-repository'
 export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verification-repository'
+export { PrismaAnalyticsRepository } from '@/database/prisma-analytics-repository'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
 export { ScryptPasswordHasher } from '@/security/scrypt-password-hasher'
 export { NumericCodeGenerator } from '@/security/numeric-code-generator'

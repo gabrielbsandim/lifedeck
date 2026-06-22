@@ -18,6 +18,7 @@ export default mergeConfig(
         'src/database/prisma-share-link-repository.ts',
         'src/database/prisma-membership-repository.ts',
         'src/database/prisma-email-verification-repository.ts',
+        'src/database/prisma-analytics-repository.ts',
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',
