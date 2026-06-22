@@ -12,14 +12,26 @@ export class ApiError extends Error {
 type ApiSuccess<T> = { data: T }
 type ApiFailure = { error: { code: string; message: string } }
 
+function browserLanguage(): string | undefined {
+  if (typeof navigator !== 'undefined' && navigator.language) {
+    return navigator.language
+  }
+  return undefined
+}
+
 export async function apiRequest<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
   const { headers, ...rest } = init
+  const language = browserLanguage()
   const response = await fetch(path, {
     credentials: 'include',
-    headers: { 'content-type': 'application/json', ...headers },
+    headers: {
+      'content-type': 'application/json',
+      ...(language ? { 'accept-language': language } : {}),
+      ...headers,
+    },
     ...rest,
   })
 

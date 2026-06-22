@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { MemberView, TaskView, UpdateTaskInput } from '@taskin/application'
 import { Avatar, TaskCheckbox } from '@taskin/ui'
+import { useI18n } from '@/lib/i18n/messages-provider'
 
 const iconButtonClass =
   'flex h-8 w-8 flex-none items-center justify-center rounded-lg'
@@ -46,6 +47,8 @@ export function DailyTaskRow({
   canMoveUp = false,
   canMoveDown = false,
 }: DailyTaskRowProps) {
+  const { messages } = useI18n()
+  const t = messages.task
   const completed = task.status === 'completed'
   const [editingNote, setEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState(task.observation ?? '')
@@ -76,7 +79,7 @@ export function DailyTaskRow({
           <div className="flex flex-none flex-col pt-0.5">
             <button
               type="button"
-              aria-label="Move up"
+              aria-label={t.moveUp}
               disabled={!canMoveUp}
               onClick={() => onMove('up')}
               className="text-ink-400 hover:text-ink-700 flex h-5 w-6 items-center justify-center text-xs leading-none disabled:opacity-30"
@@ -85,7 +88,7 @@ export function DailyTaskRow({
             </button>
             <button
               type="button"
-              aria-label="Move down"
+              aria-label={t.moveDown}
               disabled={!canMoveDown}
               onClick={() => onMove('down')}
               className="text-ink-400 hover:text-ink-700 flex h-5 w-6 items-center justify-center text-xs leading-none disabled:opacity-30"
@@ -127,8 +130,8 @@ export function DailyTaskRow({
                   setEditingNote(false)
                 }
               }}
-              placeholder="Add a note"
-              aria-label="Task note"
+              placeholder={t.notePlaceholder}
+              aria-label={t.note}
               maxLength={2000}
               className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-xs outline-none"
             />
@@ -136,7 +139,7 @@ export function DailyTaskRow({
             <button
               type="button"
               onClick={openNote}
-              aria-label="Edit note"
+              aria-label={t.editNote}
               className="text-ink-500 hover:text-ink-700 mt-1 flex max-w-full items-center gap-1.5 text-left text-xs"
             >
               <MessageIcon />
@@ -150,7 +153,7 @@ export function DailyTaskRow({
         {task.recurringTaskId && (
           <span
             aria-hidden
-            title="Recurring"
+            title={t.recurring}
             className="text-brand-500 text-sm"
           >
             ↻
@@ -160,7 +163,7 @@ export function DailyTaskRow({
         {!task.observation && !editingNote && (
           <button
             type="button"
-            aria-label="Add note"
+            aria-label={t.addNote}
             onClick={openNote}
             className={`${iconButtonClass} text-ink-400 hover:text-ink-700`}
           >
@@ -180,7 +183,7 @@ export function DailyTaskRow({
               )}
             </span>
             <select
-              aria-label="Assignee"
+              aria-label={t.assignee}
               value={task.assigneeId ?? ''}
               onChange={event =>
                 onUpdate(task.id, {
@@ -202,9 +205,9 @@ export function DailyTaskRow({
 
         <button
           type="button"
-          aria-label="Toggle privacy"
+          aria-label={t.togglePrivacy}
           aria-pressed={task.isPrivate}
-          title={task.isPrivate ? 'Private' : 'Visible to collaborators'}
+          title={task.isPrivate ? t.private : t.visible}
           onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
           className={`${iconButtonClass} ${
             task.isPrivate ? 'text-brand-600' : 'text-ink-500'

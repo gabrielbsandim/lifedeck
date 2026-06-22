@@ -63,6 +63,33 @@ describe('apiRequest', () => {
     expect(error.code).toBe('UNKNOWN')
   })
 
+  it('forwards the browser language as accept-language', async () => {
+    vi.stubGlobal('navigator', { language: 'pt-BR' })
+    const fetchMock = mockFetch({ ok: true, body: { data: null } })
+
+    await apiRequest('/api/v1/thing')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/thing',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'accept-language': 'pt-BR' }),
+      }),
+    )
+  })
+
+  it('omits accept-language when no browser language is available', async () => {
+    vi.stubGlobal('navigator', undefined)
+    const fetchMock = mockFetch({ ok: true, body: { data: null } })
+
+    await apiRequest('/api/v1/thing')
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+      string,
+      string
+    >
+    expect(headers['accept-language']).toBeUndefined()
+  })
+
   it('passes through method and body', async () => {
     const fetchMock = mockFetch({ ok: true, body: { data: null } })
 

@@ -119,7 +119,7 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
             {messages.share.create}
           </Button>
           <select
-            aria-label="Share role"
+            aria-label={messages.share.role}
             value={role}
             onChange={event =>
               setRole(event.target.value as 'viewer' | 'editor')
