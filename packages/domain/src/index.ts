@@ -17,6 +17,17 @@ export {
   isVisibility,
   type Visibility,
 } from '@/value-objects/visibility'
+export {
+  RECURRENCE_FREQUENCIES,
+  validateRecurrenceRule,
+  occursOn,
+  type RecurrenceFrequency,
+  type RecurrenceRule,
+} from '@/value-objects/recurrence-rule'
 export { Task, type TaskProps } from '@/entities/task'
 export { User, type UserProps } from '@/entities/user'
 export { List, type ListProps } from '@/entities/list'
+export {
+  RecurringTask,
+  type RecurringTaskProps,
+} from '@/entities/recurring-task'
