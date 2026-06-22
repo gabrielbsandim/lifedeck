@@ -12,6 +12,10 @@ export class InMemoryListRepository implements ListRepository {
     return this.store.get(id) ?? null
   }
 
+  async delete(id: EntityId): Promise<void> {
+    this.store.delete(id)
+  }
+
   async listByOwner(ownerId: EntityId): Promise<List[]> {
     return [...this.store.values()].filter(list => list.ownerId === ownerId)
   }

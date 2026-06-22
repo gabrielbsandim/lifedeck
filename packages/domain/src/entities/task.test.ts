@@ -120,10 +120,12 @@ describe('Task.restore', () => {
       assigneeId: MEMBER_ID,
       recurringTaskId: null,
       isPrivate: true,
+      position: 3,
       createdAt: NOW,
       completedAt: NOW,
     })
     expect(restored.isCompleted).toBe(true)
+    expect(restored.position).toBe(3)
     expect(restored.toJSON().title).toBe('Restored')
   })
 })

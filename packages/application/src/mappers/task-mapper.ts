@@ -12,6 +12,7 @@ export function toTaskView(task: Task): TaskView {
     assigneeId: props.assigneeId,
     recurringTaskId: props.recurringTaskId,
     isPrivate: props.isPrivate,
+    position: props.position,
     createdAt: props.createdAt.toISOString(),
     completedAt: props.completedAt ? props.completedAt.toISOString() : null,
   }

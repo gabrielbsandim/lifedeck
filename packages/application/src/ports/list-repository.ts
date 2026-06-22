@@ -8,4 +8,5 @@ export interface ListRepository {
     ownerId: EntityId,
     referenceDate: Date,
   ): Promise<List | null>
+  delete(id: EntityId): Promise<void>
 }

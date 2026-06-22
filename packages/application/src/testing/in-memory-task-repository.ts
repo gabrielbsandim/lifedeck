@@ -13,8 +13,8 @@ export class InMemoryTaskRepository implements TaskRepository {
   }
 
   async listByList(listId: EntityId): Promise<Task[]> {
-    return [...this.store.values()].filter(
-      task => task.toJSON().listId === listId,
-    )
+    return [...this.store.values()]
+      .filter(task => task.toJSON().listId === listId)
+      .sort((a, b) => a.position - b.position)
   }
 }

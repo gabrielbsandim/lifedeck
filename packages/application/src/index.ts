@@ -21,9 +21,11 @@ export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 export {
   createTaskSchema,
   updateTaskSchema,
+  reorderTasksSchema,
   taskViewSchema,
   type CreateTaskInput,
   type UpdateTaskInput,
+  type ReorderTasksInput,
   type TaskView,
 } from '@/dtos/task-dto'
 export {
@@ -44,8 +46,10 @@ export {
 } from '@/dtos/user-dto'
 export {
   createListSchema,
+  renameListSchema,
   listViewSchema,
   type CreateListInput,
+  type RenameListInput,
   type ListView,
 } from '@/dtos/list-dto'
 export {
@@ -72,6 +76,7 @@ export { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
 export { toMemberView } from '@/mappers/member-mapper'
 export { makeCreateTask } from '@/use-cases/create-task'
 export { makeUpdateTask } from '@/use-cases/update-task'
+export { makeReorderTasks } from '@/use-cases/reorder-tasks'
 export { makeListListTasks } from '@/use-cases/list-list-tasks'
 export { makeCreateGuestUser } from '@/use-cases/create-guest-user'
 export { makeGetUser } from '@/use-cases/get-user'
@@ -85,6 +90,8 @@ export { makeChangePassword } from '@/use-cases/change-password'
 export { makeRenameUser } from '@/use-cases/rename-user'
 export { makeDeleteUser } from '@/use-cases/delete-user'
 export { makeCreateList } from '@/use-cases/create-list'
+export { makeRenameList } from '@/use-cases/rename-list'
+export { makeDeleteList } from '@/use-cases/delete-list'
 export { makeGetList } from '@/use-cases/get-list'
 export { makeListUserLists } from '@/use-cases/list-user-lists'
 export {

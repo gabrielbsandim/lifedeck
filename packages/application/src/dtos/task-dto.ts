@@ -26,8 +26,15 @@ export const taskViewSchema = z.object({
   assigneeId: z.string().uuid().nullable(),
   recurringTaskId: z.string().uuid().nullable(),
   isPrivate: z.boolean(),
+  position: z.number(),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
 })
 
 export type TaskView = z.infer<typeof taskViewSchema>
+
+export const reorderTasksSchema = z.object({
+  taskIds: z.array(z.string().uuid()),
+})
+
+export type ReorderTasksInput = z.infer<typeof reorderTasksSchema>

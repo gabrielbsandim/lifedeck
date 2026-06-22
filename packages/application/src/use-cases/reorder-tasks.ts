@@ -1,14 +1,8 @@
-import { Task, asEntityId } from '@taskin/domain'
-import {
-  createTaskSchema,
-  type CreateTaskInput,
-  type TaskView,
-} from '@/dtos/task-dto'
+import { asEntityId } from '@taskin/domain'
+import { reorderTasksSchema, type TaskView } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
 import { resolveListAccess } from '@/access/list-access'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
-import type { Clock } from '@/ports/clock'
-import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
 import type { TaskRepository } from '@/ports/task-repository'
@@ -17,22 +11,15 @@ type Dependencies = {
   tasks: TaskRepository
   lists: ListRepository
   memberships: MembershipRepository
-  ids: IdGenerator
-  clock: Clock
 }
 
-export function makeCreateTask({
-  tasks,
-  lists,
-  memberships,
-  ids,
-  clock,
-}: Dependencies) {
-  return async function createTask(
+export function makeReorderTasks({ tasks, lists, memberships }: Dependencies) {
+  return async function reorderTasks(
     requesterId: string,
-    input: CreateTaskInput,
-  ): Promise<TaskView> {
-    const { listId, title } = createTaskSchema.parse(input)
+    listId: string,
+    input: unknown,
+  ): Promise<TaskView[]> {
+    const { taskIds } = reorderTasksSchema.parse(input)
 
     const list = await lists.findById(asEntityId(listId))
     if (!list) {
@@ -46,18 +33,21 @@ export function makeCreateTask({
       throw new ForbiddenError('list')
     }
 
-    const existing = await tasks.listByList(asEntityId(listId))
+    const current = await tasks.listByList(asEntityId(listId))
+    const byId = new Map(current.map(task => [task.id as string, task]))
 
-    const task = Task.create({
-      id: ids.generate(),
-      listId: asEntityId(listId),
-      title,
-      position: existing.length,
-      createdAt: clock.now(),
-    })
+    let index = 0
+    for (const id of taskIds) {
+      const task = byId.get(id)
+      if (!task) {
+        continue
+      }
+      task.setPosition(index)
+      await tasks.save(task)
+      index += 1
+    }
 
-    await tasks.save(task)
-
-    return toTaskView(task)
+    const reordered = await tasks.listByList(asEntityId(listId))
+    return reordered.map(toTaskView)
   }
 }

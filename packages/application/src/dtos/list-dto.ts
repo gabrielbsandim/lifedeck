@@ -9,6 +9,12 @@ export const createListSchema = z.object({
 
 export type CreateListInput = z.infer<typeof createListSchema>
 
+export const renameListSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+})
+
+export type RenameListInput = z.infer<typeof renameListSchema>
+
 export const listViewSchema = z.object({
   id: z.string().uuid(),
   ownerId: z.string().uuid(),

@@ -14,6 +14,7 @@ export type TaskProps = {
   assigneeId: EntityId | null
   recurringTaskId: EntityId | null
   isPrivate: boolean
+  position: number
   createdAt: Date
   completedAt: Date | null
 }
@@ -26,6 +27,7 @@ export class Task {
     listId: EntityId
     title: string
     createdAt: Date
+    position?: number
     recurringTaskId?: EntityId | null
   }): Task {
     const title = guard.maxLength(
@@ -43,6 +45,7 @@ export class Task {
       assigneeId: null,
       recurringTaskId: input.recurringTaskId ?? null,
       isPrivate: false,
+      position: input.position ?? 0,
       createdAt: input.createdAt,
       completedAt: null,
     })
@@ -66,6 +69,14 @@ export class Task {
 
   get isPrivate(): boolean {
     return this.props.isPrivate
+  }
+
+  get position(): number {
+    return this.props.position
+  }
+
+  setPosition(position: number): void {
+    this.props.position = position
   }
 
   complete(completedAt: Date): void {
