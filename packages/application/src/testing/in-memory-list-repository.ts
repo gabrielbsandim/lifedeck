@@ -15,4 +15,21 @@ export class InMemoryListRepository implements ListRepository {
   async listByOwner(ownerId: EntityId): Promise<List[]> {
     return [...this.store.values()].filter(list => list.ownerId === ownerId)
   }
+
+  async findDailyByOwnerAndDate(
+    ownerId: EntityId,
+    referenceDate: Date,
+  ): Promise<List | null> {
+    const target = referenceDate.getTime()
+    const match = [...this.store.values()].find(list => {
+      const props = list.toJSON()
+      return (
+        props.ownerId === ownerId &&
+        props.type === 'daily' &&
+        props.referenceDate !== null &&
+        props.referenceDate.getTime() === target
+      )
+    })
+    return match ?? null
+  }
 }

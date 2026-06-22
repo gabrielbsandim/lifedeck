@@ -2,6 +2,7 @@ import {
   makeCreateGuestUser,
   makeCreateList,
   makeCreateTask,
+  makeGetDailyList,
   makeGetList,
   makeGetUser,
   makeListListTasks,
@@ -29,6 +30,7 @@ type Container = {
   createList: ReturnType<typeof makeCreateList>
   getList: ReturnType<typeof makeGetList>
   listUserLists: ReturnType<typeof makeListUserLists>
+  getDailyList: ReturnType<typeof makeGetDailyList>
 }
 
 type Repositories = {
@@ -49,6 +51,7 @@ function build({ tasks, users, lists }: Repositories): Container {
     createList: makeCreateList({ lists, ids, clock }),
     getList: makeGetList({ lists }),
     listUserLists: makeListUserLists({ lists }),
+    getDailyList: makeGetDailyList({ lists, ids, clock }),
   }
 }
 

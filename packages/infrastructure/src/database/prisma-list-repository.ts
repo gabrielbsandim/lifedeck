@@ -33,4 +33,14 @@ export class PrismaListRepository implements ListRepository {
     })
     return records.map(toDomainList)
   }
+
+  async findDailyByOwnerAndDate(
+    ownerId: EntityId,
+    referenceDate: Date,
+  ): Promise<List | null> {
+    const record = await this.prisma.list.findFirst({
+      where: { ownerId, type: 'daily', referenceDate },
+    })
+    return record ? toDomainList(record) : null
+  }
 }

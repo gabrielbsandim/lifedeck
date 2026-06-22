@@ -210,6 +210,27 @@ export const openApiDocument = {
         },
       },
     },
+    '/daily': {
+      get: {
+        summary: "Get the current user's daily list for a date",
+        operationId: 'getDailyList',
+        description:
+          'Returns the daily list for the given date, provisioning it on first access.',
+        parameters: [
+          {
+            name: 'date',
+            in: 'query',
+            required: true,
+            schema: { type: 'string', format: 'date' },
+          },
+        ],
+        responses: {
+          '200': { description: 'The daily list for the date.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Invalid date.' },
+        },
+      },
+    },
     '/lists/{id}/tasks': {
       get: {
         summary: 'List the tasks of a list',
