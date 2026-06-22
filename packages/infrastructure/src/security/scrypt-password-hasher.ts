@@ -25,4 +25,8 @@ export class ScryptPasswordHasher implements PasswordHasher {
     }
     return timingSafeEqual(keyBuffer, derived)
   }
+
+  needsRehash(): boolean {
+    return false
+  }
 }

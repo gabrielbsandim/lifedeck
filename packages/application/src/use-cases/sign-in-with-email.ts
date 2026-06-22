@@ -23,6 +23,11 @@ export function makeSignInWithEmail({ users, hasher }: Dependencies) {
       throw new ValidationError('Invalid email or password.')
     }
 
+    if (hasher.needsRehash(user.passwordHash)) {
+      user.changePassword(await hasher.hash(password))
+      await users.save(user)
+    }
+
     return toUserView(user)
   }
 }

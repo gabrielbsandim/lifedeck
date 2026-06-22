@@ -13,6 +13,7 @@ export { PrismaNotificationRepository } from '@/database/prisma-notification-rep
 export { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
 export { ScryptPasswordHasher } from '@/security/scrypt-password-hasher'
+export { Argon2PasswordHasher } from '@/security/argon2-password-hasher'
 export { Sha256KeyHasher } from '@/security/sha256-key-hasher'
 export { NumericCodeGenerator } from '@/security/numeric-code-generator'
 export {

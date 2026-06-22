@@ -6,6 +6,10 @@ export class FakePasswordHasher implements PasswordHasher {
   }
 
   async verify(plain: string, hash: string): Promise<boolean> {
-    return hash === `hashed:${plain}`
+    return hash === `hashed:${plain}` || hash === `legacy:${plain}`
+  }
+
+  needsRehash(hash: string): boolean {
+    return !hash.startsWith('hashed:')
   }
 }

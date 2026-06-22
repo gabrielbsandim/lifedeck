@@ -65,6 +65,36 @@ describe('signInWithEmail', () => {
     ).rejects.toThrow(/invalid/i)
   })
 
+  it('rehashes a legacy password hash on a successful sign-in', async () => {
+    const ctx = setup()
+    const user = User.createGuest({
+      id: ID.user,
+      displayName: 'Gabriel',
+      locale: 'en',
+      createdAt: NOW,
+    })
+    user.register({
+      email: 'gab@example.com',
+      passwordHash: 'legacy:supersecret',
+      emailVerifiedAt: NOW,
+    })
+    await ctx.users.save(user)
+
+    await ctx.signIn({ email: 'gab@example.com', password: 'supersecret' })
+
+    const saved = await ctx.users.findById(ID.user)
+    expect(saved?.passwordHash).toBe('hashed:supersecret')
+  })
+
+  it('does not resave when the hash is already current', async () => {
+    const ctx = setup()
+    await registeredUser(ctx.users, ctx.hasher)
+    const before = (await ctx.users.findById(ID.user))?.passwordHash
+    await ctx.signIn({ email: 'gab@example.com', password: 'supersecret' })
+    const after = (await ctx.users.findById(ID.user))?.passwordHash
+    expect(after).toBe(before)
+  })
+
   it('rejects an account without a password (OAuth only)', async () => {
     const ctx = setup()
     const user = User.createGuest({
