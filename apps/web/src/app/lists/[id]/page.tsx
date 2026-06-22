@@ -1,4 +1,5 @@
 import { StandaloneListView } from '@/components/standalone-list-view'
+import { AppShell } from '@/components/app-shell'
 
 export default async function ListPage({
   params,
@@ -7,8 +8,8 @@ export default async function ListPage({
 }) {
   const { id } = await params
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-10 px-5 py-16 sm:py-24">
+    <AppShell>
       <StandaloneListView listId={id} />
-    </main>
+    </AppShell>
   )
 }

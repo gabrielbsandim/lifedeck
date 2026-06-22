@@ -1,9 +1,10 @@
 import { AnalyticsScreen } from '@/components/analytics-screen'
+import { AppShell } from '@/components/app-shell'
 
 export default function AnalyticsPage() {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-10 px-5 py-16 sm:py-24">
+    <AppShell>
       <AnalyticsScreen />
-    </main>
+    </AppShell>
   )
 }

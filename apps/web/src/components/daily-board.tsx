@@ -138,30 +138,32 @@ export function DailyBoard({ date }: { date: string }) {
             >
               {messages.list.share}
             </button>
-            <Link
-              href="/lists"
-              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-            >
-              {messages.lists.manage}
-            </Link>
-            <Link
-              href="/analytics"
-              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-            >
-              {messages.analytics.manage}
-            </Link>
-            <Link
-              href="/generate"
-              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-            >
-              ✨ {messages.ai.manage}
-            </Link>
-            <Link
-              href="/recurring"
-              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-            >
-              ↻ {messages.recurring.manage}
-            </Link>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
+              <Link
+                href="/lists"
+                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+              >
+                {messages.lists.manage}
+              </Link>
+              <Link
+                href="/analytics"
+                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+              >
+                {messages.analytics.manage}
+              </Link>
+              <Link
+                href="/generate"
+                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+              >
+                ✨ {messages.ai.manage}
+              </Link>
+              <Link
+                href="/recurring"
+                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+              >
+                ↻ {messages.recurring.manage}
+              </Link>
+            </div>
           </div>
         </div>
 

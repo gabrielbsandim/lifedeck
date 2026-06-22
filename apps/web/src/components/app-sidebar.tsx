@@ -1,0 +1,141 @@
+'use client'
+
+import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useI18n } from '@/lib/i18n/messages-provider'
+
+type NavItem = {
+  href: '/' | '/lists' | '/analytics' | '/generate' | '/recurring'
+  label: string
+  icon: ReactNode
+}
+
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {children}
+    </svg>
+  )
+}
+
+export function AppSidebar() {
+  const { messages } = useI18n()
+  const pathname = usePathname()
+
+  const items: NavItem[] = [
+    {
+      href: '/',
+      label: messages.nav.today,
+      icon: (
+        <Icon>
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </Icon>
+      ),
+    },
+    {
+      href: '/lists',
+      label: messages.nav.lists,
+      icon: (
+        <Icon>
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+        </Icon>
+      ),
+    },
+    {
+      href: '/analytics',
+      label: messages.nav.analytics,
+      icon: (
+        <Icon>
+          <path d="M3 3v18h18M18 12l-3 3-3-3-3 4" />
+        </Icon>
+      ),
+    },
+    {
+      href: '/generate',
+      label: messages.nav.generate,
+      icon: (
+        <Icon>
+          <path d="M12 3l1.9 4.8L19 9l-4.1 1.2L12 15l-1.9-4.8L6 9l4.1-1.2z" />
+        </Icon>
+      ),
+    },
+    {
+      href: '/recurring',
+      label: messages.recurring.manage,
+      icon: (
+        <Icon>
+          <path d="M17 2l4 4-4 4M21 6H8a4 4 0 0 0-4 4M7 22l-4-4 4-4M3 18h13a4 4 0 0 0 4-4" />
+        </Icon>
+      ),
+    },
+  ]
+
+  function isActive(href: NavItem['href']): boolean {
+    if (href === '/') {
+      return pathname === '/'
+    }
+    return pathname.startsWith(href)
+  }
+
+  return (
+    <aside className="border-line bg-bg fixed left-0 top-0 z-10 hidden h-screen w-56 flex-col gap-1 border-r p-4 lg:flex">
+      <Link
+        href="/"
+        className="mb-4 flex items-center gap-2.5 px-2 py-1.5"
+        aria-label={messages.app.name}
+      >
+        <span className="bg-brand-600 flex h-7 w-7 items-center justify-center rounded-lg text-white">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M5 13l4 4L19 7" />
+          </svg>
+        </span>
+        <span className="text-base font-bold tracking-tight">
+          {messages.app.name}
+        </span>
+      </Link>
+
+      <nav className="flex flex-col gap-1">
+        {items.map(item => {
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? 'page' : undefined}
+              className={
+                active
+                  ? 'bg-brand-50 text-brand-700 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold'
+                  : 'text-ink-600 hover:bg-bg hover:text-ink-800 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium'
+              }
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}
