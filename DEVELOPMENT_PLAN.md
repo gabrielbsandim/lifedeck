@@ -182,10 +182,23 @@ client-side i18next rewrite, and keeps the typed message catalogs for compile-ti
 
 ## Phase 11 - Security & compliance
 
-- [ ] Full security headers + CSP in `next.config`.
-- [ ] Argon2id password hashing; brute-force protection.
-- [ ] Data export and deletion (user data rights).
-- [ ] Security review + dependency scanning in CI.
+- [x] Full security headers + CSP. Static headers (HSTS, X-Frame-Options DENY,
+      nosniff, Referrer-Policy, Permissions-Policy) in `next.config`; a strict
+      nonce-based CSP (`script-src 'self' 'nonce' 'strict-dynamic'`) in `proxy.ts`
+      (Next 16 proxy convention). Scalar is self-hosted (`public/scalar`, vendored
+      at build) so the CSP needs no external script origin. Verified the app
+      hydrates and `/docs` renders under the CSP in a browser.
+- [x] Argon2id password hashing; brute-force protection. `Argon2PasswordHasher`
+      (`@node-rs/argon2`) with transparent scrypt -> argon2id rehash on the next
+      successful sign-in. Auth endpoints (sign-in / register / verify / resend)
+      are rate limited per IP+identity via Upstash (stricter window than the API).
+- [x] Data export and deletion (user data rights). Account deletion already
+      cascades; added `GET /api/v1/account/export` (`exportUserData`) returning a
+      JSON download of the profile, lists+tasks, recurring tasks, share links,
+      notifications, and API keys, plus an "Export my data" action in account.
+- [x] Security review + dependency scanning in CI. `pnpm audit --prod` and
+      dependency review already ran; added a CodeQL workflow (security-extended)
+      on push / PR / weekly schedule.
 
 ## Phase 12 - Launch readiness
 

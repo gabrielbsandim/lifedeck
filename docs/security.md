@@ -21,9 +21,14 @@ Security is a first-class requirement, not a later hardening pass.
   OAuth. Passwords are hashed with a memory-hard algorithm (Argon2id).
 - **Sessions (web):** signed JWT stored in an `HttpOnly`, `Secure`,
   `SameSite=Lax` cookie. Tokens are short-lived and refreshed server-side.
-- **Sessions (non-web clients):** the white-label API and a future mobile app
-  authenticate with a `Bearer` token instead of a cookie. The token issuance and
-  validation share the same signing layer; only the transport differs.
+- **Sessions (non-web clients):** the white-label API authenticates with a
+  personal **API key** (`Authorization: Bearer tk_live_...` or `X-API-Key`).
+  Keys are scoped, the raw secret is shown once and stored only as a SHA-256
+  hash, and each key is rate limited independently.
+- **Password migration:** existing scrypt hashes are verified on sign-in and
+  transparently re-hashed to Argon2id on the next successful login.
+- **Brute-force protection:** sign-in, register, verify, and resend-code are
+  rate limited per IP + identity (Upstash, stricter than the API window).
 
 ## Authorization
 
@@ -35,23 +40,31 @@ Security is a first-class requirement, not a later hardening pass.
 ## Transport and platform
 
 - HTTPS only; HSTS enabled in production.
-- Security headers: `Content-Security-Policy`, `X-Content-Type-Options`,
-  `Referrer-Policy`, `X-Frame-Options: DENY`.
-- Rate limiting on auth and write endpoints (`API_RATE_LIMIT_PER_MINUTE`).
-- CORS is allow-listed via `API_ALLOWED_ORIGINS`.
+- Security headers: a strict **nonce-based** `Content-Security-Policy`
+  (`script-src 'self' 'nonce' 'strict-dynamic'`, no `unsafe-inline` scripts)
+  set per request in `proxy.ts`, plus `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy`, `X-Frame-Options: DENY`, and a minimal `Permissions-Policy`.
+- The Scalar API reference is self-hosted (vendored into `public/scalar` at
+  build time), so the CSP needs no external script origin.
+- Per-key rate limiting on the API and per-IP rate limiting on auth endpoints,
+  backed by Upstash Redis (a graceful no-op when unconfigured).
 
 ## Data protection
 
 - Secrets live only in environment variables, never in the repository.
 - Database access goes through Prisma parameterized queries (no string SQL).
-- Personal data export and deletion are planned to support user data rights.
+- **Data rights:** `GET /api/v1/account/export` returns a JSON copy of all of a
+  user's data; account deletion cascades to every owned record.
+
+## Supply chain
+
+- CI runs `pnpm audit --prod` and `actions/dependency-review-action` on PRs.
+- A CodeQL workflow (security-extended queries) scans on push, PR, and weekly.
 
 ## Known follow-ups
 
-- The `/docs` page currently loads Scalar from a pinned CDN URL. Before production
-  it should be self-hosted (bundled from the npm package) or pinned with a
-  Subresource Integrity hash to remove the third-party runtime dependency.
-- Add automated dependency scanning and `pnpm audit` to CI.
+- CORS allow-listing for the public API is not yet configured.
+- Scheduled delivery (Vercel Cron) for the daily digest is not yet wired.
 
 ## Reporting a vulnerability
 
