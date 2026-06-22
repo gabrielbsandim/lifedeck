@@ -1,6 +1,7 @@
 import { getContainer } from '@/server/container'
 import { fail, handleError, ok } from '@/server/api/respond'
 import { getUserIdFromRequest } from '@/server/session/session'
+import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +9,10 @@ export async function POST(request: Request) {
     if (!userId) {
       return fail('UNAUTHORIZED', 'Authentication required.', 401)
     }
-    const user = await getContainer().requestEmailVerification(userId)
+    const locale = resolveLocaleFromHeader(
+      request.headers.get('accept-language'),
+    )
+    const user = await getContainer().requestEmailVerification(userId, locale)
     return ok(user)
   } catch (error) {
     return handleError(error)

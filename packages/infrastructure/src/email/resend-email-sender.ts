@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import type { EmailSender } from '@taskin/application'
+import type { EmailLocale, EmailSender } from '@taskin/application'
 import { renderEmail } from '@/email/render-email'
 
 export class ResendEmailSender implements EmailSender {
@@ -13,11 +13,15 @@ export class ResendEmailSender implements EmailSender {
     this.client = new Resend(apiKey)
   }
 
-  async sendVerificationCode(to: string, code: string): Promise<void> {
-    const { subject, html } = renderEmail({
-      type: 'verification-code',
-      data: { code, appName: this.appName },
-    })
+  async sendVerificationCode(
+    to: string,
+    code: string,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    const { subject, html } = renderEmail(
+      { type: 'verification-code', data: { code, appName: this.appName } },
+      locale,
+    )
     await this.client.emails.send({ from: this.from, to, subject, html })
   }
 }

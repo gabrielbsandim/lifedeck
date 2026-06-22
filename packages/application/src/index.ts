@@ -9,7 +9,7 @@ export type { TokenGenerator } from '@/ports/token-generator'
 export type { MembershipRepository } from '@/ports/membership-repository'
 export type { PasswordHasher } from '@/ports/password-hasher'
 export type { CodeGenerator } from '@/ports/code-generator'
-export type { EmailSender } from '@/ports/email-sender'
+export type { EmailSender, EmailLocale } from '@/ports/email-sender'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 export type {

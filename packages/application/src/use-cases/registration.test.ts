@@ -69,8 +69,21 @@ describe('registerWithEmail', () => {
     expect(saved?.passwordHash).toBe('hashed:supersecret')
     expect(await ctx.emailVerifications.findByUserId(ID.user)).not.toBeNull()
     expect(ctx.emailSender.sent).toEqual([
-      { to: 'gab@example.com', code: '123456' },
+      { to: 'gab@example.com', code: '123456', locale: 'en' },
     ])
+  })
+
+  it('emails the verification code in the requested locale', async () => {
+    const ctx = setup()
+    await saveGuest(ctx.users)
+
+    await ctx.registerWithEmail(
+      ID.user,
+      { email: 'gab@example.com', password: 'supersecret' },
+      'pt',
+    )
+
+    expect(ctx.emailSender.sent[0]?.locale).toBe('pt')
   })
 
   it('rejects an email already registered to another user', async () => {
@@ -127,7 +140,7 @@ describe('requestEmailVerification', () => {
 
     await ctx.requestEmailVerification(ID.user)
     expect(ctx.emailSender.sent).toEqual([
-      { to: 'gab@example.com', code: '123456' },
+      { to: 'gab@example.com', code: '123456', locale: 'en' },
     ])
   })
 

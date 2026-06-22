@@ -4,7 +4,7 @@ import { toUserView } from '@/mappers/user-mapper'
 import { NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { CodeGenerator } from '@/ports/code-generator'
-import type { EmailSender } from '@/ports/email-sender'
+import type { EmailLocale, EmailSender } from '@/ports/email-sender'
 import type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { PasswordHasher } from '@/ports/password-hasher'
@@ -34,6 +34,7 @@ export function makeRegisterWithEmail({
   return async function registerWithEmail(
     userId: string,
     input: unknown,
+    locale: EmailLocale = 'en',
   ): Promise<UserView> {
     const { email, password } = registerSchema.parse(input)
 
@@ -63,6 +64,7 @@ export function makeRegisterWithEmail({
       emailSender,
       ids,
       clock,
+      locale,
     })
 
     return toUserView(user)
@@ -77,6 +79,7 @@ export async function sendVerificationCode({
   emailSender,
   ids,
   clock,
+  locale = 'en',
 }: {
   user: { id: string; email: string | null }
   emailVerifications: EmailVerificationRepository
@@ -85,6 +88,7 @@ export async function sendVerificationCode({
   emailSender: EmailSender
   ids: IdGenerator
   clock: Clock
+  locale?: EmailLocale
 }): Promise<void> {
   if (!user.email) {
     throw new ValidationError('This account has no email to verify.')
@@ -101,5 +105,5 @@ export async function sendVerificationCode({
   })
   await emailVerifications.deleteByUserId(asEntityId(user.id))
   await emailVerifications.save(verification)
-  await emailSender.sendVerificationCode(user.email, code)
+  await emailSender.sendVerificationCode(user.email, code, locale)
 }

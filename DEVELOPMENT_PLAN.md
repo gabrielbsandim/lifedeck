@@ -135,9 +135,22 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 
 ## Phase 8 - Internationalization (full)
 
-- [ ] Integrate `next-intl` (locale routing, date/number formatting).
-- [ ] Language switcher; persist preference per user.
-- [ ] Translate all product copy (en, pt); extract remaining strings.
+Approach: locale follows the browser. The server resolves it from `Accept-Language`
+(SSR-friendly, no hydration flash) and the client forwards the browser language as
+`Accept-Language` on every API call, so the backend localizes its own output too. This
+mirrors the team convention (browser language + `Accept-Language` propagation) without a
+client-side i18next rewrite, and keeps the typed message catalogs for compile-time safety.
+
+- [x] ~~next-intl / locale routing~~ — deliberately skipped. The typed SSR catalogs already
+      resolve from `Accept-Language`; URL-based locale routing isn't wanted for this app.
+      Browser-tag resolution uses an explicit fallback map (`resolveLocale`, codebox-style).
+- [x] ~~Language switcher~~ — deliberately skipped. Locale follows the browser (like the
+      reference project); no manual override to persist.
+- [x] Translate all product copy (en, pt); extract remaining strings. Extracted the task-row
+      and share-dialog literals into the catalogs; swept the app for remaining hardcoded copy.
+- [x] Backend localizes from `Accept-Language`: the verification email renders in the
+      requester's locale (`renderEmail(template, locale)`), threaded from the auth routes.
+- [x] Date formatting via `Intl` with the active locale (daily board / shared board headers).
 
 ## Phase 9 - Email & notifications
 

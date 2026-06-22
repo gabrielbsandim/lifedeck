@@ -5,7 +5,7 @@ import { NotFoundError } from '@/errors/use-case-error'
 import { sendVerificationCode } from '@/use-cases/register-with-email'
 import type { Clock } from '@/ports/clock'
 import type { CodeGenerator } from '@/ports/code-generator'
-import type { EmailSender } from '@/ports/email-sender'
+import type { EmailLocale, EmailSender } from '@/ports/email-sender'
 import type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { PasswordHasher } from '@/ports/password-hasher'
@@ -32,6 +32,7 @@ export function makeRequestEmailVerification({
 }: Dependencies) {
   return async function requestEmailVerification(
     userId: string,
+    locale: EmailLocale = 'en',
   ): Promise<UserView> {
     const user = await users.findById(asEntityId(userId))
     if (!user) {
@@ -52,6 +53,7 @@ export function makeRequestEmailVerification({
       emailSender,
       ids,
       clock,
+      locale,
     })
 
     return toUserView(user)
