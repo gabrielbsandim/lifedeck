@@ -112,7 +112,13 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 
 ## Phase 7 - Polish: design & motion
 
-- [ ] Implement the Claude Design screens in `@taskin/ui` (blocked on the design deliverables).
+- [x] Reconcile the codebase with the Claude Design deliverables (`design/*.dc.html`). The
+      mockups were generated from the existing `styles.css` + `@taskin/ui`, so tokens and
+      components were already in sync. Added the named motion-duration tokens
+      (`--duration-fast/base/slow`) and the small drift fixes (TextField 1.5px border + error
+      tint, Dialog sheet drag handle). Stage-2 screens already exist and match; optional
+      enhancements not yet pulled in: per-row assignee avatar + inline observation, desktop
+      sidebar nav.
 - [x] Completion micro-animations + 100% celebration. `TaskCheckbox` (spring check) and
       `ProgressBar` (animated fill + 100% glow) already animate; added a `Celebration`
       particle burst that fires once on the 100% transition, wired into the daily board and

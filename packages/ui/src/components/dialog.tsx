@@ -55,6 +55,12 @@ export function Dialog({
           sheet ? 'max-w-md rounded-t-2xl' : 'max-w-sm rounded-2xl',
         )}
       >
+        {sheet && (
+          <div
+            aria-hidden
+            className="bg-line mx-auto mb-4 h-1 w-9 rounded-full"
+          />
+        )}
         <h2 className="text-ink-800 mb-4 text-base font-semibold">{title}</h2>
         {children}
       </motion.div>
