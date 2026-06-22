@@ -210,5 +210,7 @@ export const pt: Messages = {
     confirmDelete: 'Sim, excluir tudo',
     cancel: 'Cancelar',
     close: 'Fechar',
+    exportData: 'Exportar meus dados',
+    exportDataHint: 'Baixe uma cópia em JSON da sua conta e listas.',
   },
 }

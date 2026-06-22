@@ -206,5 +206,7 @@ export type Messages = {
     confirmDelete: string
     cancel: string
     close: string
+    exportData: string
+    exportDataHint: string
   }
 }

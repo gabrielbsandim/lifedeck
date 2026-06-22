@@ -12,6 +12,7 @@ import {
   makeCreateTask,
   makeDeleteRecurringTask,
   makeDeleteUser,
+  makeExportUserData,
   makeGenerateList,
   makeGetAnalytics,
   makeGetDailyBoard,
@@ -73,6 +74,7 @@ import {
   PrismaShareLinkRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
+  Argon2PasswordHasher,
   RandomTokenGenerator,
   ResendEmailSender,
   ScryptPasswordHasher,
@@ -98,6 +100,7 @@ type Container = {
   changePassword: ReturnType<typeof makeChangePassword>
   renameUser: ReturnType<typeof makeRenameUser>
   deleteUser: ReturnType<typeof makeDeleteUser>
+  exportUserData: ReturnType<typeof makeExportUserData>
   createList: ReturnType<typeof makeCreateList>
   renameList: ReturnType<typeof makeRenameList>
   deleteList: ReturnType<typeof makeDeleteList>
@@ -216,6 +219,15 @@ function build(
     changePassword: makeChangePassword({ users, hasher }),
     renameUser: makeRenameUser({ users }),
     deleteUser: makeDeleteUser({ users }),
+    exportUserData: makeExportUserData({
+      users,
+      lists,
+      tasks,
+      recurringTasks,
+      shareLinks,
+      notifications,
+      apiKeys,
+    }),
     createList: makeCreateList({ lists, ids, clock }),
     renameList: makeRenameList({ lists, clock }),
     deleteList: makeDeleteList({ lists }),
@@ -335,7 +347,7 @@ export function getContainer(): Container {
         apiKeys: new PrismaApiKeyRepository(prisma),
       },
       {
-        hasher: new ScryptPasswordHasher(),
+        hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),
         keyHasher: new Sha256KeyHasher(),
         emailSender: buildEmailSender(),
         oauth: buildGoogleProvider(),

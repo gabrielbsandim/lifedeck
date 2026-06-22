@@ -210,5 +210,7 @@ export const en: Messages = {
     confirmDelete: 'Yes, delete everything',
     cancel: 'Cancel',
     close: 'Close',
+    exportData: 'Export my data',
+    exportDataHint: 'Download a JSON copy of your account and lists.',
   },
 }

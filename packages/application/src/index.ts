@@ -157,6 +157,10 @@ export {
   makeMarkNotificationRead,
   makeMarkAllNotificationsRead,
 } from '@/use-cases/mark-notifications-read'
+export {
+  makeExportUserData,
+  type UserDataExport,
+} from '@/use-cases/export-user-data'
 export { makeCreateApiKey } from '@/use-cases/create-api-key'
 export { makeListApiKeys } from '@/use-cases/list-api-keys'
 export { makeRevokeApiKey } from '@/use-cases/revoke-api-key'

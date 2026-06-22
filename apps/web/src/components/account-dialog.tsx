@@ -170,6 +170,14 @@ export function AccountDialog({
         </form>
 
         <div className="border-line flex flex-col gap-3 border-t pt-4">
+          <a
+            href="/api/v1/account/export"
+            download="taskin-export.json"
+            className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+            title={messages.auth.exportDataHint}
+          >
+            {messages.auth.exportData}
+          </a>
           <Button
             variant="ghost"
             onClick={() => signOut.mutate(undefined, { onSuccess: onClose })}
