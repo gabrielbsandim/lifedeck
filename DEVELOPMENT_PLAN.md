@@ -72,11 +72,12 @@ Legend: **[x]** done · **[ ]** todo.
 
 ## Phase 5 - Sharing & collaboration
 
-- [ ] Share link generation with role (viewer/editor) and optional expiry.
-- [ ] Public read-only view ("See my wedding steps on TaskIn").
-- [ ] Join a list via link (guest or registered).
-- [ ] Members management UI; per-item private toggle on the daily list.
-- [ ] Real-time or near-real-time updates (polling first, then live).
+- [x] Share link generation with role (viewer/editor) and optional expiry.
+- [x] Public read-only view ("See my wedding steps on TaskIn").
+- [x] Join a list via link (guest or registered).
+- [x] Members management UI; per-item private toggle on the daily list.
+- [x] Task assignees (assign to a member or the owner).
+- [x] Near-real-time updates (10s polling). Live push is a future enhancement.
 
 ## Phase 6 - Analytics
 
