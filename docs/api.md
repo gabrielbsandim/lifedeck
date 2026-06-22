@@ -20,6 +20,66 @@ to be consumed independently of the TaskIn web UI.
 | Errors         | Stable machine-readable `code` plus a human-readable `message`.   |
 | Versioning     | The version is in the path (`/api/v1`). Breaking changes bump it. |
 
+## Authentication
+
+The API accepts two credential types:
+
+| Caller          | Credential                                   | How                                                       |
+| --------------- | -------------------------------------------- | --------------------------------------------------------- |
+| The TaskIn web UI | Signed `HttpOnly` session cookie             | Set automatically on sign-in; carries full access.        |
+| Third parties   | Personal **API key**                         | `Authorization: Bearer tk_live_...` or `X-API-Key: tk_live_...`. |
+
+API keys are created from the **Developers** screen (`/developers`). The raw
+secret (`tk_live_...`) is shown **once** at creation and never again - only a
+SHA-256 hash is stored. Manage keys (create, list, revoke) under
+`/api/v1/api-keys*`; those management endpoints require a session, so a key
+cannot mint another key.
+
+### Scopes
+
+Each key is restricted to an explicit set of scopes. A request to a resource
+endpoint that the key is not scoped for returns `403 FORBIDDEN`.
+
+| Scope            | Grants                                              |
+| ---------------- | --------------------------------------------------- |
+| `tasks:read`     | Read tasks, daily boards, list tasks.               |
+| `tasks:write`    | Create, update, reorder tasks.                      |
+| `lists:read`     | Read lists.                                          |
+| `lists:write`    | Create, rename, delete lists; invite; share.        |
+| `analytics:read` | Read completion analytics.                          |
+
+The session cookie is implicitly granted every scope.
+
+### Rate limiting
+
+API-key requests are rate limited **per key** (sliding window, 60 requests per
+60 seconds by default). Responses carry `X-RateLimit-Limit`,
+`X-RateLimit-Remaining`, and `X-RateLimit-Reset`; exceeding the window returns
+`429 RATE_LIMITED`. Rate limiting is backed by Upstash Redis and is a no-op when
+`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset (local dev).
+
+### Quickstart
+
+```bash
+# Create a list with a scoped key
+curl -X POST https://<your-host>/api/v1/lists \
+  -H "Authorization: Bearer tk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "title": "Launch", "type": "standalone" }'
+
+# Add a task to it
+curl -X POST https://<your-host>/api/v1/tasks \
+  -H "X-API-Key: tk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "listId": "<list-id>", "title": "Draft announcement" }'
+```
+
+## Single source of truth
+
+The OpenAPI document at `GET /api/v1/openapi` is **generated from the same Zod
+schemas the server validates against** (via `@asteasolutions/zod-to-openapi`),
+so request/response shapes in `/docs` cannot drift from runtime behavior.
+
 ## Error codes
 
 | HTTP | `code`             | Meaning                              |
@@ -68,6 +128,7 @@ Content-Type: application/json
 }
 ```
 
-The full surface (lists, tasks, sharing, members, analytics, auth) is delivered
-incrementally - see [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md). Each new endpoint
-ships with its OpenAPI entry so `/docs` stays authoritative.
+The full surface (lists, tasks, recurring tasks, sharing, members, analytics,
+notifications, AI generation, auth, API keys) is documented in the live OpenAPI
+document. Browse it interactively at `/docs`; every entry is generated from the
+Zod DTOs, so `/docs` stays authoritative.

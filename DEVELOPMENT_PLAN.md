@@ -166,10 +166,19 @@ client-side i18next rewrite, and keeps the typed message catalogs for compile-ti
 
 ## Phase 10 - White-label API maturity
 
-- [ ] API keys / tokens for third-party consumers.
-- [ ] Per-key rate limiting and scopes.
-- [ ] Generate OpenAPI from Zod schemas automatically (single source of truth).
-- [ ] Self-host Scalar docs; publish a usage guide.
+- [x] API keys / tokens for third-party consumers. Personal access tokens
+      (`ApiKey` entity, `api_keys` table, SHA-256-hashed secret shown once,
+      `tk_live_` prefix). Sent as `Authorization: Bearer` or `X-API-Key`;
+      managed under `/api/v1/api-keys*` (session-only) and the `/developers` UI.
+- [x] Per-key rate limiting and scopes. Scopes (`tasks:read/write`,
+      `lists:read/write`, `analytics:read`) enforced per resource endpoint via
+      `requireScope`; rate limiting per key via Upstash Redis (sliding window,
+      graceful no-op without `UPSTASH_*`).
+- [x] Generate OpenAPI from Zod schemas automatically (single source of truth).
+      `@asteasolutions/zod-to-openapi` registers the real DTO schemas + paths;
+      `GET /api/v1/openapi` is generated, not hand-maintained.
+- [x] Self-host Scalar docs; publish a usage guide. Scalar already self-hosted at
+      `/docs`; `docs/api.md` documents auth, scopes, rate limits, and a quickstart.
 
 ## Phase 11 - Security & compliance
 
