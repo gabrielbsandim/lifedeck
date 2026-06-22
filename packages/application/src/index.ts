@@ -68,6 +68,17 @@ export {
   type ShareLinkView,
 } from '@/dtos/share-link-dto'
 export { memberViewSchema, type MemberView } from '@/dtos/member-dto'
+export {
+  generationBriefSchema,
+  generatedTaskSchema,
+  generatedPlanSchema,
+  generatedListViewSchema,
+  type GenerationBrief,
+  type GeneratedTask,
+  type GeneratedPlan,
+  type GeneratedListView,
+} from '@/dtos/ai-dto'
+export type { ListGenerator } from '@/ports/list-generator'
 export { analyticsViewSchema, type AnalyticsView } from '@/dtos/analytics-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
@@ -113,6 +124,7 @@ export { makeJoinListByToken } from '@/use-cases/join-list-by-token'
 export { makeListMembers } from '@/use-cases/list-members'
 export { makeRemoveMember } from '@/use-cases/remove-member'
 export { makeGetAnalytics } from '@/use-cases/get-analytics'
+export { makeGenerateList } from '@/use-cases/generate-list'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-verification-repository'
@@ -121,6 +133,7 @@ export { FakeEmailSender } from '@/testing/fake-email-sender'
 export { FakeCodeGenerator } from '@/testing/fake-code-generator'
 export { FakeOAuthProvider } from '@/testing/fake-oauth-provider'
 export { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
+export { FakeListGenerator } from '@/testing/fake-list-generator'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
