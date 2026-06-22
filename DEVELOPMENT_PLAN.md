@@ -82,9 +82,11 @@ Legend: **[x]** done · **[ ]** todo.
 
 ## Phase 6 - Analytics
 
-- [ ] Completion metrics use cases (daily, weekly, monthly).
-- [ ] Analytics endpoints + caching.
-- [ ] Analytics screen with charts and big legible numbers.
+- [x] Completion metrics use case: daily series over a window (7/30/90),
+      totals, completion rate, and current streak (`getAnalytics`).
+- [x] Analytics endpoint (`GET /api/v1/analytics?days=`) + OpenAPI entry.
+      Server-side caching is deferred; TanStack Query caches on the client.
+- [x] Analytics screen with a per-day bar chart and big legible numbers.
 
 ## Phase 6.5 - AI list generation
 
