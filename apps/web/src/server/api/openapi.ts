@@ -378,6 +378,56 @@ export const openApiDocument = {
         },
       },
     },
+    '/lists/generate': {
+      post: {
+        summary: 'Generate an editable list draft with AI',
+        operationId: 'generateList',
+        description:
+          'Returns a non-persisted draft (title + tasks) from a guided brief. The user edits and confirms before saving.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['category', 'scale', 'description'],
+                properties: {
+                  category: {
+                    type: 'string',
+                    enum: [
+                      'wedding',
+                      'trip',
+                      'moving',
+                      'event',
+                      'project',
+                      'other',
+                    ],
+                  },
+                  title: { type: 'string', maxLength: 120 },
+                  targetDate: { type: 'string', format: 'date' },
+                  scale: {
+                    type: 'string',
+                    enum: ['small', 'medium', 'large'],
+                  },
+                  peopleInvolved: {
+                    type: 'array',
+                    items: { type: 'string', maxLength: 80 },
+                    maxItems: 20,
+                  },
+                  description: { type: 'string', maxLength: 2000 },
+                  locale: { type: 'string', enum: ['en', 'pt'] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'An editable list draft.' },
+          '401': { description: 'Authentication required.' },
+          '422': { description: 'Validation error.' },
+        },
+      },
+    },
     '/lists/{id}': {
       get: {
         summary: 'Get a list by id',

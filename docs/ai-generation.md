@@ -2,8 +2,15 @@
 
 A premium-friendly feature: the user answers a few guided questions plus a free
 text description, and Claude returns a complete, editable checklist. This page
-records the contract and the architectural decisions. It is design-only; nothing
-here is implemented yet (see [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md), Phase 6.5).
+records the contract and the architectural decisions.
+
+Status: implemented (Phase 6.5). The port, `generateList` use case, `ClaudeListGenerator`
+adapter, `POST /api/v1/lists/generate` endpoint, and the `/generate` UI all ship.
+Two items from the original design are deferred: token-by-token streaming of the
+draft (folded into the Phase 7 motion pass) and rate limiting / per-plan quotas
+(waiting on the billing model). When `ANTHROPIC_API_KEY` is unset the container
+wires a `StubListGenerator` so local dev and CI work without a key, mirroring the
+console email sender fallback.
 
 ## Why it fits clean architecture
 
@@ -95,11 +102,18 @@ UX notes:
   `claude-sonnet-4-6` is likely indistinguishable in quality at a fraction of the
   output cost. Calibrate on Opus, then A/B against Sonnet and pick per the
   cost/quality result. Model choice is a deliberate decision, not a silent default.
-- **Runtime options:** the AI SDK through the Vercel AI Gateway (native to our
-  Vercel deploy, with observability and model fallback) or the official Anthropic
-  SDK directly. Both support structured output validated by the Zod schema above.
-- **Prompt caching:** the system prompt is static, so cache it; only the brief
-  varies per request.
+- **Runtime (chosen):** the official Anthropic SDK (`@anthropic-ai/sdk`) via
+  `client.messages.parse()` with `jsonSchemaOutputFormat`. The raw JSON-Schema
+  helper (not the Zod helper) keeps the adapter decoupled from the app's Zod
+  version; `generateList` re-validates the result with `generatedPlanSchema`
+  anyway, so invalid output never reaches the draft.
+- **Prompt caching:** the system prompt is static and is sent as a cached system
+  text block (`cache_control: { type: 'ephemeral' }`); only the brief varies per
+  request.
+- **v1 surface:** the adapter requests `listTitle` + flat `tasks` (title + optional
+  note). The `GeneratedPlan` contract keeps `sections` and `suggestedAssignee`
+  optional for forward compatibility; `generateList` flattens any sections into the
+  ordered task list and clamps to 60 tasks.
 
 ## Security
 

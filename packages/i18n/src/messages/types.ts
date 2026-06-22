@@ -40,6 +40,7 @@ export type Messages = {
     today: string
     lists: string
     analytics: string
+    generate: string
   }
   task: {
     add: string
@@ -90,6 +91,39 @@ export type Messages = {
     range30: string
     range90: string
     empty: string
+    backToToday: string
+  }
+  ai: {
+    manage: string
+    title: string
+    subtitle: string
+    category: string
+    categoryWedding: string
+    categoryTrip: string
+    categoryMoving: string
+    categoryEvent: string
+    categoryProject: string
+    categoryOther: string
+    listTitleLabel: string
+    listTitlePlaceholder: string
+    targetDate: string
+    scale: string
+    scaleSmall: string
+    scaleMedium: string
+    scaleLarge: string
+    description: string
+    descriptionPlaceholder: string
+    generate: string
+    generating: string
+    draftTitle: string
+    draftSubtitle: string
+    taskPlaceholder: string
+    addTask: string
+    remove: string
+    save: string
+    saving: string
+    regenerate: string
+    error: string
     backToToday: string
   }
   auth: {

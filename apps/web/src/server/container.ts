@@ -10,6 +10,7 @@ import {
   makeCreateTask,
   makeDeleteRecurringTask,
   makeDeleteUser,
+  makeGenerateList,
   makeGetAnalytics,
   makeGetDailyBoard,
   makeGetGoogleAuthUrl,
@@ -35,6 +36,7 @@ import {
   type AnalyticsRepository,
   type EmailSender,
   type EmailVerificationRepository,
+  type ListGenerator,
   type ListRepository,
   type MembershipRepository,
   type OAuthProvider,
@@ -45,6 +47,7 @@ import {
   type UserRepository,
 } from '@taskin/application'
 import {
+  ClaudeListGenerator,
   ConsoleEmailSender,
   GoogleOAuthProvider,
   NumericCodeGenerator,
@@ -59,6 +62,7 @@ import {
   RandomTokenGenerator,
   ResendEmailSender,
   ScryptPasswordHasher,
+  StubListGenerator,
   SystemClock,
   UuidGenerator,
   prisma,
@@ -98,6 +102,7 @@ type Container = {
   listMembers: ReturnType<typeof makeListMembers>
   removeMember: ReturnType<typeof makeRemoveMember>
   getAnalytics: ReturnType<typeof makeGetAnalytics>
+  generateList: ReturnType<typeof makeGenerateList>
 }
 
 type Repositories = {
@@ -115,6 +120,7 @@ type Services = {
   hasher: PasswordHasher
   emailSender: EmailSender
   oauth: OAuthProvider
+  listGenerator: ListGenerator
 }
 
 function build(
@@ -128,7 +134,7 @@ function build(
     emailVerifications,
     analytics,
   }: Repositories,
-  { hasher, emailSender, oauth }: Services,
+  { hasher, emailSender, oauth, listGenerator }: Services,
 ): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
@@ -207,7 +213,19 @@ function build(
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
     getAnalytics: makeGetAnalytics({ analytics, clock }),
+    generateList: makeGenerateList({ generator: listGenerator }),
   }
+}
+
+function buildListGenerator(): ListGenerator {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (apiKey) {
+    return new ClaudeListGenerator({
+      apiKey,
+      model: process.env.CLAUDE_MODEL,
+    })
+  }
+  return new StubListGenerator()
 }
 
 function buildEmailSender(): EmailSender {
@@ -248,6 +266,7 @@ export function getContainer(): Container {
         hasher: new ScryptPasswordHasher(),
         emailSender: buildEmailSender(),
         oauth: buildGoogleProvider(),
+        listGenerator: buildListGenerator(),
       },
     )
   }

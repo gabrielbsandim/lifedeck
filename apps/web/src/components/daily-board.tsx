@@ -150,6 +150,12 @@ export function DailyBoard({ date }: { date: string }) {
               {messages.analytics.manage}
             </Link>
             <Link
+              href="/generate"
+              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            >
+              ✨ {messages.ai.manage}
+            </Link>
+            <Link
               href="/recurring"
               className="text-brand-600 hover:text-brand-700 text-sm font-medium"
             >

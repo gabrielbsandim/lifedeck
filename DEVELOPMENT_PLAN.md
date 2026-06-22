@@ -96,14 +96,17 @@ Legend: **[x]** done · **[ ]** todo.
 
 See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 
-- [ ] `ListGenerator` port in the application layer + `GenerationBrief` / `GeneratedPlan` Zod schemas.
-- [ ] `generateList` use case (validate brief -> generate -> validate plan -> draft).
-- [ ] `ClaudeListGenerator` adapter in infrastructure (structured output, prompt caching).
-- [ ] `FakeListGenerator` + unit tests (happy path, clamped output, rejected output).
-- [ ] `POST /api/v1/lists/generate` endpoint + OpenAPI entry; returns an editable draft.
-- [ ] UI: guided questions + description, streamed draft, edit-then-save flow.
-- [ ] Rate limiting + per-plan generation quotas (monetization hook).
-- [ ] Prompt-injection safeguards (user text as data, fixed system prompt).
+- [x] `ListGenerator` port in the application layer + `GenerationBrief` / `GeneratedPlan` Zod schemas.
+- [x] `generateList` use case (validate brief -> generate -> validate plan -> draft).
+- [x] `ClaudeListGenerator` adapter in infrastructure (structured output, prompt caching).
+      `StubListGenerator` fallback when `ANTHROPIC_API_KEY` is unset (like the console email sender).
+- [x] `FakeListGenerator` + unit tests (happy path, clamped output, rejected output).
+- [x] `POST /api/v1/lists/generate` endpoint + OpenAPI entry; returns an editable draft.
+- [x] UI: guided questions + description, edit-then-save flow (`/generate`). Token-by-token
+      streaming of the draft is deferred to the Phase 7 motion pass.
+- [ ] Rate limiting + per-plan generation quotas (monetization hook). Deferred until the
+      quota/billing model lands; the endpoint requires an authenticated user today.
+- [x] Prompt-injection safeguards (user text as data, fixed system prompt).
 
 ## Phase 7 - Polish: design & motion
 
