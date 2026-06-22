@@ -58,16 +58,17 @@ Legend: **[x]** done · **[ ]** todo.
 
 ## Phase 4.5 - Recurring tasks (daily lists)
 
-- [ ] Domain: `RecurrenceRule` value object + pure `occursOn(rule, date)`
+- [x] Domain: `RecurrenceRule` value object + pure `occursOn(rule, date)`
       predicate (daily / weekly-by-weekday / monthly, interval, until).
-- [ ] Domain: `RecurringTask` entity (owner, title, rule); `Task` gains an
+- [x] Domain: `RecurringTask` entity (owner, title, rule); `Task` gains an
       optional `recurringTaskId` link.
-- [ ] Persistence: `recurring_tasks` table + `tasks.recurring_task_id` migration;
+- [x] Persistence: `recurring_tasks` table + `tasks.recurring_task_id` migration;
       `RecurringTaskRepository`.
-- [ ] Use case: materialize the daily list for a date (auto-provision + lazy
+- [x] Use case: materialize the daily board for a date (auto-provision + lazy
       instance generation from matching definitions).
-- [ ] REST endpoints: manage recurring definitions; daily list by date.
-- [ ] See `docs/recurrence.md` for the full design.
+- [x] REST endpoints: manage recurring definitions (`/api/v1/recurring-tasks`);
+      daily board by date (`/api/v1/daily?date=`).
+- [x] See `docs/recurrence.md` for the full design.
 
 ## Phase 5 - Sharing & collaboration
 
