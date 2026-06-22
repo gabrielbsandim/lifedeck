@@ -12,6 +12,11 @@ export type { CodeGenerator } from '@/ports/code-generator'
 export type { EmailSender } from '@/ports/email-sender'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
+export type {
+  AnalyticsRepository,
+  DailyCompletion,
+  CompletionTotals,
+} from '@/ports/analytics-repository'
 export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -59,6 +64,7 @@ export {
   type ShareLinkView,
 } from '@/dtos/share-link-dto'
 export { memberViewSchema, type MemberView } from '@/dtos/member-dto'
+export { analyticsViewSchema, type AnalyticsView } from '@/dtos/analytics-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
@@ -99,6 +105,7 @@ export {
 export { makeJoinListByToken } from '@/use-cases/join-list-by-token'
 export { makeListMembers } from '@/use-cases/list-members'
 export { makeRemoveMember } from '@/use-cases/remove-member'
+export { makeGetAnalytics } from '@/use-cases/get-analytics'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-verification-repository'
@@ -106,6 +113,7 @@ export { FakePasswordHasher } from '@/testing/fake-password-hasher'
 export { FakeEmailSender } from '@/testing/fake-email-sender'
 export { FakeCodeGenerator } from '@/testing/fake-code-generator'
 export { FakeOAuthProvider } from '@/testing/fake-oauth-provider'
+export { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
