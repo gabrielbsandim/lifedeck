@@ -1,6 +1,15 @@
 import type { EmailLocale } from '@taskin/application'
 import type { EmailTemplate, RenderedEmail } from '@/email/email-message'
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function layout(title: string, body: string): string {
   return `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px"><div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:32px"><h1 style="font-size:20px;margin:0 0 16px">${title}</h1>${body}</div></body></html>`
 }
@@ -101,7 +110,9 @@ function digestBody(
   if (data.pendingTitles.length === 0) {
     return `${summary}<p>${copy.allDone}</p>`
   }
-  const items = data.pendingTitles.map(title => `<li>${title}</li>`).join('')
+  const items = data.pendingTitles
+    .map(title => `<li>${escapeHtml(title)}</li>`)
+    .join('')
   return `${summary}<p style="font-weight:600;margin-top:16px">${copy.pendingLabel}</p><ul>${items}</ul>`
 }
 
@@ -116,7 +127,7 @@ export function renderEmail(
         subject: copy.subject(template.data.appName),
         html: layout(
           copy.title,
-          `<p>${copy.intro}</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${template.data.code}</p>`,
+          `<p>${copy.intro}</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${escapeHtml(template.data.code)}</p>`,
         ),
       }
     }
@@ -126,7 +137,10 @@ export function renderEmail(
         subject: copy.subject(template.data.listTitle),
         html: layout(
           copy.title,
-          copy.body(template.data.listTitle, template.data.url),
+          copy.body(
+            escapeHtml(template.data.listTitle),
+            escapeHtml(template.data.url),
+          ),
         ),
       }
     }
@@ -136,7 +150,10 @@ export function renderEmail(
         subject: copy.subject(template.data.taskTitle),
         html: layout(
           copy.title,
-          copy.body(template.data.taskTitle, template.data.listTitle),
+          copy.body(
+            escapeHtml(template.data.taskTitle),
+            escapeHtml(template.data.listTitle),
+          ),
         ),
       }
     }

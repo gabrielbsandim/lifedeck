@@ -45,6 +45,18 @@ describe('renderEmail', () => {
     expect(email.html).toContain('Abrir a lista')
   })
 
+  it('escapes HTML in user-controlled fields', () => {
+    const email = renderEmail({
+      type: 'task-assignment',
+      data: {
+        taskTitle: '<script>alert(1)</script>',
+        listTitle: 'Wedding',
+      },
+    })
+    expect(email.html).not.toContain('<script>')
+    expect(email.html).toContain('&lt;script&gt;')
+  })
+
   it('renders a daily digest with pending tasks', () => {
     const email = renderEmail({
       type: 'daily-digest',
