@@ -150,14 +150,14 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 setListTitle(list.data.title)
                 setEditingTitle(true)
               }}
-              className="hover:text-brand-600 text-left text-2xl font-semibold tracking-tight transition"
+              className="hover:text-brand-600 min-w-0 flex-1 truncate text-left text-2xl font-semibold tracking-tight transition"
               title={messages.recurring.edit}
             >
               {list.data.title}
             </button>
           )}
           {!editingTitle && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-none items-center gap-3">
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}

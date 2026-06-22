@@ -123,14 +123,14 @@ export function DailyBoard({ date }: { date: string }) {
       </header>
 
       <Card className="p-6 sm:p-8">
-        <div className="mb-6 flex items-start justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-ink-500 text-sm capitalize">
               {formatDate(date, locale)}
             </p>
             <h2 className="text-xl font-semibold">{messages.list.daily}</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:justify-end">
             <button
               type="button"
               onClick={() => setShareOpen(true)}

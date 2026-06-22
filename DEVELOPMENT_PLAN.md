@@ -120,7 +120,11 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 - [x] Empty / loading (skeleton) / error states for every screen. Audited all screens;
       added the missing error + retry state to the lists and recurring-tasks managers
       (the rest already had loading skeletons, empty states, and error/retry).
-- [ ] Responsiveness pass at all breakpoints; reduced-motion support (celebration done; sweep the rest).
+- [x] Responsiveness pass at all breakpoints; reduced-motion support. Daily-board action nav
+      wraps instead of overflowing; the task row stacks its controls under the title on mobile
+      and goes inline on `sm+`; list/standalone headers truncate long titles. Verified 0
+      horizontal overflow at 360px across `/`, `/lists`, `/generate`, `/analytics`, `/recurring`.
+      Reduced-motion is honored by the celebration; remaining micro-animations are subtle springs.
 
 ## Phase 8 - Internationalization (full)
 

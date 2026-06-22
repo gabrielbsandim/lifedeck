@@ -39,80 +39,91 @@ export function DailyTaskRow({
   ]
 
   return (
-    <li className="border-line flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3">
-      {onMove && (
-        <div className="flex flex-col">
-          <button
-            type="button"
-            aria-label="Move up"
-            disabled={!canMoveUp}
-            onClick={() => onMove('up')}
-            className="text-ink-400 hover:text-ink-700 text-xs leading-none disabled:opacity-30"
-          >
-            ▲
-          </button>
-          <button
-            type="button"
-            aria-label="Move down"
-            disabled={!canMoveDown}
-            onClick={() => onMove('down')}
-            className="text-ink-400 hover:text-ink-700 text-xs leading-none disabled:opacity-30"
-          >
-            ▼
-          </button>
-        </div>
-      )}
-      <TaskCheckbox
-        checked={completed}
-        label={task.title}
-        onChange={() => onToggle(task)}
-      />
-      <span
-        className={
-          completed
-            ? 'text-ink-500 flex-1 text-sm line-through'
-            : 'text-ink-800 flex-1 text-sm'
-        }
-      >
-        {task.title}
-      </span>
-
-      {task.recurringTaskId && (
-        <span aria-hidden title="Recurring" className="text-brand-500 text-sm">
-          ↻
-        </span>
-      )}
-
-      {options.length > 0 && (
-        <select
-          aria-label="Assignee"
-          value={task.assigneeId ?? ''}
-          onChange={event =>
-            onUpdate(task.id, {
-              assigneeId: event.target.value === '' ? null : event.target.value,
-            })
+    <li className="border-line flex flex-col gap-2 rounded-xl border bg-white px-3.5 py-3 sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {onMove && (
+          <div className="flex flex-none flex-col">
+            <button
+              type="button"
+              aria-label="Move up"
+              disabled={!canMoveUp}
+              onClick={() => onMove('up')}
+              className="text-ink-400 hover:text-ink-700 flex h-5 w-6 items-center justify-center text-xs leading-none disabled:opacity-30"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              aria-label="Move down"
+              disabled={!canMoveDown}
+              onClick={() => onMove('down')}
+              className="text-ink-400 hover:text-ink-700 flex h-5 w-6 items-center justify-center text-xs leading-none disabled:opacity-30"
+            >
+              ▼
+            </button>
+          </div>
+        )}
+        <TaskCheckbox
+          checked={completed}
+          label={task.title}
+          onChange={() => onToggle(task)}
+        />
+        <span
+          className={
+            completed
+              ? 'text-ink-500 min-w-0 flex-1 break-words text-sm line-through'
+              : 'text-ink-800 min-w-0 flex-1 break-words text-sm'
           }
-          className={selectClass}
         >
-          <option value="">—</option>
-          {options.map(option => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-      )}
+          {task.title}
+        </span>
+      </div>
 
-      <button
-        type="button"
-        aria-label="Toggle privacy"
-        aria-pressed={task.isPrivate}
-        title={task.isPrivate ? 'Private' : 'Visible to collaborators'}
-        onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
-        className={task.isPrivate ? 'text-brand-600' : 'text-ink-500'}
-      >
-        {task.isPrivate ? '🔒' : '🔓'}
-      </button>
+      <div className="flex flex-none items-center gap-3 pl-9 sm:pl-0">
+        {task.recurringTaskId && (
+          <span
+            aria-hidden
+            title="Recurring"
+            className="text-brand-500 text-sm"
+          >
+            ↻
+          </span>
+        )}
+
+        {options.length > 0 && (
+          <select
+            aria-label="Assignee"
+            value={task.assigneeId ?? ''}
+            onChange={event =>
+              onUpdate(task.id, {
+                assigneeId:
+                  event.target.value === '' ? null : event.target.value,
+              })
+            }
+            className={selectClass}
+          >
+            <option value="">—</option>
+            {options.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <button
+          type="button"
+          aria-label="Toggle privacy"
+          aria-pressed={task.isPrivate}
+          title={task.isPrivate ? 'Private' : 'Visible to collaborators'}
+          onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
+          className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg ${
+            task.isPrivate ? 'text-brand-600' : 'text-ink-500'
+          }`}
+        >
+          {task.isPrivate ? '🔒' : '🔓'}
+        </button>
+      </div>
     </li>
   )
 }
