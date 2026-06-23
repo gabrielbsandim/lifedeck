@@ -56,7 +56,8 @@ Legend: **[x]** done · **[ ]** todo.
 ## Phase 4 - Lists & tasks (core)
 
 - [x] Use cases: create / rename / delete list; list lists; get list with tasks.
-- [x] Daily list: auto-provision per day; carry-over of unfinished tasks.
+- [x] Daily list: auto-provision per day; carry-over of unfinished tasks
+      (reworked in Phase 4.6 into a per-user manual/auto copy model).
 - [x] Task use cases: reorder, edit, reopen, observation, assignee.
 - [x] REST endpoints for all of the above + OpenAPI entries.
 - [x] React Query hooks + optimistic updates for task completion.
@@ -74,6 +75,22 @@ Legend: **[x]** done · **[ ]** todo.
 - [x] REST endpoints: manage recurring definitions (`/api/v1/recurring-tasks`);
       daily board by date (`/api/v1/daily?date=`).
 - [x] See `docs/recurrence.md` for the full design.
+
+## Phase 4.6 - Carry-over rework (per-user, copy not move)
+
+- [x] Carry-over is now a per-user setting (`carryOverMode`: `manual` default, or
+      `auto`), replacing the old auto-move. Past days keep their unfinished tasks
+      as an honest record instead of being emptied.
+- [x] Domain: `User.carryOverMode` (+ `CarryOverMode` VO); `Task.carriedFromDate`
+      (origin day of a copy) and `carriedForwardAt` (freezes the source so it stops
+      nagging as a candidate). Migration `6_carry_over`.
+- [x] `manual`: the daily board returns carry-over candidates (prior pending,
+      non-recurring, not-yet-carried); the UI shows a "yesterday's leftovers"
+      section with a per-task "bring to today". `auto`: candidates are copied into
+      today automatically and the sources frozen.
+- [x] `bringTaskToToday` use case + `POST /api/v1/tasks/{id}/carry-forward`;
+      `setCarryOverMode` + `PATCH /api/v1/account/carry-over`; account toggle.
+      Copies carry the title, note, and a "brought from {date}" reference.
 
 ## Phase 5 - Sharing & collaboration
 
