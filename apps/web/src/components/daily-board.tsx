@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
@@ -21,13 +20,13 @@ import {
   useReorderDailyTasks,
   useUpdateTask,
 } from '@/lib/api/use-daily-board'
-import { moveInOrder } from '@/lib/api/reorder'
 import { useMembers } from '@/lib/api/use-share'
 import { useSession } from '@/lib/api/use-session'
 import { ShareDialog } from '@/components/share-dialog'
 import { DailyTaskRow } from '@/components/daily-task-row'
-import { AccountMenu } from '@/components/account-menu'
+import { TaskDragList } from '@/components/task-drag-list'
 import { NotificationBell } from '@/components/notification-bell'
+import { ShareIcon, UndoIcon } from '@/components/icons'
 
 function formatDate(date: string, locale: string): string {
   const parsed = new Date(`${date}T00:00:00.000Z`)
@@ -108,14 +107,6 @@ export function DailyBoard({ date }: { date: string }) {
     updateTask.mutate({ id, input })
   }
 
-  function move(index: number, direction: 'up' | 'down') {
-    const ids = tasks.map(task => task.id)
-    const next = moveInOrder(ids, index, direction)
-    if (next !== ids) {
-      reorderTasks.mutate(next)
-    }
-  }
-
   const self = session.data
     ? { id: session.data.id, name: session.data.displayName }
     : null
@@ -127,10 +118,7 @@ export function DailyBoard({ date }: { date: string }) {
           <p className="text-brand-600 text-sm font-medium">
             {messages.app.name}
           </p>
-          <div className="flex items-center gap-1">
-            <NotificationBell />
-            <AccountMenu />
-          </div>
+          <NotificationBell />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {messages.app.tagline}
@@ -145,41 +133,14 @@ export function DailyBoard({ date }: { date: string }) {
             </p>
             <h2 className="text-xl font-semibold">{messages.list.daily}</h2>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:justify-end">
-            <button
-              type="button"
-              onClick={() => setShareOpen(true)}
-              className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-            >
-              {messages.list.share}
-            </button>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
-              <Link
-                href="/lists"
-                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-              >
-                {messages.lists.manage}
-              </Link>
-              <Link
-                href="/analytics"
-                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-              >
-                {messages.analytics.manage}
-              </Link>
-              <Link
-                href="/generate"
-                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-              >
-                ✨ {messages.ai.manage}
-              </Link>
-              <Link
-                href="/recurring"
-                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
-              >
-                ↻ {messages.recurring.manage}
-              </Link>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShareOpen(true)}
+            className="bg-brand-600 hover:bg-brand-700 flex h-9 w-fit flex-none items-center gap-1.5 self-start rounded-xl px-3.5 text-sm font-semibold text-white sm:self-auto"
+          >
+            <ShareIcon size={15} />
+            {messages.list.share}
+          </button>
         </div>
 
         <ShareDialog
@@ -245,14 +206,15 @@ export function DailyBoard({ date }: { date: string }) {
                   </div>
                   <Button
                     variant="ghost"
-                    className="h-8 flex-none px-2 text-xs"
+                    className="flex h-8 flex-none items-center gap-1.5 px-2 text-xs"
                     isLoading={
                       bringTask.isPending &&
                       bringTask.variables === item.task.id
                     }
                     onClick={() => bringTask.mutate(item.task.id)}
                   >
-                    ↩ {messages.carryOver.bring}
+                    <UndoIcon size={14} />
+                    {messages.carryOver.bring}
                   </Button>
                 </li>
               ))}
@@ -263,8 +225,12 @@ export function DailyBoard({ date }: { date: string }) {
         {tasks.length === 0 ? (
           <EmptyState title={messages.task.empty} />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {tasks.map((task, index) => (
+          <TaskDragList
+            ids={tasks.map(task => task.id)}
+            onReorder={ids => reorderTasks.mutate(ids)}
+            className="flex flex-col gap-2"
+          >
+            {tasks.map(task => (
               <DailyTaskRow
                 key={task.id}
                 task={task}
@@ -272,12 +238,10 @@ export function DailyBoard({ date }: { date: string }) {
                 self={self}
                 onToggle={toggle}
                 onUpdate={update}
-                onMove={direction => move(index, direction)}
-                canMoveUp={index > 0}
-                canMoveDown={index < tasks.length - 1}
+                sortable
               />
             ))}
-          </ul>
+          </TaskDragList>
         )}
       </Card>
     </section>

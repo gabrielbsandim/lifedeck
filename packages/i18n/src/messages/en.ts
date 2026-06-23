@@ -58,6 +58,8 @@ export const en: Messages = {
     analytics: 'Analytics',
     generate: 'Generate',
     developers: 'Developers',
+    profile: 'Profile',
+    menu: 'Menu',
   },
   notifications: {
     title: 'Notifications',
@@ -110,8 +112,7 @@ export const en: Messages = {
     pending: 'Pending',
     allDone: 'All done — lovely work! 🎉',
     progress: '{done} of {total} done',
-    moveUp: 'Move up',
-    moveDown: 'Move down',
+    reorder: 'Drag to reorder',
     assignee: 'Assignee',
     togglePrivacy: 'Toggle privacy',
     private: 'Private',

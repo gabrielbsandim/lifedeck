@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type {
   MemberView,
   TaskView,
@@ -8,9 +10,22 @@ import type {
 } from '@lifedeck/application'
 import { Avatar, TaskCheckbox } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import {
+  GripIcon,
+  LockIcon,
+  NoteIcon,
+  PlusIcon,
+  RecurringIcon,
+  UnlockIcon,
+} from '@/components/icons'
 
 const iconButtonClass =
-  'flex h-8 w-8 flex-none items-center justify-center rounded-lg'
+  'flex h-8 w-8 flex-none items-center justify-center rounded-lg transition-colors'
+
+// Secondary actions stay calm on desktop (revealed on hover/focus) but are
+// always tappable on touch where there is no hover.
+const revealClass =
+  'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100'
 
 type AssigneeOption = { id: string; name: string }
 
@@ -20,25 +35,7 @@ type DailyTaskRowProps = {
   self: { id: string; name: string } | null
   onToggle: (task: TaskView) => void
   onUpdate: (id: string, input: UpdateTaskInput) => void
-  onMove?: (direction: 'up' | 'down') => void
-  canMoveUp?: boolean
-  canMoveDown?: boolean
-}
-
-function MessageIcon() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      aria-hidden
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  )
+  sortable?: boolean
 }
 
 export function DailyTaskRow({
@@ -47,15 +44,23 @@ export function DailyTaskRow({
   self,
   onToggle,
   onUpdate,
-  onMove,
-  canMoveUp = false,
-  canMoveDown = false,
+  sortable = false,
 }: DailyTaskRowProps) {
   const { messages, locale } = useI18n()
   const t = messages.task
   const completed = task.status === 'completed'
   const [editingNote, setEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState(task.observation ?? '')
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id, disabled: !sortable })
 
   const options: AssigneeOption[] = [
     ...(self ? [{ id: self.id, name: self.name }] : []),
@@ -77,102 +82,101 @@ export function DailyTaskRow({
   }
 
   return (
-    <li className="border-line flex flex-col gap-2 rounded-xl border bg-white px-3.5 py-3 sm:flex-row sm:items-center sm:gap-3">
-      <div className="flex min-w-0 flex-1 items-start gap-3">
-        {onMove && (
-          <div className="flex flex-none flex-col pt-0.5">
-            <button
-              type="button"
-              aria-label={t.moveUp}
-              disabled={!canMoveUp}
-              onClick={() => onMove('up')}
-              className="text-ink-400 hover:text-ink-700 flex h-5 w-6 items-center justify-center text-xs leading-none disabled:opacity-30"
-            >
-              ▲
-            </button>
-            <button
-              type="button"
-              aria-label={t.moveDown}
-              disabled={!canMoveDown}
-              onClick={() => onMove('down')}
-              className="text-ink-400 hover:text-ink-700 flex h-5 w-6 items-center justify-center text-xs leading-none disabled:opacity-30"
-            >
-              ▼
-            </button>
-          </div>
-        )}
-        <div className="pt-0.5">
-          <TaskCheckbox
-            checked={completed}
-            label={task.title}
-            onChange={() => onToggle(task)}
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <span
-            className={
-              completed
-                ? 'text-ink-500 block break-words text-sm line-through'
-                : 'text-ink-800 block break-words text-sm'
-            }
-          >
-            {task.title}
-          </span>
-          {task.carriedFromDate && (
-            <span className="text-ink-400 text-xs">
-              {messages.carryOver.broughtFrom.replace(
-                '{date}',
-                new Intl.DateTimeFormat(locale, {
-                  month: 'short',
-                  day: 'numeric',
-                  timeZone: 'UTC',
-                }).format(new Date(`${task.carriedFromDate}T00:00:00.000Z`)),
-              )}
-            </span>
-          )}
-          {editingNote ? (
-            <input
-              autoFocus
-              value={noteDraft}
-              onChange={event => setNoteDraft(event.target.value)}
-              onBlur={saveNote}
-              onKeyDown={event => {
-                if (event.key === 'Enter') {
-                  event.preventDefault()
-                  saveNote()
-                }
-                if (event.key === 'Escape') {
-                  setNoteDraft(task.observation ?? '')
-                  setEditingNote(false)
-                }
-              }}
-              placeholder={t.notePlaceholder}
-              aria-label={t.note}
-              maxLength={2000}
-              className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-xs outline-none"
-            />
-          ) : task.observation ? (
-            <button
-              type="button"
-              onClick={openNote}
-              aria-label={t.editNote}
-              className="text-ink-500 hover:text-ink-700 mt-1 flex max-w-full items-center gap-1.5 text-left text-xs"
-            >
-              <MessageIcon />
-              <span className="min-w-0 truncate">{task.observation}</span>
-            </button>
-          ) : null}
-        </div>
+    <li
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={`border-line group relative flex items-center gap-2 rounded-2xl border bg-white py-2.5 pl-2 pr-2.5 shadow-[0_1px_2px_rgba(70,60,90,0.05)] sm:gap-3 ${
+        isDragging ? 'ring-brand-200 z-10 shadow-lg ring-1' : ''
+      }`}
+    >
+      {sortable && (
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          aria-label={t.reorder}
+          className="text-ink-300 hover:text-ink-500 flex h-7 w-5 flex-none cursor-grab touch-none items-center justify-center active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+        >
+          <GripIcon />
+        </button>
+      )}
+
+      <div className="pt-0.5">
+        <TaskCheckbox
+          checked={completed}
+          label={task.title}
+          onChange={() => onToggle(task)}
+        />
       </div>
 
-      <div className="flex flex-none items-center gap-2.5 pl-9 sm:pl-0">
+      <div className="min-w-0 flex-1">
+        <span
+          className={
+            completed
+              ? 'text-ink-500 block break-words text-sm line-through'
+              : 'text-ink-800 block break-words text-sm font-medium'
+          }
+        >
+          {task.title}
+        </span>
+        {task.carriedFromDate && (
+          <span className="text-ink-400 text-xs">
+            {messages.carryOver.broughtFrom.replace(
+              '{date}',
+              new Intl.DateTimeFormat(locale, {
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+              }).format(new Date(`${task.carriedFromDate}T00:00:00.000Z`)),
+            )}
+          </span>
+        )}
+        {editingNote ? (
+          <input
+            autoFocus
+            value={noteDraft}
+            onChange={event => setNoteDraft(event.target.value)}
+            onBlur={saveNote}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                saveNote()
+              }
+              if (event.key === 'Escape') {
+                setNoteDraft(task.observation ?? '')
+                setEditingNote(false)
+              }
+            }}
+            placeholder={t.notePlaceholder}
+            aria-label={t.note}
+            maxLength={2000}
+            className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-xs outline-none"
+          />
+        ) : task.observation ? (
+          <button
+            type="button"
+            onClick={openNote}
+            aria-label={t.editNote}
+            className="text-ink-500 hover:text-ink-700 mt-1 flex max-w-full items-center gap-1.5 text-left text-xs"
+          >
+            <NoteIcon size={12} strokeWidth={2.5} />
+            <span className="min-w-0 truncate">{task.observation}</span>
+          </button>
+        ) : null}
+      </div>
+
+      <div className="flex flex-none items-center gap-1">
         {task.recurringTaskId && (
           <span
             aria-hidden
             title={t.recurring}
-            className="text-brand-500 text-sm"
+            className="text-brand-400 flex h-8 w-6 items-center justify-center"
           >
-            ↻
+            <RecurringIcon size={14} />
           </span>
         )}
 
@@ -181,11 +185,26 @@ export function DailyTaskRow({
             type="button"
             aria-label={t.addNote}
             onClick={openNote}
-            className={`${iconButtonClass} text-ink-400 hover:text-ink-700`}
+            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg ${revealClass}`}
           >
-            <MessageIcon />
+            <NoteIcon size={15} />
           </button>
         )}
+
+        <button
+          type="button"
+          aria-label={t.togglePrivacy}
+          aria-pressed={task.isPrivate}
+          title={task.isPrivate ? t.private : t.visible}
+          onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
+          className={`${iconButtonClass} hover:bg-bg ${
+            task.isPrivate
+              ? 'text-brand-600'
+              : `text-ink-400 hover:text-ink-700 ${revealClass}`
+          }`}
+        >
+          {task.isPrivate ? <LockIcon size={15} /> : <UnlockIcon size={15} />}
+        </button>
 
         {options.length > 0 && (
           <div className="relative h-7 w-7 flex-none">
@@ -193,8 +212,8 @@ export function DailyTaskRow({
               {assignee ? (
                 <Avatar name={assignee.name} size="sm" />
               ) : (
-                <span className="border-line text-ink-400 flex h-7 w-7 items-center justify-center rounded-full border border-dashed text-sm">
-                  +
+                <span className="border-line text-ink-400 flex h-7 w-7 items-center justify-center rounded-full border border-dashed">
+                  <PlusIcon size={14} />
                 </span>
               )}
             </span>
@@ -218,19 +237,6 @@ export function DailyTaskRow({
             </select>
           </div>
         )}
-
-        <button
-          type="button"
-          aria-label={t.togglePrivacy}
-          aria-pressed={task.isPrivate}
-          title={task.isPrivate ? t.private : t.visible}
-          onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
-          className={`${iconButtonClass} ${
-            task.isPrivate ? 'text-brand-600' : 'text-ink-500'
-          }`}
-        >
-          {task.isPrivate ? '🔒' : '🔓'}
-        </button>
       </div>
     </li>
   )

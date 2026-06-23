@@ -26,6 +26,22 @@ Tailwind utility classes; the `cn` helper merges and de-duplicates classes.
 - Durations under ~250ms for micro-interactions.
 - Celebrate milestones (all tasks done) with a single, tasteful flourish.
 
+## Interaction patterns
+
+- **Task reordering** uses drag-and-drop via `@dnd-kit` (`TaskDragList` +
+  `DailyTaskRow`). Each row exposes a six-dot grip handle (`cursor-grab`,
+  `touch-none`); only the handle starts a drag, so taps still reach the
+  checkbox and inline controls. Dragging is keyboard-accessible (focus the
+  handle, `Space` to lift, arrows to move, `Space` to drop) and persists the
+  full task order through the reorder mutation.
+- **Secondary row actions** (add note, privacy toggle) stay calm: hidden until
+  row hover/focus on pointer screens, always visible on touch where there is no
+  hover.
+- **Navigation.** Desktop uses the left `AppSidebar` (with the account pinned at
+  the bottom). Below `lg`, a fixed `MobileTabBar` gives a native, app-like bottom
+  bar (Today / Lists / Generate / Profile); the Profile tab opens a bottom sheet
+  holding Analytics, Recurring tasks, Developers, and account settings.
+
 ## Breakpoints (responsiveness contract)
 
 Every new or changed screen must be verified at these widths:

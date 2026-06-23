@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogoMark } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { AccountMenu } from '@/components/account-menu'
 
 type NavItem = {
   href:
@@ -138,6 +139,10 @@ export function AppSidebar() {
           )
         })}
       </nav>
+
+      <div className="border-line mt-auto border-t pt-3">
+        <AccountMenu />
+      </div>
     </aside>
   )
 }

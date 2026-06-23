@@ -69,6 +69,8 @@ export type Messages = {
     analytics: string
     generate: string
     developers: string
+    profile: string
+    menu: string
   }
   notifications: {
     title: string
@@ -120,8 +122,7 @@ export type Messages = {
     pending: string
     allDone: string
     progress: string
-    moveUp: string
-    moveDown: string
+    reorder: string
     assignee: string
     togglePrivacy: string
     private: string

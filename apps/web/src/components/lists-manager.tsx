@@ -5,6 +5,11 @@ import Link from 'next/link'
 import { Button, Card, EmptyState, Skeleton, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateList, useDeleteList, useUserLists } from '@/lib/api/use-lists'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+} from '@/components/icons'
 
 export function ListsManager() {
   const { messages } = useI18n()
@@ -32,8 +37,12 @@ export function ListsManager() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-brand-600 text-sm font-medium">
-          ← {messages.lists.backToToday}
+        <Link
+          href="/"
+          className="text-brand-600 hover:text-brand-700 flex w-fit items-center gap-1 text-sm font-medium"
+        >
+          <ChevronLeftIcon size={16} />
+          {messages.lists.backToToday}
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">
           {messages.lists.title}
@@ -77,24 +86,27 @@ export function ListsManager() {
             {standalone.map(list => (
               <li
                 key={list.id}
-                className="border-line hover:border-brand-600 flex items-center rounded-xl border bg-white transition"
+                className="border-line hover:border-brand-300 group flex items-center rounded-2xl border bg-white shadow-[0_1px_2px_rgba(70,60,90,0.05)] transition"
               >
                 <Link
                   href={`/lists/${list.id}`}
-                  className="flex flex-1 items-center justify-between px-4 py-3"
+                  className="flex flex-1 items-center justify-between gap-3 px-4 py-3.5"
                 >
-                  <span className="text-ink-800 text-sm font-medium">
+                  <span className="text-ink-800 truncate text-sm font-medium">
                     {list.title}
                   </span>
-                  <span className="text-ink-400 text-sm">→</span>
+                  <ChevronRightIcon
+                    size={18}
+                    className="text-ink-300 group-hover:text-brand-500 flex-none transition-colors"
+                  />
                 </Link>
                 <button
                   type="button"
                   aria-label={`${messages.recurring.delete} ${list.title}`}
                   onClick={() => deleteList.mutate(list.id)}
-                  className="text-danger px-3 text-sm"
+                  className="text-ink-300 hover:text-danger flex h-9 w-10 flex-none items-center justify-center transition-colors"
                 >
-                  ✕
+                  <CloseIcon size={16} />
                 </button>
               </li>
             ))}

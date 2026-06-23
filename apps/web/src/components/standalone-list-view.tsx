@@ -25,9 +25,10 @@ import {
   useReorderListTasks,
   useUpdateListTask,
 } from '@/lib/api/use-lists'
-import { moveInOrder } from '@/lib/api/reorder'
 import { ShareDialog } from '@/components/share-dialog'
 import { DailyTaskRow } from '@/components/daily-task-row'
+import { TaskDragList } from '@/components/task-drag-list'
+import { ChevronLeftIcon, CloseIcon, ShareIcon } from '@/components/icons'
 
 export function StandaloneListView({ listId }: { listId: string }) {
   const { messages } = useI18n()
@@ -93,14 +94,6 @@ export function StandaloneListView({ listId }: { listId: string }) {
     updateTask.mutate({ id, input })
   }
 
-  function move(index: number, direction: 'up' | 'down') {
-    const ids = rows.map(task => task.id)
-    const next = moveInOrder(ids, index, direction)
-    if (next !== ids) {
-      reorderTasks.mutate(next)
-    }
-  }
-
   function submitRename(event: FormEvent) {
     event.preventDefault()
     const trimmed = listTitle.trim()
@@ -124,8 +117,12 @@ export function StandaloneListView({ listId }: { listId: string }) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link href="/lists" className="text-brand-600 text-sm font-medium">
-          ← {messages.lists.back}
+        <Link
+          href="/lists"
+          className="text-brand-600 hover:text-brand-700 flex w-fit items-center gap-1 text-sm font-medium"
+        >
+          <ChevronLeftIcon size={16} />
+          {messages.lists.back}
         </Link>
         <div className="flex items-center justify-between gap-3">
           {editingTitle ? (
@@ -161,16 +158,19 @@ export function StandaloneListView({ listId }: { listId: string }) {
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+                className="bg-brand-600 hover:bg-brand-700 flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-white"
               >
+                <ShareIcon size={15} />
                 {messages.list.share}
               </button>
               <button
                 type="button"
+                aria-label={messages.recurring.delete}
+                title={messages.recurring.delete}
                 onClick={removeList}
-                className="text-danger text-sm font-medium"
+                className="text-ink-400 hover:text-danger flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
               >
-                {messages.recurring.delete}
+                <CloseIcon size={18} />
               </button>
             </div>
           )}
@@ -208,8 +208,12 @@ export function StandaloneListView({ listId }: { listId: string }) {
         {rows.length === 0 ? (
           <EmptyState title={messages.task.empty} />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {rows.map((task, index) => (
+          <TaskDragList
+            ids={rows.map(task => task.id)}
+            onReorder={ids => reorderTasks.mutate(ids)}
+            className="flex flex-col gap-2"
+          >
+            {rows.map(task => (
               <DailyTaskRow
                 key={task.id}
                 task={task}
@@ -217,12 +221,10 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 self={self}
                 onToggle={toggle}
                 onUpdate={update}
-                onMove={direction => move(index, direction)}
-                canMoveUp={index > 0}
-                canMoveDown={index < rows.length - 1}
+                sortable
               />
             ))}
-          </ul>
+          </TaskDragList>
         )}
       </Card>
     </section>
