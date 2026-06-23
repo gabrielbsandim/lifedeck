@@ -34,12 +34,32 @@ export function useSetCarryOverMode() {
   })
 }
 
+const DEFAULT_TIMEZONE = 'UTC'
+
+export function useSetTimezone() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (timezone: string) =>
+      apiRequest<UserView>('/api/v1/account/timezone', {
+        method: 'PATCH',
+        body: JSON.stringify({ timezone }),
+      }),
+    onSuccess: user => {
+      queryClient.setQueryData(sessionKey, user)
+      void queryClient.invalidateQueries({ queryKey: ['daily-board'] })
+    },
+  })
+}
+
+// Auto-detects the device time zone, but only while the account still holds the
+// default (UTC) — i.e. it has never been personalized. Once the user has a
+// non-default zone (auto-detected once or set by hand), their choice is kept.
 export function useSyncTimezone(user: UserView | null | undefined) {
   const queryClient = useQueryClient()
   const synced = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.timezone !== DEFAULT_TIMEZONE) {
       return
     }
     const detected = browserTimeZone()

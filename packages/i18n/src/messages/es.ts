@@ -76,6 +76,12 @@ export const es: Messages = {
     modeManual: 'Dejar que yo las traiga',
     modeAuto: 'Traerlas automáticamente',
   },
+  timezone: {
+    settingLabel: 'Zona horaria',
+    settingHint:
+      'Detectada desde tu dispositivo. Tus listas diarias, resumen y rachas usan esta zona.',
+    useDetected: 'Usar la zona del dispositivo',
+  },
   developers: {
     title: 'Claves de API',
     subtitle:

@@ -5,6 +5,7 @@ import {
   useDeleteAccount,
   useRenameUser,
   useSetCarryOverMode,
+  useSetTimezone,
   useSignOut,
   useSyncTimezone,
 } from '@/lib/api/use-account'
@@ -114,13 +115,12 @@ describe('account hooks', () => {
     )
   })
 
-  it('does not sync when the timezone already matches', async () => {
+  it('does not auto-sync once the zone has been personalized', async () => {
     const fetchMock = mockFetchOnce({ data: USER })
     const { Wrapper } = createWrapper()
-    renderHook(
-      () => useSyncTimezone({ ...USER, timezone: 'America/Sao_Paulo' }),
-      { wrapper: Wrapper },
-    )
+    renderHook(() => useSyncTimezone({ ...USER, timezone: 'Europe/Lisbon' }), {
+      wrapper: Wrapper,
+    })
     await Promise.resolve()
     expect(fetchMock).not.toHaveBeenCalled()
   })
@@ -131,5 +131,18 @@ describe('account hooks', () => {
     renderHook(() => useSyncTimezone(null), { wrapper: Wrapper })
     await Promise.resolve()
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('sets the timezone manually via PATCH', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ...USER, timezone: 'Europe/Lisbon' },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetTimezone(), { wrapper: Wrapper })
+    await result.current.mutateAsync('Europe/Lisbon')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/account/timezone',
+      expect.objectContaining({ method: 'PATCH' }),
+    )
   })
 })

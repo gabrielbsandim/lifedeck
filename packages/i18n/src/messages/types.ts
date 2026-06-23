@@ -86,6 +86,11 @@ export type Messages = {
     modeManual: string
     modeAuto: string
   }
+  timezone: {
+    settingLabel: string
+    settingHint: string
+    useDetected: string
+  }
   developers: {
     title: string
     subtitle: string

@@ -62,8 +62,10 @@ while still giving each day its own independent completion state.
 ## Timezone
 
 "Today" is the user's local civil date. Each user stores an IANA `timezone`
-(auto-detected in the browser and synced via `PATCH /api/v1/account/timezone`,
-defaulting to `UTC`). The client supplies the daily list's `referenceDate` (a
+(defaulting to `UTC`). It is auto-detected in the browser and synced via
+`PATCH /api/v1/account/timezone` **only while still on the `UTC` default**; once
+personalized it is left alone. The user can also override it by hand from the
+account dialog (a full IANA picker), with a "use device time zone" reset. The client supplies the daily list's `referenceDate` (a
 date without time) for the board it is viewing; when the server needs to decide
 whether that board is "today" (carry-over) or to provision today's list for a
 background flow (digest, bring-to-today), it derives the civil day from

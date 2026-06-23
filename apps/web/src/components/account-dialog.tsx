@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { Badge, Button, Dialog, PasswordField, TextField } from '@lifedeck/ui'
 import type { UserView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
@@ -9,12 +9,24 @@ import {
   useDeleteAccount,
   useRenameUser,
   useSetCarryOverMode,
+  useSetTimezone,
   useSignOut,
 } from '@/lib/api/use-account'
+import { browserTimeZone } from '@/lib/api/dates'
 import { useResendCode, useVerifyEmail } from '@/lib/api/use-auth'
 
 function errorText(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback
+}
+
+function listTimeZones(current: string): string[] {
+  const supported =
+    typeof Intl.supportedValuesOf === 'function'
+      ? Intl.supportedValuesOf('timeZone')
+      : []
+  const zones = new Set<string>(['UTC', ...supported])
+  zones.add(current)
+  return Array.from(zones).sort()
 }
 
 export function AccountDialog({
@@ -36,11 +48,15 @@ export function AccountDialog({
 
   const rename = useRenameUser()
   const setCarryOverMode = useSetCarryOverMode()
+  const setTimezone = useSetTimezone()
   const changePassword = useChangePassword()
   const signOut = useSignOut()
   const deleteAccount = useDeleteAccount()
   const resend = useResendCode()
   const verify = useVerifyEmail()
+
+  const timeZones = useMemo(() => listTimeZones(user.timezone), [user.timezone])
+  const detectedZone = browserTimeZone()
 
   function submitRename(event: FormEvent) {
     event.preventDefault()
@@ -204,6 +220,38 @@ export function AccountDialog({
               )
             })}
           </div>
+        </div>
+
+        <div className="border-line flex flex-col gap-2 border-t pt-4">
+          <span className="text-ink-700 text-sm font-medium">
+            {messages.timezone.settingLabel}
+          </span>
+          <p className="text-ink-500 text-xs">
+            {messages.timezone.settingHint}
+          </p>
+          <select
+            value={user.timezone}
+            onChange={event => setTimezone.mutate(event.target.value)}
+            disabled={setTimezone.isPending}
+            aria-label={messages.timezone.settingLabel}
+            className="border-line text-ink-700 focus:border-brand-300 w-full rounded-lg border bg-white px-3 py-2 text-xs outline-none"
+          >
+            {timeZones.map(zone => (
+              <option key={zone} value={zone}>
+                {zone.replace(/_/g, ' ')}
+              </option>
+            ))}
+          </select>
+          {user.timezone !== detectedZone && (
+            <button
+              type="button"
+              onClick={() => setTimezone.mutate(detectedZone)}
+              disabled={setTimezone.isPending}
+              className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+            >
+              {messages.timezone.useDetected}
+            </button>
+          )}
         </div>
 
         <div className="border-line flex flex-col gap-3 border-t pt-4">

@@ -76,6 +76,12 @@ export const pt: Messages = {
     modeManual: 'Deixe eu trazer',
     modeAuto: 'Trazer automaticamente',
   },
+  timezone: {
+    settingLabel: 'Fuso horário',
+    settingHint:
+      'Detectado pelo seu dispositivo. Suas listas diárias, resumo e sequências usam este fuso.',
+    useDetected: 'Usar o fuso do dispositivo',
+  },
   developers: {
     title: 'Chaves de API',
     subtitle: 'Acesso programático aos seus dados do Lifedeck pela API REST.',

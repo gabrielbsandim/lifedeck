@@ -75,6 +75,12 @@ export const en: Messages = {
     modeManual: 'Let me bring them over',
     modeAuto: 'Bring them automatically',
   },
+  timezone: {
+    settingLabel: 'Time zone',
+    settingHint:
+      'Detected from your device. Your daily lists, digest and streaks use this zone.',
+    useDetected: 'Use device time zone',
+  },
   developers: {
     title: 'API keys',
     subtitle: 'Programmatic access to your Lifedeck data over the REST API.',
