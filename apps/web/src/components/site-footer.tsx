@@ -38,13 +38,13 @@ export function SiteFooter() {
         <div className="flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
             <Link
-              href="/termos-de-uso"
+              href="/terms"
               className="text-white/55 transition hover:text-white"
             >
               {messages.footer.terms}
             </Link>
             <Link
-              href="/politica-de-privacidade"
+              href="/privacy"
               className="text-white/55 transition hover:text-white"
             >
               {messages.footer.privacy}

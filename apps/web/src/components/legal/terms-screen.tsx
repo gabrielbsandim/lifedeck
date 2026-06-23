@@ -123,10 +123,10 @@ export function TermsScreen() {
       <LegalSection title="7. Dados e Privacidade">
         <p>
           O tratamento de seus dados pessoais é regido pela nossa{' '}
-          <Link href="/politica-de-privacidade">Política de Privacidade</Link>,
-          elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD —
-          Lei nº 13.709/2018). Ao usar o Serviço, você declara ter lido e
-          concordado com ela.
+          <Link href="/privacy">Política de Privacidade</Link>, elaborada em
+          conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº
+          13.709/2018). Ao usar o Serviço, você declara ter lido e concordado
+          com ela.
         </p>
       </LegalSection>
 
