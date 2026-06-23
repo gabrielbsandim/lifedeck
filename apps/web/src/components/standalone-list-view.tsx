@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   Celebration,
+  Dialog,
   EmptyState,
   ProgressBar,
   Skeleton,
@@ -28,7 +29,7 @@ import {
 import { ShareDialog } from '@/components/share-dialog'
 import { DailyTaskRow, DailyTaskRowOverlay } from '@/components/daily-task-row'
 import { TaskDragList } from '@/components/task-drag-list'
-import { ChevronLeftIcon, CloseIcon, ShareIcon } from '@/components/icons'
+import { ChevronLeftIcon, ShareIcon, TrashIcon } from '@/components/icons'
 
 export function StandaloneListView({ listId }: { listId: string }) {
   const { messages } = useI18n()
@@ -46,6 +47,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
   const [shareOpen, setShareOpen] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [listTitle, setListTitle] = useState('')
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   if (list.isPending || tasks.isPending) {
     return <Skeleton className="h-72 w-full rounded-2xl" />
@@ -167,10 +169,10 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 type="button"
                 aria-label={messages.recurring.delete}
                 title={messages.recurring.delete}
-                onClick={removeList}
+                onClick={() => setConfirmingDelete(true)}
                 className="text-ink-400 hover:text-danger flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
               >
-                <CloseIcon size={18} />
+                <TrashIcon size={18} />
               </button>
             </div>
           )}
@@ -182,6 +184,32 @@ export function StandaloneListView({ listId }: { listId: string }) {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
       />
+
+      <Dialog
+        open={confirmingDelete}
+        onClose={() => setConfirmingDelete(false)}
+        title={messages.lists.deleteTitle}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-ink-500 text-sm">{messages.lists.deleteBody}</p>
+          <div className="flex gap-2">
+            <Button
+              className="bg-danger h-9 flex-1 text-xs hover:opacity-90"
+              isLoading={deleteList.isPending}
+              onClick={removeList}
+            >
+              {messages.recurring.delete}
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-9 text-xs"
+              onClick={() => setConfirmingDelete(false)}
+            >
+              {messages.recurring.cancel}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
 
       <Card className="p-4 sm:p-8">
         <div className="border-line bg-bg relative mb-6 rounded-2xl border p-4">

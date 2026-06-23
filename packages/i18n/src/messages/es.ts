@@ -142,6 +142,8 @@ export const es: Messages = {
     you: 'Tú',
     sharedBadge: 'Compart.',
     newList: 'Nueva lista',
+    deleteTitle: '¿Eliminar esta lista?',
+    deleteBody: 'Esto elimina la lista y todas sus tareas de forma permanente.',
   },
   share: {
     title: 'Compartir esta lista',

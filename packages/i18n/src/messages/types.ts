@@ -150,6 +150,8 @@ export type Messages = {
     you: string
     sharedBadge: string
     newList: string
+    deleteTitle: string
+    deleteBody: string
   }
   share: {
     title: string

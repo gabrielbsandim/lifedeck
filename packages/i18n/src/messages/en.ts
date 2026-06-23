@@ -140,6 +140,8 @@ export const en: Messages = {
     you: 'You',
     sharedBadge: 'Shared',
     newList: 'New list',
+    deleteTitle: 'Delete this list?',
+    deleteBody: 'This permanently deletes the list and all its tasks.',
   },
   share: {
     title: 'Share this list',
