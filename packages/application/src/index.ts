@@ -39,6 +39,7 @@ export {
   verifyEmailSchema,
   changePasswordSchema,
   renameUserSchema,
+  carryOverModeSchema,
   userViewSchema,
   type GuestSignInInput,
   type RegisterInput,
@@ -133,7 +134,10 @@ export { makeListUserLists } from '@/use-cases/list-user-lists'
 export {
   makeGetDailyBoard,
   type DailyBoardView,
+  type CarryOverCandidate,
 } from '@/use-cases/get-daily-board'
+export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
+export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
 export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'

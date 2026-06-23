@@ -10,6 +10,7 @@ export function toUserView(user: User): UserView {
     isGuest: props.isGuest,
     isEmailVerified: props.emailVerifiedAt !== null,
     locale: props.locale,
+    carryOverMode: props.carryOverMode,
     createdAt: props.createdAt.toISOString(),
   }
 }

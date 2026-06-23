@@ -15,6 +15,7 @@ function board(
   return {
     list: { id: ID.list } as never,
     tasks: tasks as unknown as TaskView[],
+    carryOver: [],
   }
 }
 

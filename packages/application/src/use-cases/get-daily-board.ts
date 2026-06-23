@@ -9,6 +9,7 @@ import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 import type { TaskRepository } from '@/ports/task-repository'
+import type { UserRepository } from '@/ports/user-repository'
 
 const dateSchema = z.string().date()
 
@@ -18,15 +19,26 @@ function startOfUtcDay(date: Date): Date {
   )
 }
 
+function toIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+export type CarryOverCandidate = {
+  task: TaskView
+  fromDate: string
+}
+
 export type DailyBoardView = {
   list: ListView
   tasks: TaskView[]
+  carryOver: CarryOverCandidate[]
 }
 
 type Dependencies = {
   lists: ListRepository
   tasks: TaskRepository
   recurringTasks: RecurringTaskRepository
+  users: UserRepository
   ids: IdGenerator
   clock: Clock
 }
@@ -35,6 +47,7 @@ export function makeGetDailyBoard({
   lists,
   tasks,
   recurringTasks,
+  users,
   ids,
   clock,
 }: Dependencies) {
@@ -50,18 +63,32 @@ export function makeGetDailyBoard({
       (await lists.findDailyByOwnerAndDate(owner, referenceDate)) ??
       (await provisionDailyList())
 
-    await carryOverUnfinished(list)
+    let carryOver: CarryOverCandidate[] = []
+    if (referenceDate.getTime() === startOfUtcDay(clock.now()).getTime()) {
+      const user = await users.findById(owner)
+      const candidates = await collectCandidates()
+      if ((user?.carryOverMode ?? 'manual') === 'auto') {
+        await autoCarry(list, candidates)
+      } else {
+        carryOver = candidates.map(candidate => ({
+          task: toTaskView(candidate.task),
+          fromDate: candidate.fromDate,
+        }))
+      }
+    }
+
     await materializeRecurring(list)
 
     const items = await tasks.listByList(list.id)
-    return { list: toListView(list), tasks: items.map(toTaskView) }
+    return {
+      list: toListView(list),
+      tasks: items.map(toTaskView),
+      carryOver,
+    }
 
-    async function carryOverUnfinished(todayList: List): Promise<void> {
-      const today = startOfUtcDay(clock.now())
-      if (referenceDate.getTime() !== today.getTime()) {
-        return
-      }
-
+    async function collectCandidates(): Promise<
+      Array<{ task: Task; fromDate: string }>
+    > {
       const owned = await lists.listByOwner(owner)
       const priorDailyLists = owned.filter(candidate => {
         const props = candidate.toJSON()
@@ -71,21 +98,45 @@ export function makeGetDailyBoard({
           props.referenceDate.getTime() < referenceDate.getTime()
         )
       })
-      if (priorDailyLists.length === 0) {
-        return
-      }
 
-      let position = (await tasks.listByList(todayList.id)).length
+      const result: Array<{ task: Task; fromDate: string }> = []
       for (const priorList of priorDailyLists) {
+        const fromDate = toIsoDate(priorList.toJSON().referenceDate as Date)
         const priorTasks = await tasks.listByList(priorList.id)
         for (const task of priorTasks) {
           const props = task.toJSON()
-          if (props.status === 'pending' && props.recurringTaskId === null) {
-            task.moveTo(todayList.id, position)
-            position += 1
-            await tasks.save(task)
+          if (
+            props.status === 'pending' &&
+            props.recurringTaskId === null &&
+            props.carriedForwardAt === null
+          ) {
+            result.push({ task, fromDate })
           }
         }
+      }
+      return result
+    }
+
+    async function autoCarry(
+      todayList: List,
+      candidates: Array<{ task: Task; fromDate: string }>,
+    ): Promise<void> {
+      let position = (await tasks.listByList(todayList.id)).length
+      for (const { task, fromDate } of candidates) {
+        const props = task.toJSON()
+        const copy = Task.create({
+          id: ids.generate(),
+          listId: todayList.id,
+          title: props.title,
+          observation: props.observation,
+          carriedFromDate: new Date(`${fromDate}T00:00:00.000Z`),
+          position,
+          createdAt: clock.now(),
+        })
+        position += 1
+        task.markCarriedForward(clock.now())
+        await tasks.save(task)
+        await tasks.save(copy)
       }
     }
 

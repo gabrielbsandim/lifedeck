@@ -369,11 +369,31 @@ registry.registerPath({
   },
   responses: {
     200: jsonResponse(
-      'The daily board (list + tasks) for the date.',
-      z.object({ list: ListView, tasks: z.array(TaskView) }),
+      'The daily board (list + tasks + carry-over candidates) for the date.',
+      z.object({
+        list: ListView,
+        tasks: z.array(TaskView),
+        carryOver: z.array(z.object({ task: TaskView, fromDate: z.string() })),
+      }),
     ),
     401: errorResponse,
     422: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/tasks/{id}/carry-forward',
+  summary: "Bring a prior day's unfinished task into today",
+  operationId: 'bringTaskToToday',
+  description:
+    "Creates a copy of the task in today's daily list and marks the original as carried forward (it stays as a record).",
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    201: jsonResponse('The created copy in today.', TaskView),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
   },
 })
 

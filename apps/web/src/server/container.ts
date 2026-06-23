@@ -1,5 +1,6 @@
 import {
   makeAuthenticateApiKey,
+  makeBringTaskToToday,
   makeChangePassword,
   makeCreateApiKey,
   makeCreateGuestUser,
@@ -38,6 +39,7 @@ import {
   makeRevokeApiKey,
   makeRevokeShareLink,
   makeSendDailyDigest,
+  makeSetCarryOverMode,
   makeSignInWithEmail,
   makeSignInWithGoogle,
   makeUpdateRecurringTask,
@@ -108,6 +110,8 @@ type Container = {
   getList: ReturnType<typeof makeGetList>
   listUserLists: ReturnType<typeof makeListUserLists>
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
+  bringTaskToToday: ReturnType<typeof makeBringTaskToToday>
+  setCarryOverMode: ReturnType<typeof makeSetCarryOverMode>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
   listRecurringTasks: ReturnType<typeof makeListRecurringTasks>
   updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
@@ -176,6 +180,7 @@ function build(
     lists,
     tasks,
     recurringTasks,
+    users,
     ids,
     clock,
   })
@@ -235,6 +240,8 @@ function build(
     getList: makeGetList({ lists, memberships }),
     listUserLists: makeListUserLists({ lists }),
     getDailyBoard,
+    bringTaskToToday: makeBringTaskToToday({ lists, tasks, ids, clock }),
+    setCarryOverMode: makeSetCarryOverMode({ users }),
     createRecurringTask: makeCreateRecurringTask({
       recurringTasks,
       ids,

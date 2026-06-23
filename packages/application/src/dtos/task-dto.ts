@@ -27,6 +27,8 @@ export const taskViewSchema = z.object({
   recurringTaskId: z.string().uuid().nullable(),
   isPrivate: z.boolean(),
   position: z.number(),
+  carriedFromDate: z.string().date().nullable(),
+  carriedForward: z.boolean(),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
 })

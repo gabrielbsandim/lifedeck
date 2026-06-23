@@ -43,6 +43,12 @@ export const renameUserSchema = z.object({
 
 export type RenameUserInput = z.infer<typeof renameUserSchema>
 
+export const carryOverModeSchema = z.object({
+  mode: z.enum(['manual', 'auto']),
+})
+
+export type CarryOverModeInput = z.infer<typeof carryOverModeSchema>
+
 export const userViewSchema = z.object({
   id: z.string().uuid(),
   displayName: z.string(),
@@ -50,6 +56,7 @@ export const userViewSchema = z.object({
   isGuest: z.boolean(),
   isEmailVerified: z.boolean(),
   locale: z.string(),
+  carryOverMode: z.enum(['manual', 'auto']),
   createdAt: z.string().datetime(),
 })
 
