@@ -2,6 +2,7 @@
   "extends": "@taskin/config/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "lib": ["DOM", "DOM.Iterable", "ES2022", "WebWorker"],
     "paths": {
       "@/*": ["./src/*"]
     }

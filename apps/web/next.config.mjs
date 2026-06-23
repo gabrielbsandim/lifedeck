@@ -13,13 +13,31 @@ const securityHeaders = [
   },
 ]
 
+import withSerwistInit from '@serwist/next'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  serverExternalPackages: ['@node-rs/argon2'],
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : []),
+        '@node-rs/argon2',
+      ]
+    }
+    return config
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },
 }
 
-export default nextConfig
+const withSerwist = withSerwistInit({
+  swSrc: 'src/sw.ts',
+  swDest: 'public/sw.js',
+  disable: process.env.NODE_ENV !== 'production',
+})
+
+export default withSerwist(nextConfig)

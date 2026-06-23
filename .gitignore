@@ -13,6 +13,11 @@ out
 # Vendored at build time
 apps/web/public/scalar
 
+# Generated service worker (Serwist)
+apps/web/public/sw.js
+apps/web/public/sw.js.map
+apps/web/public/swe-worker-*.js
+
 # Test / coverage
 coverage
 .vitest

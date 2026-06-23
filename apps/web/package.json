@@ -7,7 +7,7 @@
     "predev": "node scripts/vendor-scalar.mjs",
     "dev": "next dev",
     "prebuild": "node scripts/vendor-scalar.mjs",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -33,6 +33,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@serwist/next": "9.5.11",
     "@tailwindcss/postcss": "4.1.13",
     "@taskin/config": "workspace:*",
     "@testing-library/jest-dom": "6.6.3",
@@ -45,6 +46,7 @@
     "eslint": "9.17.0",
     "eslint-config-next": "16.2.6",
     "jsdom": "25.0.1",
+    "serwist": "9.5.11",
     "tailwindcss": "4.1.13",
     "typescript": "5.7.2",
     "vitest": "2.1.8"

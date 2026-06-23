@@ -4,6 +4,7 @@ import { getMessages } from '@taskin/i18n'
 import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from '@/lib/site'
 import { Providers } from '@/app/providers'
+import { ServiceWorkerRegister } from '@/components/service-worker-register'
 import '@/app/globals.css'
 
 export const metadata: Metadata = {
@@ -55,6 +56,7 @@ export default async function RootLayout({
         <Providers locale={locale} messages={messages}>
           {children}
         </Providers>
+        <ServiceWorkerRegister />
       </body>
     </html>
   )
