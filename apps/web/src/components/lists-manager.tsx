@@ -50,7 +50,7 @@ export function ListsManager() {
         <p className="text-ink-500 text-sm">{messages.lists.subtitle}</p>
       </header>
 
-      <Card className="p-6 sm:p-8">
+      <Card className="p-4 sm:p-8">
         <form onSubmit={submit} className="mb-6 flex gap-2">
           <div className="flex-1">
             <TextField

@@ -183,7 +183,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
         onClose={() => setShareOpen(false)}
       />
 
-      <Card className="p-6 sm:p-8">
+      <Card className="p-4 sm:p-8">
         <div className="border-line bg-bg relative mb-6 rounded-2xl border p-4">
           <Celebration active={allDone} />
           <div className="mb-2 flex items-baseline justify-between">

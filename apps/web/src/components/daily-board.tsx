@@ -125,7 +125,7 @@ export function DailyBoard({ date }: { date: string }) {
         </h1>
       </header>
 
-      <Card className="p-6 sm:p-8">
+      <Card className="p-4 sm:p-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-ink-500 text-sm capitalize">

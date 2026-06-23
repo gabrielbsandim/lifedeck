@@ -20,7 +20,7 @@ import {
 } from '@/components/icons'
 
 const iconButtonClass =
-  'flex h-8 w-8 flex-none items-center justify-center rounded-lg transition-colors'
+  'flex h-8 w-7 flex-none items-center justify-center rounded-lg transition-colors sm:w-8'
 
 // Secondary actions stay calm on desktop (revealed on hover/focus) but are
 // always tappable on touch where there is no hover.
@@ -88,7 +88,7 @@ export function DailyTaskRow({
         transform: CSS.Transform.toString(transform),
         transition,
       }}
-      className={`border-line group relative flex items-center gap-2 rounded-2xl border bg-white py-2.5 pl-2 pr-2.5 shadow-[0_1px_2px_rgba(70,60,90,0.05)] sm:gap-3 ${
+      className={`border-line group relative flex items-center gap-1.5 rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 shadow-[0_1px_2px_rgba(70,60,90,0.05)] sm:gap-3 sm:pl-2 sm:pr-2.5 ${
         isDragging ? 'ring-brand-200 z-10 shadow-lg ring-1' : ''
       }`}
     >
@@ -97,7 +97,7 @@ export function DailyTaskRow({
           type="button"
           ref={setActivatorNodeRef}
           aria-label={t.reorder}
-          className="text-ink-300 hover:text-ink-500 flex h-7 w-5 flex-none cursor-grab touch-none items-center justify-center active:cursor-grabbing"
+          className="text-ink-300 hover:text-ink-500 flex h-7 w-4 flex-none cursor-grab touch-none items-center justify-center active:cursor-grabbing sm:w-5"
           {...attributes}
           {...listeners}
         >
@@ -169,12 +169,12 @@ export function DailyTaskRow({
         ) : null}
       </div>
 
-      <div className="flex flex-none items-center gap-1">
+      <div className="flex flex-none items-center gap-0.5 sm:gap-1">
         {task.recurringTaskId && (
           <span
             aria-hidden
             title={t.recurring}
-            className="text-brand-400 flex h-8 w-6 items-center justify-center"
+            className="text-brand-400 flex h-8 w-5 items-center justify-center sm:w-6"
           >
             <RecurringIcon size={14} />
           </span>

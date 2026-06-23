@@ -106,7 +106,7 @@ export function SharedBoardView({ token }: { token: string }) {
         </Button>
       )}
 
-      <Card className="p-6 sm:p-8">
+      <Card className="p-4 sm:p-8">
         {editable && (
           <form onSubmit={addTask} className="mb-4">
             <TextField
