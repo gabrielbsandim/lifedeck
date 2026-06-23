@@ -8,6 +8,7 @@ import {
   Card,
   Celebration,
   EmptyState,
+  LogoMark,
   ProgressBar,
   Skeleton,
   TextField,
@@ -115,9 +116,12 @@ export function DailyBoard({ date }: { date: string }) {
     <section className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-brand-600 text-sm font-medium">
-            {messages.app.name}
-          </p>
+          <div className="flex items-center gap-2">
+            <LogoMark size={20} title={messages.app.name} />
+            <p className="text-brand-600 text-sm font-medium">
+              {messages.app.name}
+            </p>
+          </div>
           <NotificationBell />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -126,7 +130,7 @@ export function DailyBoard({ date }: { date: string }) {
       </header>
 
       <Card className="p-4 sm:p-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mb-6 flex items-start justify-between gap-3">
           <div>
             <p className="text-ink-500 text-sm capitalize">
               {formatDate(date, locale)}
@@ -136,7 +140,7 @@ export function DailyBoard({ date }: { date: string }) {
           <button
             type="button"
             onClick={() => setShareOpen(true)}
-            className="bg-brand-600 hover:bg-brand-700 flex h-9 w-fit flex-none items-center gap-1.5 self-start rounded-xl px-3.5 text-sm font-semibold text-white sm:self-auto"
+            className="bg-brand-600 hover:bg-brand-700 flex h-9 flex-none items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-white"
           >
             <ShareIcon size={15} />
             {messages.list.share}
