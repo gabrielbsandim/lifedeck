@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
-import { TermsScreen } from '@/components/legal/terms-screen'
+import { headers } from 'next/headers'
+import { getMessages } from '@lifedeck/i18n'
+import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
+import { LegalScreen } from '@/components/legal/legal-screen'
 
-export const metadata: Metadata = {
-  title: 'Termos de Uso',
+export async function generateMetadata(): Promise<Metadata> {
+  const headerList = await headers()
+  const locale = resolveLocaleFromHeader(headerList.get('accept-language'))
+  return { title: getMessages(locale).legal.terms.title }
 }
 
 export default function TermsPage() {
-  return <TermsScreen />
+  return <LegalScreen doc="terms" />
 }

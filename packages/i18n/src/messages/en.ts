@@ -1,4 +1,5 @@
 import type { Messages } from '@/messages/types'
+import { enLegal } from '@/messages/legal-en'
 
 export const en: Messages = {
   app: {
@@ -11,6 +12,12 @@ export const en: Messages = {
     rights: '© {year} Lifedeck. All rights reserved.',
     terms: 'Terms of use',
     privacy: 'Privacy policy',
+  },
+  legal: {
+    backToApp: 'Back to app',
+    updatedAt: 'Last updated: June 2026',
+    terms: enLegal.terms,
+    privacy: enLegal.privacy,
   },
   onboarding: {
     title: 'Get started',
@@ -137,6 +144,8 @@ export const en: Messages = {
     join: 'Join & edit',
     close: 'Close',
     role: 'Share role',
+    roleViewer: 'Viewer',
+    roleEditor: 'Editor',
     inviteTitle: 'Invite by email',
     emailPlaceholder: 'name@email.com',
     sendInvite: 'Send invite',

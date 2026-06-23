@@ -1,4 +1,5 @@
 import type { Messages } from '@/messages/types'
+import { ptLegal } from '@/messages/legal-pt'
 
 export const pt: Messages = {
   app: {
@@ -11,6 +12,12 @@ export const pt: Messages = {
     rights: '© {year} Lifedeck. Todos os direitos reservados.',
     terms: 'Termos de uso',
     privacy: 'Política de privacidade',
+  },
+  legal: {
+    backToApp: 'Voltar ao app',
+    updatedAt: 'Última atualização: junho de 2026',
+    terms: ptLegal.terms,
+    privacy: ptLegal.privacy,
   },
   onboarding: {
     title: 'Vamos começar',
@@ -138,6 +145,8 @@ export const pt: Messages = {
     join: 'Entrar e editar',
     close: 'Fechar',
     role: 'Papel do compartilhamento',
+    roleViewer: 'Visualizador',
+    roleEditor: 'Editor',
     inviteTitle: 'Convidar por e-mail',
     emailPlaceholder: 'nome@email.com',
     sendInvite: 'Enviar convite',

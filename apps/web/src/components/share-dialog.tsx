@@ -165,8 +165,8 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
             }
             className="border-line text-ink-600 rounded-lg border bg-white px-2 py-1 text-xs outline-none"
           >
-            <option value="viewer">viewer</option>
-            <option value="editor">editor</option>
+            <option value="viewer">{messages.share.roleViewer}</option>
+            <option value="editor">{messages.share.roleEditor}</option>
           </select>
         </div>
         <Button variant="ghost" onClick={onClose}>

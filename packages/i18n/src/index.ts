@@ -11,7 +11,12 @@ export {
   type Locale,
 } from '@/locales'
 export { detectLocale } from '@/detect'
-export type { Messages } from '@/messages/types'
+export type {
+  Messages,
+  LegalDocument,
+  LegalSectionContent,
+  LegalBlock,
+} from '@/messages/types'
 
 export const messages: Record<Locale, Messages> = { en, pt }
 

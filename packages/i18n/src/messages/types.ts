@@ -1,3 +1,18 @@
+export type LegalBlock =
+  | { kind: 'p'; text: string }
+  | { kind: 'list'; items: string[] }
+
+export type LegalSectionContent = {
+  title: string
+  blocks: LegalBlock[]
+}
+
+export type LegalDocument = {
+  title: string
+  intro: string
+  sections: LegalSectionContent[]
+}
+
 export type Messages = {
   app: {
     name: string
@@ -8,6 +23,12 @@ export type Messages = {
     rights: string
     terms: string
     privacy: string
+  }
+  legal: {
+    backToApp: string
+    updatedAt: string
+    terms: LegalDocument
+    privacy: LegalDocument
   }
   onboarding: {
     title: string
@@ -134,6 +155,8 @@ export type Messages = {
     join: string
     close: string
     role: string
+    roleViewer: string
+    roleEditor: string
     inviteTitle: string
     emailPlaceholder: string
     sendInvite: string
