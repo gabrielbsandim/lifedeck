@@ -10,6 +10,12 @@ const TOKENS: Record<string, string> = {
 const PATTERN_SOURCE =
   '\\*\\*(.+?)\\*\\*|\\[(.+?)\\]\\((.+?)\\)|\\{(email|company|cnpj)\\}'
 
+// Only allow same-origin paths and http(s)/mailto links; anything else
+// (e.g. a javascript: scheme) renders as plain text.
+function isSafeHref(href: string): boolean {
+  return /^(\/|https?:\/\/|mailto:)/i.test(href)
+}
+
 export function renderRichText(text: string): ReactNode {
   const nodes: ReactNode[] = []
   let lastIndex = 0
@@ -28,9 +34,13 @@ export function renderRichText(text: string): ReactNode {
       nodes.push(<strong key={key++}>{renderRichText(bold)}</strong>)
     } else if (linkLabel !== undefined && linkHref !== undefined) {
       nodes.push(
-        <a key={key++} href={linkHref}>
-          {linkLabel}
-        </a>,
+        isSafeHref(linkHref) ? (
+          <a key={key++} href={linkHref}>
+            {linkLabel}
+          </a>
+        ) : (
+          <span key={key++}>{linkLabel}</span>
+        ),
       )
     } else if (token === 'email') {
       nodes.push(

@@ -22,6 +22,7 @@ export class PrismaTaskRepository implements TaskRepository {
         carriedFromDate: record.carriedFromDate,
         carriedForwardAt: record.carriedForwardAt,
         completedAt: record.completedAt,
+        recurringTaskId: record.recurringTaskId,
       },
     })
   }

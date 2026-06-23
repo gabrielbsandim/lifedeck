@@ -19,22 +19,23 @@ import {
 function describeRule(
   rule: RecurringTaskView['rule'],
   locale: string,
-  every: string,
+  t: { interval: string; daily: string; weekly: string; monthly: string },
 ): string {
   const labels = weekdayLabels(locale)
+  const every = t.interval
   if (rule.freq === 'weekly') {
     const days =
       rule.byWeekday && rule.byWeekday.length > 0
         ? rule.byWeekday.map(day => labels[day]).join(', ')
         : ''
-    const base = rule.interval > 1 ? `${every} ${rule.interval} ×` : 'Weekly'
+    const base = rule.interval > 1 ? `${every} ${rule.interval} ×` : t.weekly
     return days ? `${base} · ${days}` : base
   }
   if (rule.freq === 'monthly') {
-    const base = rule.interval > 1 ? `${every} ${rule.interval} ×` : 'Monthly'
+    const base = rule.interval > 1 ? `${every} ${rule.interval} ×` : t.monthly
     return rule.byMonthday ? `${base} · ${rule.byMonthday}` : base
   }
-  return rule.interval > 1 ? `${every} ${rule.interval} ×` : 'Daily'
+  return rule.interval > 1 ? `${every} ${rule.interval} ×` : t.daily
 }
 
 export function RecurringTasksManager() {
@@ -122,7 +123,7 @@ export function RecurringTasksManager() {
                       {describeRule(
                         definition.rule,
                         locale,
-                        messages.recurring.interval,
+                        messages.recurring,
                       )}
                     </p>
                   </div>

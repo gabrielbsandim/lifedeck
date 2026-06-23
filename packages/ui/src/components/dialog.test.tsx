@@ -38,6 +38,47 @@ describe('Dialog', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
+  it('moves focus into the dialog on open and restores it on close', () => {
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+    expect(document.activeElement).toBe(trigger)
+
+    const { rerender } = render(
+      <Dialog open onClose={() => {}} title="Edit task">
+        <button>Inside</button>
+      </Dialog>,
+    )
+    expect(screen.getByRole('dialog')).toHaveFocus()
+
+    rerender(
+      <Dialog open={false} onClose={() => {}} title="Edit task">
+        <button>Inside</button>
+      </Dialog>,
+    )
+    expect(document.activeElement).toBe(trigger)
+    trigger.remove()
+  })
+
+  it('traps Tab focus within the dialog', async () => {
+    const user = userEvent.setup()
+    render(
+      <Dialog open onClose={() => {}} title="Edit task">
+        <button>First</button>
+        <button>Last</button>
+      </Dialog>,
+    )
+    const first = screen.getByRole('button', { name: 'First' })
+    const last = screen.getByRole('button', { name: 'Last' })
+
+    last.focus()
+    await user.tab()
+    expect(first).toHaveFocus()
+
+    await user.tab({ shift: true })
+    expect(last).toHaveFocus()
+  })
+
   it('closes on overlay click but not on content click', async () => {
     const onClose = vi.fn()
     render(

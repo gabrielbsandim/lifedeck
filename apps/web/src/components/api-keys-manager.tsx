@@ -94,6 +94,7 @@ export function ApiKeysManager() {
             href="/docs"
             className="text-brand-600 text-sm font-medium"
             target="_blank"
+            rel="noopener noreferrer"
           >
             {t.docsLink} →
           </Link>
