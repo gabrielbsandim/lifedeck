@@ -90,6 +90,7 @@ import {
   prisma,
 } from '@lifedeck/infrastructure'
 import { createRedisHealthProbe } from '@/server/api/redis-health-probe'
+import { siteUrl } from '@/lib/site'
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
@@ -359,7 +360,7 @@ function buildGoogleProvider(): GoogleOAuthProvider {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
     redirectUri:
       process.env.GOOGLE_REDIRECT_URI ??
-      'http://localhost:3000/api/v1/auth/google/callback',
+      `${siteUrl()}/api/v1/auth/google/callback`,
   })
 }
 
