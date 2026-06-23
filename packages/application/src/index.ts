@@ -14,6 +14,7 @@ export type {
   EmailLocale,
   DailyDigestSummary,
 } from '@/ports/email-sender'
+export { toEmailLocale } from '@/ports/email-sender'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 export type {

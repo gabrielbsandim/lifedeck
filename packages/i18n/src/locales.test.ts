@@ -14,6 +14,7 @@ describe('locales', () => {
   it('recognizes supported and rejects unsupported locales', () => {
     expect(isLocale('en')).toBe(true)
     expect(isLocale('pt')).toBe(true)
+    expect(isLocale('es')).toBe(true)
     expect(isLocale('fr')).toBe(false)
   })
 })
@@ -27,10 +28,12 @@ describe('resolveLocale', () => {
   it('resolves regional variants by their explicit tag', () => {
     expect(resolveLocale('en-GB')).toBe('en')
     expect(resolveLocale('pt-BR')).toBe('pt')
+    expect(resolveLocale('es-MX')).toBe('es')
   })
 
   it('resolves an unlisted regional variant by its base', () => {
     expect(resolveLocale('pt-AO')).toBe('pt')
+    expect(resolveLocale('es-PE')).toBe('es')
   })
 
   it('returns null for unsupported and empty tags', () => {

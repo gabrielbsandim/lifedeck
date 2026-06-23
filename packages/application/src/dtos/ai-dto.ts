@@ -7,7 +7,7 @@ export const generationBriefSchema = z.object({
   scale: z.enum(['small', 'medium', 'large']),
   peopleInvolved: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
   description: z.string().trim().min(1).max(2000),
-  locale: z.enum(['en', 'pt']).default('en'),
+  locale: z.enum(['en', 'pt', 'es']).default('en'),
 })
 
 export type GenerationBrief = z.infer<typeof generationBriefSchema>

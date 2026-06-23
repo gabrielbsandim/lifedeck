@@ -1,6 +1,6 @@
 import { asEntityId } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
-import type { EmailLocale, EmailSender } from '@/ports/email-sender'
+import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import type { UserRepository } from '@/ports/user-repository'
 import type { DailyBoardView } from '@/use-cases/get-daily-board'
 
@@ -41,7 +41,7 @@ export function makeSendDailyDigest({
       .filter(task => task.status === 'pending')
       .map(task => task.title)
 
-    const locale: EmailLocale = user.locale === 'pt' ? 'pt' : 'en'
+    const locale = toEmailLocale(user.locale)
     await emailSender.sendDailyDigest(
       user.email,
       { date, total, completed, pendingTitles },

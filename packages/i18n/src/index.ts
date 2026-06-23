@@ -1,5 +1,6 @@
 import { en } from '@/messages/en'
 import { pt } from '@/messages/pt'
+import { es } from '@/messages/es'
 import type { Messages } from '@/messages/types'
 import type { Locale } from '@/locales'
 
@@ -18,7 +19,7 @@ export type {
   LegalBlock,
 } from '@/messages/types'
 
-export const messages: Record<Locale, Messages> = { en, pt }
+export const messages: Record<Locale, Messages> = { en, pt, es }
 
 export function getMessages(locale: Locale): Messages {
   return messages[locale]

@@ -1,4 +1,4 @@
-export const SUPPORTED_LOCALES = ['en', 'pt'] as const
+export const SUPPORTED_LOCALES = ['en', 'pt', 'es'] as const
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number]
 
@@ -11,6 +11,7 @@ export function isLocale(value: string): value is Locale {
 const LOCALE_TAGS: Record<Locale, string[]> = {
   en: ['en', 'en-us', 'en-gb', 'en-au', 'en-ca'],
   pt: ['pt', 'pt-br', 'pt-pt'],
+  es: ['es', 'es-es', 'es-mx', 'es-ar', 'es-co', 'es-cl', 'es-419'],
 }
 
 export function resolveLocale(tag: string): Locale | null {

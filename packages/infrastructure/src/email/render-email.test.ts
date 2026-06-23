@@ -84,6 +84,53 @@ describe('renderEmail', () => {
     expect(email.html).toContain('Tudo concluído')
   })
 
+  it('renders every template in Spanish', () => {
+    const verification = renderEmail(
+      {
+        type: 'verification-code',
+        data: { code: '123456', appName: 'Lifedeck' },
+      },
+      'es',
+    )
+    expect(verification.subject).toBe('Tu código de verificación de Lifedeck')
+    expect(verification.html).toContain('Confirma tu correo')
+
+    const invitation = renderEmail(
+      {
+        type: 'list-invitation',
+        data: { listTitle: 'Boda', url: 'https://lifedeck.app/s/abc' },
+      },
+      'es',
+    )
+    expect(invitation.subject).toContain('Boda')
+    expect(invitation.html).toContain('Abrir la lista')
+
+    const assignment = renderEmail(
+      {
+        type: 'task-assignment',
+        data: { taskTitle: 'Reservar lugar', listTitle: 'Boda' },
+      },
+      'es',
+    )
+    expect(assignment.subject).toContain('Reservar lugar')
+    expect(assignment.html).toContain('Una tarea es tuya')
+
+    const digest = renderEmail(
+      {
+        type: 'daily-digest',
+        data: {
+          date: '2026-06-22',
+          total: 3,
+          completed: 1,
+          pendingTitles: ['Elegir pastel'],
+        },
+      },
+      'es',
+    )
+    expect(digest.subject).toBe('Tu resumen diario de Lifedeck')
+    expect(digest.html).toContain('Aún pendientes:')
+  })
+
   it('renders a task assignment email (en and pt)', () => {
     const en = renderEmail({
       type: 'task-assignment',

@@ -74,7 +74,7 @@ export function AiGenerator() {
       category,
       scale,
       description: trimmed,
-      locale: locale === 'pt' ? 'pt' : 'en',
+      locale,
       ...(title.trim() ? { title: title.trim() } : {}),
       ...(targetDate ? { targetDate } : {}),
     }

@@ -37,6 +37,11 @@ const VERIFICATION_COPY: Record<EmailLocale, VerificationCopy> = {
     title: 'Confirme seu e-mail',
     intro: 'Use este código para concluir o acesso:',
   },
+  es: {
+    subject: appName => `Tu código de verificación de ${appName}`,
+    title: 'Confirma tu correo',
+    intro: 'Usa este código para completar el acceso:',
+  },
 }
 
 type AssignmentCopy = {
@@ -58,6 +63,12 @@ const ASSIGNMENT_COPY: Record<EmailLocale, AssignmentCopy> = {
     body: (taskTitle, listTitle) =>
       `<p>Você foi designado para <strong>${taskTitle}</strong> em <strong>${listTitle}</strong>.</p>`,
   },
+  es: {
+    subject: taskTitle => `Se te asignó "${taskTitle}"`,
+    title: 'Una tarea es tuya',
+    body: (taskTitle, listTitle) =>
+      `<p>Se te asignó <strong>${taskTitle}</strong> en <strong>${listTitle}</strong>.</p>`,
+  },
 }
 
 const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
@@ -72,6 +83,12 @@ const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
     title: 'Uma lista espera por você',
     body: (listTitle, url) =>
       `<p>Você pode colaborar em <strong>${listTitle}</strong>.</p><p><a href="${url}">Abrir a lista</a></p>`,
+  },
+  es: {
+    subject: listTitle => `Te invitaron a "${listTitle}"`,
+    title: 'Una lista te espera',
+    body: (listTitle, url) =>
+      `<p>Puedes colaborar en <strong>${listTitle}</strong>.</p><p><a href="${url}">Abrir la lista</a></p>`,
   },
 }
 
@@ -99,6 +116,14 @@ const DIGEST_COPY: Record<EmailLocale, DigestCopy> = {
       `Você concluiu ${completed} de ${total} tarefas.`,
     pendingLabel: 'Ainda pendentes:',
     allDone: 'Tudo concluído. Ótimo trabalho! 🎉',
+  },
+  es: {
+    subject: 'Tu resumen diario de Lifedeck',
+    title: 'Hoy en Lifedeck',
+    summary: (completed, total) =>
+      `Completaste ${completed} de ${total} tareas.`,
+    pendingLabel: 'Aún pendientes:',
+    allDone: 'Todo completado. ¡Buen trabajo! 🎉',
   },
 }
 

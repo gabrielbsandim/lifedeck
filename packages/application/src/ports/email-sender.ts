@@ -1,4 +1,14 @@
-export type EmailLocale = 'en' | 'pt'
+export type EmailLocale = 'en' | 'pt' | 'es'
+
+export function toEmailLocale(locale: string): EmailLocale {
+  if (locale === 'pt') {
+    return 'pt'
+  }
+  if (locale === 'es') {
+    return 'es'
+  }
+  return 'en'
+}
 
 export type DailyDigestSummary = {
   date: string

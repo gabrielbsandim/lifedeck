@@ -264,8 +264,11 @@ Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
       Nova landing-page footer.
 - [ ] Full manual QA pass with Playwright MCP: exercise every single feature, screen,
       UI/UX detail, and responsive breakpoint - exhaustively, nothing skipped.
-- [ ] Add Spanish (es) as a third first-class locale alongside English and Portuguese
-      (catalogs, `resolveLocale` map, backend `Accept-Language` localization).
+- [x] Add Spanish (es) as a third first-class locale alongside English and Portuguese.
+      Full `es` UI catalog + localized legal docs (`legal-es.ts`), `resolveLocale`
+      tags, AI generation locale (`es`), and email templates (verification, invitation,
+      assignment, digest) via a shared `toEmailLocale` mapper. All user-facing copy now
+      flows through the i18n catalog (legal pages included).
 - [ ] Documentation overhaul: critically review every doc - the white-label API docs,
       README, all `*.md` - so the whole project reads polished and professional.
 - [ ] Full code review: read every file and line, fix any issue, and ensure the

@@ -13,7 +13,7 @@ import { toTaskView } from '@/mappers/task-mapper'
 import { resolveListAccess } from '@/access/list-access'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
-import type { EmailLocale, EmailSender } from '@/ports/email-sender'
+import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
@@ -137,7 +137,7 @@ export function makeUpdateTask({
     if (!user?.email) {
       return
     }
-    const locale: EmailLocale = user.locale === 'pt' ? 'pt' : 'en'
+    const locale = toEmailLocale(user.locale)
     await emailSender.sendTaskAssignment(
       user.email,
       taskTitle,
