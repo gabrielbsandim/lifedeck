@@ -17,6 +17,9 @@ export default mergeConfig(
   }),
   defineConfig({
     plugins: [react()],
+    test: {
+      exclude: ['e2e/**', 'node_modules/**', 'dist/**', '.next/**'],
+    },
     resolve: {
       alias: {
         '@': new URL('./src', import.meta.url).pathname,

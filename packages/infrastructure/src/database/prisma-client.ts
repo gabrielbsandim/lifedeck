@@ -7,12 +7,14 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient(): PrismaClient {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-  const adapter = new PrismaNeon(pool)
-  return new PrismaClient({
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  })
+  const url = process.env.DATABASE_URL ?? ''
+  const log: ('error' | 'warn')[] =
+    process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
+  if (url.includes('neon.tech')) {
+    const pool = new Pool({ connectionString: url })
+    return new PrismaClient({ adapter: new PrismaNeon(pool), log })
+  }
+  return new PrismaClient({ log })
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()

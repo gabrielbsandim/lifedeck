@@ -18,6 +18,11 @@ apps/web/public/sw.js
 apps/web/public/sw.js.map
 apps/web/public/swe-worker-*.js
 
+# Playwright
+test-results
+playwright-report
+.playwright-mcp
+
 # Test / coverage
 coverage
 .vitest
