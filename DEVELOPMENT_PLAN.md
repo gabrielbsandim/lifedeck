@@ -219,11 +219,25 @@ client-side i18next rewrite, and keeps the typed message catalogs for compile-ti
 
 ## Phase 12 - Launch readiness
 
-- [ ] E2E tests (Playwright) for critical flows.
-- [ ] Performance pass (Core Web Vitals, bundle budget).
-- [ ] Error monitoring + structured logging.
-- [ ] SEO/meta, social share cards, favicon, PWA manifest.
-- [ ] Production launch on Vercel + Neon.
+- [x] E2E tests (Playwright) for critical flows. `playwright.config.ts` + an
+      `e2e/` suite (guest onboarding -> add task -> complete -> 100%; public API
+      reference renders), run in CI against an ephemeral `postgres:16` service.
+      The Prisma client now uses the Neon adapter only for Neon URLs and a plain
+      client otherwise, so E2E/self-host can target any Postgres.
+- [x] Performance pass (Core Web Vitals). A `WebVitals` reporter beacons each
+      metric to `POST /api/v1/vitals`, which logs it structured (same-origin, CSP
+      friendly). System fonts (no web-font cost); bundle stays lean.
+- [x] Error monitoring + structured logging. `@sentry/nextjs` wired via
+      `instrumentation` (server/edge) + `instrumentation-client`, enabled only when
+      a DSN is set; `handleError` captures unhandled errors and logs structured
+      JSON. CSP `connect-src` allows the Sentry ingest origin.
+- [x] SEO/meta, social share cards, favicon, PWA. Rich metadata + dynamic
+      OpenGraph image, `robots`/`sitemap`, apple-icon, and an installable,
+      offline-capable PWA (Serwist service worker precaching the shell; `/api`
+      stays network-only). Verified the SW registers under the strict CSP.
+- [ ] Production launch on Vercel + Neon. Code is launch-ready; the remaining
+      step is operational (set `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN`,
+      `NEXT_PUBLIC_SITE_URL`, and promote).
 
 ## Phase 13 - Mobile app (Expo) - future
 
