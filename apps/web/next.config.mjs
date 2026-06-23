@@ -13,13 +13,24 @@ const securityHeaders = [
   },
 ]
 
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import withSerwistInit from '@serwist/next'
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url))
+const monorepoRoot = path.join(projectRoot, '..', '..')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
-  serverExternalPackages: ['@node-rs/argon2', '@sentry/nextjs'],
+  outputFileTracingRoot: monorepoRoot,
+  serverExternalPackages: [
+    '@node-rs/argon2',
+    '@prisma/client',
+    'prisma',
+    '@sentry/nextjs',
+  ],
   webpack(config, { isServer }) {
     if (isServer) {
       config.externals = [
