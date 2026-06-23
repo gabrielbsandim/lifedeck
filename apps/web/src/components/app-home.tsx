@@ -2,6 +2,7 @@
 
 import { Skeleton } from '@lifedeck/ui'
 import { useSession } from '@/lib/api/use-session'
+import { useSyncTimezone } from '@/lib/api/use-account'
 import { todayIso } from '@/lib/api/dates'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { DailyBoard } from '@/components/daily-board'
@@ -13,6 +14,7 @@ const plainMain =
 
 export function AppHome() {
   const session = useSession()
+  useSyncTimezone(session.data)
 
   if (session.isPending) {
     return (

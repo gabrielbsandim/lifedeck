@@ -1,12 +1,25 @@
 import { guard } from '@/shared/guard'
+import { ValidationError } from '@/shared/domain-error'
 import type { EntityId } from '@/shared/id'
 import { Email } from '@/value-objects/email'
 import {
   CARRY_OVER_MODES,
   type CarryOverMode,
 } from '@/value-objects/carry-over-mode'
+import { DEFAULT_TIME_ZONE, isTimeZone } from '@/value-objects/time-zone'
 
 const MAX_DISPLAY_NAME_LENGTH = 80
+
+function normalizeTimeZone(value: string | undefined): string {
+  if (value === undefined) {
+    return DEFAULT_TIME_ZONE
+  }
+  const trimmed = value.trim()
+  if (!isTimeZone(trimmed)) {
+    throw new ValidationError(`Time zone "${value}" is not a valid IANA zone.`)
+  }
+  return trimmed
+}
 
 export type UserProps = {
   id: EntityId
@@ -16,6 +29,7 @@ export type UserProps = {
   emailVerifiedAt: Date | null
   isGuest: boolean
   locale: string
+  timezone: string
   carryOverMode: CarryOverMode
   createdAt: Date
 }
@@ -27,6 +41,7 @@ export class User {
     id: EntityId
     displayName: string
     locale: string
+    timezone?: string
     createdAt: Date
   }): User {
     return new User({
@@ -41,6 +56,7 @@ export class User {
       emailVerifiedAt: null,
       isGuest: true,
       locale: guard.notEmpty(input.locale, 'Locale'),
+      timezone: normalizeTimeZone(input.timezone),
       carryOverMode: 'manual',
       createdAt: input.createdAt,
     })
@@ -82,6 +98,10 @@ export class User {
     return this.props.locale
   }
 
+  get timezone(): string {
+    return this.props.timezone
+  }
+
   get carryOverMode(): CarryOverMode {
     return this.props.carryOverMode
   }
@@ -92,6 +112,10 @@ export class User {
       CARRY_OVER_MODES,
       'Carry-over mode',
     )
+  }
+
+  setTimezone(timezone: string): void {
+    this.props.timezone = normalizeTimeZone(timezone)
   }
 
   rename(displayName: string): void {

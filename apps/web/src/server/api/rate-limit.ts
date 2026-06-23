@@ -21,6 +21,18 @@ const AUTH_LIMIT: LimiterConfig = {
   prefix: 'lifedeck/ratelimit/auth',
 }
 
+const SESSION_LIMIT: LimiterConfig = {
+  requests: 240,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/session',
+}
+
+const GENERATE_LIMIT: LimiterConfig = {
+  requests: 6,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/generate',
+}
+
 export type RateLimitResult = {
   ok: boolean
   limit: number
@@ -81,6 +93,18 @@ export function checkAuthRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
   return check(AUTH_LIMIT, identifier)
+}
+
+export function checkSessionRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(SESSION_LIMIT, identifier)
+}
+
+export function checkGenerateRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(GENERATE_LIMIT, identifier)
 }
 
 export function clientIp(request: Request): string {

@@ -7,7 +7,12 @@ import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
-import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+import {
+  FakeUnitOfWork,
+  FixedClock,
+  ID,
+  SequentialIdGenerator,
+} from '@/testing/fakes'
 
 const T1 = asEntityId('11111111-1111-4111-8111-111111111111')
 const T2 = asEntityId('22222222-2222-4222-8222-222222222222')
@@ -30,7 +35,12 @@ async function setup() {
     ids: new SequentialIdGenerator([T1, T2, T3]),
     clock,
   })
-  const reorderTasks = makeReorderTasks({ tasks, lists, memberships })
+  const reorderTasks = makeReorderTasks({
+    tasks,
+    lists,
+    memberships,
+    unitOfWork: new FakeUnitOfWork(),
+  })
 
   await createList(ID.user, { title: 'Wedding' })
   await createTask(ID.user, { listId: ID.list, title: 'First' })

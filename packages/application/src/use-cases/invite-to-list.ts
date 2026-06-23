@@ -12,6 +12,7 @@ import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { ShareLinkRepository } from '@/ports/share-link-repository'
 import type { TokenGenerator } from '@/ports/token-generator'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 const DAY_MS = 86_400_000
 
@@ -22,6 +23,7 @@ type Dependencies = {
   ids: IdGenerator
   clock: Clock
   emailSender: EmailSender
+  unitOfWork: UnitOfWork
 }
 
 export function makeInviteToList({
@@ -31,6 +33,7 @@ export function makeInviteToList({
   ids,
   clock,
   emailSender,
+  unitOfWork,
 }: Dependencies) {
   return async function inviteToList(
     requesterId: string,
@@ -59,8 +62,10 @@ export function makeInviteToList({
     })
 
     list.setVisibility('link', now)
-    await lists.save(list)
-    await shareLinks.save(link)
+    await unitOfWork.run(async () => {
+      await lists.save(list)
+      await shareLinks.save(link)
+    })
 
     const url = `${appUrl.replace(/\/$/, '')}/share/${link.token}`
     await emailSender.sendListInvitation(

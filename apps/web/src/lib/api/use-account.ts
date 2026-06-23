@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UserView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
+import { browserTimeZone } from '@/lib/api/dates'
 import { sessionKey } from '@/lib/api/use-session'
 
 export function useRenameUser() {
@@ -30,6 +32,33 @@ export function useSetCarryOverMode() {
       void queryClient.invalidateQueries({ queryKey: ['daily-board'] })
     },
   })
+}
+
+export function useSyncTimezone(user: UserView | null | undefined) {
+  const queryClient = useQueryClient()
+  const synced = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+    const detected = browserTimeZone()
+    if (detected === user.timezone || synced.current === detected) {
+      return
+    }
+    synced.current = detected
+    void apiRequest<UserView>('/api/v1/account/timezone', {
+      method: 'PATCH',
+      body: JSON.stringify({ timezone: detected }),
+    })
+      .then(updated => {
+        queryClient.setQueryData(sessionKey, updated)
+        void queryClient.invalidateQueries({ queryKey: ['daily-board'] })
+      })
+      .catch(() => {
+        synced.current = null
+      })
+  }, [user, queryClient])
 }
 
 export function useChangePassword() {

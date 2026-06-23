@@ -50,6 +50,7 @@ model User {
   emailVerified DateTime? @map("email_verified")
   isGuest       Boolean   @default(true) @map("is_guest")
   locale        String    @default("en")
+  timezone      String    @default("UTC")
   carryOverMode String    @default("manual") @map("carry_over_mode")
   createdAt     DateTime  @default(now()) @map("created_at")
 
@@ -146,6 +147,7 @@ model Task {
   assignee  User?          @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   recurring RecurringTask? @relation(fields: [recurringTaskId], references: [id], onDelete: SetNull)
 
+  @@unique([listId, recurringTaskId])
   @@index([listId])
   @@index([recurringTaskId])
   @@map("tasks")

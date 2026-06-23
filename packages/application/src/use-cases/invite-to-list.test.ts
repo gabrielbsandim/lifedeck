@@ -6,6 +6,7 @@ import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 import { FakeEmailSender } from '@/testing/fake-email-sender'
 import {
+  FakeUnitOfWork,
   FixedClock,
   FixedTokenGenerator,
   ID,
@@ -42,6 +43,7 @@ function setup() {
       ids: new SequentialIdGenerator([LINK_ID]),
       clock: new FixedClock(NOW),
       emailSender,
+      unitOfWork: new FakeUnitOfWork(),
     }),
   }
 }

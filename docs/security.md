@@ -46,8 +46,10 @@ Security is a first-class requirement, not a later hardening pass.
   `Referrer-Policy`, `X-Frame-Options: DENY`, and a minimal `Permissions-Policy`.
 - The Scalar API reference is self-hosted (vendored into `public/scalar` at
   build time), so the CSP needs no external script origin.
-- Per-key rate limiting on the API and per-IP rate limiting on auth endpoints,
-  backed by Upstash Redis (a graceful no-op when unconfigured).
+- Per-key rate limiting on the API, per-user rate limiting on first-party
+  cookie traffic (with a tight per-user throttle on AI list generation), and
+  per-IP rate limiting on auth endpoints, backed by Upstash Redis (a graceful
+  no-op when unconfigured).
 
 ## Data protection
 

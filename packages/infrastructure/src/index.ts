@@ -1,6 +1,10 @@
 export { SystemClock } from '@/clock/system-clock'
 export { UuidGenerator } from '@/id/uuid-generator'
 export { prisma } from '@/database/prisma-client'
+export {
+  PrismaUnitOfWork,
+  createTransactionalClient,
+} from '@/database/prisma-unit-of-work'
 export { PrismaTaskRepository } from '@/database/prisma-task-repository'
 export { PrismaUserRepository } from '@/database/prisma-user-repository'
 export { PrismaListRepository } from '@/database/prisma-list-repository'

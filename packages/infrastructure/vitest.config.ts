@@ -11,6 +11,7 @@ export default mergeConfig(
         'src/**/index.ts',
         'src/**/*.types.ts',
         'src/database/prisma-client.ts',
+        'src/database/prisma-unit-of-work.ts',
         'src/database/prisma-task-repository.ts',
         'src/database/prisma-user-repository.ts',
         'src/database/prisma-list-repository.ts',

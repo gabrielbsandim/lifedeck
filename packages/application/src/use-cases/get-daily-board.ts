@@ -1,4 +1,11 @@
-import { List, Task, asEntityId, occursOn } from '@lifedeck/domain'
+import {
+  List,
+  Task,
+  asEntityId,
+  occursOn,
+  startOfCivilDay,
+  DEFAULT_TIME_ZONE,
+} from '@lifedeck/domain'
 import { z } from 'zod'
 import { type ListView } from '@/dtos/list-dto'
 import { type TaskView } from '@/dtos/task-dto'
@@ -10,14 +17,9 @@ import type { ListRepository } from '@/ports/list-repository'
 import type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 import type { UserRepository } from '@/ports/user-repository'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 const dateSchema = z.string().date()
-
-function startOfUtcDay(date: Date): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  )
-}
 
 function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
@@ -41,6 +43,7 @@ type Dependencies = {
   users: UserRepository
   ids: IdGenerator
   clock: Clock
+  unitOfWork: UnitOfWork
 }
 
 export function makeGetDailyBoard({
@@ -50,6 +53,7 @@ export function makeGetDailyBoard({
   users,
   ids,
   clock,
+  unitOfWork,
 }: Dependencies) {
   return async function getDailyBoard(
     ownerId: string,
@@ -59,16 +63,21 @@ export function makeGetDailyBoard({
     const owner = asEntityId(ownerId)
     const referenceDate = new Date(`${day}T00:00:00.000Z`)
 
+    const user = await users.findById(owner)
+    const timezone = user?.timezone ?? DEFAULT_TIME_ZONE
+
     const list =
       (await lists.findDailyByOwnerAndDate(owner, referenceDate)) ??
       (await provisionDailyList())
 
     let carryOver: CarryOverCandidate[] = []
-    if (referenceDate.getTime() === startOfUtcDay(clock.now()).getTime()) {
-      const user = await users.findById(owner)
+    if (
+      referenceDate.getTime() ===
+      startOfCivilDay(clock.now(), timezone).getTime()
+    ) {
       const candidates = await collectCandidates()
       if ((user?.carryOverMode ?? 'manual') === 'auto') {
-        await autoCarry(list, candidates)
+        await unitOfWork.run(() => autoCarry(list, candidates))
       } else {
         carryOver = candidates.map(candidate => ({
           task: toTaskView(candidate.task),
@@ -77,7 +86,7 @@ export function makeGetDailyBoard({
       }
     }
 
-    await materializeRecurring(list)
+    await unitOfWork.run(() => materializeRecurring(list))
 
     const items = await tasks.listByList(list.id)
     return {

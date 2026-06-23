@@ -53,8 +53,11 @@ The session cookie is implicitly granted every scope.
 ### Rate limiting
 
 API-key requests are rate limited **per key** (sliding window, 60 requests per
-60 seconds by default). Responses carry `X-RateLimit-Limit`,
-`X-RateLimit-Remaining`, and `X-RateLimit-Reset`; exceeding the window returns
+60 seconds by default). Cookie-authenticated (first-party UI) traffic is rate
+limited **per user** under a looser session window (240 requests per 60
+seconds), and AI list generation carries a tight **per-user** throttle (6
+requests per 60 seconds) on top of that. Responses carry `X-RateLimit-Limit`,
+`X-RateLimit-Remaining`, and `X-RateLimit-Reset`; exceeding any window returns
 `429 RATE_LIMITED`. Rate limiting is backed by Upstash Redis and is a no-op when
 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset (local dev).
 

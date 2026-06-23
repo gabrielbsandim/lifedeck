@@ -10,6 +10,7 @@ import type { EmailVerificationRepository } from '@/ports/email-verification-rep
 import type { IdGenerator } from '@/ports/id-generator'
 import type { PasswordHasher } from '@/ports/password-hasher'
 import type { UserRepository } from '@/ports/user-repository'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 type Dependencies = {
   users: UserRepository
@@ -19,6 +20,7 @@ type Dependencies = {
   emailSender: EmailSender
   ids: IdGenerator
   clock: Clock
+  unitOfWork: UnitOfWork
 }
 
 export function makeRequestEmailVerification({
@@ -29,6 +31,7 @@ export function makeRequestEmailVerification({
   emailSender,
   ids,
   clock,
+  unitOfWork,
 }: Dependencies) {
   return async function requestEmailVerification(
     userId: string,
@@ -54,6 +57,7 @@ export function makeRequestEmailVerification({
       ids,
       clock,
       locale,
+      unitOfWork,
     })
 
     return toUserView(user)

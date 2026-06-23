@@ -41,6 +41,7 @@ import {
   makeRevokeShareLink,
   makeSendDailyDigest,
   makeSetCarryOverMode,
+  makeSetTimezone,
   makeSignInWithEmail,
   makeSignInWithGoogle,
   makeUpdateRecurringTask,
@@ -61,6 +62,7 @@ import {
   type RecurringTaskRepository,
   type ShareLinkRepository,
   type TaskRepository,
+  type UnitOfWork,
   type UserRepository,
 } from '@lifedeck/application'
 import {
@@ -87,6 +89,8 @@ import {
   StubListGenerator,
   SystemClock,
   UuidGenerator,
+  PrismaUnitOfWork,
+  createTransactionalClient,
   prisma,
 } from '@lifedeck/infrastructure'
 import { createRedisHealthProbe } from '@/server/api/redis-health-probe'
@@ -117,6 +121,7 @@ type Container = {
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
   bringTaskToToday: ReturnType<typeof makeBringTaskToToday>
   setCarryOverMode: ReturnType<typeof makeSetCarryOverMode>
+  setTimezone: ReturnType<typeof makeSetTimezone>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
   listRecurringTasks: ReturnType<typeof makeListRecurringTasks>
   updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
@@ -185,6 +190,7 @@ function build(
     listGenerator,
     healthProbes,
   }: Services,
+  unitOfWork: UnitOfWork,
 ): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
@@ -197,6 +203,7 @@ function build(
     users,
     ids,
     clock,
+    unitOfWork,
   })
   return {
     createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
@@ -221,6 +228,7 @@ function build(
       emailSender,
       ids,
       clock,
+      unitOfWork,
     }),
     requestEmailVerification: makeRequestEmailVerification({
       users,
@@ -230,6 +238,7 @@ function build(
       emailSender,
       ids,
       clock,
+      unitOfWork,
     }),
     verifyEmail: makeVerifyEmail({ users, emailVerifications, hasher, clock }),
     signInWithEmail: makeSignInWithEmail({ users, hasher }),
@@ -250,12 +259,20 @@ function build(
     createList: makeCreateList({ lists, ids, clock }),
     renameList: makeRenameList({ lists, clock }),
     deleteList: makeDeleteList({ lists }),
-    reorderTasks: makeReorderTasks({ tasks, lists, memberships }),
+    reorderTasks: makeReorderTasks({ tasks, lists, memberships, unitOfWork }),
     getList: makeGetList({ lists, memberships }),
     listUserLists: makeListUserLists({ lists }),
     getDailyBoard,
-    bringTaskToToday: makeBringTaskToToday({ lists, tasks, ids, clock }),
+    bringTaskToToday: makeBringTaskToToday({
+      lists,
+      tasks,
+      users,
+      ids,
+      clock,
+      unitOfWork,
+    }),
     setCarryOverMode: makeSetCarryOverMode({ users }),
+    setTimezone: makeSetTimezone({ users }),
     createRecurringTask: makeCreateRecurringTask({
       recurringTasks,
       ids,
@@ -278,6 +295,7 @@ function build(
       ids,
       clock,
       emailSender,
+      unitOfWork,
     }),
     listShareLinks: makeListShareLinks({ shareLinks, lists }),
     revokeShareLink: makeRevokeShareLink({ shareLinks, lists }),
@@ -289,6 +307,7 @@ function build(
       users,
       ids,
       clock,
+      unitOfWork,
     }),
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
@@ -368,18 +387,19 @@ let container: Container | null = null
 
 export function getContainer(): Container {
   if (!container) {
+    const db = createTransactionalClient(prisma)
     container = build(
       {
-        tasks: new PrismaTaskRepository(prisma),
-        users: new PrismaUserRepository(prisma),
-        lists: new PrismaListRepository(prisma),
-        recurringTasks: new PrismaRecurringTaskRepository(prisma),
-        shareLinks: new PrismaShareLinkRepository(prisma),
-        memberships: new PrismaMembershipRepository(prisma),
-        emailVerifications: new PrismaEmailVerificationRepository(prisma),
-        analytics: new PrismaAnalyticsRepository(prisma),
-        notifications: new PrismaNotificationRepository(prisma),
-        apiKeys: new PrismaApiKeyRepository(prisma),
+        tasks: new PrismaTaskRepository(db),
+        users: new PrismaUserRepository(db),
+        lists: new PrismaListRepository(db),
+        recurringTasks: new PrismaRecurringTaskRepository(db),
+        shareLinks: new PrismaShareLinkRepository(db),
+        memberships: new PrismaMembershipRepository(db),
+        emailVerifications: new PrismaEmailVerificationRepository(db),
+        analytics: new PrismaAnalyticsRepository(db),
+        notifications: new PrismaNotificationRepository(db),
+        apiKeys: new PrismaApiKeyRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),
@@ -389,6 +409,7 @@ export function getContainer(): Container {
         listGenerator: buildListGenerator(),
         healthProbes: buildHealthProbes(),
       },
+      new PrismaUnitOfWork(prisma),
     )
   }
   return container

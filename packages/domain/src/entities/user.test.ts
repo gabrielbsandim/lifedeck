@@ -55,6 +55,25 @@ describe('User', () => {
     expect(User.restore(props).toJSON()).toEqual(props)
   })
 
+  it('defaults to the UTC timezone and updates it with validation', () => {
+    const user = createGuest()
+    expect(user.timezone).toBe('UTC')
+    user.setTimezone('America/Sao_Paulo')
+    expect(user.timezone).toBe('America/Sao_Paulo')
+    expect(() => user.setTimezone('Mars/Phobos')).toThrow(ValidationError)
+  })
+
+  it('accepts an explicit timezone at creation', () => {
+    const user = User.createGuest({
+      id: ID,
+      displayName: 'Gabriel',
+      locale: 'en',
+      timezone: 'Europe/Lisbon',
+      createdAt: CREATED_AT,
+    })
+    expect(user.timezone).toBe('Europe/Lisbon')
+  })
+
   it('defaults to manual carry-over and updates it with validation', () => {
     const user = createGuest()
     expect(user.carryOverMode).toBe('manual')

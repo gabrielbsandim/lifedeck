@@ -1,4 +1,10 @@
-import { List, Task, asEntityId } from '@lifedeck/domain'
+import {
+  List,
+  Task,
+  asEntityId,
+  startOfCivilDay,
+  DEFAULT_TIME_ZONE,
+} from '@lifedeck/domain'
 import { type TaskView } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
 import { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
@@ -6,25 +12,25 @@ import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { TaskRepository } from '@/ports/task-repository'
-
-function startOfUtcDay(date: Date): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  )
-}
+import type { UserRepository } from '@/ports/user-repository'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 type Dependencies = {
   lists: ListRepository
   tasks: TaskRepository
+  users: UserRepository
   ids: IdGenerator
   clock: Clock
+  unitOfWork: UnitOfWork
 }
 
 export function makeBringTaskToToday({
   lists,
   tasks,
+  users,
   ids,
   clock,
+  unitOfWork,
 }: Dependencies) {
   return async function bringTaskToToday(
     requesterId: string,
@@ -43,7 +49,11 @@ export function makeBringTaskToToday({
 
     const sourceProps = sourceList.toJSON()
     const taskProps = task.toJSON()
-    const today = startOfUtcDay(clock.now())
+    const user = await users.findById(owner)
+    const today = startOfCivilDay(
+      clock.now(),
+      user?.timezone ?? DEFAULT_TIME_ZONE,
+    )
 
     if (
       sourceProps.type !== 'daily' ||
@@ -60,24 +70,27 @@ export function makeBringTaskToToday({
       throw new ForbiddenError('This task cannot be brought forward.')
     }
 
-    const todayList =
-      (await lists.findDailyByOwnerAndDate(owner, today)) ??
-      (await provisionToday())
+    const copy = await unitOfWork.run(async () => {
+      const todayList =
+        (await lists.findDailyByOwnerAndDate(owner, today)) ??
+        (await provisionToday())
 
-    const position = (await tasks.listByList(todayList.id)).length
-    const copy = Task.create({
-      id: ids.generate(),
-      listId: todayList.id,
-      title: taskProps.title,
-      observation: taskProps.observation,
-      carriedFromDate: sourceProps.referenceDate,
-      position,
-      createdAt: clock.now(),
+      const position = (await tasks.listByList(todayList.id)).length
+      const created = Task.create({
+        id: ids.generate(),
+        listId: todayList.id,
+        title: taskProps.title,
+        observation: taskProps.observation,
+        carriedFromDate: sourceProps.referenceDate,
+        position,
+        createdAt: clock.now(),
+      })
+
+      task.markCarriedForward(clock.now())
+      await tasks.save(task)
+      await tasks.save(created)
+      return created
     })
-
-    task.markCarriedForward(clock.now())
-    await tasks.save(task)
-    await tasks.save(copy)
 
     return toTaskView(copy)
 

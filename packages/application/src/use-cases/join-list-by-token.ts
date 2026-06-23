@@ -8,6 +8,7 @@ import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
 import type { ShareLinkRepository } from '@/ports/share-link-repository'
 import type { UserRepository } from '@/ports/user-repository'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 type Dependencies = {
   shareLinks: ShareLinkRepository
@@ -16,6 +17,7 @@ type Dependencies = {
   users: UserRepository
   ids: IdGenerator
   clock: Clock
+  unitOfWork: UnitOfWork
 }
 
 export function makeJoinListByToken({
@@ -25,6 +27,7 @@ export function makeJoinListByToken({
   users,
   ids,
   clock,
+  unitOfWork,
 }: Dependencies) {
   return async function joinListByToken(
     requesterId: string,
@@ -45,19 +48,21 @@ export function makeJoinListByToken({
     const user = await users.findById(userId)
     const displayName = user?.displayName ?? 'Member'
 
-    const existing = await memberships.findByListAndUser(list.id, userId)
-    if (existing) {
-      return toMemberView(existing, displayName)
-    }
-
-    const member = ListMember.create({
-      id: ids.generate(),
-      listId: list.id,
-      userId,
-      role: link.role,
-      addedAt: now,
+    const member = await unitOfWork.run(async () => {
+      const existing = await memberships.findByListAndUser(list.id, userId)
+      if (existing) {
+        return existing
+      }
+      const created = ListMember.create({
+        id: ids.generate(),
+        listId: list.id,
+        userId,
+        role: link.role,
+        addedAt: now,
+      })
+      await memberships.save(created)
+      return created
     })
-    await memberships.save(member)
 
     return toMemberView(member, displayName)
   }

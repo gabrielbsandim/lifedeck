@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { Button, Card, Logo, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateGuest } from '@/lib/api/use-session'
+import { browserTimeZone } from '@/lib/api/dates'
 import { AuthDialog } from '@/components/auth-dialog'
 
 export function OnboardingCard() {
@@ -18,7 +19,7 @@ export function OnboardingCard() {
     if (!displayName) {
       return
     }
-    createGuest.mutate({ displayName, locale })
+    createGuest.mutate({ displayName, locale, timezone: browserTimeZone() })
   }
 
   return (

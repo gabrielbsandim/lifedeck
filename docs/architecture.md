@@ -35,15 +35,26 @@ to test.
 
 Orchestrates the domain to fulfil use cases. A use case is a factory
 (`makeCreateTask`) that receives its dependencies as **ports** (interfaces such
-as `TaskRepository`, `Clock`, `IdGenerator`) and returns a single async
-function. Input is validated with `zod` DTOs; output is mapped to plain view
-objects. The application layer never imports Prisma, Next, or Resend.
+as `TaskRepository`, `Clock`, `IdGenerator`, `UnitOfWork`) and returns a single
+async function. Input is validated with `zod` DTOs; output is mapped to plain
+view objects. The application layer never imports Prisma, Next, or Resend.
+
+Multi-write flows (auto carry-over, bring-to-today, invite, join, reorder,
+registration) wrap their writes in `unitOfWork.run(...)` so they commit
+atomically. The port is deliberately minimal (`run<T>(work) => Promise<T>`);
+side effects such as sending email stay **outside** the transaction.
 
 ### `@lifedeck/infrastructure`
 
 Concrete adapters that **implement** the application ports: `PrismaTaskRepository`,
 `SystemClock`, `UuidGenerator`, `ResendEmailSender`. This is the only layer that
 talks to the database, the clock, the network, or the file system.
+
+`PrismaUnitOfWork` implements the `UnitOfWork` port with `prisma.$transaction`.
+Repositories receive a transactional proxy of the Prisma client
+(`createTransactionalClient`) backed by `AsyncLocalStorage`: inside a
+`unitOfWork.run`, every repository call is transparently routed to the active
+transaction client, so the repositories themselves stay transaction-unaware.
 
 ### `apps/web`
 

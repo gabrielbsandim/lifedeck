@@ -1,13 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import {
   useChangePassword,
   useDeleteAccount,
   useRenameUser,
   useSetCarryOverMode,
   useSignOut,
+  useSyncTimezone,
 } from '@/lib/api/use-account'
 import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
+import type * as DatesModule from '@/lib/api/dates'
+
+vi.mock('@/lib/api/dates', async original => {
+  const actual = await original<typeof DatesModule>()
+  return { ...actual, browserTimeZone: () => 'America/Sao_Paulo' }
+})
 
 const USER = {
   id: 'a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f',
@@ -17,6 +24,8 @@ const USER = {
   isEmailVerified: true,
   hasPassword: true,
   locale: 'en',
+  timezone: 'UTC',
+  carryOverMode: 'manual' as const,
   createdAt: '2026-06-22T10:00:00.000Z',
 }
 
@@ -89,5 +98,38 @@ describe('account hooks', () => {
       '/api/v1/account',
       expect.objectContaining({ method: 'DELETE' }),
     )
+  })
+
+  it('syncs the detected timezone when it differs', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ...USER, timezone: 'America/Sao_Paulo' },
+    })
+    const { Wrapper } = createWrapper()
+    renderHook(() => useSyncTimezone(USER), { wrapper: Wrapper })
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/v1/account/timezone',
+        expect.objectContaining({ method: 'PATCH' }),
+      ),
+    )
+  })
+
+  it('does not sync when the timezone already matches', async () => {
+    const fetchMock = mockFetchOnce({ data: USER })
+    const { Wrapper } = createWrapper()
+    renderHook(
+      () => useSyncTimezone({ ...USER, timezone: 'America/Sao_Paulo' }),
+      { wrapper: Wrapper },
+    )
+    await Promise.resolve()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('ignores syncing when there is no user', async () => {
+    const fetchMock = mockFetchOnce({ data: USER })
+    const { Wrapper } = createWrapper()
+    renderHook(() => useSyncTimezone(null), { wrapper: Wrapper })
+    await Promise.resolve()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

@@ -13,6 +13,7 @@ import type { EmailVerificationRepository } from '@/ports/email-verification-rep
 import type { IdGenerator } from '@/ports/id-generator'
 import type { PasswordHasher } from '@/ports/password-hasher'
 import type { UserRepository } from '@/ports/user-repository'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 const VERIFICATION_TTL_MINUTES = 15
 
@@ -24,6 +25,7 @@ type Dependencies = {
   emailSender: EmailSender
   ids: IdGenerator
   clock: Clock
+  unitOfWork: UnitOfWork
 }
 
 export function makeRegisterWithEmail({
@@ -34,6 +36,7 @@ export function makeRegisterWithEmail({
   emailSender,
   ids,
   clock,
+  unitOfWork,
 }: Dependencies) {
   return async function registerWithEmail(
     userId: string,
@@ -69,6 +72,7 @@ export function makeRegisterWithEmail({
       ids,
       clock,
       locale,
+      unitOfWork,
     })
 
     return toUserView(user)
@@ -84,6 +88,7 @@ export async function sendVerificationCode({
   ids,
   clock,
   locale = 'en',
+  unitOfWork,
 }: {
   user: { id: string; email: string | null }
   emailVerifications: EmailVerificationRepository
@@ -93,6 +98,7 @@ export async function sendVerificationCode({
   ids: IdGenerator
   clock: Clock
   locale?: EmailLocale
+  unitOfWork: UnitOfWork
 }): Promise<void> {
   if (!user.email) {
     throw new ValidationError('This account has no email to verify.')
@@ -107,7 +113,9 @@ export async function sendVerificationCode({
     expiresAt,
     createdAt: now,
   })
-  await emailVerifications.deleteByUserId(asEntityId(user.id))
-  await emailVerifications.save(verification)
+  await unitOfWork.run(async () => {
+    await emailVerifications.deleteByUserId(asEntityId(user.id))
+    await emailVerifications.save(verification)
+  })
   await emailSender.sendVerificationCode(user.email, code, locale)
 }

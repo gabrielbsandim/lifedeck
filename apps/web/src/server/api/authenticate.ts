@@ -2,7 +2,11 @@ import { type NextResponse } from 'next/server'
 import { API_SCOPES, type ApiScope } from '@lifedeck/domain'
 import { getContainer } from '@/server/container'
 import { fail } from '@/server/api/respond'
-import { checkRateLimit, rateLimitHeaders } from '@/server/api/rate-limit'
+import {
+  checkRateLimit,
+  checkSessionRateLimit,
+  rateLimitHeaders,
+} from '@/server/api/rate-limit'
 import { getUserIdFromRequest } from '@/server/session/session'
 
 export const API_KEY_PREFIX = 'tk_live_'
@@ -66,13 +70,14 @@ export async function requireScope(
       403,
     )
   }
-  if (principal.viaApiKey && principal.keyId) {
-    const rate = await checkRateLimit(`apikey:${principal.keyId}`)
-    if (!rate.ok) {
-      return fail('RATE_LIMITED', 'Too many requests.', 429, undefined, {
-        headers: rateLimitHeaders(rate),
-      })
-    }
+  const rate =
+    principal.viaApiKey && principal.keyId
+      ? await checkRateLimit(`apikey:${principal.keyId}`)
+      : await checkSessionRateLimit(`user:${principal.userId}`)
+  if (!rate.ok) {
+    return fail('RATE_LIMITED', 'Too many requests.', 429, undefined, {
+      headers: rateLimitHeaders(rate),
+    })
   }
   return { userId: principal.userId }
 }

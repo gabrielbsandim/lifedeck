@@ -20,7 +20,9 @@ vi.mock('@upstash/ratelimit', () => ({
 
 import {
   checkAuthRateLimit,
+  checkGenerateRateLimit,
   checkRateLimit,
+  checkSessionRateLimit,
   clientIp,
   rateLimitHeaders,
 } from '@/server/api/rate-limit'
@@ -46,6 +48,18 @@ describe('rate limit', () => {
     const result = await checkAuthRateLimit('sign-in:gab@example.com:1.2.3.4')
     expect(result.ok).toBe(true)
     expect(result.limit).toBe(8)
+  })
+
+  it('allows session traffic when Upstash is not configured', async () => {
+    const result = await checkSessionRateLimit('user:abc')
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(240)
+  })
+
+  it('allows list generation when Upstash is not configured', async () => {
+    const result = await checkGenerateRateLimit('generate:abc')
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(6)
   })
 
   it('reads the client IP from x-forwarded-for then x-real-ip', () => {

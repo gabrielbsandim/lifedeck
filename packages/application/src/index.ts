@@ -1,4 +1,5 @@
 export type { Clock } from '@/ports/clock'
+export type { UnitOfWork } from '@/ports/unit-of-work'
 export type { IdGenerator } from '@/ports/id-generator'
 export type { TaskRepository } from '@/ports/task-repository'
 export type { UserRepository } from '@/ports/user-repository'
@@ -41,6 +42,7 @@ export {
   changePasswordSchema,
   renameUserSchema,
   carryOverModeSchema,
+  timezoneSchema,
   userViewSchema,
   type GuestSignInInput,
   type RegisterInput,
@@ -48,6 +50,8 @@ export {
   type VerifyEmailInput,
   type ChangePasswordInput,
   type RenameUserInput,
+  type CarryOverModeInput,
+  type TimezoneInput,
   type UserView,
 } from '@/dtos/user-dto'
 export {
@@ -148,6 +152,7 @@ export {
 } from '@/use-cases/get-daily-board'
 export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
+export { makeSetTimezone } from '@/use-cases/set-timezone'
 export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
 export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'

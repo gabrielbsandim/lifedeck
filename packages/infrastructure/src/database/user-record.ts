@@ -1,4 +1,4 @@
-import { User, asEntityId, isCarryOverMode } from '@lifedeck/domain'
+import { User, asEntityId, isCarryOverMode, isTimeZone } from '@lifedeck/domain'
 
 export type UserRecord = {
   id: string
@@ -8,6 +8,7 @@ export type UserRecord = {
   emailVerified: Date | null
   isGuest: boolean
   locale: string
+  timezone: string
   carryOverMode: string
   createdAt: Date
 }
@@ -21,6 +22,7 @@ export function toDomainUser(record: UserRecord): User {
     emailVerifiedAt: record.emailVerified,
     isGuest: record.isGuest,
     locale: record.locale,
+    timezone: isTimeZone(record.timezone) ? record.timezone : 'UTC',
     carryOverMode: isCarryOverMode(record.carryOverMode)
       ? record.carryOverMode
       : 'manual',
@@ -38,6 +40,7 @@ export function toUserRecord(user: User): UserRecord {
     emailVerified: props.emailVerifiedAt,
     isGuest: props.isGuest,
     locale: props.locale,
+    timezone: props.timezone,
     carryOverMode: props.carryOverMode,
     createdAt: props.createdAt,
   }

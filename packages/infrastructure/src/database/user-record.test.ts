@@ -13,6 +13,7 @@ const RECORD: UserRecord = {
   emailVerified: new Date('2026-06-21T12:00:00.000Z'),
   isGuest: false,
   locale: 'en',
+  timezone: 'America/Sao_Paulo',
   carryOverMode: 'manual',
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
 }
@@ -47,5 +48,16 @@ describe('user-record mapping', () => {
       toUserRecord(toDomainUser({ ...RECORD, carryOverMode: 'weekly' }))
         .carryOverMode,
     ).toBe('manual')
+  })
+
+  it('falls back to UTC on an unknown timezone', () => {
+    expect(
+      toUserRecord(toDomainUser({ ...RECORD, timezone: 'Mars/Phobos' }))
+        .timezone,
+    ).toBe('UTC')
+    expect(
+      toUserRecord(toDomainUser({ ...RECORD, timezone: 'Europe/Lisbon' }))
+        .timezone,
+    ).toBe('Europe/Lisbon')
   })
 })

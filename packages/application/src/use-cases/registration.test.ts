@@ -8,7 +8,12 @@ import { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-v
 import { FakePasswordHasher } from '@/testing/fake-password-hasher'
 import { FakeEmailSender } from '@/testing/fake-email-sender'
 import { FakeCodeGenerator } from '@/testing/fake-code-generator'
-import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+import {
+  FakeUnitOfWork,
+  FixedClock,
+  ID,
+  SequentialIdGenerator,
+} from '@/testing/fakes'
 
 const NOW = new Date('2026-06-22T10:00:00.000Z')
 const UNKNOWN = '00000000-0000-4000-8000-000000000000'
@@ -27,6 +32,7 @@ function setup() {
     emailSender,
     ids: new SequentialIdGenerator([ID.verification]),
     clock,
+    unitOfWork: new FakeUnitOfWork(),
   }
   return {
     users,

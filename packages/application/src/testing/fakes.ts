@@ -2,12 +2,19 @@ import { asEntityId, type EntityId } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { TokenGenerator } from '@/ports/token-generator'
+import type { UnitOfWork } from '@/ports/unit-of-work'
 
 export class FixedClock implements Clock {
   constructor(private readonly value: Date) {}
 
   now(): Date {
     return this.value
+  }
+}
+
+export class FakeUnitOfWork implements UnitOfWork {
+  run<T>(work: () => Promise<T>): Promise<T> {
+    return work()
   }
 }
 

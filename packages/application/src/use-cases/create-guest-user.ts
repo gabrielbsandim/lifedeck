@@ -21,12 +21,13 @@ export function makeCreateGuestUser({ users, ids, clock }: Dependencies) {
   return async function createGuestUser(
     input: GuestSignInInput,
   ): Promise<UserView> {
-    const { displayName, locale } = guestSignInSchema.parse(input)
+    const { displayName, locale, timezone } = guestSignInSchema.parse(input)
 
     const user = User.createGuest({
       id: ids.generate(),
       displayName,
       locale: locale ?? DEFAULT_LOCALE,
+      timezone,
       createdAt: clock.now(),
     })
 

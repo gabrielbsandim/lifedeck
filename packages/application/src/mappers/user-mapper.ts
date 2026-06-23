@@ -11,6 +11,7 @@ export function toUserView(user: User): UserView {
     isEmailVerified: props.emailVerifiedAt !== null,
     hasPassword: props.passwordHash !== null,
     locale: props.locale,
+    timezone: props.timezone,
     carryOverMode: props.carryOverMode,
     createdAt: props.createdAt.toISOString(),
   }

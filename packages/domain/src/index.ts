@@ -34,6 +34,12 @@ export {
   isCarryOverMode,
   type CarryOverMode,
 } from '@/value-objects/carry-over-mode'
+export {
+  DEFAULT_TIME_ZONE,
+  isTimeZone,
+  civilDate,
+  startOfCivilDay,
+} from '@/value-objects/time-zone'
 export { Task, type TaskProps } from '@/entities/task'
 export { User, type UserProps } from '@/entities/user'
 export { List, type ListProps } from '@/entities/list'

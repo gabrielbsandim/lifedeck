@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const guestSignInSchema = z.object({
   displayName: z.string().trim().min(1).max(80),
   locale: z.string().trim().min(2).max(10).optional(),
+  timezone: z.string().trim().min(1).max(60).optional(),
 })
 
 export type GuestSignInInput = z.infer<typeof guestSignInSchema>
@@ -49,6 +50,12 @@ export const carryOverModeSchema = z.object({
 
 export type CarryOverModeInput = z.infer<typeof carryOverModeSchema>
 
+export const timezoneSchema = z.object({
+  timezone: z.string().trim().min(1).max(60),
+})
+
+export type TimezoneInput = z.infer<typeof timezoneSchema>
+
 export const userViewSchema = z.object({
   id: z.string().uuid(),
   displayName: z.string(),
@@ -57,6 +64,7 @@ export const userViewSchema = z.object({
   isEmailVerified: z.boolean(),
   hasPassword: z.boolean(),
   locale: z.string(),
+  timezone: z.string(),
   carryOverMode: z.enum(['manual', 'auto']),
   createdAt: z.string().datetime(),
 })

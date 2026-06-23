@@ -154,6 +154,18 @@ describe('share links', () => {
     await expect(getSharedBoard('orphan-token')).rejects.toThrow(NotFoundError)
   })
 
+  it('rejects a token once the list is made private again', async () => {
+    const { lists, createShareLink, getSharedBoard } = setup()
+    await lists.save(makeList())
+    await createShareLink(ID.user, ID.list, {})
+
+    const list = await lists.findById(ID.list)
+    list?.setVisibility('private', NOW)
+    if (list) await lists.save(list)
+
+    await expect(getSharedBoard('secret-token')).rejects.toThrow(NotFoundError)
+  })
+
   it('rejects an expired token', async () => {
     const { lists, shareLinks, getSharedBoard } = setup()
     await lists.save(makeList())

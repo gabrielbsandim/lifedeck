@@ -293,23 +293,27 @@ Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
       `target="_blank"` missing `rel`; and the task-repo `update` now persists
       `recurringTaskId` for idempotency.
 
-### Code-review follow-ups (larger, deferred)
+### Code-review follow-ups
 
-These are real but feature-sized; tracked here rather than rushed in a review pass.
+These were real but feature-sized; all four are now implemented.
 
-- [ ] Transaction boundaries / unit-of-work: several multi-write flows are
-      non-atomic and racy under concurrency (`get-daily-board` write-on-read carry/
-      materialize, `bring-task-to-today`, `invite-to-list`, `join-list-by-token`,
-      `reorder-tasks`, registration). Introduce a unit-of-work port + DB unique
-      constraints (e.g. `(listId, recurringTaskId)`, `(listId, userId)`).
-- [ ] Per-user timezone: daily boundaries (boards, digests, recurrence) are computed
-      in UTC, so users in negative offsets get the wrong civil day near midnight.
-      Store a per-user timezone and compute local dates.
-- [ ] Rate-limit authenticated (cookie) traffic, not just API-key requests; add a
-      tight per-user throttle on `/lists/generate` (the quota/billing piece stays in
-      Phase 6.5).
-- [ ] `get-shared-board` should also require `list.visibility === 'link'` so toggling
-      a list private invalidates outstanding share tokens.
+- [x] Transaction boundaries / unit-of-work: a `UnitOfWork` port wraps the racy
+      multi-write flows (`get-daily-board` auto-carry/materialize, `bring-task-to-today`,
+      `invite-to-list`, `join-list-by-token`, `reorder-tasks`, registration / verification
+      code). The Prisma adapter runs them in a single `$transaction`, routed via an
+      `AsyncLocalStorage` proxy so repositories stay transaction-unaware. Added a
+      `(listId, recurringTaskId)` unique index (migration `8_task_recurring_unique`) to
+      guard duplicate recurring materialization; `(listId, userId)` already existed.
+- [x] Per-user timezone: a per-user IANA `timezone` (migration `7_user_timezone`,
+      auto-detected from the browser and synced via `/api/v1/account/timezone`) drives
+      local civil-day computation for boards, the daily digest, bring-to-today, and
+      recurrence (via the local-day reference marker). Analytics day-bucketing stays UTC
+      for now (SQL-level grouping, tracked separately).
+- [x] Rate-limit authenticated (cookie) traffic per user (session window) in
+      `requireScope`, plus a tight per-user throttle on `/lists/generate` (6/60s). The
+      quota/billing piece stays in Phase 6.5.
+- [x] `get-shared-board` now also requires `list.visibility === 'link'`, so toggling a
+      list private invalidates outstanding share tokens.
 
 ## Phase 13 - Mobile app (Expo) - future
 

@@ -1,4 +1,4 @@
-import { asEntityId } from '@lifedeck/domain'
+import { asEntityId, civilDate } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import type { UserRepository } from '@/ports/user-repository'
@@ -11,10 +11,6 @@ type Dependencies = {
   users: UserRepository
   emailSender: EmailSender
   clock: Clock
-}
-
-function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10)
 }
 
 export function makeSendDailyDigest({
@@ -31,7 +27,7 @@ export function makeSendDailyDigest({
       return { sent: false }
     }
 
-    const date = toIsoDate(clock.now())
+    const date = civilDate(clock.now(), user.timezone)
     const board = await getDailyBoard(userId, date)
     const total = board.tasks.length
     const completed = board.tasks.filter(

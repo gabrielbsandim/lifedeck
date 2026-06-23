@@ -13,7 +13,12 @@ import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 import { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
-import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+import {
+  FakeUnitOfWork,
+  FixedClock,
+  ID,
+  SequentialIdGenerator,
+} from '@/testing/fakes'
 
 const NOW = new Date('2026-06-21T10:00:00.000Z')
 const DEF_ID = asEntityId('c3e0f4a6-7d8e-4f90-a1b2-c3d4e5f6a7b8')
@@ -54,6 +59,7 @@ async function setup(rule?: RecurrenceRule) {
     users,
     ids: new SequentialIdGenerator([ID.list, ID.task]),
     clock: new FixedClock(NOW),
+    unitOfWork: new FakeUnitOfWork(),
   })
   return { tasks, getDailyBoard }
 }
@@ -180,6 +186,7 @@ describe('getDailyBoard', () => {
       users,
       ids: new SequentialIdGenerator([TODAY_LIST]),
       clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
     })
 
     const board = await getDailyBoard(ID.user, '2026-06-21')
@@ -210,6 +217,7 @@ describe('getDailyBoard', () => {
       users,
       ids: new SequentialIdGenerator([TODAY_LIST, COPY]),
       clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
     })
 
     const board = await getDailyBoard(ID.user, '2026-06-21')
@@ -264,6 +272,7 @@ describe('getDailyBoard', () => {
       users,
       ids: new SequentialIdGenerator([PAST_LIST]),
       clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
     })
 
     const board = await getDailyBoard(ID.user, '2026-06-20')

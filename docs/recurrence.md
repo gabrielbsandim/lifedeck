@@ -61,6 +61,13 @@ while still giving each day its own independent completion state.
 
 ## Timezone
 
-"Today" is the user's local date. The client supplies the daily list's
-`referenceDate` (a date without time); the server treats it verbatim and never
-infers the day from server time.
+"Today" is the user's local civil date. Each user stores an IANA `timezone`
+(auto-detected in the browser and synced via `PATCH /api/v1/account/timezone`,
+defaulting to `UTC`). The client supplies the daily list's `referenceDate` (a
+date without time) for the board it is viewing; when the server needs to decide
+whether that board is "today" (carry-over) or to provision today's list for a
+background flow (digest, bring-to-today), it derives the civil day from
+`clock.now()` in the user's timezone via `startOfCivilDay` / `civilDate`. The
+`referenceDate` marker stays at UTC midnight of the chosen civil day, so
+`occursOn` keeps comparing civil days regardless of offset. Analytics day
+buckets are still grouped in UTC at the SQL layer.

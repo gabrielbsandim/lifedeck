@@ -8,3 +8,11 @@ export function toIsoDate(date: Date): string {
 export function todayIso(now: Date = new Date()): string {
   return toIsoDate(now)
 }
+
+export function browserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  } catch {
+    return 'UTC'
+  }
+}

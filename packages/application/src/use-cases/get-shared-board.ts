@@ -37,7 +37,7 @@ export function makeGetSharedBoard({
     }
 
     const list = await lists.findById(link.listId)
-    if (!list) {
+    if (!list || list.visibility !== 'link') {
       throw new NotFoundError('Shared list')
     }
 

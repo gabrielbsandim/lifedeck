@@ -8,7 +8,12 @@ import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
-import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+import {
+  FakeUnitOfWork,
+  FixedClock,
+  ID,
+  SequentialIdGenerator,
+} from '@/testing/fakes'
 
 const NOW = new Date('2026-06-21T10:00:00.000Z')
 const MEMBER_ID = asEntityId('7c9e6679-7425-40de-944b-e07fc1f90ae7')
@@ -58,6 +63,7 @@ async function setup(role: 'editor' | 'viewer' = 'editor') {
       users,
       ids: new SequentialIdGenerator([MEMBER_ID]),
       clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
     }),
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),

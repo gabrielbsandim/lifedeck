@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { List, Task, asEntityId } from '@lifedeck/domain'
+import { List, Task, User, asEntityId } from '@lifedeck/domain'
 import { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
-import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+import {
+  FakeUnitOfWork,
+  FixedClock,
+  ID,
+  SequentialIdGenerator,
+} from '@/testing/fakes'
 
 const NOW = new Date('2026-06-21T10:00:00.000Z')
 const PRIOR_LIST = asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
@@ -12,9 +18,19 @@ const PENDING = asEntityId('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
 const TODAY_LIST = asEntityId('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
 const COPY = asEntityId('ffffffff-ffff-4fff-8fff-ffffffffffff')
 
-async function setup() {
+async function setup(timezone?: string) {
   const lists = new InMemoryListRepository()
   const tasks = new InMemoryTaskRepository()
+  const users = new InMemoryUserRepository()
+  await users.save(
+    User.createGuest({
+      id: ID.user,
+      displayName: 'Gabriel',
+      locale: 'en',
+      timezone,
+      createdAt: NOW,
+    }),
+  )
   await lists.save(
     List.create({
       id: PRIOR_LIST,
@@ -38,11 +54,14 @@ async function setup() {
   return {
     lists,
     tasks,
+    users,
     bringTaskToToday: makeBringTaskToToday({
       lists,
       tasks,
+      users,
       ids: new SequentialIdGenerator([TODAY_LIST, COPY]),
       clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
     }),
   }
 }
@@ -81,6 +100,18 @@ describe('bringTaskToToday', () => {
     await expect(
       ctx.bringTaskToToday(ID.user as string, PENDING as string),
     ).rejects.toBeInstanceOf(ForbiddenError)
+  })
+
+  it("provisions today's list using the user's local civil day", async () => {
+    const ctx = await setup('Pacific/Kiritimati')
+
+    await ctx.bringTaskToToday(ID.user as string, PENDING as string)
+
+    const todayList = await ctx.lists.findById(TODAY_LIST)
+    // 2026-06-21T10:00Z is already 2026-06-22 in UTC+14
+    expect(todayList?.toJSON().referenceDate?.toISOString()).toBe(
+      '2026-06-22T00:00:00.000Z',
+    )
   })
 
   it('rejects an unknown task', async () => {
