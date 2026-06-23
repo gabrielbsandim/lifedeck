@@ -3,10 +3,10 @@ import type { Messages } from '@/messages/types'
 export const pt: Messages = {
   app: {
     name: 'Lifedeck',
-    tagline: 'Planeje seu dia, compartilhe suas listas.',
+    tagline: 'Sua vida inteira, organizada num só lugar.',
   },
   onboarding: {
-    title: 'Bem-vindo ao Lifedeck',
+    title: 'Vamos começar',
     subtitle: 'Diga seu nome para começar sua lista do dia.',
     namePlaceholder: 'Seu nome',
     start: 'Começar',

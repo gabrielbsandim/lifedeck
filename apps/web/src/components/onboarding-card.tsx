@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Button, Card, TextField } from '@lifedeck/ui'
+import { Button, Card, Logo, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateGuest } from '@/lib/api/use-session'
 import { AuthDialog } from '@/components/auth-dialog'
@@ -23,6 +23,12 @@ export function OnboardingCard() {
 
   return (
     <Card className="p-6 sm:p-8">
+      <div className="border-line mb-6 flex flex-col gap-3 border-b pb-6">
+        <Logo withWordmark size={30} />
+        <p className="text-ink-600 text-balance text-base font-medium">
+          {messages.app.tagline}
+        </p>
+      </div>
       <h1 className="text-2xl font-semibold tracking-tight">
         {messages.onboarding.title}
       </h1>
