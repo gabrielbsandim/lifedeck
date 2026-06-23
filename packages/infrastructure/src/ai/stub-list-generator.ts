@@ -18,7 +18,7 @@ export class StubListGenerator implements ListGenerator {
       title: `${label}: step ${index + 1}`,
       note:
         index === 0
-          ? 'Generated locally without an AI provider. Set ANTHROPIC_API_KEY for real plans.'
+          ? 'Generated locally without an AI provider. Set AI_MODEL for real plans.'
           : undefined,
     }))
 

@@ -102,7 +102,7 @@ export const en: Messages = {
     empty: 'Nothing here yet. Add your first task.',
     completed: 'Completed',
     pending: 'Pending',
-    allDone: 'All done — lovely work, you two! 🎉',
+    allDone: 'All done — lovely work! 🎉',
     progress: '{done} of {total} done',
     moveUp: 'Move up',
     moveDown: 'Move down',
