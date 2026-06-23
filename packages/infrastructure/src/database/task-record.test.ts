@@ -15,6 +15,8 @@ const RECORD: TaskRecord = {
   recurringTaskId: 'a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f',
   isPrivate: true,
   position: 2,
+  carriedFromDate: null,
+  carriedForwardAt: null,
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
   completedAt: new Date('2026-06-21T12:00:00.000Z'),
 }

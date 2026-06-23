@@ -19,6 +19,8 @@ export class PrismaTaskRepository implements TaskRepository {
         assigneeId: record.assigneeId,
         isPrivate: record.isPrivate,
         position: record.position,
+        carriedFromDate: record.carriedFromDate,
+        carriedForwardAt: record.carriedForwardAt,
         completedAt: record.completedAt,
       },
     })

@@ -1,6 +1,10 @@
 import { guard } from '@/shared/guard'
 import type { EntityId } from '@/shared/id'
 import { Email } from '@/value-objects/email'
+import {
+  CARRY_OVER_MODES,
+  type CarryOverMode,
+} from '@/value-objects/carry-over-mode'
 
 const MAX_DISPLAY_NAME_LENGTH = 80
 
@@ -12,6 +16,7 @@ export type UserProps = {
   emailVerifiedAt: Date | null
   isGuest: boolean
   locale: string
+  carryOverMode: CarryOverMode
   createdAt: Date
 }
 
@@ -36,6 +41,7 @@ export class User {
       emailVerifiedAt: null,
       isGuest: true,
       locale: guard.notEmpty(input.locale, 'Locale'),
+      carryOverMode: 'manual',
       createdAt: input.createdAt,
     })
   }
@@ -74,6 +80,18 @@ export class User {
 
   get locale(): string {
     return this.props.locale
+  }
+
+  get carryOverMode(): CarryOverMode {
+    return this.props.carryOverMode
+  }
+
+  setCarryOverMode(mode: string): void {
+    this.props.carryOverMode = guard.oneOf(
+      mode,
+      CARRY_OVER_MODES,
+      'Carry-over mode',
+    )
   }
 
   rename(displayName: string): void {

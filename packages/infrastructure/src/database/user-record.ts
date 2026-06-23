@@ -1,4 +1,4 @@
-import { User, asEntityId } from '@taskin/domain'
+import { User, asEntityId, isCarryOverMode } from '@taskin/domain'
 
 export type UserRecord = {
   id: string
@@ -8,6 +8,7 @@ export type UserRecord = {
   emailVerified: Date | null
   isGuest: boolean
   locale: string
+  carryOverMode: string
   createdAt: Date
 }
 
@@ -20,6 +21,9 @@ export function toDomainUser(record: UserRecord): User {
     emailVerifiedAt: record.emailVerified,
     isGuest: record.isGuest,
     locale: record.locale,
+    carryOverMode: isCarryOverMode(record.carryOverMode)
+      ? record.carryOverMode
+      : 'manual',
     createdAt: record.createdAt,
   })
 }
@@ -34,6 +38,7 @@ export function toUserRecord(user: User): UserRecord {
     emailVerified: props.emailVerifiedAt,
     isGuest: props.isGuest,
     locale: props.locale,
+    carryOverMode: props.carryOverMode,
     createdAt: props.createdAt,
   }
 }

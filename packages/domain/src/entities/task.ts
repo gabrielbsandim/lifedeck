@@ -15,6 +15,8 @@ export type TaskProps = {
   recurringTaskId: EntityId | null
   isPrivate: boolean
   position: number
+  carriedFromDate: Date | null
+  carriedForwardAt: Date | null
   createdAt: Date
   completedAt: Date | null
 }
@@ -29,6 +31,8 @@ export class Task {
     createdAt: Date
     position?: number
     recurringTaskId?: EntityId | null
+    observation?: string | null
+    carriedFromDate?: Date | null
   }): Task {
     const title = guard.maxLength(
       guard.notEmpty(input.title, 'Task title'),
@@ -41,11 +45,13 @@ export class Task {
       listId: input.listId,
       title,
       status: 'pending',
-      observation: null,
+      observation: input.observation ?? null,
       assigneeId: null,
       recurringTaskId: input.recurringTaskId ?? null,
       isPrivate: false,
       position: input.position ?? 0,
+      carriedFromDate: input.carriedFromDate ?? null,
+      carriedForwardAt: null,
       createdAt: input.createdAt,
       completedAt: null,
     })
@@ -81,6 +87,20 @@ export class Task {
 
   get recurringTaskId(): EntityId | null {
     return this.props.recurringTaskId
+  }
+
+  get carriedFromDate(): Date | null {
+    return this.props.carriedFromDate
+  }
+
+  get isCarriedForward(): boolean {
+    return this.props.carriedForwardAt !== null
+  }
+
+  markCarriedForward(at: Date): void {
+    if (this.props.carriedForwardAt === null) {
+      this.props.carriedForwardAt = at
+    }
   }
 
   setPosition(position: number): void {

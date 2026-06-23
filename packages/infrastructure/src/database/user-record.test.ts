@@ -13,6 +13,7 @@ const RECORD: UserRecord = {
   emailVerified: new Date('2026-06-21T12:00:00.000Z'),
   isGuest: false,
   locale: 'en',
+  carryOverMode: 'manual',
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
 }
 
@@ -35,5 +36,16 @@ describe('user-record mapping', () => {
     expect(record.passwordHash).toBeNull()
     expect(record.emailVerified).toBeNull()
     expect(record.isGuest).toBe(true)
+  })
+
+  it('preserves the auto carry-over mode and falls back on unknown values', () => {
+    expect(
+      toUserRecord(toDomainUser({ ...RECORD, carryOverMode: 'auto' }))
+        .carryOverMode,
+    ).toBe('auto')
+    expect(
+      toUserRecord(toDomainUser({ ...RECORD, carryOverMode: 'weekly' }))
+        .carryOverMode,
+    ).toBe('manual')
   })
 })

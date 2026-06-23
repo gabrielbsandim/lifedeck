@@ -121,6 +121,8 @@ describe('Task.restore', () => {
       recurringTaskId: null,
       isPrivate: true,
       position: 3,
+      carriedFromDate: null,
+      carriedForwardAt: null,
       createdAt: NOW,
       completedAt: NOW,
     })
@@ -139,6 +141,8 @@ describe('Task.restore', () => {
       recurringTaskId: null,
       isPrivate: false,
       position: 0,
+      carriedFromDate: null,
+      carriedForwardAt: null,
       createdAt: NOW,
       completedAt: null,
     })
@@ -146,5 +150,37 @@ describe('Task.restore', () => {
     expect(restored.listId).toBe(MEMBER_ID)
     expect(restored.position).toBe(5)
     expect(restored.toJSON().title).toBe('Carry me')
+  })
+})
+
+describe('Task carry-forward', () => {
+  it('creates a carried copy with an observation and origin date', () => {
+    const from = new Date('2026-06-21T00:00:00.000Z')
+    const copy = Task.create({
+      id: TASK_ID,
+      listId: LIST_ID,
+      title: 'Buy flowers',
+      observation: 'White roses',
+      carriedFromDate: from,
+      createdAt: NOW,
+    })
+    expect(copy.toJSON().observation).toBe('White roses')
+    expect(copy.carriedFromDate).toEqual(from)
+    expect(copy.isCarriedForward).toBe(false)
+  })
+
+  it('marks the source as carried forward once', () => {
+    const task = Task.create({
+      id: TASK_ID,
+      listId: LIST_ID,
+      title: 'Buy flowers',
+      createdAt: NOW,
+    })
+    task.markCarriedForward(NOW)
+    expect(task.isCarriedForward).toBe(true)
+    expect(task.toJSON().carriedForwardAt).toEqual(NOW)
+
+    task.markCarriedForward(new Date('2026-06-23T00:00:00.000Z'))
+    expect(task.toJSON().carriedForwardAt).toEqual(NOW)
   })
 })

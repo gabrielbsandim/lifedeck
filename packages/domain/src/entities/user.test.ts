@@ -55,6 +55,14 @@ describe('User', () => {
     expect(User.restore(props).toJSON()).toEqual(props)
   })
 
+  it('defaults to manual carry-over and updates it with validation', () => {
+    const user = createGuest()
+    expect(user.carryOverMode).toBe('manual')
+    user.setCarryOverMode('auto')
+    expect(user.carryOverMode).toBe('auto')
+    expect(() => user.setCarryOverMode('weekly')).toThrow(ValidationError)
+  })
+
   it('registers a guest with email and password, normalizing the address', () => {
     const user = createGuest()
     user.register({

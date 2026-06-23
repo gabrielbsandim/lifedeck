@@ -29,6 +29,11 @@ export {
   type RecurrenceFrequency,
   type RecurrenceRule,
 } from '@/value-objects/recurrence-rule'
+export {
+  CARRY_OVER_MODES,
+  isCarryOverMode,
+  type CarryOverMode,
+} from '@/value-objects/carry-over-mode'
 export { Task, type TaskProps } from '@/entities/task'
 export { User, type UserProps } from '@/entities/user'
 export { List, type ListProps } from '@/entities/list'

@@ -50,6 +50,7 @@ model User {
   emailVerified DateTime? @map("email_verified")
   isGuest       Boolean   @default(true) @map("is_guest")
   locale        String    @default("en")
+  carryOverMode String    @default("manual") @map("carry_over_mode")
   createdAt     DateTime  @default(now()) @map("created_at")
 
   ownedLists        List[]             @relation("ListOwner")
@@ -136,6 +137,8 @@ model Task {
   recurringTaskId String?    @map("recurring_task_id")
   isPrivate       Boolean    @default(false) @map("is_private")
   position        Int        @default(0)
+  carriedFromDate DateTime?  @map("carried_from_date")
+  carriedForwardAt DateTime? @map("carried_forward_at")
   createdAt       DateTime   @default(now()) @map("created_at")
   completedAt     DateTime?  @map("completed_at")
 
