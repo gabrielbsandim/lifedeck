@@ -161,6 +161,7 @@ export type Messages = {
     backToApp: string
     components: {
       database: string
+      cache: string
     }
   }
   ai: {

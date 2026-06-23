@@ -163,6 +163,7 @@ export const en: Messages = {
     backToApp: 'Back to app',
     components: {
       database: 'Database',
+      cache: 'Cache',
     },
   },
   ai: {

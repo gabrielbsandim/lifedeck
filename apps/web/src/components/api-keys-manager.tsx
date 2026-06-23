@@ -89,13 +89,18 @@ export function ApiKeysManager() {
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">{t.title}</h1>
         <p className="text-ink-500 text-sm">{t.subtitle}</p>
-        <Link
-          href="/docs"
-          className="text-brand-600 text-sm font-medium"
-          target="_blank"
-        >
-          {t.docsLink} →
-        </Link>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            href="/docs"
+            className="text-brand-600 text-sm font-medium"
+            target="_blank"
+          >
+            {t.docsLink} →
+          </Link>
+          <Link href="/status" className="text-brand-600 text-sm font-medium">
+            {messages.status.title} →
+          </Link>
+        </div>
       </header>
 
       {created ? (

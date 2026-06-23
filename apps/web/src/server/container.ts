@@ -89,6 +89,7 @@ import {
   UuidGenerator,
   prisma,
 } from '@lifedeck/infrastructure'
+import { createRedisHealthProbe } from '@/server/api/redis-health-probe'
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
@@ -334,6 +335,15 @@ function buildListGenerator(): ListGenerator {
   return new StubListGenerator()
 }
 
+function buildHealthProbes(): HealthProbe[] {
+  const probes: HealthProbe[] = [new PrismaHealthProbe(prisma)]
+  const redisProbe = createRedisHealthProbe()
+  if (redisProbe) {
+    probes.push(redisProbe)
+  }
+  return probes
+}
+
 function buildEmailSender(): EmailSender {
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
@@ -376,7 +386,7 @@ export function getContainer(): Container {
         emailSender: buildEmailSender(),
         oauth: buildGoogleProvider(),
         listGenerator: buildListGenerator(),
-        healthProbes: [new PrismaHealthProbe(prisma)],
+        healthProbes: buildHealthProbes(),
       },
     )
   }

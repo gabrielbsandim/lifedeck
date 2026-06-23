@@ -164,6 +164,7 @@ export const pt: Messages = {
     backToApp: 'Voltar ao app',
     components: {
       database: 'Banco de dados',
+      cache: 'Cache',
     },
   },
   ai: {
