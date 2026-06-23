@@ -6,6 +6,8 @@ export type Messages = {
   footer: {
     description: string
     rights: string
+    terms: string
+    privacy: string
   }
   onboarding: {
     title: string

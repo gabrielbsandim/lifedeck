@@ -9,6 +9,8 @@ export const pt: Messages = {
     description:
       'Planeje, compartilhe e mantenha o controle da sua vida inteira - juntos, num só lugar.',
     rights: '© {year} Lifedeck. Todos os direitos reservados.',
+    terms: 'Termos de uso',
+    privacy: 'Política de privacidade',
   },
   onboarding: {
     title: 'Vamos começar',

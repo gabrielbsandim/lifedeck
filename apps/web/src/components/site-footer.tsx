@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { LogoMark } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { COMPANY_CNPJ, COMPANY_EMAIL, COMPANY_NAME } from '@/lib/site'
@@ -34,8 +35,24 @@ export function SiteFooter() {
           </a>
         </div>
 
-        <div className="border-t border-white/10 pt-6 text-xs text-white/45">
-          {messages.footer.rights.replace('{year}', String(year))}
+        <div className="flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
+            <Link
+              href="/termos-de-uso"
+              className="text-white/55 transition hover:text-white"
+            >
+              {messages.footer.terms}
+            </Link>
+            <Link
+              href="/politica-de-privacidade"
+              className="text-white/55 transition hover:text-white"
+            >
+              {messages.footer.privacy}
+            </Link>
+          </div>
+          <div className="text-xs text-white/45">
+            {messages.footer.rights.replace('{year}', String(year))}
+          </div>
         </div>
       </div>
     </footer>
