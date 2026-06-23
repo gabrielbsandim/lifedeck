@@ -25,7 +25,7 @@ type ShareDialogProps = {
 
 export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
   const { messages } = useI18n()
-  const links = useShareLinks(listId)
+  const links = useShareLinks(listId, open)
   const createLink = useCreateShareLink(listId)
   const revokeLink = useRevokeShareLink(listId)
   const invite = useInviteToList(listId)

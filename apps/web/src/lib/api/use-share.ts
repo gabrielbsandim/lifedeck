@@ -10,10 +10,11 @@ import { apiRequest } from '@/lib/api/client'
 export const shareLinksKey = (listId: string) =>
   ['share-links', listId] as const
 
-export function useShareLinks(listId: string) {
+export function useShareLinks(listId: string, enabled = true) {
   return useQuery({
     queryKey: shareLinksKey(listId),
     queryFn: () => apiRequest<ShareLinkView[]>(`/api/v1/lists/${listId}/share`),
+    enabled: enabled && listId !== '',
   })
 }
 

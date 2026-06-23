@@ -188,11 +188,13 @@ export function StandaloneListView({ listId }: { listId: string }) {
         </div>
       </header>
 
-      <ShareDialog
-        listId={listId}
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-      />
+      {isOwner && (
+        <ShareDialog
+          listId={listId}
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
 
       <Dialog
         open={confirmingDelete}
