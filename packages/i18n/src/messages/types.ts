@@ -18,6 +18,11 @@ export type Messages = {
     name: string
     tagline: string
   }
+  home: {
+    morning: string
+    afternoon: string
+    evening: string
+  }
   footer: {
     description: string
     rights: string

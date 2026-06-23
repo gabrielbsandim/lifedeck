@@ -48,6 +48,12 @@ function formatShortDate(date: string, locale: string): string {
   }).format(parsed)
 }
 
+function greetingFor(hour: number): 'morning' | 'afternoon' | 'evening' {
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+}
+
 export function DailyBoard({ date }: { date: string }) {
   const { messages, locale } = useI18n()
   const board = useDailyBoard(date)
@@ -111,10 +117,12 @@ export function DailyBoard({ date }: { date: string }) {
   const self = session.data
     ? { id: session.data.id, name: session.data.displayName }
     : null
+  const firstName = session.data?.displayName.trim().split(/\s+/)[0] ?? ''
+  const greeting = messages.home[greetingFor(new Date().getHours())]
 
   return (
-    <section className="flex flex-col gap-8">
-      <header className="flex flex-col gap-2">
+    <section className="flex flex-col gap-6">
+      <header className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <LogoMark size={20} title={messages.app.name} />
@@ -124,44 +132,45 @@ export function DailyBoard({ date }: { date: string }) {
           </div>
           <NotificationBell />
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          {messages.app.tagline}
-        </h1>
+        <div className="flex flex-col gap-0.5">
+          <h1
+            suppressHydrationWarning
+            className="text-2xl font-bold tracking-tight sm:text-3xl"
+          >
+            {firstName ? `${greeting}, ${firstName}` : greeting}
+          </h1>
+          <p className="text-ink-500 text-sm capitalize">
+            {formatDate(date, locale)}
+          </p>
+        </div>
       </header>
 
-      <Card className="p-4 sm:p-8">
-        <div className="mb-6 flex items-start justify-between gap-3">
-          <div>
-            <p className="text-ink-500 text-sm capitalize">
-              {formatDate(date, locale)}
-            </p>
-            <h2 className="text-xl font-semibold">{messages.list.daily}</h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShareOpen(true)}
-            className="bg-brand-600 hover:bg-brand-700 flex h-9 flex-none items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-white"
-          >
-            <ShareIcon size={15} />
-            {messages.list.share}
-          </button>
-        </div>
+      <ShareDialog
+        listId={list.id}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
 
-        <ShareDialog
-          listId={list.id}
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-        />
-
-        <div className="border-line bg-bg relative mb-6 rounded-2xl border p-4">
+      <Card className="flex flex-col gap-5 p-5 sm:p-6">
+        <div className="relative">
           <Celebration active={allDone} />
-          <div className="mb-2 flex items-baseline justify-between">
-            <span className="text-ink-700 text-sm font-medium">
-              {progressLabel}
-            </span>
-            <span className="text-brand-600 text-xl font-bold">{pct}%</span>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-brand-600 text-3xl font-extrabold leading-none tracking-tight">
+                {pct}%
+              </span>
+              <span className="text-ink-500 text-sm">{progressLabel}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="bg-brand-600 hover:bg-brand-700 flex h-9 flex-none items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-white"
+            >
+              <ShareIcon size={15} />
+              {messages.list.share}
+            </button>
           </div>
-          <ProgressBar value={pct} label={progressLabel} />
+          <ProgressBar value={pct} label={progressLabel} className="mt-3" />
           <AnimatePresence>
             {allDone && (
               <motion.p
@@ -176,7 +185,7 @@ export function DailyBoard({ date }: { date: string }) {
           </AnimatePresence>
         </div>
 
-        <form onSubmit={addTask} className="mb-4">
+        <form onSubmit={addTask}>
           <TextField
             value={title}
             onChange={event => setTitle(event.target.value)}
@@ -187,7 +196,7 @@ export function DailyBoard({ date }: { date: string }) {
         </form>
 
         {carryOver.length > 0 && (
-          <div className="border-line bg-bg mb-4 rounded-2xl border p-4">
+          <div className="border-line bg-bg rounded-2xl border p-4">
             <p className="text-ink-700 mb-3 text-sm font-semibold">
               {messages.carryOver.pendingTitle}
             </p>

@@ -6,6 +6,11 @@ export const es: Messages = {
     name: 'Lifedeck',
     tagline: 'Toda tu vida, organizada en un solo lugar.',
   },
+  home: {
+    morning: 'Buenos días',
+    afternoon: 'Buenas tardes',
+    evening: 'Buenas noches',
+  },
   footer: {
     description:
       'Planifica, comparte y mantén el control de toda tu vida - juntos, en un solo lugar.',
