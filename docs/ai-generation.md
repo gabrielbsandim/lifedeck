@@ -1,10 +1,10 @@
 # AI list generation
 
 A premium-friendly feature: the user answers a few guided questions plus a free
-text description, and Claude returns a complete, editable checklist. This page
-records the contract and the architectural decisions.
+text description, and a language model returns a complete, editable checklist.
+This page records the contract and the architectural decisions.
 
-Status: implemented (Phase 6.5). The port, `generateList` use case, `ClaudeListGenerator`
+Status: implemented (Phase 6.5). The port, `generateList` use case, `AiSdkListGenerator`
 adapter, `POST /api/v1/lists/generate` endpoint, and the `/generate` UI all ship.
 Two items from the original design are deferred: token-by-token streaming of the
 draft (folded into the Phase 7 motion pass) and rate limiting / per-plan quotas
@@ -36,13 +36,14 @@ application layer and an **adapter** in infrastructure - the exact pattern used
 for `TaskRepository`. The domain and application layers never import an AI SDK.
 
 ```
-application/ports/list-generator.ts        interface ListGenerator
-application/use-cases/generate-list.ts      orchestrates: validate → generate → validate → persist
-infrastructure/ai/claude-list-generator.ts  implements ListGenerator (Claude, structured output)
+application/ports/list-generator.ts          interface ListGenerator
+application/use-cases/generate-list.ts        orchestrates: validate → generate → validate → persist
+infrastructure/ai/ai-sdk-list-generator.ts    implements ListGenerator (Vercel AI SDK, structured output)
 ```
 
-Tests inject a deterministic `FakeListGenerator`; production injects Claude.
-Swapping the AI provider touches only the adapter.
+Tests inject a deterministic `FakeListGenerator`; production injects the AI SDK
+adapter (or `StubListGenerator` when `AI_MODEL` is unset). Swapping the AI provider
+or model touches only the adapter - in practice, just the `AI_MODEL` env.
 
 ## Contract (single source of truth: Zod)
 
@@ -59,7 +60,7 @@ const generationBriefSchema = z.object({
   scale: z.enum(['small', 'medium', 'large']),
   peopleInvolved: z.array(z.string().trim().max(80)).max(20).optional(),
   description: z.string().trim().min(1).max(2000),
-  locale: z.enum(['en', 'pt']).default('en'),
+  locale: z.enum(['en', 'pt', 'es']).default('en'),
 })
 ```
 
@@ -98,7 +99,7 @@ POST /api/v1/lists/generate   (versioned, documented in OpenAPI)
       ▼
 generateList use case
       │  1. parse GenerationBrief (Zod)
-      │  2. ListGenerator.generate(brief)  ──>  Claude (structured output)
+      │  2. ListGenerator.generate(brief)  ──>  AI Gateway model (structured output)
       │  3. parse GeneratedPlan (Zod)
       │  4. map to a draft List + Task[]
       ▼
@@ -114,20 +115,16 @@ UX notes:
 
 ## Model and runtime
 
-- **Default model:** `claude-opus-4-8` while tuning the prompt for quality.
-- **Cost lever:** this is a relatively simple, high-volume generation task, so
-  `claude-sonnet-4-6` is likely indistinguishable in quality at a fraction of the
-  output cost. Calibrate on Opus, then A/B against Sonnet and pick per the
-  cost/quality result. Model choice is a deliberate decision, not a silent default.
+- **Model selection:** chosen via the `AI_MODEL` env (`creator/model`), so it is a
+  deliberate operational decision rather than a hardcoded default. `google/gemini-2.5-flash`
+  is the cheap, high-volume default; `anthropic/claude-opus-4-8` trades cost for quality.
+  Unset `AI_MODEL` falls back to the offline `StubListGenerator`.
 - **Runtime (chosen):** the Vercel AI SDK (`ai`) via `generateObject({ model, schema,
   system, prompt })`, with `model` as an AI Gateway string (`creator/model`). The schema
   passed is `generatedPlanSchema` itself, so the contract is a single Zod source of truth
   for the model's structured output and the app types. `generateList` re-validates the
   result with the same schema (defense in depth), so invalid output never reaches the
   draft regardless of provider.
-- **Prompt caching:** the system prompt is static and is sent as a cached system
-  text block (`cache_control: { type: 'ephemeral' }`); only the brief varies per
-  request.
 - **v1 surface:** the adapter requests `listTitle` + flat `tasks` (title + optional
   note). The `GeneratedPlan` contract keeps `sections` and `suggestedAssignee`
   optional for forward compatibility; `generateList` flattens any sections into the

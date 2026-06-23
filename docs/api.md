@@ -90,14 +90,26 @@ so request/response shapes in `/docs` cannot drift from runtime behavior.
 | 429  | `RATE_LIMITED`     | Too many requests.                   |
 | 500  | `INTERNAL_ERROR`   | Unexpected server error.             |
 
-## Endpoints (current scaffold)
+## Endpoint examples
 
-### `GET /health`
+### `GET /api/v1/health`
 
-Liveness probe.
+Health probe. Aggregates each component (database, and cache when configured);
+returns `200` when healthy and `503` when the overall status is `down`. The
+`/status` page renders this report.
 
 ```json
-{ "data": { "status": "ok", "version": "0.1.0" } }
+{
+  "data": {
+    "status": "ok",
+    "checkedAt": "2026-06-23T10:00:00.000Z",
+    "version": "6df0f02",
+    "components": [
+      { "name": "database", "status": "up", "latencyMs": 12 },
+      { "name": "cache", "status": "up", "latencyMs": 8 }
+    ]
+  }
+}
 ```
 
 ### `POST /tasks`

@@ -21,8 +21,9 @@ analytics. No account required to start, optional account when you want more.
   (email + password with verification code, or Google).
 - **Sharing** - invite people to collaborate or share a read-only public link.
 - **Analytics** - completion rates with daily, weekly, and monthly breakdowns.
+- **AI list generation** - describe a goal and get an editable checklist in seconds.
 - **White-label REST API** - versioned, documented with OpenAPI, ready to embed.
-- **Multilingual** - locale auto-detected from the browser, English fallback.
+- **Multilingual** - English, Portuguese, and Spanish, auto-detected from the browser.
 - **Delightful UI** - responsive from the first pixel with smooth, subtle motion.
 
 ## Tech stack
@@ -32,9 +33,9 @@ analytics. No account required to start, optional account when you want more.
 | Frontend      | Next.js 16 (App Router), React 19, TypeScript, TanStack Query  |
 | Styling       | Tailwind CSS 4, Framer Motion, custom design system            |
 | Backend / API | Next.js Route Handlers, REST `/api/v1`, Zod, OpenAPI + Scalar  |
-| Persistence   | Prisma 7 + Neon (serverless Postgres)                          |
+| Persistence   | Prisma 6 + Neon (serverless Postgres)                          |
 | Email         | Resend with typed templates                                    |
-| i18n          | next-intl                                                      |
+| i18n          | Typed SSR message catalogs from `Accept-Language` (en, pt, es) |
 | Testing       | Vitest + Testing Library (95% coverage gate)                   |
 | Tooling       | pnpm workspaces, Turborepo, ESLint, Prettier                   |
 | Hosting       | Vercel (web + API), Neon (database)                            |

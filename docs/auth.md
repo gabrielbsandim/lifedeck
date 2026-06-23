@@ -22,9 +22,10 @@ them):
 ## Email + password
 
 1. `registerWithEmail(userId, { email, password })` upgrades the current guest:
-   it checks the email is free, hashes the password (`ScryptPasswordHasher`,
-   scrypt + per-hash random salt, `salt:key` hex, constant-time compare), stores
-   a hashed 6-digit code in `email_verifications` (15 min TTL), and emails it.
+   it checks the email is free, hashes the password (`Argon2PasswordHasher`,
+   argon2id via `@node-rs/argon2`), stores a hashed 6-digit code in
+   `email_verifications` (15 min TTL), and emails it. Legacy scrypt hashes still
+   verify and are transparently re-hashed to argon2id on the next sign-in.
 2. `verifyEmail(userId, { code })` checks the code is present, unexpired, and
    matches, then sets `emailVerifiedAt` and clears the verification row.
 3. `signInWithEmail({ email, password })` verifies credentials and the route
@@ -41,15 +42,17 @@ browser verification).
 short-lived `HttpOnly` cookie. The callback verifies `state`, exchanges the code
 through the `OAuthProvider` port (`GoogleOAuthProvider`), and then
 `signInWithGoogle(code)` either returns the existing user for that email or
-creates a new verified account. Requires `GOOGLE_CLIENT_ID`,
-`GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI`.
+creates a new verified account. Requires `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET`; `GOOGLE_REDIRECT_URI` is optional and defaults to
+`<NEXT_PUBLIC_SITE_URL>/api/v1/auth/google/callback`.
 
 ## Account settings
 
 `renameUser`, `changePassword` (verifies the current password first), and
 `deleteUser` (DB cascade removes owned lists, tasks, recurring tasks, members,
 and verification rows; assignments are nulled). Sign-out and account deletion
-clear the session cookie.
+clear the session cookie. The `UserView` exposes a `hasPassword` flag so the UI
+hides the change-password form for Google-only accounts.
 
 ## Ports (application layer)
 

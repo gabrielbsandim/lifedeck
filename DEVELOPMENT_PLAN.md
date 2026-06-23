@@ -255,9 +255,9 @@ Surfaced from real use after Google sign-in shipped.
 
 Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
 
-- [x] Terms of Use + Privacy Policy pages (`/termos-de-uso`,
-      `/politica-de-privacidade`), LGPD-aligned (PT, Brazilian jurisdiction),
-      linked from the site footer.
+- [x] Terms of Use + Privacy Policy pages (`/terms`, `/privacy`), LGPD-aligned,
+      fully localized through the i18n catalog (en/pt/es), linked from the site
+      footer.
 - [x] Footer ownership/branding on the landing page: `SiteFooter` shows Lifedeck
       belongs to GBS Tecnologia da Informação Ltda (CNPJ 44.000.992/0001-22,
       contato@lifedeck.com.br) with a dynamic copyright line. Reference: the Obra
@@ -269,8 +269,12 @@ Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
       tags, AI generation locale (`es`), and email templates (verification, invitation,
       assignment, digest) via a shared `toEmailLocale` mapper. All user-facing copy now
       flows through the i18n catalog (legal pages included).
-- [ ] Documentation overhaul: critically review every doc - the white-label API docs,
-      README, all `*.md` - so the whole project reads polished and professional.
+- [x] Documentation overhaul: reviewed every doc against the code. Fixed README
+      (Prisma 6, real i18n approach, es locale, AI highlight), rewrote `.env.example`
+      to the env vars the code actually reads (Google/Sentry/Upstash/AI/site URL),
+      and refreshed `docs/i18n.md` (es + legal/email/AI localization),
+      `docs/ai-generation.md` (provider-agnostic AI SDK, es), `docs/auth.md`
+      (Argon2id + `hasPassword`), and `docs/api.md` (correct `/api/v1/health`).
 - [ ] Full code review: read every file and line, fix any issue, and ensure the
       codebase reflects current industry best practices (it is a portfolio project).
 
