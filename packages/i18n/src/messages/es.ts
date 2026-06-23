@@ -263,5 +263,9 @@ export const es: Messages = {
     close: 'Cerrar',
     exportData: 'Exportar mis datos',
     exportDataHint: 'Descarga una copia en JSON de tu cuenta y listas.',
+    photo: 'Foto de perfil',
+    changePhoto: 'Cambiar foto',
+    removePhoto: 'Quitar foto',
+    photoHint: 'PNG, JPEG o WebP. Recortada en cuadrado.',
   },
 }

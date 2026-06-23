@@ -144,6 +144,32 @@ describe('signInWithGoogle', () => {
     expect(view.displayName).toBe('New Person')
   })
 
+  it('imports the Google profile picture as the initial avatar', async () => {
+    const ctx = setup(
+      new FakeOAuthProvider({
+        email: 'pic@example.com',
+        displayName: 'Pic Person',
+        emailVerified: true,
+        avatarUrl: 'https://lh3.googleusercontent.com/a/pic',
+      }),
+    )
+    const view = await ctx.signIn('auth-code')
+    expect(view.avatarUrl).toBe('https://lh3.googleusercontent.com/a/pic')
+  })
+
+  it('ignores a non-https profile picture', async () => {
+    const ctx = setup(
+      new FakeOAuthProvider({
+        email: 'nopic@example.com',
+        displayName: 'No Pic',
+        emailVerified: true,
+        avatarUrl: 'http://insecure.example.com/p.png',
+      }),
+    )
+    const view = await ctx.signIn('auth-code')
+    expect(view.avatarUrl).toBeNull()
+  })
+
   it('returns the existing user when the email is known', async () => {
     const ctx = setup()
     const existing = User.createGuest({

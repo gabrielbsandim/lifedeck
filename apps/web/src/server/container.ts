@@ -42,6 +42,8 @@ import {
   makeSendDailyDigest,
   makeSetCarryOverMode,
   makeSetTimezone,
+  makeSetAvatar,
+  makeRemoveAvatar,
   makeSignInWithEmail,
   makeSignInWithGoogle,
   makeUpdateRecurringTask,
@@ -64,6 +66,7 @@ import {
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
+  type FileStorage,
 } from '@lifedeck/application'
 import {
   AiSdkListGenerator,
@@ -90,6 +93,7 @@ import {
   SystemClock,
   UuidGenerator,
   PrismaUnitOfWork,
+  VercelBlobStorage,
   createTransactionalClient,
   prisma,
 } from '@lifedeck/infrastructure'
@@ -122,6 +126,8 @@ type Container = {
   bringTaskToToday: ReturnType<typeof makeBringTaskToToday>
   setCarryOverMode: ReturnType<typeof makeSetCarryOverMode>
   setTimezone: ReturnType<typeof makeSetTimezone>
+  setAvatar: ReturnType<typeof makeSetAvatar>
+  removeAvatar: ReturnType<typeof makeRemoveAvatar>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
   listRecurringTasks: ReturnType<typeof makeListRecurringTasks>
   updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
@@ -167,6 +173,7 @@ type Services = {
   oauth: OAuthProvider
   listGenerator: ListGenerator
   healthProbes: HealthProbe[]
+  fileStorage: FileStorage
 }
 
 function build(
@@ -189,6 +196,7 @@ function build(
     oauth,
     listGenerator,
     healthProbes,
+    fileStorage,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -273,6 +281,8 @@ function build(
     }),
     setCarryOverMode: makeSetCarryOverMode({ users }),
     setTimezone: makeSetTimezone({ users }),
+    setAvatar: makeSetAvatar({ users, fileStorage }),
+    removeAvatar: makeRemoveAvatar({ users, fileStorage }),
     createRecurringTask: makeCreateRecurringTask({
       recurringTasks,
       ids,
@@ -408,6 +418,7 @@ export function getContainer(): Container {
         oauth: buildGoogleProvider(),
         listGenerator: buildListGenerator(),
         healthProbes: buildHealthProbes(),
+        fileStorage: new VercelBlobStorage(),
       },
       new PrismaUnitOfWork(prisma),
     )

@@ -12,6 +12,7 @@ export function toUserView(user: User): UserView {
     hasPassword: props.passwordHash !== null,
     locale: props.locale,
     timezone: props.timezone,
+    avatarUrl: props.avatarUrl,
     carryOverMode: props.carryOverMode,
     createdAt: props.createdAt.toISOString(),
   }

@@ -1,18 +1,34 @@
 'use client'
 
-import { useMemo, useState, type FormEvent } from 'react'
-import { Badge, Button, Dialog, PasswordField, TextField } from '@lifedeck/ui'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react'
+import {
+  Avatar,
+  Badge,
+  Button,
+  Dialog,
+  PasswordField,
+  TextField,
+} from '@lifedeck/ui'
 import type { UserView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useChangePassword,
   useDeleteAccount,
+  useRemoveAvatar,
   useRenameUser,
   useSetCarryOverMode,
   useSetTimezone,
   useSignOut,
+  useUploadAvatar,
 } from '@/lib/api/use-account'
 import { browserTimeZone } from '@/lib/api/dates'
+import { resizeImageToSquare } from '@/lib/api/image'
 import { useResendCode, useVerifyEmail } from '@/lib/api/use-auth'
 
 function errorText(error: unknown, fallback: string): string {
@@ -49,11 +65,30 @@ export function AccountDialog({
   const rename = useRenameUser()
   const setCarryOverMode = useSetCarryOverMode()
   const setTimezone = useSetTimezone()
+  const uploadAvatar = useUploadAvatar()
+  const removeAvatar = useRemoveAvatar()
   const changePassword = useChangePassword()
   const signOut = useSignOut()
   const deleteAccount = useDeleteAccount()
   const resend = useResendCode()
   const verify = useVerifyEmail()
+  const photoInput = useRef<HTMLInputElement>(null)
+  const [photoError, setPhotoError] = useState(false)
+
+  async function onPickPhoto(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) {
+      return
+    }
+    setPhotoError(false)
+    try {
+      const image = await resizeImageToSquare(file)
+      uploadAvatar.mutate(image)
+    } catch {
+      setPhotoError(true)
+    }
+  }
 
   const timeZones = useMemo(() => listTimeZones(user.timezone), [user.timezone])
   const detectedZone = browserTimeZone()
@@ -92,6 +127,51 @@ export function AccountDialog({
   return (
     <Dialog open={open} onClose={onClose} title={messages.auth.account}>
       <div className="flex flex-col gap-5">
+        <div className="flex items-center gap-4">
+          <Avatar name={user.displayName} src={user.avatarUrl} size="md" />
+          <div className="flex flex-col gap-1.5">
+            <span className="text-ink-700 text-sm font-medium">
+              {messages.auth.photo}
+            </span>
+            <div className="flex items-center gap-2">
+              <input
+                ref={photoInput}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={onPickPhoto}
+              />
+              <Button
+                variant="ghost"
+                className="h-8 px-3 text-xs"
+                isLoading={uploadAvatar.isPending}
+                onClick={() => photoInput.current?.click()}
+              >
+                {messages.auth.changePhoto}
+              </Button>
+              {user.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => removeAvatar.mutate()}
+                  disabled={removeAvatar.isPending}
+                  className="text-ink-500 hover:text-danger text-xs font-medium"
+                >
+                  {messages.auth.removePhoto}
+                </button>
+              )}
+            </div>
+            {photoError || uploadAvatar.isError ? (
+              <span className="text-danger text-xs">
+                {messages.common.error}
+              </span>
+            ) : (
+              <span className="text-ink-400 text-xs">
+                {messages.auth.photoHint}
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="border-line flex flex-col gap-2 rounded-xl border bg-white p-3">
           <span className="text-ink-700 text-sm">{user.email}</span>
           {user.isEmailVerified ? (

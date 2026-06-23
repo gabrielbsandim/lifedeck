@@ -74,6 +74,30 @@ describe('User', () => {
     expect(user.timezone).toBe('Europe/Lisbon')
   })
 
+  it('has no avatar by default and sets/removes one with validation', () => {
+    const user = createGuest()
+    expect(user.avatarUrl).toBeNull()
+    user.setAvatar('https://blob.example.com/avatars/abc.webp')
+    expect(user.avatarUrl).toBe('https://blob.example.com/avatars/abc.webp')
+    expect(() => user.setAvatar('http://insecure.example.com/a.png')).toThrow(
+      ValidationError,
+    )
+    expect(() => user.setAvatar('javascript:alert(1)')).toThrow(ValidationError)
+    user.removeAvatar()
+    expect(user.avatarUrl).toBeNull()
+  })
+
+  it('accepts an initial avatar at creation', () => {
+    const user = User.createGuest({
+      id: ID,
+      displayName: 'Gabriel',
+      locale: 'en',
+      avatarUrl: 'https://lh3.googleusercontent.com/a/pic',
+      createdAt: CREATED_AT,
+    })
+    expect(user.avatarUrl).toBe('https://lh3.googleusercontent.com/a/pic')
+  })
+
   it('defaults to manual carry-over and updates it with validation', () => {
     const user = createGuest()
     expect(user.carryOverMode).toBe('manual')

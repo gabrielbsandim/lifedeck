@@ -105,6 +105,28 @@ export function useSyncTimezone(user: UserView | null | undefined) {
   }, [user, queryClient])
 }
 
+export function useUploadAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (image: Blob) =>
+      apiRequest<UserView>('/api/v1/account/avatar', {
+        method: 'POST',
+        body: image,
+        headers: { 'content-type': image.type || 'image/webp' },
+      }),
+    onSuccess: user => queryClient.setQueryData(sessionKey, user),
+  })
+}
+
+export function useRemoveAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      apiRequest<UserView>('/api/v1/account/avatar', { method: 'DELETE' }),
+    onSuccess: user => queryClient.setQueryData(sessionKey, user),
+  })
+}
+
 export function useChangePassword() {
   return useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>

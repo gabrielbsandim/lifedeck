@@ -35,12 +35,13 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@lifedeck/application": "workspace:*",
+    "@lifedeck/domain": "workspace:*",
     "@neondatabase/serverless": "0.10.4",
     "@node-rs/argon2": "2.0.2",
     "@prisma/adapter-neon": "6.2.1",
     "@prisma/client": "6.2.1",
-    "@lifedeck/application": "workspace:*",
-    "@lifedeck/domain": "workspace:*",
+    "@vercel/blob": "2.4.1",
     "ai": "6.0.208",
     "resend": "4.0.1",
     "zod": "3.25.76"

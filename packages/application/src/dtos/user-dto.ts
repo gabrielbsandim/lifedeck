@@ -65,6 +65,7 @@ export const userViewSchema = z.object({
   hasPassword: z.boolean(),
   locale: z.string(),
   timezone: z.string(),
+  avatarUrl: z.string().nullable(),
   carryOverMode: z.enum(['manual', 'auto']),
   createdAt: z.string().datetime(),
 })

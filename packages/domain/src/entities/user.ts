@@ -9,6 +9,15 @@ import {
 import { DEFAULT_TIME_ZONE, isTimeZone } from '@/value-objects/time-zone'
 
 const MAX_DISPLAY_NAME_LENGTH = 80
+const MAX_AVATAR_URL_LENGTH = 2048
+
+function normalizeAvatarUrl(value: string): string {
+  const trimmed = value.trim()
+  if (!/^https:\/\//i.test(trimmed)) {
+    throw new ValidationError('Avatar URL must be an https URL.')
+  }
+  return guard.maxLength(trimmed, MAX_AVATAR_URL_LENGTH, 'Avatar URL')
+}
 
 function normalizeTimeZone(value: string | undefined): string {
   if (value === undefined) {
@@ -30,6 +39,7 @@ export type UserProps = {
   isGuest: boolean
   locale: string
   timezone: string
+  avatarUrl: string | null
   carryOverMode: CarryOverMode
   createdAt: Date
 }
@@ -42,6 +52,7 @@ export class User {
     displayName: string
     locale: string
     timezone?: string
+    avatarUrl?: string | null
     createdAt: Date
   }): User {
     return new User({
@@ -57,6 +68,7 @@ export class User {
       isGuest: true,
       locale: guard.notEmpty(input.locale, 'Locale'),
       timezone: normalizeTimeZone(input.timezone),
+      avatarUrl: input.avatarUrl ? normalizeAvatarUrl(input.avatarUrl) : null,
       carryOverMode: 'manual',
       createdAt: input.createdAt,
     })
@@ -100,6 +112,18 @@ export class User {
 
   get timezone(): string {
     return this.props.timezone
+  }
+
+  get avatarUrl(): string | null {
+    return this.props.avatarUrl
+  }
+
+  setAvatar(url: string): void {
+    this.props.avatarUrl = normalizeAvatarUrl(url)
+  }
+
+  removeAvatar(): void {
+    this.props.avatarUrl = null
   }
 
   get carryOverMode(): CarryOverMode {

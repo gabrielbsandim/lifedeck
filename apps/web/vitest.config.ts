@@ -10,6 +10,7 @@ export default mergeConfig(
     coverageExclude: [
       'src/**/*.test.{ts,tsx}',
       'src/lib/api/test-utils.tsx',
+      'src/lib/api/image.ts',
       'src/server/container.ts',
       'src/server/api/openapi.ts',
       'src/lib/i18n/messages-provider.tsx',

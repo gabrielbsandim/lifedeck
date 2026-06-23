@@ -55,6 +55,14 @@ nulled). Sign-out and account deletion clear the session cookie. The `UserView`
 exposes a `hasPassword` flag so the UI hides the change-password form for
 Google-only accounts.
 
+Profile photos are uploaded to **Vercel Blob** (`FileStorage` port,
+`VercelBlobStorage` adapter): the client crops to a 256px square WebP, `POST
+/api/v1/account/avatar` validates the type (PNG/JPEG/WebP) and 512 KB cap, stores
+the blob, and persists its https URL on `user.avatarUrl`; `DELETE` removes it.
+Replacing an avatar deletes the previous blob (best-effort). Signing in with
+Google imports the profile picture as the initial avatar when present. Requires
+`BLOB_READ_WRITE_TOKEN` (a no-op error otherwise).
+
 `setTimezone` persists the user's IANA `timezone` (`PATCH
 /api/v1/account/timezone`). The account dialog auto-detects the browser zone
 once per account+browser and offers a manual IANA picker with a "use device

@@ -2,6 +2,7 @@ export type OAuthProfile = {
   email: string
   displayName: string
   emailVerified: boolean
+  avatarUrl?: string | null
 }
 
 export interface OAuthProvider {

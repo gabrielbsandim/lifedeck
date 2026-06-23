@@ -26,6 +26,7 @@ export default mergeConfig(
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',
+        'src/storage/vercel-blob-storage.ts',
         'src/ai/ai-sdk-list-generator.ts',
         'src/ai/stub-list-generator.ts',
       ],

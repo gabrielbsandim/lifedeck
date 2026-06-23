@@ -9,6 +9,7 @@ export type UserRecord = {
   isGuest: boolean
   locale: string
   timezone: string
+  avatarUrl: string | null
   carryOverMode: string
   createdAt: Date
 }
@@ -23,6 +24,7 @@ export function toDomainUser(record: UserRecord): User {
     isGuest: record.isGuest,
     locale: record.locale,
     timezone: isTimeZone(record.timezone) ? record.timezone : 'UTC',
+    avatarUrl: record.avatarUrl,
     carryOverMode: isCarryOverMode(record.carryOverMode)
       ? record.carryOverMode
       : 'manual',
@@ -41,6 +43,7 @@ export function toUserRecord(user: User): UserRecord {
     isGuest: props.isGuest,
     locale: props.locale,
     timezone: props.timezone,
+    avatarUrl: props.avatarUrl,
     carryOverMode: props.carryOverMode,
     createdAt: props.createdAt,
   }

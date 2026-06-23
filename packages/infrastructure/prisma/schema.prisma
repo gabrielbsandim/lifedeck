@@ -51,6 +51,7 @@ model User {
   isGuest       Boolean   @default(true) @map("is_guest")
   locale        String    @default("en")
   timezone      String    @default("UTC")
+  avatarUrl     String?   @map("avatar_url")
   carryOverMode String    @default("manual") @map("carry_over_mode")
   createdAt     DateTime  @default(now()) @map("created_at")
 

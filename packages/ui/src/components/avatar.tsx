@@ -1,7 +1,11 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 
 export type AvatarProps = {
   name: string
+  src?: string | null
   tone?: 'brand' | 'violet'
   size?: 'sm' | 'md'
   className?: string
@@ -28,21 +32,36 @@ function initials(name: string): string {
 
 export function Avatar({
   name,
+  src,
   tone = 'brand',
   size = 'md',
   className,
 }: AvatarProps) {
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
+  const showImage = Boolean(src) && !failed
+
   return (
     <span
       title={name}
       className={cn(
-        'inline-flex flex-none items-center justify-center rounded-full font-semibold text-white',
+        'relative inline-flex flex-none items-center justify-center overflow-hidden rounded-full font-semibold text-white',
         SIZE_CLASSES[size],
         TONE_CLASSES[tone],
         className,
       )}
     >
       {initials(name)}
+      {showImage && (
+        <img
+          src={src as string}
+          alt={name}
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      )}
     </span>
   )
 }

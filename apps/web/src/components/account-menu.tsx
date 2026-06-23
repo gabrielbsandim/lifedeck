@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Avatar } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { AuthDialog } from '@/components/auth-dialog'
@@ -25,16 +26,19 @@ export function AccountMenu() {
         <button
           type="button"
           onClick={() => setAccountOpen(true)}
-          className="border-line text-ink-700 hover:bg-bg flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-sm font-medium transition"
+          className="border-line text-ink-700 hover:bg-bg flex items-center gap-2 rounded-full border bg-white py-1 pl-1 pr-3 text-sm font-medium transition"
         >
-          <span
-            className={
-              user.isEmailVerified
-                ? 'h-2 w-2 rounded-full bg-emerald-500'
-                : 'h-2 w-2 rounded-full bg-amber-400'
-            }
-            aria-hidden
-          />
+          <span className="relative">
+            <Avatar name={user.displayName} src={user.avatarUrl} size="sm" />
+            <span
+              className={
+                user.isEmailVerified
+                  ? 'ring-bg absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2'
+                  : 'ring-bg absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2'
+              }
+              aria-hidden
+            />
+          </span>
           {user.displayName}
         </button>
       ) : (

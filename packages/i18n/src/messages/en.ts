@@ -261,5 +261,9 @@ export const en: Messages = {
     close: 'Close',
     exportData: 'Export my data',
     exportDataHint: 'Download a JSON copy of your account and lists.',
+    photo: 'Profile photo',
+    changePhoto: 'Change photo',
+    removePhoto: 'Remove photo',
+    photoHint: 'PNG, JPEG or WebP. Cropped to a square.',
   },
 }

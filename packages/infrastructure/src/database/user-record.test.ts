@@ -14,6 +14,7 @@ const RECORD: UserRecord = {
   isGuest: false,
   locale: 'en',
   timezone: 'America/Sao_Paulo',
+  avatarUrl: 'https://blob.example.com/avatars/x.webp',
   carryOverMode: 'manual',
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
 }
@@ -31,12 +32,14 @@ describe('user-record mapping', () => {
       passwordHash: null,
       emailVerified: null,
       isGuest: true,
+      avatarUrl: null,
     })
     const record = toUserRecord(user)
     expect(record.email).toBeNull()
     expect(record.passwordHash).toBeNull()
     expect(record.emailVerified).toBeNull()
     expect(record.isGuest).toBe(true)
+    expect(record.avatarUrl).toBeNull()
   })
 
   it('preserves the auto carry-over mode and falls back on unknown values', () => {

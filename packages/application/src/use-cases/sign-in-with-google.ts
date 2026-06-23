@@ -36,10 +36,15 @@ export function makeSignInWithGoogle({
     const displayName =
       profile.displayName.trim() || (email.split('@')[0] ?? 'Friend')
     const now = clock.now()
+    const avatarUrl =
+      profile.avatarUrl && /^https:\/\//i.test(profile.avatarUrl.trim())
+        ? profile.avatarUrl.trim()
+        : null
     const user = User.createGuest({
       id: ids.generate(),
       displayName,
       locale: DEFAULT_LOCALE,
+      avatarUrl,
       createdAt: now,
     })
     user.register({ email, passwordHash: null, emailVerifiedAt: now })

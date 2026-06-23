@@ -53,12 +53,14 @@ export class GoogleOAuthProvider implements OAuthProvider {
       email: string
       name?: string
       email_verified?: boolean
+      picture?: string
     }
 
     return {
       email: profile.email,
       displayName: profile.name ?? '',
       emailVerified: profile.email_verified === true,
+      avatarUrl: profile.picture ?? null,
     }
   }
 }

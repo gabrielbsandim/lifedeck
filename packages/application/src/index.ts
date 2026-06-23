@@ -17,6 +17,7 @@ export type {
 } from '@/ports/email-sender'
 export { toEmailLocale } from '@/ports/email-sender'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
+export type { FileStorage, StoredFile, UploadInput } from '@/ports/file-storage'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 export type {
   AnalyticsRepository,
@@ -153,6 +154,8 @@ export {
 export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
+export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
+export { makeRemoveAvatar } from '@/use-cases/remove-avatar'
 export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
 export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'
@@ -197,6 +200,7 @@ export { InMemoryApiKeyRepository } from '@/testing/in-memory-api-key-repository
 export { FakeEmailSender } from '@/testing/fake-email-sender'
 export { FakeCodeGenerator } from '@/testing/fake-code-generator'
 export { FakeOAuthProvider } from '@/testing/fake-oauth-provider'
+export { FakeFileStorage } from '@/testing/fake-file-storage'
 export { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
 export { FakeListGenerator } from '@/testing/fake-list-generator'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'

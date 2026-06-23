@@ -269,5 +269,9 @@ export type Messages = {
     close: string
     exportData: string
     exportDataHint: string
+    photo: string
+    changePhoto: string
+    removePhoto: string
+    photoHint: string
   }
 }
