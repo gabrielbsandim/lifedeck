@@ -270,7 +270,7 @@ function build(
     deleteList: makeDeleteList({ lists }),
     reorderTasks: makeReorderTasks({ tasks, lists, memberships, unitOfWork }),
     getList: makeGetList({ lists, memberships }),
-    listUserLists: makeListUserLists({ lists }),
+    listUserLists: makeListUserLists({ lists, memberships }),
     getDailyBoard,
     bringTaskToToday: makeBringTaskToToday({
       lists,

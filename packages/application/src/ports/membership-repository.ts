@@ -7,5 +7,6 @@ export interface MembershipRepository {
     userId: EntityId,
   ): Promise<ListMember | null>
   listByList(listId: EntityId): Promise<ListMember[]>
+  listByUser(userId: EntityId): Promise<ListMember[]>
   delete(id: EntityId): Promise<void>
 }

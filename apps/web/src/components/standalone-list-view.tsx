@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
+  Badge,
   Button,
   Card,
   Celebration,
@@ -37,7 +38,10 @@ export function StandaloneListView({ listId }: { listId: string }) {
   const list = useList(listId)
   const tasks = useListTasks(listId)
   const session = useSession()
-  const members = useMembers(listId, listId !== '')
+  const isOwner = Boolean(
+    list.data && session.data && list.data.ownerId === session.data.id,
+  )
+  const members = useMembers(listId, isOwner && listId !== '')
   const createTask = useCreateListTask(listId)
   const updateTask = useUpdateListTask(listId)
   const reorderTasks = useReorderListTasks(listId)
@@ -127,7 +131,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
           {messages.lists.back}
         </Link>
         <div className="flex items-center justify-between gap-3">
-          {editingTitle ? (
+          {isOwner && editingTitle ? (
             <form onSubmit={submitRename} className="flex flex-1 gap-2">
               <div className="flex-1">
                 <TextField
@@ -142,7 +146,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 {messages.recurring.save}
               </Button>
             </form>
-          ) : (
+          ) : isOwner ? (
             <button
               type="button"
               onClick={() => {
@@ -154,8 +158,12 @@ export function StandaloneListView({ listId }: { listId: string }) {
             >
               {list.data.title}
             </button>
+          ) : (
+            <h1 className="text-ink-800 min-w-0 flex-1 truncate text-2xl font-semibold tracking-tight">
+              {list.data.title}
+            </h1>
           )}
-          {!editingTitle && (
+          {isOwner && !editingTitle && (
             <div className="flex flex-none items-center gap-3">
               <button
                 type="button"
@@ -176,6 +184,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
               </button>
             </div>
           )}
+          {!isOwner && <Badge tone="shared">{messages.list.shared}</Badge>}
         </div>
       </header>
 

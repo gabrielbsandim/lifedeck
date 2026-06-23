@@ -33,6 +33,14 @@ export class PrismaMembershipRepository implements MembershipRepository {
     return records.map(toDomainMember)
   }
 
+  async listByUser(userId: EntityId): Promise<ListMember[]> {
+    const records = await this.prisma.listMember.findMany({
+      where: { userId },
+      orderBy: { addedAt: 'asc' },
+    })
+    return records.map(toDomainMember)
+  }
+
   async delete(id: EntityId): Promise<void> {
     await this.prisma.listMember.delete({ where: { id } })
   }

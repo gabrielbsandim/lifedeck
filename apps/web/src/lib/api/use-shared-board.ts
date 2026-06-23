@@ -7,6 +7,7 @@ import type {
   UpdateTaskInput,
 } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
+import { userListsKey } from '@/lib/api/use-lists'
 
 export const sharedBoardKey = (token: string) =>
   ['shared-board', token] as const
@@ -33,6 +34,7 @@ export function useJoinSharedList(token: string) {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sharedBoardKey(token) })
+      queryClient.invalidateQueries({ queryKey: userListsKey })
     },
   })
 }

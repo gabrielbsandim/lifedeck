@@ -23,6 +23,10 @@ export class InMemoryMembershipRepository implements MembershipRepository {
     return [...this.store.values()].filter(member => member.listId === listId)
   }
 
+  async listByUser(userId: EntityId): Promise<ListMember[]> {
+    return [...this.store.values()].filter(member => member.userId === userId)
+  }
+
   async delete(id: EntityId): Promise<void> {
     this.store.delete(id)
   }
