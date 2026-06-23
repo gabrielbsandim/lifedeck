@@ -147,6 +147,9 @@ export type Messages = {
     empty: string
     back: string
     backToToday: string
+    you: string
+    sharedBadge: string
+    newList: string
   }
   share: {
     title: string

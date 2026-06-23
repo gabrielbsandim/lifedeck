@@ -93,6 +93,18 @@ export function useListTasks(id: string) {
   })
 }
 
+// Lightweight per-list task fetch used to show progress on the lists overview.
+// Shares the cache key with useListTasks but does not poll, so opening the
+// overview does not spin up N background intervals.
+export function useListSummary(id: string) {
+  return useQuery({
+    queryKey: listTasksKey(id),
+    queryFn: () => apiRequest<TaskView[]>(`/api/v1/lists/${id}/tasks`),
+    enabled: id !== '',
+    staleTime: 30_000,
+  })
+}
+
 export function useCreateListTask(id: string) {
   const queryClient = useQueryClient()
   return useMutation({

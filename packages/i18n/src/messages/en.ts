@@ -137,6 +137,9 @@ export const en: Messages = {
     empty: 'No lists yet. Create your first one.',
     back: 'Back to lists',
     backToToday: 'Back to today',
+    you: 'You',
+    sharedBadge: 'Shared',
+    newList: 'New list',
   },
   share: {
     title: 'Share this list',
