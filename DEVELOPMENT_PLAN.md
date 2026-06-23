@@ -262,8 +262,15 @@ Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
       belongs to GBS Tecnologia da Informação Ltda (CNPJ 44.000.992/0001-22,
       contato@lifedeck.com.br) with a dynamic copyright line. Reference: the Obra
       Nova landing-page footer.
-- [ ] Full manual QA pass with Playwright MCP: exercise every single feature, screen,
-      UI/UX detail, and responsive breakpoint - exhaustively, nothing skipped.
+- [x] Full manual QA pass with Playwright MCP: exercised onboarding, daily board,
+      recurring tasks, lists + sharing, analytics, AI generation, developers/API keys,
+      `/docs`, auth (register → verify → account), account settings, status, legal
+      pages, notifications, and 360px responsiveness (0 horizontal overflow). Fixed the
+      findings: `/docs` Scalar pulled remote fonts (CSP-blocked) → `withDefaultFonts:false`
+      + system font + favicon (19 → 4 console errors, the rest being the CSP correctly
+      refusing Scalar's external registry call); the offline AI stub hint named the wrong
+      env (`ANTHROPIC_API_KEY` → `AI_MODEL`); and the English "all done" copy was
+      couple-framed ("you two") while pt/es were neutral - now consistent.
 - [x] Add Spanish (es) as a third first-class locale alongside English and Portuguese.
       Full `es` UI catalog + localized legal docs (`legal-es.ts`), `resolveLocale`
       tags, AI generation locale (`es`), and email templates (verification, invitation,
