@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { ZodError } from 'zod'
 import { ValidationError } from '@taskin/domain'
 import { ForbiddenError, NotFoundError } from '@taskin/application'
+import { log } from '@/server/api/logger'
 
 export type ApiErrorBody = {
   error: {
@@ -43,5 +45,9 @@ export function handleError(error: unknown): NextResponse<ApiErrorBody> {
   if (error instanceof ForbiddenError) {
     return fail('FORBIDDEN', error.message, 403)
   }
+  Sentry.captureException(error)
+  log('error', 'Unhandled API error', {
+    error: error instanceof Error ? error.message : String(error),
+  })
   return fail('INTERNAL_ERROR', 'Something went wrong.', 500)
 }

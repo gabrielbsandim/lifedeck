@@ -17,7 +17,9 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    isDev ? "connect-src 'self' ws:" : "connect-src 'self'",
+    isDev
+      ? "connect-src 'self' ws: https://*.sentry.io"
+      : "connect-src 'self' https://*.sentry.io",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "object-src 'none'",

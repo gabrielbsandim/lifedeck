@@ -19,7 +19,7 @@ import withSerwistInit from '@serwist/next'
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
-  serverExternalPackages: ['@node-rs/argon2'],
+  serverExternalPackages: ['@node-rs/argon2', '@sentry/nextjs'],
   webpack(config, { isServer }) {
     if (isServer) {
       config.externals = [
