@@ -243,23 +243,25 @@ client-side i18next rewrite, and keeps the typed message catalogs for compile-ti
 
 Surfaced from real use after Google sign-in shipped.
 
-- [ ] Show/hide password toggle ("eye" icon) on every password field (sign-in,
-      register, and the account "current/new password" inputs). There is no
-      confirm-password field, so letting the user reveal what they typed is the
-      minimum safeguard against typos.
-- [ ] Hide the "Change password" section for OAuth-only accounts (users who signed
-      up with Google have no local password to change). Gate it on whether the
-      account has a password credential set.
+- [x] Show/hide password toggle ("eye" icon) on every password field (sign-in,
+      register, and the account "current/new password" inputs). Shipped as a
+      `PasswordField` component in `@lifedeck/ui`. There is no confirm-password
+      field, so revealing the typed value is the minimum safeguard against typos.
+- [x] Hide the "Change password" section for OAuth-only accounts (users who signed
+      up with Google have no local password to change). `UserView` gained a
+      `hasPassword` flag (derived from the password hash) gating the section.
 
 ## Phase 12.6 - Launch readiness & portfolio polish
 
 Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
 
-- [ ] Terms of Use + Privacy Policy pages (localized), linked from the footer and
-      from the sign-up flow.
-- [ ] Footer ownership/branding on the landing page: show that Lifedeck belongs to
-      GBS Tecnologia da Informação Ltda (CNPJ 44.000.992/0001-22, contact email),
-      with a copyright line. Reference: the Obra Nova landing-page footer.
+- [x] Terms of Use + Privacy Policy pages (`/termos-de-uso`,
+      `/politica-de-privacidade`), LGPD-aligned (PT, Brazilian jurisdiction),
+      linked from the site footer.
+- [x] Footer ownership/branding on the landing page: `SiteFooter` shows Lifedeck
+      belongs to GBS Tecnologia da Informação Ltda (CNPJ 44.000.992/0001-22,
+      contato@lifedeck.com.br) with a dynamic copyright line. Reference: the Obra
+      Nova landing-page footer.
 - [ ] Full manual QA pass with Playwright MCP: exercise every single feature, screen,
       UI/UX detail, and responsive breakpoint - exhaustively, nothing skipped.
 - [ ] Add Spanish (es) as a third first-class locale alongside English and Portuguese
