@@ -6,6 +6,7 @@ import { todayIso } from '@/lib/api/dates'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { DailyBoard } from '@/components/daily-board'
 import { AppShell } from '@/components/app-shell'
+import { SiteFooter } from '@/components/site-footer'
 
 const plainMain =
   'mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-10 px-5 py-16 sm:py-24'
@@ -23,9 +24,12 @@ export function AppHome() {
 
   if (!session.data) {
     return (
-      <main className={plainMain}>
-        <OnboardingCard />
-      </main>
+      <div className="flex min-h-dvh flex-col">
+        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-10 px-5 py-16 sm:py-24">
+          <OnboardingCard />
+        </main>
+        <SiteFooter />
+      </div>
     )
   }
 

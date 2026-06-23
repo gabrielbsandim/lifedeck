@@ -5,6 +5,11 @@ export const pt: Messages = {
     name: 'Lifedeck',
     tagline: 'Sua vida inteira, organizada num só lugar.',
   },
+  footer: {
+    description:
+      'Planeje, compartilhe e mantenha o controle da sua vida inteira - juntos, num só lugar.',
+    rights: '© {year} Lifedeck. Todos os direitos reservados.',
+  },
   onboarding: {
     title: 'Vamos começar',
     subtitle: 'Diga seu nome para começar sua lista do dia.',
