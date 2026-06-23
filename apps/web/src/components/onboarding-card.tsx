@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Button, Card, TextField } from '@taskin/ui'
+import { Button, Card, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateGuest } from '@/lib/api/use-session'
 import { AuthDialog } from '@/components/auth-dialog'

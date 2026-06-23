@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig, mergeConfig } from 'vitest/config'
-import { createVitestConfig } from '@taskin/config/vitest/base'
+import { createVitestConfig } from '@lifedeck/config/vitest/base'
 
 export default mergeConfig(
   defineConfig(

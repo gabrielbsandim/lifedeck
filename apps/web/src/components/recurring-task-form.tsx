@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import type { CreateRecurringTaskInput } from '@taskin/application'
-import { Button, TextField } from '@taskin/ui'
+import type { CreateRecurringTaskInput } from '@lifedeck/application'
+import { Button, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { todayIso } from '@/lib/api/dates'
 

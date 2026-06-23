@@ -1,4 +1,4 @@
-import type { ListMember } from '@taskin/domain'
+import type { ListMember } from '@lifedeck/domain'
 import type { MemberView } from '@/dtos/member-dto'
 
 export function toMemberView(

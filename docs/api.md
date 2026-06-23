@@ -1,7 +1,7 @@
 # API reference
 
-TaskIn exposes a versioned, white-label REST API under `/api/v1`. It is designed
-to be consumed independently of the TaskIn web UI.
+Lifedeck exposes a versioned, white-label REST API under `/api/v1`. It is designed
+to be consumed independently of the Lifedeck web UI.
 
 - **Base URL:** `https://<your-host>/api/v1`
 - **Format:** JSON only.
@@ -26,7 +26,7 @@ The API accepts two credential types:
 
 | Caller          | Credential                                   | How                                                       |
 | --------------- | -------------------------------------------- | --------------------------------------------------------- |
-| The TaskIn web UI | Signed `HttpOnly` session cookie             | Set automatically on sign-in; carries full access.        |
+| The Lifedeck web UI | Signed `HttpOnly` session cookie             | Set automatically on sign-in; carries full access.        |
 | Third parties   | Personal **API key**                         | `Authorization: Bearer tk_live_...` or `X-API-Key: tk_live_...`. |
 
 API keys are created from the **Developers** screen (`/developers`). The raw

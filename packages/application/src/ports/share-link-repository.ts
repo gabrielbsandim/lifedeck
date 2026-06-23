@@ -1,4 +1,4 @@
-import type { EntityId, ShareLink } from '@taskin/domain'
+import type { EntityId, ShareLink } from '@lifedeck/domain'
 
 export interface ShareLinkRepository {
   save(link: ShareLink): Promise<void>

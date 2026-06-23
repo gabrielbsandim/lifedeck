@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import type { ListRepository } from '@/ports/list-repository'
 

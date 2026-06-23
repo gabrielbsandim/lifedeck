@@ -1,4 +1,4 @@
-import { User } from '@taskin/domain'
+import { User } from '@lifedeck/domain'
 import {
   guestSignInSchema,
   type GuestSignInInput,

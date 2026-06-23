@@ -1,4 +1,4 @@
-import type { EntityId } from '@taskin/domain'
+import type { EntityId } from '@lifedeck/domain'
 
 export type DailyCompletion = {
   date: string

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ListMember, Task, User, ValidationError } from '@taskin/domain'
+import { List, ListMember, Task, User, ValidationError } from '@lifedeck/domain'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { makeUpdateTask } from '@/use-cases/update-task'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'

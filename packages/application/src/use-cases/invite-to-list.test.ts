@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, asEntityId } from '@taskin/domain'
+import { List, asEntityId } from '@lifedeck/domain'
 import { makeInviteToList } from '@/use-cases/invite-to-list'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
@@ -55,7 +55,7 @@ describe('inviteToList', () => {
       ID.user as string,
       ID.list as string,
       { email: 'friend@example.com', role: 'editor' },
-      'https://taskin.app/',
+      'https://lifedeck.app/',
       'pt',
     )
 
@@ -64,7 +64,7 @@ describe('inviteToList', () => {
       {
         to: 'friend@example.com',
         listTitle: 'Wedding',
-        url: 'https://taskin.app/share/secret-token',
+        url: 'https://lifedeck.app/share/secret-token',
         locale: 'pt',
       },
     ])
@@ -81,7 +81,7 @@ describe('inviteToList', () => {
         ID.otherUser as string,
         ID.list as string,
         { email: 'friend@example.com' },
-        'https://taskin.app',
+        'https://lifedeck.app',
       ),
     ).rejects.toBeInstanceOf(NotFoundError)
   })

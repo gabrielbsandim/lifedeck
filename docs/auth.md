@@ -1,6 +1,6 @@
 # Authentication & identity
 
-TaskIn is no-account-first: every visitor starts as a guest, and a guest can be
+Lifedeck is no-account-first: every visitor starts as a guest, and a guest can be
 upgraded in place to a real account without losing any data. Sessions are signed
 `HttpOnly` cookies (jose, HS256); the cookie holds only the user id.
 
@@ -54,6 +54,6 @@ clear the session cookie.
 ## Ports (application layer)
 
 `PasswordHasher`, `CodeGenerator`, `EmailSender`, `OAuthProvider`, and
-`EmailVerificationRepository` are interfaces in `@taskin/application`, with
-production adapters in `@taskin/infrastructure` and fakes in
-`@taskin/application/testing` for the use-case tests.
+`EmailVerificationRepository` are interfaces in `@lifedeck/application`, with
+production adapters in `@lifedeck/infrastructure` and fakes in
+`@lifedeck/application/testing` for the use-case tests.

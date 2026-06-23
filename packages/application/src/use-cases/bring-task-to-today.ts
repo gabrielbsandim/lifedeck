@@ -1,4 +1,4 @@
-import { List, Task, asEntityId } from '@taskin/domain'
+import { List, Task, asEntityId } from '@lifedeck/domain'
 import { type TaskView } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
 import { NotFoundError, ForbiddenError } from '@/errors/use-case-error'

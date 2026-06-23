@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { RecurringTaskView } from '@taskin/application'
-import { Button, Card, EmptyState, Skeleton } from '@taskin/ui'
+import type { RecurringTaskView } from '@lifedeck/application'
+import { Button, Card, EmptyState, Skeleton } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useCreateRecurringTask,

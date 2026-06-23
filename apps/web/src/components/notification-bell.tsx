@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { NotificationView } from '@taskin/application'
+import type { NotificationView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useMarkAllNotificationsRead,

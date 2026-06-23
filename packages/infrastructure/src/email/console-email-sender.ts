@@ -2,7 +2,7 @@ import type {
   DailyDigestSummary,
   EmailLocale,
   EmailSender,
-} from '@taskin/application'
+} from '@lifedeck/application'
 
 export class ConsoleEmailSender implements EmailSender {
   async sendVerificationCode(
@@ -10,7 +10,7 @@ export class ConsoleEmailSender implements EmailSender {
     code: string,
     locale: EmailLocale = 'en',
   ): Promise<void> {
-    console.info(`[taskin] verification code for ${to} (${locale}): ${code}`)
+    console.info(`[lifedeck] verification code for ${to} (${locale}): ${code}`)
   }
 
   async sendListInvitation(
@@ -20,7 +20,7 @@ export class ConsoleEmailSender implements EmailSender {
     locale: EmailLocale = 'en',
   ): Promise<void> {
     console.info(
-      `[taskin] invitation to "${listTitle}" for ${to} (${locale}): ${url}`,
+      `[lifedeck] invitation to "${listTitle}" for ${to} (${locale}): ${url}`,
     )
   }
 
@@ -31,7 +31,7 @@ export class ConsoleEmailSender implements EmailSender {
     locale: EmailLocale = 'en',
   ): Promise<void> {
     console.info(
-      `[taskin] assignment "${taskTitle}" on "${listTitle}" for ${to} (${locale})`,
+      `[lifedeck] assignment "${taskTitle}" on "${listTitle}" for ${to} (${locale})`,
     )
   }
 
@@ -41,7 +41,7 @@ export class ConsoleEmailSender implements EmailSender {
     locale: EmailLocale = 'en',
   ): Promise<void> {
     console.info(
-      `[taskin] digest for ${to} (${locale}): ${summary.completed}/${summary.total} done on ${summary.date}`,
+      `[lifedeck] digest for ${to} (${locale}): ${summary.completed}/${summary.total} done on ${summary.date}`,
     )
   }
 }

@@ -1,4 +1,4 @@
-import type { EmailVerification, EntityId } from '@taskin/domain'
+import type { EmailVerification, EntityId } from '@lifedeck/domain'
 import type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 
 export class InMemoryEmailVerificationRepository

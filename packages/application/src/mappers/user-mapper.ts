@@ -1,4 +1,4 @@
-import type { User } from '@taskin/domain'
+import type { User } from '@lifedeck/domain'
 import type { UserView } from '@/dtos/user-dto'
 
 export function toUserView(user: User): UserView {

@@ -1,4 +1,4 @@
-import { ValidationError, asEntityId } from '@taskin/domain'
+import { ValidationError, asEntityId } from '@lifedeck/domain'
 import { changePasswordSchema, type UserView } from '@/dtos/user-dto'
 import { toUserView } from '@/mappers/user-mapper'
 import { NotFoundError } from '@/errors/use-case-error'

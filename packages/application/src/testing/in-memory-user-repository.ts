@@ -1,4 +1,4 @@
-import type { EntityId, User } from '@taskin/domain'
+import type { EntityId, User } from '@lifedeck/domain'
 import type { UserRepository } from '@/ports/user-repository'
 
 export class InMemoryUserRepository implements UserRepository {

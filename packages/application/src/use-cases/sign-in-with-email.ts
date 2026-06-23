@@ -1,4 +1,4 @@
-import { ValidationError } from '@taskin/domain'
+import { ValidationError } from '@lifedeck/domain'
 import { signInSchema, type UserView } from '@/dtos/user-dto'
 import { toUserView } from '@/mappers/user-mapper'
 import type { PasswordHasher } from '@/ports/password-hasher'

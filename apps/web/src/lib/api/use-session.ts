@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { GuestSignInInput, UserView } from '@taskin/application'
+import type { GuestSignInInput, UserView } from '@lifedeck/application'
 import { ApiError, apiRequest } from '@/lib/api/client'
 
 export const sessionKey = ['session'] as const

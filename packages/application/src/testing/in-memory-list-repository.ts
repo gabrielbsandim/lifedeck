@@ -1,4 +1,4 @@
-import type { EntityId, List } from '@taskin/domain'
+import type { EntityId, List } from '@lifedeck/domain'
 import type { ListRepository } from '@/ports/list-repository'
 
 export class InMemoryListRepository implements ListRepository {

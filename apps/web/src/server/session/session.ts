@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose'
 
-export const SESSION_COOKIE = 'taskin_session'
+export const SESSION_COOKIE = 'lifedeck_session'
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7
 
 type CookieOptions = {

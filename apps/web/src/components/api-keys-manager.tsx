@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { API_SCOPES, type ApiScope } from '@taskin/domain'
-import type { ApiKeyView, CreatedApiKeyView } from '@taskin/application'
+import { API_SCOPES, type ApiScope } from '@lifedeck/domain'
+import type { ApiKeyView, CreatedApiKeyView } from '@lifedeck/application'
 import {
   Badge,
   Button,
@@ -11,7 +11,7 @@ import {
   EmptyState,
   Skeleton,
   TextField,
-} from '@taskin/ui'
+} from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useApiKeys,

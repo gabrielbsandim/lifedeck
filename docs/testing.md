@@ -1,12 +1,12 @@
 # Testing
 
-TaskIn enforces a **95% coverage gate from day one**, applied per package.
+Lifedeck enforces a **95% coverage gate from day one**, applied per package.
 
 ## Tooling
 
 - **Runner:** Vitest.
-- **Coverage:** v8 provider, thresholds defined in `@taskin/config/vitest/base`.
-- **DOM:** `jsdom` + Testing Library for `@taskin/ui` and `apps/web`.
+- **Coverage:** v8 provider, thresholds defined in `@lifedeck/config/vitest/base`.
+- **DOM:** `jsdom` + Testing Library for `@lifedeck/ui` and `apps/web`.
 
 The shared `createVitestConfig` factory sets a 95% threshold for lines,
 functions, branches, and statements. Each package extends it and can adjust the
@@ -44,7 +44,7 @@ Coverage measures logic, not wiring. The following are intentionally excluded:
 ```bash
 pnpm test                 # all packages, no coverage
 pnpm test:coverage        # all packages with the 95% gate
-pnpm --filter @taskin/domain test:coverage   # a single package
+pnpm --filter @lifedeck/domain test:coverage   # a single package
 ```
 
 ## Responsiveness checks

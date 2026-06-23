@@ -1,5 +1,5 @@
-import { List, asEntityId } from '@taskin/domain'
-import type { ListType, Visibility } from '@taskin/domain'
+import { List, asEntityId } from '@lifedeck/domain'
+import type { ListType, Visibility } from '@lifedeck/domain'
 
 export type ListRecord = {
   id: string

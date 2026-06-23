@@ -1,6 +1,6 @@
 # Design system
 
-The design system lives in `@taskin/ui` and is consumed by `apps/web`. It aims
+The design system lives in `@lifedeck/ui` and is consumed by `apps/web`. It aims
 for a light, calm, modern feel with smooth, subtle motion - never flashy.
 
 ## Principles
@@ -50,6 +50,6 @@ Checklist for any UI change:
 ## External design workflow
 
 High-fidelity screens are designed in Claude Design from the brief in
-[design-brief.md](./design-brief.md), then translated into `@taskin/ui`
+[design-brief.md](./design-brief.md), then translated into `@lifedeck/ui`
 components and Tailwind tokens. The brief is the source of truth for visual
 direction; this document is the source of truth for implementation rules.

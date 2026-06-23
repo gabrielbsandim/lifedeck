@@ -7,3 +7,4 @@ coverage
 pnpm-lock.yaml
 *.md
 next-env.d.ts
+design/support.js

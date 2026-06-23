@@ -1,4 +1,4 @@
-import type { EntityId, ShareLink } from '@taskin/domain'
+import type { EntityId, ShareLink } from '@lifedeck/domain'
 import type { ShareLinkRepository } from '@/ports/share-link-repository'
 
 export class InMemoryShareLinkRepository implements ShareLinkRepository {

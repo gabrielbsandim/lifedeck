@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in TaskIn. This guide keeps the codebase consistent.
+Thanks for your interest in Lifedeck. This guide keeps the codebase consistent.
 
 ## Principles
 
@@ -36,7 +36,7 @@ Keep the subject as the whole message - no body required for small changes.
 
 - Prettier and ESLint are authoritative; do not hand-format around them.
 - Imports use the `@/` alias for in-package modules (e.g. `@/shared/guard`) and
-  the package name for cross-package imports (e.g. `@taskin/domain`). Do not use
+  the package name for cross-package imports (e.g. `@lifedeck/domain`). Do not use
   `./` or `../` relative paths.
 - `kebab-case` filenames; `PascalCase` types/components; `camelCase` values.
 - Prefer pure functions and explicit dependencies (constructor/parameter

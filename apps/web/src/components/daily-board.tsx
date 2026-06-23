@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { TaskView, UpdateTaskInput } from '@taskin/application'
+import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
   Button,
   Card,
@@ -12,7 +12,7 @@ import {
   ProgressBar,
   Skeleton,
   TextField,
-} from '@taskin/ui'
+} from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useBringTaskToToday,

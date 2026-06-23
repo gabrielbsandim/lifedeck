@@ -1,4 +1,4 @@
-import type { ApiScope } from '@taskin/domain'
+import type { ApiScope } from '@lifedeck/domain'
 import type { ApiKeyRepository } from '@/ports/api-key-repository'
 import type { KeyHasher } from '@/ports/key-hasher'
 import type { Clock } from '@/ports/clock'

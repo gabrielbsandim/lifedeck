@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
-import { getMessages } from '@taskin/i18n'
+import { getMessages } from '@lifedeck/i18n'
 import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from '@/lib/site'
 import { Providers } from '@/app/providers'

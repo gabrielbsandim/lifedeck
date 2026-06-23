@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LogoMark } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 
 type NavItem = {
@@ -111,21 +112,7 @@ export function AppSidebar() {
         className="mb-4 flex items-center gap-2.5 px-2 py-1.5"
         aria-label={messages.app.name}
       >
-        <span className="bg-brand-600 flex h-7 w-7 items-center justify-center rounded-lg text-white">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M5 13l4 4L19 7" />
-          </svg>
-        </span>
+        <LogoMark size={28} title={messages.app.name} />
         <span className="text-base font-bold tracking-tight">
           {messages.app.name}
         </span>

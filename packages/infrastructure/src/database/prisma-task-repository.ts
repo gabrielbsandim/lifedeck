@@ -1,5 +1,5 @@
-import type { EntityId, Task } from '@taskin/domain'
-import type { TaskRepository } from '@taskin/application'
+import type { EntityId, Task } from '@lifedeck/domain'
+import type { TaskRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import { toDomainTask, toTaskRecord } from '@/database/task-record'
 

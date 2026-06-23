@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Notification, asEntityId } from '@taskin/domain'
+import { Notification, asEntityId } from '@lifedeck/domain'
 import { makeListNotifications } from '@/use-cases/list-notifications'
 import {
   makeMarkAllNotificationsRead,

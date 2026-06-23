@@ -3,7 +3,7 @@ import type {
   CreateRecurringTaskInput,
   RecurringTaskView,
   UpdateRecurringTaskInput,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const recurringTasksKey = ['recurring-tasks'] as const

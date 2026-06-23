@@ -1,4 +1,8 @@
-import { EmailVerification, ValidationError, asEntityId } from '@taskin/domain'
+import {
+  EmailVerification,
+  ValidationError,
+  asEntityId,
+} from '@lifedeck/domain'
 import { registerSchema, type UserView } from '@/dtos/user-dto'
 import { toUserView } from '@/mappers/user-mapper'
 import { NotFoundError } from '@/errors/use-case-error'

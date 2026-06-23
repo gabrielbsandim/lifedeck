@@ -1,4 +1,4 @@
-import { ApiKey, asEntityId } from '@taskin/domain'
+import { ApiKey, asEntityId } from '@lifedeck/domain'
 import { createApiKeySchema, type CreatedApiKeyView } from '@/dtos/api-key-dto'
 import { toApiKeyView } from '@/mappers/api-key-mapper'
 import type { ApiKeyRepository } from '@/ports/api-key-repository'

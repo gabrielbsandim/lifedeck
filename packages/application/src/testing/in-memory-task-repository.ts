@@ -1,4 +1,4 @@
-import type { EntityId, Task } from '@taskin/domain'
+import type { EntityId, Task } from '@lifedeck/domain'
 import type { TaskRepository } from '@/ports/task-repository'
 
 export class InMemoryTaskRepository implements TaskRepository {

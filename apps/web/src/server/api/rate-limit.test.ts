@@ -51,19 +51,19 @@ describe('rate limit', () => {
   it('reads the client IP from x-forwarded-for then x-real-ip', () => {
     expect(
       clientIp(
-        new Request('https://taskin.app', {
+        new Request('https://lifedeck.app', {
           headers: { 'x-forwarded-for': '9.9.9.9, 10.0.0.1' },
         }),
       ),
     ).toBe('9.9.9.9')
     expect(
       clientIp(
-        new Request('https://taskin.app', {
+        new Request('https://lifedeck.app', {
           headers: { 'x-real-ip': '8.8.8.8' },
         }),
       ),
     ).toBe('8.8.8.8')
-    expect(clientIp(new Request('https://taskin.app'))).toBe('unknown')
+    expect(clientIp(new Request('https://lifedeck.app'))).toBe('unknown')
   })
 
   it('exposes standard rate-limit headers', () => {

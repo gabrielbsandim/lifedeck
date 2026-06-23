@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { reorderTasksSchema, type TaskView } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
 import { resolveListAccess } from '@/access/list-access'

@@ -1,5 +1,5 @@
-import type { EntityId, RecurringTask } from '@taskin/domain'
-import type { RecurringTaskRepository } from '@taskin/application'
+import type { EntityId, RecurringTask } from '@lifedeck/domain'
+import type { RecurringTaskRepository } from '@lifedeck/application'
 import type { PrismaClient, Prisma } from '@prisma/client'
 import {
   toDomainRecurringTask,

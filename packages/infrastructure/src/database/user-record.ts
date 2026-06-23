@@ -1,4 +1,4 @@
-import { User, asEntityId, isCarryOverMode } from '@taskin/domain'
+import { User, asEntityId, isCarryOverMode } from '@lifedeck/domain'
 
 export type UserRecord = {
   id: string

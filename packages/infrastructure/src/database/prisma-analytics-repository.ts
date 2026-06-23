@@ -1,9 +1,9 @@
-import type { EntityId } from '@taskin/domain'
+import type { EntityId } from '@lifedeck/domain'
 import type {
   AnalyticsRepository,
   CompletionTotals,
   DailyCompletion,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 
 export class PrismaAnalyticsRepository implements AnalyticsRepository {

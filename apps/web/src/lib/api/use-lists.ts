@@ -6,7 +6,7 @@ import type {
   RenameListInput,
   TaskView,
   UpdateTaskInput,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const userListsKey = ['user-lists'] as const

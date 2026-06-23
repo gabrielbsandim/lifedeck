@@ -1,4 +1,4 @@
-import type { Task } from '@taskin/domain'
+import type { Task } from '@lifedeck/domain'
 import type { TaskView } from '@/dtos/task-dto'
 
 export function toTaskView(task: Task): TaskView {

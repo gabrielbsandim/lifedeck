@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { NotificationListView } from '@taskin/application'
+import type { NotificationListView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const notificationsKey = ['notifications'] as const

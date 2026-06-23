@@ -1,4 +1,4 @@
-import { asEntityId, type EntityId } from '@taskin/domain'
+import { asEntityId, type EntityId } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { TokenGenerator } from '@/ports/token-generator'

@@ -1,4 +1,4 @@
-import react from '@taskin/config/eslint/react'
+import react from '@lifedeck/config/eslint/react'
 
 export default [
   ...react,
@@ -8,6 +8,7 @@ export default [
       '**/dist/**',
       '**/coverage/**',
       '**/node_modules/**',
+      'design/**',
     ],
   },
 ]

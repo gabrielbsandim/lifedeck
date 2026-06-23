@@ -70,9 +70,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: taskin
-          POSTGRES_PASSWORD: taskin
-          POSTGRES_DB: taskin_test
+          POSTGRES_USER: lifedeck
+          POSTGRES_PASSWORD: lifedeck
+          POSTGRES_DB: lifedeck_test
         ports:
           - 5432:5432
         options: >-
@@ -81,8 +81,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://taskin:taskin@localhost:5432/taskin_test
-      DATABASE_URL_UNPOOLED: postgresql://taskin:taskin@localhost:5432/taskin_test
+      DATABASE_URL: postgresql://lifedeck:lifedeck@localhost:5432/lifedeck_test
+      DATABASE_URL_UNPOOLED: postgresql://lifedeck:lifedeck@localhost:5432/lifedeck_test
     steps:
       - uses: actions/checkout@v4
 
@@ -99,13 +99,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply migrations
-        run: pnpm --filter @taskin/infrastructure run db:deploy
+        run: pnpm --filter @lifedeck/infrastructure run db:deploy
 
       - name: Build workspace packages
-        run: pnpm --filter @taskin/domain --filter @taskin/application run build
+        run: pnpm --filter @lifedeck/domain --filter @lifedeck/application run build
 
       - name: Integration tests
-        run: pnpm --filter @taskin/infrastructure run test:integration
+        run: pnpm --filter @lifedeck/infrastructure run test:integration
 
   e2e:
     runs-on: ubuntu-latest
@@ -113,9 +113,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: taskin
-          POSTGRES_PASSWORD: taskin
-          POSTGRES_DB: taskin_e2e
+          POSTGRES_USER: lifedeck
+          POSTGRES_PASSWORD: lifedeck
+          POSTGRES_DB: lifedeck_e2e
         ports:
           - 5432:5432
         options: >-
@@ -124,8 +124,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://taskin:taskin@localhost:5432/taskin_e2e
-      DATABASE_URL_UNPOOLED: postgresql://taskin:taskin@localhost:5432/taskin_e2e
+      DATABASE_URL: postgresql://lifedeck:lifedeck@localhost:5432/lifedeck_e2e
+      DATABASE_URL_UNPOOLED: postgresql://lifedeck:lifedeck@localhost:5432/lifedeck_e2e
       AUTH_SECRET: e2e-ci-secret-value-for-tests-only
       CI: 'true'
     steps:
@@ -144,13 +144,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply migrations
-        run: pnpm --filter @taskin/infrastructure run db:deploy
+        run: pnpm --filter @lifedeck/infrastructure run db:deploy
 
       - name: Build
         run: pnpm build
 
       - name: Install Playwright browser
-        run: pnpm --filter @taskin/web exec playwright install --with-deps chromium
+        run: pnpm --filter @lifedeck/web exec playwright install --with-deps chromium
 
       - name: E2E tests
-        run: pnpm --filter @taskin/web run test:e2e
+        run: pnpm --filter @lifedeck/web run test:e2e

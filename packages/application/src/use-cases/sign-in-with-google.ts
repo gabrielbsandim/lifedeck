@@ -1,4 +1,4 @@
-import { User, ValidationError } from '@taskin/domain'
+import { User, ValidationError } from '@lifedeck/domain'
 import { type UserView } from '@/dtos/user-dto'
 import { toUserView } from '@/mappers/user-mapper'
 import type { Clock } from '@/ports/clock'

@@ -1,13 +1,13 @@
 {
-  "name": "taskin",
+  "name": "lifedeck",
   "version": "0.1.0",
   "private": true,
-  "description": "TaskIn - a shareable, multilingual to-do platform built with clean architecture.",
+  "description": "Lifedeck - a shareable, multilingual to-do platform built with clean architecture.",
   "license": "MIT",
   "author": "Gabriel Sandim",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gabrielbsandim/taskin.git"
+    "url": "https://github.com/gabrielbsandim/lifedeck.git"
   },
   "engines": {
     "node": ">=24",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
-    "@taskin/config": "workspace:*",
+    "@lifedeck/config": "workspace:*",
     "@types/node": "22.10.2",
     "lint-staged": "15.3.0",
     "prettier": "3.4.2",

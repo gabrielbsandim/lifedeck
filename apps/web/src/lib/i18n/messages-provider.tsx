@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, type ReactNode } from 'react'
-import type { Locale, Messages } from '@taskin/i18n'
+import type { Locale, Messages } from '@lifedeck/i18n'
 
 type I18nContextValue = {
   locale: Locale

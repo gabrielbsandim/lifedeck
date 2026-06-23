@@ -1,4 +1,4 @@
-import type { ApiKey, EntityId } from '@taskin/domain'
+import type { ApiKey, EntityId } from '@lifedeck/domain'
 
 export interface ApiKeyRepository {
   save(apiKey: ApiKey): Promise<void>

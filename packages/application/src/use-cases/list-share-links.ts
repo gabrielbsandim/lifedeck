@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type ShareLinkView } from '@/dtos/share-link-dto'
 import { toShareLinkView } from '@/mappers/share-link-mapper'
 import { NotFoundError } from '@/errors/use-case-error'

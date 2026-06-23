@@ -1,6 +1,6 @@
 # Security
 
-TaskIn holds personal planning data and exposes a public, white-label API.
+Lifedeck holds personal planning data and exposes a public, white-label API.
 Security is a first-class requirement, not a later hardening pass.
 
 ## Principles

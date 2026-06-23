@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type NotificationListView } from '@/dtos/notification-dto'
 import { toNotificationView } from '@/mappers/notification-mapper'
 import type { NotificationRepository } from '@/ports/notification-repository'

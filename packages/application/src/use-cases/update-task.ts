@@ -3,7 +3,7 @@ import {
   ValidationError,
   asEntityId,
   type EntityId,
-} from '@taskin/domain'
+} from '@lifedeck/domain'
 import {
   updateTaskSchema,
   type UpdateTaskInput,

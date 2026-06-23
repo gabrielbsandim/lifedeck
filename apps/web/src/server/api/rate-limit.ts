@@ -12,13 +12,13 @@ type LimiterConfig = {
 const API_LIMIT: LimiterConfig = {
   requests: 60,
   window: '60 s',
-  prefix: 'taskin/ratelimit/api',
+  prefix: 'lifedeck/ratelimit/api',
 }
 
 const AUTH_LIMIT: LimiterConfig = {
   requests: 8,
   window: '300 s',
-  prefix: 'taskin/ratelimit/auth',
+  prefix: 'lifedeck/ratelimit/auth',
 }
 
 export type RateLimitResult = {

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { PrismaClient } from '@prisma/client'
-import { ApiKey, List, Task, User, asEntityId } from '@taskin/domain'
+import { ApiKey, List, Task, User, asEntityId } from '@lifedeck/domain'
 import { PrismaListRepository } from '@/database/prisma-list-repository'
 import { PrismaTaskRepository } from '@/database/prisma-task-repository'
 import { PrismaUserRepository } from '@/database/prisma-user-repository'
@@ -86,13 +86,13 @@ describe('Prisma repositories (integration)', () => {
       throw new Error('User was not found.')
     }
     user.register({
-      email: 'integration@taskin.app',
+      email: 'integration@lifedeck.app',
       passwordHash: 'hashed',
       emailVerifiedAt: null,
     })
     await users.save(user)
 
-    const byEmail = await users.findByEmail('integration@taskin.app')
+    const byEmail = await users.findByEmail('integration@lifedeck.app')
     expect(byEmail?.id).toBe(USER)
   })
 

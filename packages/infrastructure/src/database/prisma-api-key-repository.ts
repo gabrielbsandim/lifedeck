@@ -1,5 +1,5 @@
-import type { ApiKey, EntityId } from '@taskin/domain'
-import type { ApiKeyRepository } from '@taskin/application'
+import type { ApiKey, EntityId } from '@lifedeck/domain'
+import type { ApiKeyRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import {
   toApiKeyRecord,

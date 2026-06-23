@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, TextField } from '@taskin/ui'
+import { Button, Dialog, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useRegister,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { UserView } from '@taskin/application'
+import type { UserView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { sessionKey } from '@/lib/api/use-session'
 

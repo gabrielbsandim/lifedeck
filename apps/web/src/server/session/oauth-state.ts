@@ -1,4 +1,4 @@
-export const OAUTH_STATE_COOKIE = 'taskin_oauth_state'
+export const OAUTH_STATE_COOKIE = 'lifedeck_oauth_state'
 
 type OAuthStateCookieOptions = {
   httpOnly: true

@@ -1,6 +1,6 @@
 # Architecture
 
-TaskIn follows **clean architecture**. Dependencies point inward: outer layers
+Lifedeck follows **clean architecture**. Dependencies point inward: outer layers
 know about inner layers, never the reverse. Each layer is an isolated workspace
 package, so the boundary is enforced by the dependency graph itself, not by
 convention.
@@ -24,14 +24,14 @@ convention.
 
 ## Layers
 
-### `@taskin/domain`
+### `@lifedeck/domain`
 
 Pure business model. Entities (`Task`), value objects (`Email`,
 `TaskStatus`), domain errors, and invariants. No framework imports, no I/O, no
 `zod`. Everything here is synchronous and deterministic, which makes it trivial
 to test.
 
-### `@taskin/application`
+### `@lifedeck/application`
 
 Orchestrates the domain to fulfil use cases. A use case is a factory
 (`makeCreateTask`) that receives its dependencies as **ports** (interfaces such
@@ -39,7 +39,7 @@ as `TaskRepository`, `Clock`, `IdGenerator`) and returns a single async
 function. Input is validated with `zod` DTOs; output is mapped to plain view
 objects. The application layer never imports Prisma, Next, or Resend.
 
-### `@taskin/infrastructure`
+### `@lifedeck/infrastructure`
 
 Concrete adapters that **implement** the application ports: `PrismaTaskRepository`,
 `SystemClock`, `UuidGenerator`, `ResendEmailSender`. This is the only layer that
@@ -54,9 +54,9 @@ thin: parse the request, call a use case, map errors to HTTP.
 
 ### Supporting packages
 
-- `@taskin/ui` - framework-level design system (React + Tailwind + Framer Motion).
-- `@taskin/i18n` - locale detection and message catalogs.
-- `@taskin/config` - shared tsconfig, ESLint, and Vitest presets.
+- `@lifedeck/ui` - framework-level design system (React + Tailwind + Framer Motion).
+- `@lifedeck/i18n` - locale detection and message catalogs.
+- `@lifedeck/config` - shared tsconfig, ESLint, and Vitest presets.
 
 ## Clients (web today, mobile later)
 
@@ -67,10 +67,10 @@ product is mature (see [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md), Phase 13).
 
 | Layer | Web | Mobile (future) |
 | ----- | --- | --------------- |
-| `@taskin/domain`, `@taskin/application` | shared | shared (pure TypeScript, no DOM) |
-| `@taskin/i18n` | shared | shared |
+| `@lifedeck/domain`, `@lifedeck/application` | shared | shared (pure TypeScript, no DOM) |
+| `@lifedeck/i18n` | shared | shared |
 | REST API `/api/v1` | consumed | consumed (same OpenAPI contract) |
-| `@taskin/ui` | yes (Tailwind + DOM) | no - a separate `@taskin/ui-native` would own React Native UI |
+| `@lifedeck/ui` | yes (Tailwind + DOM) | no - a separate `@lifedeck/ui-native` would own React Native UI |
 
 Planned direction for the mobile client is **Expo / React Native** (iOS +
 Android), consuming the same API and the shared logic packages. The only
@@ -95,7 +95,7 @@ consumes the built packages directly (no `transpilePackages`).
 ## Naming conventions
 
 - Files: `kebab-case.ts`; React components: `kebab-case.tsx` exporting `PascalCase`.
-- Imports: `@/...` within a package, `@taskin/<pkg>` across packages.
+- Imports: `@/...` within a package, `@lifedeck/<pkg>` across packages.
 - Types and classes: `PascalCase`. Functions and variables: `camelCase`.
 - Use-case factories are named `makeXxx` and return a verb-named function.
 - Prisma models are `PascalCase` singular; tables are `snake_case` plural via `@@map`.

@@ -2,11 +2,11 @@ import type { Messages } from '@/messages/types'
 
 export const pt: Messages = {
   app: {
-    name: 'TaskIn',
+    name: 'Lifedeck',
     tagline: 'Planeje seu dia, compartilhe suas listas.',
   },
   onboarding: {
-    title: 'Bem-vindo ao TaskIn',
+    title: 'Bem-vindo ao Lifedeck',
     subtitle: 'Diga seu nome para começar sua lista do dia.',
     namePlaceholder: 'Seu nome',
     start: 'Começar',
@@ -64,7 +64,7 @@ export const pt: Messages = {
   },
   developers: {
     title: 'Chaves de API',
-    subtitle: 'Acesso programático aos seus dados do TaskIn pela API REST.',
+    subtitle: 'Acesso programático aos seus dados do Lifedeck pela API REST.',
     name: 'Nome da chave',
     namePlaceholder: 'ex.: pipeline de CI',
     scopes: 'Escopos',

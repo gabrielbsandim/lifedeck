@@ -1,5 +1,5 @@
-import { ListMember, asEntityId } from '@taskin/domain'
-import type { MemberRole } from '@taskin/domain'
+import { ListMember, asEntityId } from '@lifedeck/domain'
+import type { MemberRole } from '@lifedeck/domain'
 
 export type MemberRecord = {
   id: string

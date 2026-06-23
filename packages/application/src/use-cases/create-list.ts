@@ -1,4 +1,4 @@
-import { List, asEntityId } from '@taskin/domain'
+import { List, asEntityId } from '@lifedeck/domain'
 import {
   createListSchema,
   type CreateListInput,

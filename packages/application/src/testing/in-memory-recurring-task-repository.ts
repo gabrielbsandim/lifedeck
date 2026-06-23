@@ -1,4 +1,4 @@
-import type { EntityId, RecurringTask } from '@taskin/domain'
+import type { EntityId, RecurringTask } from '@lifedeck/domain'
 import type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 
 export class InMemoryRecurringTaskRepository

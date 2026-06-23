@@ -1,4 +1,4 @@
-import type { EntityId, Task } from '@taskin/domain'
+import type { EntityId, Task } from '@lifedeck/domain'
 
 export interface TaskRepository {
   save(task: Task): Promise<void>

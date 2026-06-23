@@ -1,5 +1,5 @@
-import { RecurringTask, asEntityId } from '@taskin/domain'
-import type { RecurrenceRule } from '@taskin/domain'
+import { RecurringTask, asEntityId } from '@lifedeck/domain'
+import type { RecurrenceRule } from '@lifedeck/domain'
 
 export type RecurringTaskRecord = {
   id: string

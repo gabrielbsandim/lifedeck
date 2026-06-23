@@ -31,7 +31,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply pending migrations
-        run: pnpm --filter @taskin/infrastructure run db:deploy
+        run: pnpm --filter @lifedeck/infrastructure run db:deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}

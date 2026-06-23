@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type UserView } from '@/dtos/user-dto'
 import { toUserView } from '@/mappers/user-mapper'
 import { NotFoundError } from '@/errors/use-case-error'

@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto'
-import type { CodeGenerator } from '@taskin/application'
+import type { CodeGenerator } from '@lifedeck/application'
 
 const CODE_CEILING = 1_000_000
 const CODE_LENGTH = 6

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { RecurringTask } from '@taskin/domain'
+import { RecurringTask } from '@lifedeck/domain'
 import { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 import { ID } from '@/testing/fakes'
 

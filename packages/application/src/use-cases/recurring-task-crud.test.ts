@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RecurrenceRule } from '@taskin/domain'
+import type { RecurrenceRule } from '@lifedeck/domain'
 import { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
 import { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 import { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'

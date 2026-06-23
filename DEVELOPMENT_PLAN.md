@@ -95,7 +95,7 @@ Legend: **[x]** done · **[ ]** todo.
 ## Phase 5 - Sharing & collaboration
 
 - [x] Share link generation with role (viewer/editor) and optional expiry.
-- [x] Public read-only view ("See my wedding steps on TaskIn").
+- [x] Public read-only view ("See my wedding steps on Lifedeck").
 - [x] Join a list via link (guest or registered).
 - [x] Members management UI; per-item private toggle on the daily list.
 - [x] Task assignees (assign to a member or the owner).
@@ -130,7 +130,7 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
 ## Phase 7 - Polish: design & motion
 
 - [x] Reconcile the codebase with the Claude Design deliverables (`design/*.dc.html`). The
-      mockups were generated from the existing `styles.css` + `@taskin/ui`, so tokens and
+      mockups were generated from the existing `styles.css` + `@lifedeck/ui`, so tokens and
       components were already in sync. Added the named motion-duration tokens
       (`--duration-fast/base/slow`) and the small drift fixes (TextField 1.5px border + error
       tint, Dialog sheet drag handle). Stage-2 screens already existed and matched. Pulled in
@@ -246,8 +246,8 @@ architecture already positions for this (see
 [docs/architecture.md](./docs/architecture.md), "Clients").
 
 - [ ] `apps/mobile` with Expo / React Native (iOS + Android).
-- [ ] Reuse `@taskin/domain`, `@taskin/application`, `@taskin/i18n` unchanged.
-- [ ] `@taskin/ui-native` design system mirroring the web tokens.
+- [ ] Reuse `@lifedeck/domain`, `@lifedeck/application`, `@lifedeck/i18n` unchanged.
+- [ ] `@lifedeck/ui-native` design system mirroring the web tokens.
 - [ ] Bearer-token auth flow against `/api/v1` (no cookies on mobile).
 - [ ] Store submission (App Store + Play Store), OTA updates.
 

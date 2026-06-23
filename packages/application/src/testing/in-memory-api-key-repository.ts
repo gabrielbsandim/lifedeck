@@ -1,4 +1,4 @@
-import type { ApiKey, EntityId } from '@taskin/domain'
+import type { ApiKey, EntityId } from '@lifedeck/domain'
 import type { ApiKeyRepository } from '@/ports/api-key-repository'
 
 export class InMemoryApiKeyRepository implements ApiKeyRepository {

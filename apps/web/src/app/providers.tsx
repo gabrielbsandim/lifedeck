@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { Locale, Messages } from '@taskin/i18n'
+import type { Locale, Messages } from '@lifedeck/i18n'
 import { MessagesProvider } from '@/lib/i18n/messages-provider'
 
 type ProvidersProps = {

@@ -32,9 +32,9 @@ The web app is served at http://localhost:3000. The API lives under
 The Prisma schema lives in `packages/infrastructure/prisma/schema.prisma`.
 
 ```bash
-pnpm --filter @taskin/infrastructure db:generate   # regenerate the client
-pnpm --filter @taskin/infrastructure db:migrate     # create/apply a dev migration
-pnpm --filter @taskin/infrastructure db:studio      # open Prisma Studio
+pnpm --filter @lifedeck/infrastructure db:generate   # regenerate the client
+pnpm --filter @lifedeck/infrastructure db:migrate     # create/apply a dev migration
+pnpm --filter @lifedeck/infrastructure db:studio      # open Prisma Studio
 ```
 
 ## Quality gates
@@ -61,10 +61,10 @@ pnpm check           # everything above, in one command
 
 | Path                       | Package                  | Responsibility                       |
 | -------------------------- | ------------------------ | ------------------------------------ |
-| `apps/web`                 | `@taskin/web`            | UI + REST API + composition root     |
-| `packages/domain`          | `@taskin/domain`         | Entities, value objects, errors      |
-| `packages/application`     | `@taskin/application`    | Use cases, ports, DTOs               |
-| `packages/infrastructure`  | `@taskin/infrastructure` | Prisma, Resend, adapters             |
-| `packages/ui`              | `@taskin/ui`             | Design system                        |
-| `packages/i18n`            | `@taskin/i18n`           | Locale detection + messages          |
-| `packages/config`          | `@taskin/config`         | Shared tooling presets               |
+| `apps/web`                 | `@lifedeck/web`            | UI + REST API + composition root     |
+| `packages/domain`          | `@lifedeck/domain`         | Entities, value objects, errors      |
+| `packages/application`     | `@lifedeck/application`    | Use cases, ports, DTOs               |
+| `packages/infrastructure`  | `@lifedeck/infrastructure` | Prisma, Resend, adapters             |
+| `packages/ui`              | `@lifedeck/ui`             | Design system                        |
+| `packages/i18n`            | `@lifedeck/i18n`           | Locale detection + messages          |
+| `packages/config`          | `@lifedeck/config`         | Shared tooling presets               |

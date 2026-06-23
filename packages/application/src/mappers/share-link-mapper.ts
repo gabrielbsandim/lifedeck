@@ -1,4 +1,4 @@
-import type { ShareLink } from '@taskin/domain'
+import type { ShareLink } from '@lifedeck/domain'
 import type { ShareLinkView } from '@/dtos/share-link-dto'
 
 export function toShareLinkView(link: ShareLink): ShareLinkView {

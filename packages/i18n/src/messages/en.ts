@@ -2,11 +2,11 @@ import type { Messages } from '@/messages/types'
 
 export const en: Messages = {
   app: {
-    name: 'TaskIn',
+    name: 'Lifedeck',
     tagline: 'Plan your day, share your lists.',
   },
   onboarding: {
-    title: 'Welcome to TaskIn',
+    title: 'Welcome to Lifedeck',
     subtitle: 'Tell us your name to start your daily list.',
     namePlaceholder: 'Your name',
     start: 'Start',
@@ -63,7 +63,7 @@ export const en: Messages = {
   },
   developers: {
     title: 'API keys',
-    subtitle: 'Programmatic access to your TaskIn data over the REST API.',
+    subtitle: 'Programmatic access to your Lifedeck data over the REST API.',
     name: 'Key name',
     namePlaceholder: 'e.g. CI pipeline',
     scopes: 'Scopes',

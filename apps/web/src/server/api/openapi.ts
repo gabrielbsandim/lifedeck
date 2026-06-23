@@ -27,7 +27,7 @@ import {
   taskViewSchema,
   updateRecurringTaskSchema,
   updateTaskSchema,
-} from '@taskin/application'
+} from '@lifedeck/application'
 
 extendZodWithOpenApi(z)
 
@@ -528,7 +528,7 @@ const generated = new OpenApiGeneratorV31(
 ).generateDocument({
   openapi: '3.1.0',
   info: {
-    title: 'TaskIn API',
+    title: 'Lifedeck API',
     version: '0.2.0',
     description:
       'White-label REST API for shareable to-do lists. Responses are JSON, wrapped in a top-level `data` or `error` object. Resource endpoints accept a personal API key (`Authorization: Bearer tk_live_...` or `X-API-Key`) scoped per key and rate limited per key. Components are generated from the same Zod schemas the server validates against.',

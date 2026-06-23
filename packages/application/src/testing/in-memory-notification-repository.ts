@@ -1,4 +1,4 @@
-import type { EntityId, Notification } from '@taskin/domain'
+import type { EntityId, Notification } from '@lifedeck/domain'
 import type { NotificationRepository } from '@/ports/notification-repository'
 
 export class InMemoryNotificationRepository implements NotificationRepository {

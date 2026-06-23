@@ -1,4 +1,4 @@
-import { Notification, asEntityId } from '@taskin/domain'
+import { Notification, asEntityId } from '@lifedeck/domain'
 
 export type NotificationRecord = {
   id: string

@@ -1,5 +1,5 @@
-import { ShareLink, asEntityId } from '@taskin/domain'
-import type { MemberRole } from '@taskin/domain'
+import { ShareLink, asEntityId } from '@lifedeck/domain'
+import type { MemberRole } from '@lifedeck/domain'
 
 export type ShareLinkRecord = {
   id: string

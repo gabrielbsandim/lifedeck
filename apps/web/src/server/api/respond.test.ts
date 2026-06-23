@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { ValidationError } from '@taskin/domain'
-import { ForbiddenError, NotFoundError } from '@taskin/application'
+import { ValidationError } from '@lifedeck/domain'
+import { ForbiddenError, NotFoundError } from '@lifedeck/application'
 import { fail, handleError, ok } from '@/server/api/respond'
 
 describe('respond helpers', () => {

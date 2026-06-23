@@ -2,7 +2,7 @@ import type {
   GeneratedPlan,
   GenerationBrief,
   ListGenerator,
-} from '@taskin/application'
+} from '@lifedeck/application'
 
 const SCALE_STEPS: Record<GenerationBrief['scale'], number> = {
   small: 3,

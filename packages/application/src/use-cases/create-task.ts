@@ -1,4 +1,4 @@
-import { Task, asEntityId } from '@taskin/domain'
+import { Task, asEntityId } from '@lifedeck/domain'
 import {
   createTaskSchema,
   type CreateTaskInput,

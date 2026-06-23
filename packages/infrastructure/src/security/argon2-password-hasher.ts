@@ -1,5 +1,5 @@
 import { hash, verify } from '@node-rs/argon2'
-import type { PasswordHasher } from '@taskin/application'
+import type { PasswordHasher } from '@lifedeck/application'
 
 const ARGON2_PREFIX = '$argon2'
 

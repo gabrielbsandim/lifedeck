@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
 import type { ApiKeyRepository } from '@/ports/api-key-repository'
 import type { Clock } from '@/ports/clock'

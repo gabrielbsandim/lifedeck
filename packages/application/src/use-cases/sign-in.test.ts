@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { User } from '@taskin/domain'
+import { User } from '@lifedeck/domain'
 import { makeSignInWithEmail } from '@/use-cases/sign-in-with-email'
 import { makeSignInWithGoogle } from '@/use-cases/sign-in-with-google'
 import { makeGetGoogleAuthUrl } from '@/use-cases/get-google-auth-url'

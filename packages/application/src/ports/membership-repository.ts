@@ -1,4 +1,4 @@
-import type { EntityId, ListMember } from '@taskin/domain'
+import type { EntityId, ListMember } from '@lifedeck/domain'
 
 export interface MembershipRepository {
   save(member: ListMember): Promise<void>

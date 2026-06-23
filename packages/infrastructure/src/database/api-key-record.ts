@@ -1,4 +1,4 @@
-import { ApiKey, asEntityId, isApiScope, type ApiScope } from '@taskin/domain'
+import { ApiKey, asEntityId, isApiScope, type ApiScope } from '@lifedeck/domain'
 
 export type ApiKeyRecord = {
   id: string

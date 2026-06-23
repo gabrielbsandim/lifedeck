@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type RecurringTaskView } from '@/dtos/recurring-task-dto'
 import { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
 import type { RecurringTaskRepository } from '@/ports/recurring-task-repository'

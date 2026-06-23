@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { Button, Card, EmptyState, Skeleton, TextField } from '@taskin/ui'
+import { Button, Card, EmptyState, Skeleton, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateList, useDeleteList, useUserLists } from '@/lib/api/use-lists'
 

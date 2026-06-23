@@ -1,4 +1,4 @@
-import { ShareLink, asEntityId } from '@taskin/domain'
+import { ShareLink, asEntityId } from '@lifedeck/domain'
 import {
   inviteToListSchema,
   type InviteToListInput,

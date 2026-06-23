@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List } from '@taskin/domain'
+import { List } from '@lifedeck/domain'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'

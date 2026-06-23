@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { User } from '@taskin/domain'
+import { User } from '@lifedeck/domain'
 import { makeSendDailyDigest } from '@/use-cases/send-daily-digest'
 import type { TaskView } from '@/dtos/task-dto'
 import type { DailyBoardView } from '@/use-cases/get-daily-board'

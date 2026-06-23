@@ -1,13 +1,13 @@
 <div align="center">
 
-# TaskIn
+# Lifedeck
 
 **A shareable, multilingual to-do platform built with clean architecture.**
 
 Plan your day, build standalone lists, share them with a link, and follow simple
 analytics. No account required to start, optional account when you want more.
 
-[![CI](https://github.com/gabrielbsandim/taskin/actions/workflows/ci.yml/badge.svg)](https://github.com/gabrielbsandim/taskin/actions/workflows/ci.yml)
+[![CI](https://github.com/gabrielbsandim/lifedeck/actions/workflows/ci.yml/badge.svg)](https://github.com/gabrielbsandim/lifedeck/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 </div>
@@ -42,7 +42,7 @@ analytics. No account required to start, optional account when you want more.
 ## Monorepo layout
 
 ```
-taskin/
+lifedeck/
 ├── apps/
 │   └── web/              Next.js app: UI + white-label REST API (/api/v1)
 ├── packages/

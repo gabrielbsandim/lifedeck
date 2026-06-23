@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ListMember } from '@taskin/domain'
+import { List, ListMember } from '@lifedeck/domain'
 import { resolveListAccess } from '@/access/list-access'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { ID } from '@/testing/fakes'

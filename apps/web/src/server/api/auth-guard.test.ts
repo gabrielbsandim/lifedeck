@@ -13,7 +13,7 @@ vi.mock('@/server/api/rate-limit', () => ({
 
 import { enforceAuthRateLimit } from '@/server/api/auth-guard'
 
-const request = new Request('https://taskin.app/api/v1/auth/sign-in')
+const request = new Request('https://lifedeck.app/api/v1/auth/sign-in')
 
 describe('enforceAuthRateLimit', () => {
   afterEach(() => {

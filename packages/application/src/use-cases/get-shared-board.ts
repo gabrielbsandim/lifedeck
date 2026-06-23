@@ -1,4 +1,4 @@
-import type { MemberRole } from '@taskin/domain'
+import type { MemberRole } from '@lifedeck/domain'
 import { type ListView } from '@/dtos/list-dto'
 import { type TaskView } from '@/dtos/task-dto'
 import { toListView } from '@/mappers/list-mapper'

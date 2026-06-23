@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ListMember, Task, asEntityId } from '@taskin/domain'
+import { List, ListMember, Task, asEntityId } from '@lifedeck/domain'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { makeListListTasks } from '@/use-cases/list-list-tasks'
 import { NotFoundError } from '@/errors/use-case-error'

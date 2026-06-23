@@ -1,5 +1,5 @@
 import { type NextResponse } from 'next/server'
-import { API_SCOPES, type ApiScope } from '@taskin/domain'
+import { API_SCOPES, type ApiScope } from '@lifedeck/domain'
 import { getContainer } from '@/server/container'
 import { fail } from '@/server/api/respond'
 import { checkRateLimit, rateLimitHeaders } from '@/server/api/rate-limit'

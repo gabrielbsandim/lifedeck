@@ -4,7 +4,7 @@ import type {
   DailyBoardView,
   TaskView,
   UpdateTaskInput,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const dailyBoardKey = (date: string) => ['daily-board', date] as const

@@ -10,8 +10,8 @@ import {
   Skeleton,
   TaskCheckbox,
   TextField,
-} from '@taskin/ui'
-import type { TaskView } from '@taskin/application'
+} from '@lifedeck/ui'
+import type { TaskView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import {

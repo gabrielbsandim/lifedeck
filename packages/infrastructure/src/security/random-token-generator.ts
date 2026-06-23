@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import type { TokenGenerator } from '@taskin/application'
+import type { TokenGenerator } from '@lifedeck/application'
 
 export class RandomTokenGenerator implements TokenGenerator {
   generate(): string {

@@ -1,4 +1,4 @@
-import type { EmailLocale } from '@taskin/application'
+import type { EmailLocale } from '@lifedeck/application'
 import type { EmailTemplate, RenderedEmail } from '@/email/email-message'
 
 function escapeHtml(value: string): string {
@@ -85,16 +85,16 @@ type DigestCopy = {
 
 const DIGEST_COPY: Record<EmailLocale, DigestCopy> = {
   en: {
-    subject: 'Your TaskIn daily summary',
-    title: 'Today on TaskIn',
+    subject: 'Your Lifedeck daily summary',
+    title: 'Today on Lifedeck',
     summary: (completed, total) =>
       `You completed ${completed} of ${total} tasks.`,
     pendingLabel: 'Still pending:',
     allDone: 'Everything is done. Lovely work! 🎉',
   },
   pt: {
-    subject: 'Seu resumo diário do TaskIn',
-    title: 'Hoje no TaskIn',
+    subject: 'Seu resumo diário do Lifedeck',
+    title: 'Hoje no Lifedeck',
     summary: (completed, total) =>
       `Você concluiu ${completed} de ${total} tarefas.`,
     pendingLabel: 'Ainda pendentes:',

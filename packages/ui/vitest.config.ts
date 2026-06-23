@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig, mergeConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
-import { createVitestConfig } from '@taskin/config/vitest/base'
+import { createVitestConfig } from '@lifedeck/config/vitest/base'
 
 export default mergeConfig(
   defineConfig(

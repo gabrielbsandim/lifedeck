@@ -1,5 +1,5 @@
-import type { EmailVerification, EntityId } from '@taskin/domain'
-import type { EmailVerificationRepository } from '@taskin/application'
+import type { EmailVerification, EntityId } from '@lifedeck/domain'
+import type { EmailVerificationRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import {
   toDomainEmailVerification,

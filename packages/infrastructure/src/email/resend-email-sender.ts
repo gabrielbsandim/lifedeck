@@ -3,7 +3,7 @@ import type {
   DailyDigestSummary,
   EmailLocale,
   EmailSender,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { renderEmail } from '@/email/render-email'
 
 export class ResendEmailSender implements EmailSender {
@@ -12,7 +12,7 @@ export class ResendEmailSender implements EmailSender {
   constructor(
     apiKey: string,
     private readonly from: string,
-    private readonly appName = 'TaskIn',
+    private readonly appName = 'Lifedeck',
   ) {
     this.client = new Resend(apiKey)
   }

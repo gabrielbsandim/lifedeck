@@ -1,5 +1,5 @@
 {
-  "name": "@taskin/infrastructure",
+  "name": "@lifedeck/infrastructure",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -39,14 +39,14 @@
     "@node-rs/argon2": "2.0.2",
     "@prisma/adapter-neon": "6.2.1",
     "@prisma/client": "6.2.1",
-    "@taskin/application": "workspace:*",
-    "@taskin/domain": "workspace:*",
+    "@lifedeck/application": "workspace:*",
+    "@lifedeck/domain": "workspace:*",
     "ai": "6.0.208",
     "resend": "4.0.1",
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@taskin/config": "workspace:*",
+    "@lifedeck/config": "workspace:*",
     "@vitest/coverage-v8": "2.1.8",
     "eslint": "9.17.0",
     "prisma": "6.2.1",

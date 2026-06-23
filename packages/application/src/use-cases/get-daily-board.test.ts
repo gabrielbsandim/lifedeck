@@ -7,7 +7,7 @@ import {
   asEntityId,
   type CarryOverMode,
   type RecurrenceRule,
-} from '@taskin/domain'
+} from '@lifedeck/domain'
 import { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'

@@ -1,4 +1,4 @@
-import type { EntityId, Notification } from '@taskin/domain'
+import type { EntityId, Notification } from '@lifedeck/domain'
 
 export interface NotificationRepository {
   save(notification: Notification): Promise<void>

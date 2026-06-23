@@ -1,5 +1,5 @@
-import type { EntityId, User } from '@taskin/domain'
-import type { UserRepository } from '@taskin/application'
+import type { EntityId, User } from '@lifedeck/domain'
+import type { UserRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import { toDomainUser, toUserRecord } from '@/database/user-record'
 

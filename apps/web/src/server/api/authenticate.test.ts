@@ -17,7 +17,7 @@ import { SESSION_COOKIE, createSessionToken } from '@/server/session/session'
 const USER_ID = 'a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f'
 
 function withHeaders(headers: Record<string, string>): Request {
-  return new Request('https://taskin.app/api/v1/tasks', { headers })
+  return new Request('https://lifedeck.app/api/v1/tasks', { headers })
 }
 
 async function withCookie(): Promise<Request> {

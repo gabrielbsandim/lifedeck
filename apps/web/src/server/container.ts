@@ -60,7 +60,7 @@ import {
   type ShareLinkRepository,
   type TaskRepository,
   type UserRepository,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import {
   AiSdkListGenerator,
   ConsoleEmailSender,
@@ -85,7 +85,7 @@ import {
   SystemClock,
   UuidGenerator,
   prisma,
-} from '@taskin/infrastructure'
+} from '@lifedeck/infrastructure'
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
@@ -320,7 +320,7 @@ function buildListGenerator(): ListGenerator {
 function buildEmailSender(): EmailSender {
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
-    const from = process.env.EMAIL_FROM ?? 'TaskIn <onboarding@resend.dev>'
+    const from = process.env.EMAIL_FROM ?? 'Lifedeck <onboarding@resend.dev>'
     return new ResendEmailSender(apiKey, from)
   }
   return new ConsoleEmailSender()

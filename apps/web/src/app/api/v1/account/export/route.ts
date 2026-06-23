@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         'content-type': 'application/json; charset=utf-8',
-        'content-disposition': 'attachment; filename="taskin-export.json"',
+        'content-disposition': 'attachment; filename="lifedeck-export.json"',
       },
     })
   } catch (error) {

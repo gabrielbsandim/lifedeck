@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiKey, List, Notification, Task, User } from '@taskin/domain'
+import { ApiKey, List, Notification, Task, User } from '@lifedeck/domain'
 import { makeExportUserData } from '@/use-cases/export-user-data'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'

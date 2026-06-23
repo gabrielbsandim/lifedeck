@@ -1,19 +1,19 @@
-# Design brief - TaskIn (for Claude Design)
+# Design brief - Lifedeck (for Claude Design)
 
 Copy the prompt below into Claude Design. It has access to this repository, so it
-can read `@taskin/ui`, `apps/web`, and the docs for context.
+can read `@lifedeck/ui`, `apps/web`, and the docs for context.
 
 ---
 
 ## Prompt
 
-> You are designing **TaskIn**, a shareable, multilingual to-do web app. The
-> codebase lives at **https://github.com/gabrielbsandim/taskin** (connect to it if
+> You are designing **Lifedeck**, a shareable, multilingual to-do web app. The
+> codebase lives at **https://github.com/gabrielbsandim/lifedeck** (connect to it if
 > you can), so read `packages/ui/src/styles.css`
 > (design tokens), `packages/ui/src/components` (existing components), and
 > `docs/design-system.md` before starting. Stack: Next.js 16 App Router, React 19,
 > Tailwind CSS v4, Framer Motion. Design high-fidelity, responsive screens I can
-> translate 1:1 into Tailwind + the `@taskin/ui` design system. Reuse the existing
+> translate 1:1 into Tailwind + the `@lifedeck/ui` design system. Reuse the existing
 > tokens and extend them where needed; when you add a token, name it so it can live
 > in Tailwind's `@theme` block.
 >
@@ -50,7 +50,7 @@ can read `@taskin/ui`, `apps/web`, and the docs for context.
 > 2. **Lists overview** - the daily list plus standalone lists, each with a
 >    completion percentage and a shared/owner indicator.
 > 3. **List detail** - tasks, reordering, members, and a "Share" action that
->    produces a link ("See my wedding steps on TaskIn").
+>    produces a link ("See my wedding steps on Lifedeck").
 > 4. **Share / public view** - read-only or collaborate, with friendly empty and
 >    join states.
 > 5. **Analytics** - completion rate with daily / weekly / monthly breakdowns;
@@ -69,7 +69,7 @@ can read `@taskin/ui`, `apps/web`, and the docs for context.
 > to start). Don't bake text into images; keep strings short and key-able.
 >
 > **Deliverables:** the screens above plus the component and token sheets,
-> exportable so I can map them to Tailwind utilities and `@taskin/ui`. Keep
+> exportable so I can map them to Tailwind utilities and `@lifedeck/ui`. Keep
 > everything consistent with the existing tokens in `packages/ui/src/styles.css`.
 
 ---

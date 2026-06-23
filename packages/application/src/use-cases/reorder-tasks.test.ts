@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { makeCreateList } from '@/use-cases/create-list'
 import { makeCreateTask } from '@/use-cases/create-task'
 import { makeReorderTasks } from '@/use-cases/reorder-tasks'

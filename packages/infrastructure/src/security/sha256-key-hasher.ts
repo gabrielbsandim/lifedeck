@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { KeyHasher } from '@taskin/application'
+import type { KeyHasher } from '@lifedeck/application'
 
 export class Sha256KeyHasher implements KeyHasher {
   hash(raw: string): string {

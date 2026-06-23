@@ -4,7 +4,7 @@ import type {
   InviteToListInput,
   MemberView,
   ShareLinkView,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const shareLinksKey = (listId: string) =>

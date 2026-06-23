@@ -14,13 +14,13 @@ describe('siteUrl', () => {
   })
 
   it('prefers NEXT_PUBLIC_SITE_URL and trims a trailing slash', () => {
-    process.env.NEXT_PUBLIC_SITE_URL = 'https://taskin.app/'
-    expect(siteUrl()).toBe('https://taskin.app')
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://lifedeck.app/'
+    expect(siteUrl()).toBe('https://lifedeck.app')
   })
 
   it('falls back to the Vercel URL', () => {
-    process.env.VERCEL_URL = 'taskin.vercel.app'
-    expect(siteUrl()).toBe('https://taskin.vercel.app')
+    process.env.VERCEL_URL = 'lifedeck.vercel.app'
+    expect(siteUrl()).toBe('https://lifedeck.vercel.app')
   })
 
   it('defaults to localhost in development', () => {

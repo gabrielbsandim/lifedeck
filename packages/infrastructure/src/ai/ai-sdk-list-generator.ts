@@ -4,9 +4,9 @@ import {
   type GeneratedPlan,
   type GenerationBrief,
   type ListGenerator,
-} from '@taskin/application'
+} from '@lifedeck/application'
 
-const SYSTEM_PROMPT = `You are TaskIn's planning assistant. You turn a short brief into a practical, actionable checklist.
+const SYSTEM_PROMPT = `You are Lifedeck's planning assistant. You turn a short brief into a practical, actionable checklist.
 
 Rules:
 - Produce concrete, individually completable tasks. No vague tasks like "plan everything".

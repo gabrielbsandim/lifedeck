@@ -1,5 +1,5 @@
-import type { EntityId, Notification } from '@taskin/domain'
-import type { NotificationRepository } from '@taskin/application'
+import type { EntityId, Notification } from '@lifedeck/domain'
+import type { NotificationRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import {
   toDomainNotification,

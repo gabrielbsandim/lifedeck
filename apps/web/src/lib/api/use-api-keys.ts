@@ -3,7 +3,7 @@ import type {
   ApiKeyView,
   CreateApiKeyInput,
   CreatedApiKeyView,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const apiKeysKey = ['api-keys'] as const

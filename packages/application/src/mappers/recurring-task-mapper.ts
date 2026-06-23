@@ -1,4 +1,4 @@
-import type { RecurringTask } from '@taskin/domain'
+import type { RecurringTask } from '@lifedeck/domain'
 import type { RecurringTaskView } from '@/dtos/recurring-task-dto'
 
 export function toRecurringTaskView(task: RecurringTask): RecurringTaskView {

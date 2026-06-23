@@ -5,30 +5,30 @@ describe('renderEmail', () => {
   it('renders a verification code email', () => {
     const email = renderEmail({
       type: 'verification-code',
-      data: { code: '123456', appName: 'TaskIn' },
+      data: { code: '123456', appName: 'Lifedeck' },
     })
-    expect(email.subject).toBe('Your TaskIn verification code')
+    expect(email.subject).toBe('Your Lifedeck verification code')
     expect(email.html).toContain('123456')
   })
 
   it('renders a list invitation email', () => {
     const email = renderEmail({
       type: 'list-invitation',
-      data: { listTitle: 'Wedding steps', url: 'https://taskin.app/s/abc' },
+      data: { listTitle: 'Wedding steps', url: 'https://lifedeck.app/s/abc' },
     })
     expect(email.subject).toContain('Wedding steps')
-    expect(email.html).toContain('https://taskin.app/s/abc')
+    expect(email.html).toContain('https://lifedeck.app/s/abc')
   })
 
   it('renders the verification email in Portuguese', () => {
     const email = renderEmail(
       {
         type: 'verification-code',
-        data: { code: '123456', appName: 'TaskIn' },
+        data: { code: '123456', appName: 'Lifedeck' },
       },
       'pt',
     )
-    expect(email.subject).toBe('Seu código de verificação do TaskIn')
+    expect(email.subject).toBe('Seu código de verificação do Lifedeck')
     expect(email.html).toContain('Confirme seu e-mail')
     expect(email.html).toContain('123456')
   })
@@ -37,7 +37,7 @@ describe('renderEmail', () => {
     const email = renderEmail(
       {
         type: 'list-invitation',
-        data: { listTitle: 'Casamento', url: 'https://taskin.app/s/abc' },
+        data: { listTitle: 'Casamento', url: 'https://lifedeck.app/s/abc' },
       },
       'pt',
     )
@@ -67,7 +67,7 @@ describe('renderEmail', () => {
         pendingTitles: ['Choose cake', 'Send invitations'],
       },
     })
-    expect(email.subject).toBe('Your TaskIn daily summary')
+    expect(email.subject).toBe('Your Lifedeck daily summary')
     expect(email.html).toContain('Choose cake')
     expect(email.html).toContain('Still pending:')
   })
@@ -80,7 +80,7 @@ describe('renderEmail', () => {
       },
       'pt',
     )
-    expect(email.subject).toBe('Seu resumo diário do TaskIn')
+    expect(email.subject).toBe('Seu resumo diário do Lifedeck')
     expect(email.html).toContain('Tudo concluído')
   })
 

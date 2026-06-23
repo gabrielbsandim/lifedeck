@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type ListView } from '@/dtos/list-dto'
 import { toListView } from '@/mappers/list-mapper'
 import { resolveListAccess } from '@/access/list-access'

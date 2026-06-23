@@ -1,4 +1,4 @@
-import { RecurringTask, asEntityId } from '@taskin/domain'
+import { RecurringTask, asEntityId } from '@lifedeck/domain'
 import {
   createRecurringTaskSchema,
   type CreateRecurringTaskInput,

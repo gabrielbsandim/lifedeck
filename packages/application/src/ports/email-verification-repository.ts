@@ -1,4 +1,4 @@
-import type { EmailVerification, EntityId } from '@taskin/domain'
+import type { EmailVerification, EntityId } from '@lifedeck/domain'
 
 export interface EmailVerificationRepository {
   save(verification: EmailVerification): Promise<void>

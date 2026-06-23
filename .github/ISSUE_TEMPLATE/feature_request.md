@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for TaskIn
+about: Suggest an idea for Lifedeck
 title: 'feat: '
 labels: enhancement
 ---

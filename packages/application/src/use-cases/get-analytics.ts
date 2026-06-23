@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type AnalyticsView } from '@/dtos/analytics-dto'
 import type { AnalyticsRepository } from '@/ports/analytics-repository'
 import type { Clock } from '@/ports/clock'

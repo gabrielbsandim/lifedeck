@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Badge, Button, Dialog, TextField } from '@taskin/ui'
-import type { UserView } from '@taskin/application'
+import { Badge, Button, Dialog, TextField } from '@lifedeck/ui'
+import type { UserView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useChangePassword,
@@ -205,7 +205,7 @@ export function AccountDialog({
         <div className="border-line flex flex-col gap-3 border-t pt-4">
           <a
             href="/api/v1/account/export"
-            download="taskin-export.json"
+            download="lifedeck-export.json"
             className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
             title={messages.auth.exportDataHint}
           >

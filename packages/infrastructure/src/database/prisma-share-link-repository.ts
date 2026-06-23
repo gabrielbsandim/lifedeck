@@ -1,5 +1,5 @@
-import type { EntityId, ShareLink } from '@taskin/domain'
-import type { ShareLinkRepository } from '@taskin/application'
+import type { EntityId, ShareLink } from '@lifedeck/domain'
+import type { ShareLinkRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import {
   toDomainShareLink,

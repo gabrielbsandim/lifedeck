@@ -1,4 +1,4 @@
-import type { List } from '@taskin/domain'
+import type { List } from '@lifedeck/domain'
 import type { ListView } from '@/dtos/list-dto'
 
 export function toListView(list: List): ListView {

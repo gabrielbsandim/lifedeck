@@ -1,4 +1,4 @@
-import { List, Task, asEntityId, occursOn } from '@taskin/domain'
+import { List, Task, asEntityId, occursOn } from '@lifedeck/domain'
 import { z } from 'zod'
 import { type ListView } from '@/dtos/list-dto'
 import { type TaskView } from '@/dtos/task-dto'

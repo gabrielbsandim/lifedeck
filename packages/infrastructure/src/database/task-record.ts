@@ -1,4 +1,4 @@
-import { Task, asEntityId } from '@taskin/domain'
+import { Task, asEntityId } from '@lifedeck/domain'
 
 export type TaskRecord = {
   id: string

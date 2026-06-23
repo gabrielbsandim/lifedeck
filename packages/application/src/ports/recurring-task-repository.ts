@@ -1,4 +1,4 @@
-import type { EntityId, RecurringTask } from '@taskin/domain'
+import type { EntityId, RecurringTask } from '@lifedeck/domain'
 
 export interface RecurringTaskRepository {
   save(task: RecurringTask): Promise<void>

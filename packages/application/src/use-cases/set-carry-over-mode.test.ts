@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { User } from '@taskin/domain'
+import { User } from '@lifedeck/domain'
 import { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'

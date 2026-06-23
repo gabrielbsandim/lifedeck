@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, Task, asEntityId } from '@taskin/domain'
+import { List, Task, asEntityId } from '@lifedeck/domain'
 import { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'

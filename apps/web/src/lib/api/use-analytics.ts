@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { AnalyticsView } from '@taskin/application'
+import type { AnalyticsView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const analyticsKey = (days: number) => ['analytics', days] as const

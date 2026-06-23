@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { API_SCOPES } from '@taskin/domain'
+import { API_SCOPES } from '@lifedeck/domain'
 
 export const createApiKeySchema = z.object({
   name: z.string().trim().min(1).max(80),

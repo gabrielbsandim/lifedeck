@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import {
   updateRecurringTaskSchema,
   type UpdateRecurringTaskInput,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ShareLink, User, asEntityId } from '@taskin/domain'
+import { List, ShareLink, User, asEntityId } from '@lifedeck/domain'
 import { makeJoinListByToken } from '@/use-cases/join-list-by-token'
 import { makeListMembers } from '@/use-cases/list-members'
 import { makeRemoveMember } from '@/use-cases/remove-member'

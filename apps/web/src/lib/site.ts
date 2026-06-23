@@ -1,5 +1,6 @@
-export const SITE_NAME = 'TaskIn'
-export const SITE_DESCRIPTION = 'Plan your day, share your lists.'
+export const SITE_NAME = 'Lifedeck'
+export const SITE_DESCRIPTION = 'Your whole life, calmly in hand.'
+export const SITE_TAGLINE = 'Plan, share and stay in control - together.'
 
 export function siteUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL

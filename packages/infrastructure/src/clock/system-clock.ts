@@ -1,4 +1,4 @@
-import type { Clock } from '@taskin/application'
+import type { Clock } from '@lifedeck/application'
 
 export class SystemClock implements Clock {
   now(): Date {

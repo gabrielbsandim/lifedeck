@@ -1,4 +1,4 @@
-import type { ApiKey } from '@taskin/domain'
+import type { ApiKey } from '@lifedeck/domain'
 import type { ApiKeyView } from '@/dtos/api-key-dto'
 
 export function toApiKeyView(apiKey: ApiKey): ApiKeyView {

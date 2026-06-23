@@ -5,7 +5,7 @@ import type {
   SharedBoardView,
   TaskView,
   UpdateTaskInput,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 
 export const sharedBoardKey = (token: string) =>

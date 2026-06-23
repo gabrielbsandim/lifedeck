@@ -14,7 +14,7 @@ const USER_ID = 'a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f'
 const ISSUED_AT = new Date('2026-06-21T10:00:00.000Z')
 
 function requestWithCookie(cookie: string): Request {
-  return new Request('https://taskin.app/api/v1/sessions/me', {
+  return new Request('https://lifedeck.app/api/v1/sessions/me', {
     headers: { cookie },
   })
 }
@@ -56,7 +56,7 @@ describe('session', () => {
   })
 
   it('returns null when no cookie header is present', () => {
-    const request = new Request('https://taskin.app/api/v1/sessions/me')
+    const request = new Request('https://lifedeck.app/api/v1/sessions/me')
     expect(parseSessionCookie(request)).toBeNull()
   })
 
@@ -71,7 +71,7 @@ describe('session', () => {
   })
 
   it('returns null from a request without a session', async () => {
-    const request = new Request('https://taskin.app/api/v1/sessions/me')
+    const request = new Request('https://lifedeck.app/api/v1/sessions/me')
     expect(await getUserIdFromRequest(request)).toBeNull()
   })
 

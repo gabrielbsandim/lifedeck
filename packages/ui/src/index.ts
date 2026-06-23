@@ -15,3 +15,11 @@ export { Toast, type ToastProps } from '@/components/toast'
 export { Skeleton, type SkeletonProps } from '@/components/skeleton'
 export { EmptyState, type EmptyStateProps } from '@/components/empty-state'
 export { Dialog, type DialogProps } from '@/components/dialog'
+export {
+  Logo,
+  LogoMark,
+  Wordmark,
+  type LogoProps,
+  type LogoMarkProps,
+  type WordmarkProps,
+} from '@/components/logo'

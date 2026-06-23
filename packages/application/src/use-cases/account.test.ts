@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { User } from '@taskin/domain'
+import { User } from '@lifedeck/domain'
 import { makeChangePassword } from '@/use-cases/change-password'
 import { makeRenameUser } from '@/use-cases/rename-user'
 import { makeDeleteUser } from '@/use-cases/delete-user'

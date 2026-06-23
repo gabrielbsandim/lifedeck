@@ -1,5 +1,5 @@
 {
-  "extends": "@taskin/config/tsconfig/library.json",
+  "extends": "@lifedeck/config/tsconfig/library.json",
   "compilerOptions": {
     "rootDir": ".",
     "baseUrl": ".",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiKey, asEntityId } from '@taskin/domain'
+import { ApiKey, asEntityId } from '@lifedeck/domain'
 import { makeCreateApiKey } from '@/use-cases/create-api-key'
 import { makeListApiKeys } from '@/use-cases/list-api-keys'
 import { makeRevokeApiKey } from '@/use-cases/revoke-api-key'

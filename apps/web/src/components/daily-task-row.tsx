@@ -1,8 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import type { MemberView, TaskView, UpdateTaskInput } from '@taskin/application'
-import { Avatar, TaskCheckbox } from '@taskin/ui'
+import type {
+  MemberView,
+  TaskView,
+  UpdateTaskInput,
+} from '@lifedeck/application'
+import { Avatar, TaskCheckbox } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 
 const iconButtonClass =

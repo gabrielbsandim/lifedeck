@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { EmailLocale, EmailSender } from '@/ports/email-sender'
 import type { UserRepository } from '@/ports/user-repository'

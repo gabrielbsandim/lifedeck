@@ -4,7 +4,7 @@ import type {
   GenerationBrief,
   ListView,
   TaskView,
-} from '@taskin/application'
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { userListsKey } from '@/lib/api/use-lists'
 

@@ -1,4 +1,4 @@
-import { EmailVerification, asEntityId } from '@taskin/domain'
+import { EmailVerification, asEntityId } from '@lifedeck/domain'
 
 export type EmailVerificationRecord = {
   id: string

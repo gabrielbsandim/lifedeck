@@ -1,6 +1,6 @@
 'use client'
 
-import { Skeleton } from '@taskin/ui'
+import { Skeleton } from '@lifedeck/ui'
 import { useSession } from '@/lib/api/use-session'
 import { todayIso } from '@/lib/api/dates'
 import { OnboardingCard } from '@/components/onboarding-card'

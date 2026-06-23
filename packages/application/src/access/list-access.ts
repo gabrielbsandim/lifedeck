@@ -1,4 +1,4 @@
-import { asEntityId, type List } from '@taskin/domain'
+import { asEntityId, type List } from '@lifedeck/domain'
 import type { MembershipRepository } from '@/ports/membership-repository'
 
 export type ListAccess = {

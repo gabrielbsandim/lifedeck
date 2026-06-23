@@ -1,4 +1,4 @@
-import { ListMember, asEntityId } from '@taskin/domain'
+import { ListMember, asEntityId } from '@lifedeck/domain'
 import { type MemberView } from '@/dtos/member-dto'
 import { toMemberView } from '@/mappers/member-mapper'
 import { NotFoundError } from '@/errors/use-case-error'

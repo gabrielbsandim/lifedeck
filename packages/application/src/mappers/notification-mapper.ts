@@ -1,4 +1,4 @@
-import type { Notification } from '@taskin/domain'
+import type { Notification } from '@lifedeck/domain'
 import type { NotificationView } from '@/dtos/notification-dto'
 
 export function toNotificationView(

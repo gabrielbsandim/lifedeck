@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import type { GenerationBrief } from '@taskin/application'
+import type { GenerationBrief } from '@lifedeck/application'
 import { useGenerateList, useSaveDraftList } from '@/lib/api/use-ai'
 import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
 

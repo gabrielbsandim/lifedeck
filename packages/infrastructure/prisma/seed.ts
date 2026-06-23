@@ -30,7 +30,7 @@ async function main(): Promise<void> {
     create: {
       id: USER_ID,
       displayName: 'Demo',
-      email: 'demo@taskin.app',
+      email: 'demo@lifedeck.app',
       isGuest: false,
       locale: 'en',
     },

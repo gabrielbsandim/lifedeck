@@ -1,4 +1,4 @@
-import type { EntityId, List } from '@taskin/domain'
+import type { EntityId, List } from '@lifedeck/domain'
 
 export interface ListRepository {
   save(list: List): Promise<void>

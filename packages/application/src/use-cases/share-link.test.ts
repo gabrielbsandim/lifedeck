@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ShareLink, Task, asEntityId } from '@taskin/domain'
+import { List, ShareLink, Task, asEntityId } from '@lifedeck/domain'
 import { makeCreateShareLink } from '@/use-cases/create-share-link'
 import { makeListShareLinks } from '@/use-cases/list-share-links'
 import { makeRevokeShareLink } from '@/use-cases/revoke-share-link'

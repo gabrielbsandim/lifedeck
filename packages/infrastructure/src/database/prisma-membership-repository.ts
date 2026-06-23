@@ -1,5 +1,5 @@
-import type { EntityId, ListMember } from '@taskin/domain'
-import type { MembershipRepository } from '@taskin/application'
+import type { EntityId, ListMember } from '@lifedeck/domain'
+import type { MembershipRepository } from '@lifedeck/application'
 import type { PrismaClient } from '@prisma/client'
 import { toDomainMember, toMemberRecord } from '@/database/member-record'
 

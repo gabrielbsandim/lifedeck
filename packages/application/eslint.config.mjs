@@ -1,3 +1,3 @@
-import base from '@taskin/config/eslint/base'
+import base from '@lifedeck/config/eslint/base'
 
 export default base

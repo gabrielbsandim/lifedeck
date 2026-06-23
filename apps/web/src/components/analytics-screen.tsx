@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Card, EmptyState, Skeleton } from '@taskin/ui'
+import { Card, EmptyState, Skeleton } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useAnalytics } from '@/lib/api/use-analytics'
 

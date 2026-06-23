@@ -1,4 +1,4 @@
-import type { OAuthProfile, OAuthProvider } from '@taskin/application'
+import type { OAuthProfile, OAuthProvider } from '@lifedeck/application'
 
 const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'

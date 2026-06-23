@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import type { ShareLinkView } from '@taskin/application'
-import { Button, Dialog, EmptyState, TextField } from '@taskin/ui'
+import type { ShareLinkView } from '@lifedeck/application'
+import { Button, Dialog, EmptyState, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useCreateShareLink,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { User, asEntityId } from '@taskin/domain'
+import { User, asEntityId } from '@lifedeck/domain'
 import { makeRegisterWithEmail } from '@/use-cases/register-with-email'
 import { makeRequestEmailVerification } from '@/use-cases/request-email-verification'
 import { makeVerifyEmail } from '@/use-cases/verify-email'

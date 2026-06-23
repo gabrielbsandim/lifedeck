@@ -1,4 +1,4 @@
-// TaskIn data model.
+// Lifedeck data model.
 // Conventions: Prisma models are PascalCase singular; database tables are
 // snake_case plural via @@map; fields are camelCase mapped to snake_case.
 

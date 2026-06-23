@@ -4,7 +4,7 @@ test('a guest can onboard, add a task, and complete it', async ({ page }) => {
   await page.goto('/')
 
   await expect(
-    page.getByRole('heading', { name: 'Welcome to TaskIn' }),
+    page.getByRole('heading', { name: 'Welcome to Lifedeck' }),
   ).toBeVisible()
 
   await page.getByLabel('Your name').fill('Gabriel')
@@ -25,5 +25,5 @@ test('a guest can onboard, add a task, and complete it', async ({ page }) => {
 
 test('the public API reference renders', async ({ page }) => {
   await page.goto('/docs')
-  await expect(page).toHaveTitle(/TaskIn API Reference/)
+  await expect(page).toHaveTitle(/Lifedeck API Reference/)
 })

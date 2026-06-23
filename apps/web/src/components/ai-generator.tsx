@@ -3,8 +3,8 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Button, Card, TextField } from '@taskin/ui'
-import type { GenerationBrief } from '@taskin/application'
+import { Button, Card, TextField } from '@lifedeck/ui'
+import type { GenerationBrief } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useGenerateList,

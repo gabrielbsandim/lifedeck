@@ -1,6 +1,6 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
-import type { PasswordHasher } from '@taskin/application'
+import type { PasswordHasher } from '@lifedeck/application'
 
 const scryptAsync = promisify(scrypt)
 const KEY_LENGTH = 64

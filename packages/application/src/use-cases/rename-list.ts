@@ -1,4 +1,4 @@
-import { asEntityId } from '@taskin/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { renameListSchema, type ListView } from '@/dtos/list-dto'
 import { toListView } from '@/mappers/list-mapper'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
