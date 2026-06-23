@@ -185,6 +185,11 @@ export type Messages = {
     range7: string
     range30: string
     range90: string
+    daily: string
+    weekly: string
+    monthly: string
+    dayStreak: string
+    tasksDone: string
     empty: string
     backToToday: string
   }
