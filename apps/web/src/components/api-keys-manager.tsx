@@ -105,7 +105,7 @@ export function ApiKeysManager() {
       </header>
 
       {created ? (
-        <Card className="border-brand-200 bg-brand-50 flex flex-col gap-3">
+        <Card className="border-brand-200 bg-brand-50 flex flex-col gap-3 p-4 sm:p-6">
           <span className="text-ink-800 text-sm font-semibold">
             {t.createdTitle}
           </span>
@@ -127,7 +127,7 @@ export function ApiKeysManager() {
           </div>
         </Card>
       ) : (
-        <Card>
+        <Card className="p-4 sm:p-8">
           <form onSubmit={submit} className="flex flex-col gap-4">
             <TextField
               value={name}
@@ -198,7 +198,7 @@ export function ApiKeysManager() {
             const state = keyState(key)
             return (
               <li key={key.id}>
-                <Card className="flex flex-col gap-2">
+                <Card className="flex flex-col gap-2 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-col gap-1">
                       <span className="text-ink-800 truncate text-sm font-semibold">
