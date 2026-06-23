@@ -8,6 +8,7 @@ import {
   useChangePassword,
   useDeleteAccount,
   useRenameUser,
+  useSetCarryOverMode,
   useSignOut,
 } from '@/lib/api/use-account'
 import { useResendCode, useVerifyEmail } from '@/lib/api/use-auth'
@@ -34,6 +35,7 @@ export function AccountDialog({
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const rename = useRenameUser()
+  const setCarryOverMode = useSetCarryOverMode()
   const changePassword = useChangePassword()
   const signOut = useSignOut()
   const deleteAccount = useDeleteAccount()
@@ -168,6 +170,37 @@ export function AccountDialog({
               : messages.auth.changePassword}
           </Button>
         </form>
+
+        <div className="border-line flex flex-col gap-2 border-t pt-4">
+          <span className="text-ink-700 text-sm font-medium">
+            {messages.carryOver.settingLabel}
+          </span>
+          <p className="text-ink-500 text-xs">
+            {messages.carryOver.settingHint}
+          </p>
+          <div className="flex flex-col gap-1.5 sm:flex-row">
+            {(['manual', 'auto'] as const).map(mode => {
+              const active = user.carryOverMode === mode
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setCarryOverMode.mutate(mode)}
+                  disabled={setCarryOverMode.isPending}
+                  className={
+                    active
+                      ? 'border-brand-300 bg-brand-50 text-brand-700 flex-1 rounded-lg border px-3 py-2 text-xs font-medium'
+                      : 'border-line text-ink-600 flex-1 rounded-lg border px-3 py-2 text-xs font-medium'
+                  }
+                >
+                  {mode === 'manual'
+                    ? messages.carryOver.modeManual
+                    : messages.carryOver.modeAuto}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <div className="border-line flex flex-col gap-3 border-t pt-4">
           <a

@@ -15,6 +15,7 @@ import {
 } from '@taskin/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
+  useBringTaskToToday,
   useCreateTask,
   useDailyBoard,
   useReorderDailyTasks,
@@ -38,6 +39,15 @@ function formatDate(date: string, locale: string): string {
   }).format(parsed)
 }
 
+function formatShortDate(date: string, locale: string): string {
+  const parsed = new Date(`${date}T00:00:00.000Z`)
+  return new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(parsed)
+}
+
 export function DailyBoard({ date }: { date: string }) {
   const { messages, locale } = useI18n()
   const board = useDailyBoard(date)
@@ -47,6 +57,7 @@ export function DailyBoard({ date }: { date: string }) {
   const createTask = useCreateTask(date)
   const updateTask = useUpdateTask(date)
   const reorderTasks = useReorderDailyTasks(date, listId)
+  const bringTask = useBringTaskToToday(date)
   const [title, setTitle] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
 
@@ -64,7 +75,7 @@ export function DailyBoard({ date }: { date: string }) {
     )
   }
 
-  const { list, tasks } = board.data
+  const { list, tasks, carryOver } = board.data
   const doneCount = tasks.filter(task => task.status === 'completed').length
   const pct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
   const allDone = tasks.length > 0 && doneCount === tasks.length
@@ -209,6 +220,45 @@ export function DailyBoard({ date }: { date: string }) {
             maxLength={280}
           />
         </form>
+
+        {carryOver.length > 0 && (
+          <div className="border-line bg-bg mb-4 rounded-2xl border p-4">
+            <p className="text-ink-700 mb-3 text-sm font-semibold">
+              {messages.carryOver.pendingTitle}
+            </p>
+            <ul className="flex flex-col gap-2">
+              {carryOver.map(item => (
+                <li
+                  key={item.task.id}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-ink-800 truncate text-sm">
+                      {item.task.title}
+                    </span>
+                    <span className="text-ink-400 text-xs">
+                      {messages.carryOver.broughtFrom.replace(
+                        '{date}',
+                        formatShortDate(item.fromDate, locale),
+                      )}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="h-8 flex-none px-2 text-xs"
+                    isLoading={
+                      bringTask.isPending &&
+                      bringTask.variables === item.task.id
+                    }
+                    onClick={() => bringTask.mutate(item.task.id)}
+                  >
+                    ↩ {messages.carryOver.bring}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {tasks.length === 0 ? (
           <EmptyState title={messages.task.empty} />

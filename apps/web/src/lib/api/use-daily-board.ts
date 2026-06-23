@@ -68,6 +68,19 @@ export function useUpdateTask(date: string) {
   })
 }
 
+export function useBringTaskToToday(date: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      apiRequest<TaskView>(`/api/v1/tasks/${taskId}/carry-forward`, {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
+    },
+  })
+}
+
 export function useReorderDailyTasks(date: string, listId: string) {
   const queryClient = useQueryClient()
   return useMutation({

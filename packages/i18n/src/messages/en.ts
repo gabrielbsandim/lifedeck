@@ -52,6 +52,15 @@ export const en: Messages = {
     assigned: 'Assigned to you: {task}',
     open: 'Notifications',
   },
+  carryOver: {
+    pendingTitle: "Yesterday's leftovers",
+    bring: 'Bring to today',
+    broughtFrom: 'Brought from {date}',
+    settingLabel: 'Unfinished tasks',
+    settingHint: 'What happens to tasks you did not finish on a past day.',
+    modeManual: 'Let me bring them over',
+    modeAuto: 'Bring them automatically',
+  },
   developers: {
     title: 'API keys',
     subtitle: 'Programmatic access to your TaskIn data over the REST API.',

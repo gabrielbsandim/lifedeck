@@ -50,6 +50,15 @@ export type Messages = {
     assigned: string
     open: string
   }
+  carryOver: {
+    pendingTitle: string
+    bring: string
+    broughtFrom: string
+    settingLabel: string
+    settingHint: string
+    modeManual: string
+    modeAuto: string
+  }
   developers: {
     title: string
     subtitle: string

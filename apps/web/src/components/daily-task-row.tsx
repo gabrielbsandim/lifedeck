@@ -47,7 +47,7 @@ export function DailyTaskRow({
   canMoveUp = false,
   canMoveDown = false,
 }: DailyTaskRowProps) {
-  const { messages } = useI18n()
+  const { messages, locale } = useI18n()
   const t = messages.task
   const completed = task.status === 'completed'
   const [editingNote, setEditingNote] = useState(false)
@@ -114,6 +114,18 @@ export function DailyTaskRow({
           >
             {task.title}
           </span>
+          {task.carriedFromDate && (
+            <span className="text-ink-400 text-xs">
+              {messages.carryOver.broughtFrom.replace(
+                '{date}',
+                new Intl.DateTimeFormat(locale, {
+                  month: 'short',
+                  day: 'numeric',
+                  timeZone: 'UTC',
+                }).format(new Date(`${task.carriedFromDate}T00:00:00.000Z`)),
+              )}
+            </span>
+          )}
           {editingNote ? (
             <input
               autoFocus

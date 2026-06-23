@@ -4,6 +4,7 @@ import {
   useChangePassword,
   useDeleteAccount,
   useRenameUser,
+  useSetCarryOverMode,
   useSignOut,
 } from '@/lib/api/use-account'
 import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
@@ -30,6 +31,21 @@ describe('account hooks', () => {
     await result.current.mutateAsync({ displayName: 'Noiva' })
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/account',
+      expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('sets the carry-over mode via PATCH', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ...USER, carryOverMode: 'auto' },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetCarryOverMode(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync('auto')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/account/carry-over',
       expect.objectContaining({ method: 'PATCH' }),
     )
   })

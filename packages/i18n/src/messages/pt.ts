@@ -52,6 +52,16 @@ export const pt: Messages = {
     assigned: 'Atribuída a você: {task}',
     open: 'Notificações',
   },
+  carryOver: {
+    pendingTitle: 'Pendências de ontem',
+    bring: 'Trazer pra hoje',
+    broughtFrom: 'Trazida de {date}',
+    settingLabel: 'Tarefas não concluídas',
+    settingHint:
+      'O que acontece com tarefas que você não terminou num dia passado.',
+    modeManual: 'Deixe eu trazer',
+    modeAuto: 'Trazer automaticamente',
+  },
   developers: {
     title: 'Chaves de API',
     subtitle: 'Acesso programático aos seus dados do TaskIn pela API REST.',

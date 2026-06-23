@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import {
   dailyBoardKey,
+  useBringTaskToToday,
   useCreateTask,
   useDailyBoard,
   useReorderDailyTasks,
@@ -57,6 +58,21 @@ describe('useDailyBoard', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/daily?date=2026-06-21',
       expect.any(Object),
+    )
+  })
+
+  it('brings a task to today via POST', async () => {
+    const fetchMock = mockFetchOnce({ data: { id: 'copy' } }, true, 201)
+    const { Wrapper } = createWrapper()
+
+    const { result } = renderHook(() => useBringTaskToToday('2026-06-21'), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync('task-1')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/tasks/task-1/carry-forward',
+      expect.objectContaining({ method: 'POST' }),
     )
   })
 

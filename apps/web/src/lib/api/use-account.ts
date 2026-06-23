@@ -17,6 +17,21 @@ export function useRenameUser() {
   })
 }
 
+export function useSetCarryOverMode() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (mode: 'manual' | 'auto') =>
+      apiRequest<UserView>('/api/v1/account/carry-over', {
+        method: 'PATCH',
+        body: JSON.stringify({ mode }),
+      }),
+    onSuccess: user => {
+      queryClient.setQueryData(sessionKey, user)
+      void queryClient.invalidateQueries({ queryKey: ['daily-board'] })
+    },
+  })
+}
+
 export function useChangePassword() {
   return useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
