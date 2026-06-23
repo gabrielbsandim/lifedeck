@@ -5,6 +5,7 @@ import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from '@/lib/site'
 import { Providers } from '@/app/providers'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
+import { WebVitals } from '@/components/web-vitals'
 import '@/app/globals.css'
 
 export const metadata: Metadata = {
@@ -57,6 +58,7 @@ export default async function RootLayout({
           {children}
         </Providers>
         <ServiceWorkerRegister />
+        <WebVitals />
       </body>
     </html>
   )
