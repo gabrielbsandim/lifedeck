@@ -27,6 +27,8 @@ export class PrismaUnitOfWork implements UnitOfWork {
   constructor(private readonly root: PrismaClient) {}
 
   run<T>(work: () => Promise<T>): Promise<T> {
+    // Reentrant: a run nested inside an active transaction joins it (no nested
+    // savepoint), so an error inside the inner run rolls back the whole tx.
     if (storage.getStore()) {
       return work()
     }

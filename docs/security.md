@@ -34,6 +34,9 @@ Security is a first-class requirement, not a later hardening pass.
 
 - List access is resolved through `ListMember` rows (`owner`, `editor`, `viewer`).
 - Public links (`ShareLink`) grant a capped role and can carry an expiry.
+  Reading or joining via a share token additionally requires the list's
+  `visibility` to be `link` (fail-closed), so making a list private invalidates
+  outstanding tokens.
 - Item-level visibility lets a user keep specific daily-list items private even on
   a shared list.
 

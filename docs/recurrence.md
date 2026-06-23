@@ -58,6 +58,10 @@ while still giving each day its own independent completion state.
   `rule` (jsonb), `created_at`.
 - `tasks` gains `recurring_task_id` (FK `recurring_tasks`, nullable,
   `ON DELETE SET NULL`) so deleting a definition keeps already-created instances.
+- A unique index `(list_id, recurring_task_id)` (migration `8_task_recurring_unique`)
+  guarantees at most one instance of a given definition per day's list, so
+  concurrent materializations cannot create duplicates. `NULL` `recurring_task_id`
+  rows (ad-hoc tasks) are unconstrained (Postgres treats NULLs as distinct).
 
 ## Timezone
 

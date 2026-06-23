@@ -34,7 +34,25 @@ export function useSetCarryOverMode() {
   })
 }
 
-const DEFAULT_TIMEZONE = 'UTC'
+function timezonePinKey(userId: string): string {
+  return `lifedeck.tz.pinned.${userId}`
+}
+
+function isTimezonePinned(userId: string): boolean {
+  try {
+    return localStorage.getItem(timezonePinKey(userId)) === '1'
+  } catch {
+    return false
+  }
+}
+
+function pinTimezone(userId: string): void {
+  try {
+    localStorage.setItem(timezonePinKey(userId), '1')
+  } catch {
+    // localStorage unavailable (private mode / SSR) — auto-sync simply repeats.
+  }
+}
 
 export function useSetTimezone() {
   const queryClient = useQueryClient()
@@ -45,25 +63,30 @@ export function useSetTimezone() {
         body: JSON.stringify({ timezone }),
       }),
     onSuccess: user => {
+      pinTimezone(user.id)
       queryClient.setQueryData(sessionKey, user)
       void queryClient.invalidateQueries({ queryKey: ['daily-board'] })
     },
   })
 }
 
-// Auto-detects the device time zone, but only while the account still holds the
-// default (UTC) — i.e. it has never been personalized. Once the user has a
-// non-default zone (auto-detected once or set by hand), their choice is kept.
+// Auto-detects the device time zone once per account+browser. After the first
+// sync (or any manual change, which pins the choice), the user's selection is
+// kept — including an explicit "UTC" — so the manual override is never reverted.
 export function useSyncTimezone(user: UserView | null | undefined) {
   const queryClient = useQueryClient()
   const synced = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!user || user.timezone !== DEFAULT_TIMEZONE) {
+    if (!user || isTimezonePinned(user.id)) {
       return
     }
     const detected = browserTimeZone()
-    if (detected === user.timezone || synced.current === detected) {
+    if (detected === user.timezone) {
+      pinTimezone(user.id)
+      return
+    }
+    if (synced.current === detected) {
       return
     }
     synced.current = detected
@@ -72,6 +95,7 @@ export function useSyncTimezone(user: UserView | null | undefined) {
       body: JSON.stringify({ timezone: detected }),
     })
       .then(updated => {
+        pinTimezone(updated.id)
         queryClient.setQueryData(sessionKey, updated)
         void queryClient.invalidateQueries({ queryKey: ['daily-board'] })
       })

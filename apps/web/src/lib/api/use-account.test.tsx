@@ -33,6 +33,7 @@ const USER = {
 describe('account hooks', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    localStorage.clear()
   })
 
   it('renames via PATCH', async () => {
@@ -115,10 +116,27 @@ describe('account hooks', () => {
     )
   })
 
-  it('does not auto-sync once the zone has been personalized', async () => {
+  it('does not auto-sync once the zone has been pinned', async () => {
+    localStorage.setItem(`lifedeck.tz.pinned.${USER.id}`, '1')
     const fetchMock = mockFetchOnce({ data: USER })
     const { Wrapper } = createWrapper()
     renderHook(() => useSyncTimezone({ ...USER, timezone: 'Europe/Lisbon' }), {
+      wrapper: Wrapper,
+    })
+    await Promise.resolve()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('pins the zone after a manual change so it is never auto-reverted', async () => {
+    mockFetchOnce({ data: { ...USER, timezone: 'UTC' } })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetTimezone(), { wrapper: Wrapper })
+    await result.current.mutateAsync('UTC')
+    expect(localStorage.getItem(`lifedeck.tz.pinned.${USER.id}`)).toBe('1')
+
+    // A later auto-sync must respect the pin even though the zone is UTC.
+    const fetchMock = mockFetchOnce({ data: USER })
+    renderHook(() => useSyncTimezone({ ...USER, timezone: 'UTC' }), {
       wrapper: Wrapper,
     })
     await Promise.resolve()

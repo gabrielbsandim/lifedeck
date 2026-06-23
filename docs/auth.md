@@ -48,11 +48,18 @@ creates a new verified account. Requires `GOOGLE_CLIENT_ID` and
 
 ## Account settings
 
-`renameUser`, `changePassword` (verifies the current password first), and
-`deleteUser` (DB cascade removes owned lists, tasks, recurring tasks, members,
-and verification rows; assignments are nulled). Sign-out and account deletion
-clear the session cookie. The `UserView` exposes a `hasPassword` flag so the UI
-hides the change-password form for Google-only accounts.
+`renameUser`, `changePassword` (verifies the current password first),
+`setCarryOverMode`, `setTimezone`, and `deleteUser` (DB cascade removes owned
+lists, tasks, recurring tasks, members, and verification rows; assignments are
+nulled). Sign-out and account deletion clear the session cookie. The `UserView`
+exposes a `hasPassword` flag so the UI hides the change-password form for
+Google-only accounts.
+
+`setTimezone` persists the user's IANA `timezone` (`PATCH
+/api/v1/account/timezone`). The account dialog auto-detects the browser zone
+once per account+browser and offers a manual IANA picker with a "use device
+time zone" reset; a manual choice is pinned client-side and never auto-reverted.
+See [recurrence.md](./recurrence.md#timezone) for how the zone drives "today".
 
 ## Ports (application layer)
 

@@ -55,6 +55,7 @@ async function setup(role: 'editor' | 'viewer' = 'editor') {
     }),
   )
   return {
+    lists,
     memberships,
     joinListByToken: makeJoinListByToken({
       shareLinks,
@@ -96,6 +97,17 @@ describe('membership', () => {
   it('rejects joining with an unknown token', async () => {
     const { joinListByToken } = await setup()
     await expect(joinListByToken(ID.otherUser, 'nope')).rejects.toThrow(
+      NotFoundError,
+    )
+  })
+
+  it('rejects joining once the list is made private again', async () => {
+    const { joinListByToken, lists } = await setup()
+    const list = await lists.findById(ID.list)
+    list?.setVisibility('private', NOW)
+    if (list) await lists.save(list)
+
+    await expect(joinListByToken(ID.otherUser, 'secret-token')).rejects.toThrow(
       NotFoundError,
     )
   })

@@ -18,6 +18,7 @@ export class PrismaUserRepository implements UserRepository {
         emailVerified: record.emailVerified,
         isGuest: record.isGuest,
         locale: record.locale,
+        timezone: record.timezone,
         carryOverMode: record.carryOverMode,
       },
     })

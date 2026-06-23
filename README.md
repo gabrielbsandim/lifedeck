@@ -20,7 +20,9 @@ analytics. No account required to start, optional account when you want more.
 - **Frictionless start** - just type your name. Upgrade to a full account anytime
   (email + password with verification code, or Google).
 - **Sharing** - invite people to collaborate or share a read-only public link.
-- **Analytics** - completion rates with daily, weekly, and monthly breakdowns.
+- **Analytics** - completion rates and streaks, bucketed by your local time zone.
+- **Time-zone aware** - daily boards, digests, and streaks follow your local civil
+  day (auto-detected from the browser, manually overridable).
 - **AI list generation** - describe a goal and get an editable checklist in seconds.
 - **White-label REST API** - versioned, documented with OpenAPI, ready to embed.
 - **Multilingual** - English, Portuguese, and Spanish, auto-detected from the browser.
