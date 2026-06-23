@@ -239,6 +239,36 @@ client-side i18next rewrite, and keeps the typed message catalogs for compile-ti
       step is operational (set `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN`,
       `NEXT_PUBLIC_SITE_URL`, and promote).
 
+## Phase 12.5 - Account & auth UX polish
+
+Surfaced from real use after Google sign-in shipped.
+
+- [ ] Show/hide password toggle ("eye" icon) on every password field (sign-in,
+      register, and the account "current/new password" inputs). There is no
+      confirm-password field, so letting the user reveal what they typed is the
+      minimum safeguard against typos.
+- [ ] Hide the "Change password" section for OAuth-only accounts (users who signed
+      up with Google have no local password to change). Gate it on whether the
+      account has a password credential set.
+
+## Phase 12.6 - Launch readiness & portfolio polish
+
+Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
+
+- [ ] Terms of Use + Privacy Policy pages (localized), linked from the footer and
+      from the sign-up flow.
+- [ ] Footer ownership/branding on the landing page: show that Lifedeck belongs to
+      GBS Tecnologia da Informação Ltda (CNPJ 44.000.992/0001-22, contact email),
+      with a copyright line. Reference: the Obra Nova landing-page footer.
+- [ ] Full manual QA pass with Playwright MCP: exercise every single feature, screen,
+      UI/UX detail, and responsive breakpoint - exhaustively, nothing skipped.
+- [ ] Add Spanish (es) as a third first-class locale alongside English and Portuguese
+      (catalogs, `resolveLocale` map, backend `Accept-Language` localization).
+- [ ] Documentation overhaul: critically review every doc - the white-label API docs,
+      README, all `*.md` - so the whole project reads polished and professional.
+- [ ] Full code review: read every file and line, fix any issue, and ensure the
+      codebase reflects current industry best practices (it is a portfolio project).
+
 ## Phase 13 - Mobile app (Expo) - future
 
 Not started until the web product is mature and validated. The clean
