@@ -41,6 +41,11 @@
   "pnpm": {
     "overrides": {
       "@types/node": "22.10.2"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-fx2h-pf6j-xcff"
+      ]
     }
   },
   "simple-git-hooks": {

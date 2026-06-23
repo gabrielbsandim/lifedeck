@@ -47,9 +47,6 @@ importers:
       '@asteasolutions/zod-to-openapi':
         specifier: 7.3.4
         version: 7.3.4(zod@3.25.76)
-      '@scalar/api-reference':
-        specifier: 1.61.0
-        version: 1.61.0(tailwindcss@4.1.13)(typescript@5.7.2)(zod@3.25.76)
       '@sentry/nextjs':
         specifier: 10.59.0
         version: 10.59.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(vite@5.4.21(@types/node@22.10.2)(lightningcss@1.32.0)(terser@5.48.0))(webpack@5.107.2(lightningcss@1.32.0))
@@ -99,6 +96,9 @@ importers:
       '@playwright/test':
         specifier: 1.61.0
         version: 1.61.0
+      '@scalar/api-reference':
+        specifier: 1.61.0
+        version: 1.61.0(tailwindcss@4.1.13)(typescript@5.7.2)(zod@3.25.76)
       '@serwist/next':
         specifier: 9.5.11
         version: 9.5.11(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(typescript@5.7.2)(webpack@5.107.2(lightningcss@1.32.0))
@@ -5780,10 +5780,6 @@ packages:
     resolution: {integrity: sha512-8ZiHFm91orbSAe2PSAiSVBVko18pbhbiB3U9GglSzF/zCGkR+rxpHx6sEMCUm4kxY4LjDIUGgCfUMtwfZfjfUA==}
     engines: {node: '>=20'}
 
-  type-fest@5.7.0:
-    resolution: {integrity: sha512-1URUxUqfHFM1c+zfSPsa3gnkO7Aq21qyH75SIduNYz4SzY964rn1X2vCMQaHSHhktiw+0kPa2iyb6PUpXqB6Vg==}
-    engines: {node: '>=20'}
-
   typed-array-buffer@1.0.3:
     resolution: {integrity: sha512-nAYYwfY3qnzX30IkA6AQZjVbtK6duGontcQm1WSG1MD94YLqK0515GNApXkoxKOWMusVssAHWLh9SeaoefYFGw==}
     engines: {node: '>= 0.4'}
@@ -6133,9 +6129,6 @@ packages:
 
   zod@4.4.1:
     resolution: {integrity: sha512-a6ENMBBGZBsnlSebQ/eKCguSBeGKSf4O7BPnqVPmYGtpBYI7VSqoVqw+QcB7kPRjbqPwhYTpFbVj/RqNz/CT0Q==}
-
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -7491,7 +7484,7 @@ snapshots:
       set-cookie-parser: 3.1.0
       vue: 3.5.38(typescript@5.7.2)
       yaml: 2.9.0
-      zod: 4.4.3
+      zod: 4.4.1
     transitivePeerDependencies:
       - '@vue/composition-api'
       - async-validator
@@ -7665,8 +7658,8 @@ snapshots:
     dependencies:
       '@scalar/helpers': 0.8.2
       nanoid: 5.1.15
-      type-fest: 5.7.0
-      zod: 4.4.3
+      type-fest: 5.6.0
+      zod: 4.4.1
 
   '@scalar/use-codemirror@0.14.12(typescript@5.7.2)':
     dependencies:
@@ -7719,7 +7712,7 @@ snapshots:
       '@scalar/types': 0.15.0
       '@scalar/validation': 0.6.0
       js-base64: 3.7.8
-      type-fest: 5.7.0
+      type-fest: 5.6.0
       vue: 3.5.38(typescript@5.7.2)
       yaml: 2.9.0
     transitivePeerDependencies:
@@ -12120,10 +12113,6 @@ snapshots:
     dependencies:
       tagged-tag: 1.0.0
 
-  type-fest@5.7.0:
-    dependencies:
-      tagged-tag: 1.0.0
-
   typed-array-buffer@1.0.3:
     dependencies:
       call-bound: 1.0.4
@@ -12562,7 +12551,5 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.4.1: {}
-
-  zod@4.4.3: {}
 
   zwitch@2.0.4: {}

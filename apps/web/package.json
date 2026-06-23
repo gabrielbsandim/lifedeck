@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "7.3.4",
-    "@scalar/api-reference": "1.61.0",
     "@sentry/nextjs": "10.59.0",
     "@tanstack/react-query": "5.62.11",
     "@taskin/application": "workspace:*",
@@ -36,6 +35,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.61.0",
+    "@scalar/api-reference": "1.61.0",
     "@serwist/next": "9.5.11",
     "@tailwindcss/postcss": "4.1.13",
     "@taskin/config": "workspace:*",
