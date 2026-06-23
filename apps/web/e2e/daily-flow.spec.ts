@@ -3,9 +3,7 @@ import { expect, test } from '@playwright/test'
 test('a guest can onboard, add a task, and complete it', async ({ page }) => {
   await page.goto('/')
 
-  await expect(
-    page.getByRole('heading', { name: 'Welcome to Lifedeck' }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Get started' })).toBeVisible()
 
   await page.getByLabel('Your name').fill('Gabriel')
   await page.getByRole('button', { name: 'Start' }).click()
