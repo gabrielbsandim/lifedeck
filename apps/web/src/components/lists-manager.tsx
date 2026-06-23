@@ -5,11 +5,7 @@ import Link from 'next/link'
 import { Button, Card, EmptyState, Skeleton, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useCreateList, useDeleteList, useUserLists } from '@/lib/api/use-lists'
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CloseIcon,
-} from '@/components/icons'
+import { ChevronRightIcon, CloseIcon } from '@/components/icons'
 
 export function ListsManager() {
   const { messages } = useI18n()
@@ -37,13 +33,6 @@ export function ListsManager() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link
-          href="/"
-          className="text-brand-600 hover:text-brand-700 flex w-fit items-center gap-1 text-sm font-medium"
-        >
-          <ChevronLeftIcon size={16} />
-          {messages.lists.backToToday}
-        </Link>
         <h1 className="text-2xl font-semibold tracking-tight">
           {messages.lists.title}
         </h1>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button, Card, TextField } from '@lifedeck/ui'
 import type { GenerationBrief } from '@lifedeck/application'
@@ -137,9 +136,6 @@ export function AiGenerator() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-brand-600 text-sm font-medium">
-          ← {t.backToToday}
-        </Link>
         <h1 className="text-2xl font-semibold tracking-tight">{t.title}</h1>
         <p className="text-ink-500 text-sm">{t.subtitle}</p>
       </header>

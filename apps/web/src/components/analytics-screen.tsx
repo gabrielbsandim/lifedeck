@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { Card, EmptyState, Skeleton } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useAnalytics } from '@/lib/api/use-analytics'
@@ -33,9 +32,6 @@ export function AnalyticsScreen() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-brand-600 text-sm font-medium">
-          ← {messages.analytics.backToToday}
-        </Link>
         <h1 className="text-2xl font-semibold tracking-tight">
           {messages.analytics.title}
         </h1>
