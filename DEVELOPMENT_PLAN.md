@@ -282,8 +282,34 @@ Surfaced while preparing Lifedeck for a public, portfolio-grade launch.
       and refreshed `docs/i18n.md` (es + legal/email/AI localization),
       `docs/ai-generation.md` (provider-agnostic AI SDK, es), `docs/auth.md`
       (Argon2id + `hasPassword`), and `docs/api.md` (correct `/api/v1/health`).
-- [ ] Full code review: read every file and line, fix any issue, and ensure the
-      codebase reflects current industry best practices (it is a portfolio project).
+- [x] Full code review: reviewed every layer (domain, application, infrastructure,
+      web API/server, components, ui, i18n) via parallel reviewers, verifying each
+      finding against the source. Clean-architecture boundaries are sound (no domain/
+      application framework imports, no IDOR or cross-tenant leaks, no DTO/mapper data
+      leaks, en/pt/es catalogs structurally identical). Fixed the contained issues:
+      a hardcoded English `describeRule` (Daily/Weekly/Monthly) bypassing i18n; missing
+      Dialog focus management (focus-on-open, restore-on-close, Tab trap) across all
+      dialogs; `rich-text` link href now scheme-validated (defense-in-depth); a
+      `target="_blank"` missing `rel`; and the task-repo `update` now persists
+      `recurringTaskId` for idempotency.
+
+### Code-review follow-ups (larger, deferred)
+
+These are real but feature-sized; tracked here rather than rushed in a review pass.
+
+- [ ] Transaction boundaries / unit-of-work: several multi-write flows are
+      non-atomic and racy under concurrency (`get-daily-board` write-on-read carry/
+      materialize, `bring-task-to-today`, `invite-to-list`, `join-list-by-token`,
+      `reorder-tasks`, registration). Introduce a unit-of-work port + DB unique
+      constraints (e.g. `(listId, recurringTaskId)`, `(listId, userId)`).
+- [ ] Per-user timezone: daily boundaries (boards, digests, recurrence) are computed
+      in UTC, so users in negative offsets get the wrong civil day near midnight.
+      Store a per-user timezone and compute local dates.
+- [ ] Rate-limit authenticated (cookie) traffic, not just API-key requests; add a
+      tight per-user throttle on `/lists/generate` (the quota/billing piece stays in
+      Phase 6.5).
+- [ ] `get-shared-board` should also require `list.visibility === 'link'` so toggling
+      a list private invalidates outstanding share tokens.
 
 ## Phase 13 - Mobile app (Expo) - future
 
