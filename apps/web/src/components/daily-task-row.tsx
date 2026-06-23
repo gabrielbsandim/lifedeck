@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type {
@@ -27,40 +27,44 @@ const iconButtonClass =
 const revealClass =
   'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100'
 
+const gripClass =
+  'text-ink-300 hover:text-ink-500 flex h-7 w-4 flex-none items-center justify-center sm:w-5'
+
 type AssigneeOption = { id: string; name: string }
 
-type DailyTaskRowProps = {
+type SharedProps = {
   task: TaskView
   members: MemberView[]
   self: { id: string; name: string } | null
   onToggle: (task: TaskView) => void
   onUpdate: (id: string, input: UpdateTaskInput) => void
-  sortable?: boolean
 }
 
-export function DailyTaskRow({
+type TaskRowBodyProps = SharedProps & {
+  grip?: ReactNode
+  containerRef?: Ref<HTMLLIElement>
+  style?: CSSProperties
+  dragging?: boolean
+  overlay?: boolean
+}
+
+function TaskRowBody({
   task,
   members,
   self,
   onToggle,
   onUpdate,
-  sortable = false,
-}: DailyTaskRowProps) {
+  grip,
+  containerRef,
+  style,
+  dragging = false,
+  overlay = false,
+}: TaskRowBodyProps) {
   const { messages, locale } = useI18n()
   const t = messages.task
   const completed = task.status === 'completed'
   const [editingNote, setEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState(task.observation ?? '')
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id, disabled: !sortable })
 
   const options: AssigneeOption[] = [
     ...(self ? [{ id: self.id, name: self.name }] : []),
@@ -83,27 +87,15 @@ export function DailyTaskRow({
 
   return (
     <li
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
-      className={`border-line group relative flex items-center gap-1.5 rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 shadow-[0_1px_2px_rgba(70,60,90,0.05)] sm:gap-3 sm:pl-2 sm:pr-2.5 ${
-        isDragging ? 'ring-brand-200 z-10 shadow-lg ring-1' : ''
-      }`}
+      ref={containerRef}
+      style={style}
+      className={`border-line group relative flex items-center gap-1.5 rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:gap-3 sm:pl-2 sm:pr-2.5 ${
+        overlay
+          ? 'ring-brand-200/70 cursor-grabbing shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
+          : 'shadow-[0_1px_2px_rgba(70,60,90,0.05)]'
+      } ${dragging ? 'opacity-40' : ''}`}
     >
-      {sortable && (
-        <button
-          type="button"
-          ref={setActivatorNodeRef}
-          aria-label={t.reorder}
-          className="text-ink-300 hover:text-ink-500 flex h-7 w-4 flex-none cursor-grab touch-none items-center justify-center active:cursor-grabbing sm:w-5"
-          {...attributes}
-          {...listeners}
-        >
-          <GripIcon />
-        </button>
-      )}
+      {grip}
 
       <div className="pt-0.5">
         <TaskCheckbox
@@ -240,4 +232,51 @@ export function DailyTaskRow({
       </div>
     </li>
   )
+}
+
+/** In-list row wired to dnd-kit; only the grip handle starts a drag. */
+export function DailyTaskRow(props: SharedProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.task.id })
+  const { messages } = useI18n()
+
+  const grip = (
+    <button
+      type="button"
+      ref={setActivatorNodeRef}
+      aria-label={messages.task.reorder}
+      className={`${gripClass} cursor-grab touch-none active:cursor-grabbing`}
+      {...attributes}
+      {...listeners}
+    >
+      <GripIcon />
+    </button>
+  )
+
+  return (
+    <TaskRowBody
+      {...props}
+      grip={grip}
+      containerRef={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      dragging={isDragging}
+    />
+  )
+}
+
+/** Lifted copy rendered inside the DragOverlay while a row is being dragged. */
+export function DailyTaskRowOverlay(props: SharedProps) {
+  const grip = (
+    <span aria-hidden className={`${gripClass} cursor-grabbing`}>
+      <GripIcon />
+    </span>
+  )
+  return <TaskRowBody {...props} grip={grip} overlay />
 }

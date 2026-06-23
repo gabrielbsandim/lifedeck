@@ -23,7 +23,7 @@ import {
 import { useMembers } from '@/lib/api/use-share'
 import { useSession } from '@/lib/api/use-session'
 import { ShareDialog } from '@/components/share-dialog'
-import { DailyTaskRow } from '@/components/daily-task-row'
+import { DailyTaskRow, DailyTaskRowOverlay } from '@/components/daily-task-row'
 import { TaskDragList } from '@/components/task-drag-list'
 import { NotificationBell } from '@/components/notification-bell'
 import { ShareIcon, UndoIcon } from '@/components/icons'
@@ -226,22 +226,25 @@ export function DailyBoard({ date }: { date: string }) {
           <EmptyState title={messages.task.empty} />
         ) : (
           <TaskDragList
-            ids={tasks.map(task => task.id)}
+            items={tasks}
+            getId={task => task.id}
             onReorder={ids => reorderTasks.mutate(ids)}
             className="flex flex-col gap-2"
-          >
-            {tasks.map(task => (
-              <DailyTaskRow
-                key={task.id}
-                task={task}
-                members={members.data ?? []}
-                self={self}
-                onToggle={toggle}
-                onUpdate={update}
-                sortable
-              />
-            ))}
-          </TaskDragList>
+            renderItem={(task, { overlay }) => {
+              const rowProps = {
+                task,
+                members: members.data ?? [],
+                self,
+                onToggle: toggle,
+                onUpdate: update,
+              }
+              return overlay ? (
+                <DailyTaskRowOverlay {...rowProps} />
+              ) : (
+                <DailyTaskRow key={task.id} {...rowProps} />
+              )
+            }}
+          />
         )}
       </Card>
     </section>

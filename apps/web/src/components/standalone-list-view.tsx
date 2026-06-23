@@ -26,7 +26,7 @@ import {
   useUpdateListTask,
 } from '@/lib/api/use-lists'
 import { ShareDialog } from '@/components/share-dialog'
-import { DailyTaskRow } from '@/components/daily-task-row'
+import { DailyTaskRow, DailyTaskRowOverlay } from '@/components/daily-task-row'
 import { TaskDragList } from '@/components/task-drag-list'
 import { ChevronLeftIcon, CloseIcon, ShareIcon } from '@/components/icons'
 
@@ -209,22 +209,25 @@ export function StandaloneListView({ listId }: { listId: string }) {
           <EmptyState title={messages.task.empty} />
         ) : (
           <TaskDragList
-            ids={rows.map(task => task.id)}
+            items={rows}
+            getId={task => task.id}
             onReorder={ids => reorderTasks.mutate(ids)}
             className="flex flex-col gap-2"
-          >
-            {rows.map(task => (
-              <DailyTaskRow
-                key={task.id}
-                task={task}
-                members={members.data ?? []}
-                self={self}
-                onToggle={toggle}
-                onUpdate={update}
-                sortable
-              />
-            ))}
-          </TaskDragList>
+            renderItem={(task, { overlay }) => {
+              const rowProps = {
+                task,
+                members: members.data ?? [],
+                self,
+                onToggle: toggle,
+                onUpdate: update,
+              }
+              return overlay ? (
+                <DailyTaskRowOverlay {...rowProps} />
+              ) : (
+                <DailyTaskRow key={task.id} {...rowProps} />
+              )
+            }}
+          />
         )}
       </Card>
     </section>
