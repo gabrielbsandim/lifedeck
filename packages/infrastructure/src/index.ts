@@ -61,6 +61,7 @@ export { ResendEmailSender } from '@/email/resend-email-sender'
 export { ConsoleEmailSender } from '@/email/console-email-sender'
 export { VercelBlobStorage } from '@/storage/vercel-blob-storage'
 export { AiSdkListGenerator } from '@/ai/ai-sdk-list-generator'
+export { createGoogleListGenerator } from '@/ai/google-list-generator'
 export { StubListGenerator } from '@/ai/stub-list-generator'
 export {
   toDomainEmailVerification,

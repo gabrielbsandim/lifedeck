@@ -71,6 +71,7 @@ import {
 import {
   AiSdkListGenerator,
   ConsoleEmailSender,
+  createGoogleListGenerator,
   GoogleOAuthProvider,
   NumericCodeGenerator,
   PrismaAnalyticsRepository,
@@ -358,6 +359,15 @@ function build(
 }
 
 function buildListGenerator(): ListGenerator {
+  // Prefer a direct Gemini key (no AI Gateway credits required); fall back to
+  // an AI Gateway model string, then to the offline stub.
+  const geminiKey = process.env.GEMINI_API_KEY?.trim()
+  if (geminiKey) {
+    return createGoogleListGenerator({
+      apiKey: geminiKey,
+      modelId: process.env.GEMINI_MODEL_ID?.trim() || undefined,
+    })
+  }
   const model = process.env.AI_MODEL?.trim()
   if (model) {
     return new AiSdkListGenerator(model)

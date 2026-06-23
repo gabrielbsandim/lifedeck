@@ -10,24 +10,32 @@ Two items from the original design are deferred: token-by-token streaming of the
 draft (folded into the Phase 7 motion pass) and rate limiting / per-plan quotas
 (waiting on the billing model).
 
-The provider is chosen at the composition root, never named in the use case. A single
-`AiSdkListGenerator` implements the port over the Vercel AI SDK; the container's
-`buildListGenerator()` reads the `AI_MODEL` string and instantiates it, falling back to
-a `StubListGenerator` when `AI_MODEL` is unset so local dev and CI work offline
-(mirroring the console email sender).
+The provider is chosen at the composition root, never named in the use case.
+`AiSdkListGenerator` implements the port over the Vercel AI SDK's `generateObject`,
+accepting either a Gateway model string or a concrete provider model instance.
+`buildListGenerator()` resolves the provider in this order and falls back to a
+`StubListGenerator` so local dev and CI work offline (mirroring the console email
+sender):
+
+1. `GEMINI_API_KEY` set → direct Google Gemini (`createGoogleListGenerator`), which
+   talks to the Gemini API with your own key and does **not** consume Vercel AI
+   Gateway credits. This mirrors how Obra Nova consumes Gemini.
+2. else `AI_MODEL` set → Vercel AI Gateway (string model, OIDC auth on Vercel).
+3. else → offline stub.
 
 ### Selecting a provider (env)
 
 | Var | Meaning |
 | --- | --- |
-| `AI_MODEL` | Gateway model string, `creator/model`. Unset = stub (offline). Examples: `anthropic/claude-opus-4-8`, `google/gemini-2.5-flash`, `openai/gpt-5.4`. |
-| `AI_GATEWAY_API_KEY` | AI Gateway auth. Needed locally; on Vercel it is provided automatically via OIDC. |
+| `GEMINI_API_KEY` | Direct Google Gemini key (Google AI Studio). When set, used first; bypasses the AI Gateway and its credits. |
+| `GEMINI_MODEL_ID` | Gemini model id. Default `gemini-2.5-flash`. |
+| `AI_MODEL` | Gateway model string, `creator/model`. Used only when `GEMINI_API_KEY` is unset. Examples: `anthropic/claude-opus-4-8`, `google/gemini-2.5-flash`. |
+| `AI_GATEWAY_API_KEY` | AI Gateway auth. Needed locally for the gateway path; on Vercel it is provided automatically via OIDC. |
 
-Switching providers or models is purely an `AI_MODEL` change. The AI Gateway routes the
-request, so there is no per-provider SDK or key to manage, and it adds observability and
-model fallback. Cost note: `google/gemini-2.5-flash` is the cheapest serious option and
-the high-volume default when the monetization hook lands; `anthropic/claude-opus-4-8`
-gives the best quality while tuning prompts.
+Prefer `GEMINI_API_KEY` when you already have Gemini quota/credits — the AI Gateway's
+free credits are limited and, once exhausted, every gateway generation fails with a
+"credits" error. The Gateway path remains available for multi-provider routing and
+observability when credits are funded.
 
 ## Why it fits clean architecture
 

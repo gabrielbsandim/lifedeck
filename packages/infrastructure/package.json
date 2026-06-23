@@ -35,6 +35,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "3.0.83",
     "@lifedeck/application": "workspace:*",
     "@lifedeck/domain": "workspace:*",
     "@neondatabase/serverless": "0.10.4",
