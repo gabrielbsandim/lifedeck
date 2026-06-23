@@ -151,6 +151,21 @@ export const pt: Messages = {
     empty: 'Nenhuma tarefa concluída nesta janela ainda.',
     backToToday: 'Voltar para hoje',
   },
+  status: {
+    title: 'Status do sistema',
+    subtitle: 'Status em tempo real do Lifedeck e seus serviços.',
+    operational: 'Todos os sistemas operacionais',
+    degraded: 'Instabilidade parcial',
+    down: 'Indisponível',
+    componentUp: 'Operacional',
+    componentDown: 'Fora do ar',
+    lastChecked: 'Última verificação',
+    version: 'Versão',
+    backToApp: 'Voltar ao app',
+    components: {
+      database: 'Banco de dados',
+    },
+  },
   ai: {
     manage: 'Gerar com IA',
     title: 'Gere uma lista com IA',

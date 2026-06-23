@@ -11,6 +11,7 @@ export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verif
 export { PrismaAnalyticsRepository } from '@/database/prisma-analytics-repository'
 export { PrismaNotificationRepository } from '@/database/prisma-notification-repository'
 export { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
+export { PrismaHealthProbe } from '@/database/prisma-health-probe'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
 export { ScryptPasswordHasher } from '@/security/scrypt-password-hasher'
 export { Argon2PasswordHasher } from '@/security/argon2-password-hasher'

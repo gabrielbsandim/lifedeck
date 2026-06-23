@@ -148,6 +148,21 @@ export type Messages = {
     empty: string
     backToToday: string
   }
+  status: {
+    title: string
+    subtitle: string
+    operational: string
+    degraded: string
+    down: string
+    componentUp: string
+    componentDown: string
+    lastChecked: string
+    version: string
+    backToApp: string
+    components: {
+      database: string
+    }
+  }
   ai: {
     manage: string
     title: string

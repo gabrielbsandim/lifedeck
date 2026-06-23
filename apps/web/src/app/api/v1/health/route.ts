@@ -1,7 +1,13 @@
-import { ok } from '@/server/api/respond'
+import { getContainer } from '@/server/container'
+import { handleError, ok } from '@/server/api/respond'
 
 export const dynamic = 'force-dynamic'
 
-export function GET() {
-  return ok({ status: 'ok', version: '0.1.0' })
+export async function GET() {
+  try {
+    const report = await getContainer().checkHealth()
+    return ok(report, report.status === 'down' ? 503 : 200)
+  } catch (error) {
+    return handleError(error)
+  }
 }

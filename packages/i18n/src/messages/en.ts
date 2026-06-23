@@ -150,6 +150,21 @@ export const en: Messages = {
     empty: 'No completed tasks in this window yet.',
     backToToday: 'Back to today',
   },
+  status: {
+    title: 'System status',
+    subtitle: 'Live status of Lifedeck and its services.',
+    operational: 'All systems operational',
+    degraded: 'Partial service disruption',
+    down: 'Major outage',
+    componentUp: 'Operational',
+    componentDown: 'Down',
+    lastChecked: 'Last checked',
+    version: 'Version',
+    backToApp: 'Back to app',
+    components: {
+      database: 'Database',
+    },
+  },
   ai: {
     manage: 'Generate with AI',
     title: 'Generate a list with AI',

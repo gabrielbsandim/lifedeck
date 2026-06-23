@@ -106,6 +106,15 @@ export {
 } from '@/dtos/api-key-dto'
 export { toApiKeyView } from '@/mappers/api-key-mapper'
 export { analyticsViewSchema, type AnalyticsView } from '@/dtos/analytics-dto'
+export type { HealthProbe, HealthProbeResult } from '@/ports/health-probe'
+export {
+  healthStatusSchema,
+  healthComponentSchema,
+  healthReportSchema,
+  type HealthStatus,
+  type HealthComponentView,
+  type HealthReportView,
+} from '@/dtos/health-dto'
 export { toTaskView } from '@/mappers/task-mapper'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
@@ -154,6 +163,7 @@ export { makeJoinListByToken } from '@/use-cases/join-list-by-token'
 export { makeListMembers } from '@/use-cases/list-members'
 export { makeRemoveMember } from '@/use-cases/remove-member'
 export { makeGetAnalytics } from '@/use-cases/get-analytics'
+export { makeCheckHealth } from '@/use-cases/check-health'
 export { makeGenerateList } from '@/use-cases/generate-list'
 export { makeSendDailyDigest } from '@/use-cases/send-daily-digest'
 export { makeListNotifications } from '@/use-cases/list-notifications'

@@ -13,6 +13,7 @@ import {
   makeCreateTask,
   makeDeleteRecurringTask,
   makeDeleteUser,
+  makeCheckHealth,
   makeExportUserData,
   makeGenerateList,
   makeGetAnalytics,
@@ -50,6 +51,7 @@ import {
   type EmailSender,
   type KeyHasher,
   type EmailVerificationRepository,
+  type HealthProbe,
   type ListGenerator,
   type ListRepository,
   type MembershipRepository,
@@ -68,6 +70,7 @@ import {
   NumericCodeGenerator,
   PrismaAnalyticsRepository,
   PrismaApiKeyRepository,
+  PrismaHealthProbe,
   PrismaEmailVerificationRepository,
   PrismaListRepository,
   PrismaMembershipRepository,
@@ -134,6 +137,7 @@ type Container = {
   listApiKeys: ReturnType<typeof makeListApiKeys>
   revokeApiKey: ReturnType<typeof makeRevokeApiKey>
   authenticateApiKey: ReturnType<typeof makeAuthenticateApiKey>
+  checkHealth: ReturnType<typeof makeCheckHealth>
 }
 
 type Repositories = {
@@ -155,6 +159,7 @@ type Services = {
   emailSender: EmailSender
   oauth: OAuthProvider
   listGenerator: ListGenerator
+  healthProbes: HealthProbe[]
 }
 
 function build(
@@ -170,7 +175,14 @@ function build(
     notifications,
     apiKeys,
   }: Repositories,
-  { hasher, keyHasher, emailSender, oauth, listGenerator }: Services,
+  {
+    hasher,
+    keyHasher,
+    emailSender,
+    oauth,
+    listGenerator,
+    healthProbes,
+  }: Services,
 ): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
@@ -306,6 +318,11 @@ function build(
       hasher: keyHasher,
       clock,
     }),
+    checkHealth: makeCheckHealth({
+      probes: healthProbes,
+      clock,
+      version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
+    }),
   }
 }
 
@@ -359,6 +376,7 @@ export function getContainer(): Container {
         emailSender: buildEmailSender(),
         oauth: buildGoogleProvider(),
         listGenerator: buildListGenerator(),
+        healthProbes: [new PrismaHealthProbe(prisma)],
       },
     )
   }
