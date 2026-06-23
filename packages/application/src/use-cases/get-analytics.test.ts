@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { User } from '@lifedeck/domain'
 import { makeGetAnalytics } from '@/use-cases/get-analytics'
 import { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
+import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { FixedClock, ID } from '@/testing/fakes'
 
 const NOW = new Date('2026-06-22T15:00:00.000Z')
@@ -8,9 +10,22 @@ const NOW = new Date('2026-06-22T15:00:00.000Z')
 function build(
   rows: { date: string; completed: number }[] = [],
   totals = { total: 0, completed: 0 },
+  timezone?: string,
 ) {
   const analytics = new FakeAnalyticsRepository(rows, totals)
-  return makeGetAnalytics({ analytics, clock: new FixedClock(NOW) })
+  const users = new InMemoryUserRepository()
+  if (timezone) {
+    void users.save(
+      User.createGuest({
+        id: ID.user,
+        displayName: 'Gabriel',
+        locale: 'en',
+        timezone,
+        createdAt: NOW,
+      }),
+    )
+  }
+  return makeGetAnalytics({ analytics, users, clock: new FixedClock(NOW) })
 }
 
 describe('getAnalytics', () => {
@@ -63,5 +78,17 @@ describe('getAnalytics', () => {
   it('clamps the requested window to at most a year', async () => {
     const view = await build()(ID.user, { days: 10_000 })
     expect(view.days).toHaveLength(365)
+  })
+
+  it("anchors the series on the user's local civil day", async () => {
+    // 2026-06-22T15:00Z is already 2026-06-23 in UTC+14
+    const view = await build(
+      [],
+      { total: 0, completed: 0 },
+      'Pacific/Kiritimati',
+    )(ID.user, { days: 7 })
+    expect(view.to).toBe('2026-06-23')
+    expect(view.from).toBe('2026-06-17')
+    expect(view.days.at(-1)?.date).toBe('2026-06-23')
   })
 })

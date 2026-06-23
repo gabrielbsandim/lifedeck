@@ -15,6 +15,7 @@ export interface AnalyticsRepository {
     ownerId: EntityId,
     from: Date,
     toExclusive: Date,
+    timeZone: string,
   ): Promise<DailyCompletion[]>
   totals(ownerId: EntityId): Promise<CompletionTotals>
 }

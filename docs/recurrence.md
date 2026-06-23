@@ -70,4 +70,6 @@ background flow (digest, bring-to-today), it derives the civil day from
 `clock.now()` in the user's timezone via `startOfCivilDay` / `civilDate`. The
 `referenceDate` marker stays at UTC midnight of the chosen civil day, so
 `occursOn` keeps comparing civil days regardless of offset. Analytics day
-buckets are still grouped in UTC at the SQL layer.
+buckets are grouped by the same local civil day in SQL
+(`completed_at AT TIME ZONE 'UTC' AT TIME ZONE <tz>`), so streaks and the daily
+series line up with the user's calendar.

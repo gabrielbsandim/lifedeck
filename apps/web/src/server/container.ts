@@ -311,7 +311,7 @@ function build(
     }),
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
-    getAnalytics: makeGetAnalytics({ analytics, clock }),
+    getAnalytics: makeGetAnalytics({ analytics, users, clock }),
     generateList: makeGenerateList({ generator: listGenerator }),
     sendDailyDigest: makeSendDailyDigest({
       getDailyBoard,

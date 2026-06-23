@@ -306,9 +306,9 @@ These were real but feature-sized; all four are now implemented.
       guard duplicate recurring materialization; `(listId, userId)` already existed.
 - [x] Per-user timezone: a per-user IANA `timezone` (migration `7_user_timezone`,
       auto-detected from the browser and synced via `/api/v1/account/timezone`) drives
-      local civil-day computation for boards, the daily digest, bring-to-today, and
-      recurrence (via the local-day reference marker). Analytics day-bucketing stays UTC
-      for now (SQL-level grouping, tracked separately).
+      local civil-day computation for boards, the daily digest, bring-to-today,
+      recurrence (via the local-day reference marker), and analytics (day buckets are
+      grouped in the user's timezone at the SQL layer).
 - [x] Rate-limit authenticated (cookie) traffic per user (session window) in
       `requireScope`, plus a tight per-user throttle on `/lists/generate` (6/60s). The
       quota/billing piece stays in Phase 6.5.

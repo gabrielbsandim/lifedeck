@@ -1,7 +1,12 @@
-import { asEntityId } from '@lifedeck/domain'
+import {
+  asEntityId,
+  startOfCivilDay,
+  DEFAULT_TIME_ZONE,
+} from '@lifedeck/domain'
 import { type AnalyticsView } from '@/dtos/analytics-dto'
 import type { AnalyticsRepository } from '@/ports/analytics-repository'
 import type { Clock } from '@/ports/clock'
+import type { UserRepository } from '@/ports/user-repository'
 
 const DEFAULT_DAYS = 30
 const MAX_DAYS = 365
@@ -11,18 +16,13 @@ function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
-function startOfUtcDay(date: Date): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  )
-}
-
 type Dependencies = {
   analytics: AnalyticsRepository
+  users: UserRepository
   clock: Clock
 }
 
-export function makeGetAnalytics({ analytics, clock }: Dependencies) {
+export function makeGetAnalytics({ analytics, users, clock }: Dependencies) {
   return async function getAnalytics(
     ownerId: string,
     input?: { days?: number },
@@ -31,11 +31,19 @@ export function makeGetAnalytics({ analytics, clock }: Dependencies) {
     const days = Math.min(Math.max(Math.floor(requested), 1), MAX_DAYS)
     const owner = asEntityId(ownerId)
 
-    const today = startOfUtcDay(clock.now())
+    const user = await users.findById(owner)
+    const timeZone = user?.timezone ?? DEFAULT_TIME_ZONE
+
+    const today = startOfCivilDay(clock.now(), timeZone)
     const from = new Date(today.getTime() - (days - 1) * DAY_MS)
     const toExclusive = new Date(today.getTime() + DAY_MS)
 
-    const rows = await analytics.completionsByDay(owner, from, toExclusive)
+    const rows = await analytics.completionsByDay(
+      owner,
+      new Date(from.getTime() - DAY_MS),
+      new Date(toExclusive.getTime() + DAY_MS),
+      timeZone,
+    )
     const counts = new Map(rows.map(row => [row.date, row.completed]))
 
     const series: { date: string; completed: number }[] = []
