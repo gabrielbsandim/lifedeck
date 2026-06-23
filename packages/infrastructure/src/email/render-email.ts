@@ -1,6 +1,17 @@
 import type { EmailLocale } from '@lifedeck/application'
 import type { EmailTemplate, RenderedEmail } from '@/email/email-message'
 
+const BRAND = {
+  primary: '#6d4ae6',
+  violet: '#8b5cf6',
+  ink: '#1f2430',
+  body: '#555b66',
+  muted: '#8a8f9a',
+  divider: '#eef0f3',
+  pageBg: '#f3f4f7',
+  codeBg: '#f1ecfd',
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -10,20 +21,84 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;')
 }
 
-function layout(title: string, body: string): string {
-  return `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px"><div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:32px"><h1 style="font-size:20px;margin:0 0 16px">${title}</h1>${body}</div></body></html>`
+const LINK_FALLBACK: Record<EmailLocale, string> = {
+  en: 'If the button does not work, paste this link into your browser:',
+  pt: 'Se o botão não funcionar, copie e cole este link no navegador:',
+  es: 'Si el botón no funciona, copia y pega este enlace en tu navegador:',
+}
+
+type FooterCopy = { automated: string; tagline: string }
+
+const FOOTER_COPY: Record<EmailLocale, FooterCopy> = {
+  en: {
+    automated: 'This is an automated email — no need to reply.',
+    tagline: 'Your whole life, organized in one place.',
+  },
+  pt: {
+    automated: 'Este é um e-mail automático — não precisa responder.',
+    tagline: 'Sua vida inteira, organizada num só lugar.',
+  },
+  es: {
+    automated: 'Este es un correo automático — no necesitas responder.',
+    tagline: 'Toda tu vida, organizada en un solo lugar.',
+  },
+}
+
+function layout(title: string, body: string, locale: EmailLocale): string {
+  const footer = FOOTER_COPY[locale]
+  const year = new Date().getFullYear()
+  return `<!doctype html><html lang="${locale}"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>${escapeHtml(
+    title,
+  )}</title></head><body style="margin:0;padding:0;background-color:${BRAND.pageBg};font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${BRAND.pageBg}"><tr><td align="center" style="padding:40px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(40,30,70,0.08)">
+<tr><td style="height:4px;background:${BRAND.primary};background:linear-gradient(90deg,${BRAND.primary} 0%,${BRAND.violet} 100%);font-size:0;line-height:0">&nbsp;</td></tr>
+<tr><td align="center" style="padding:30px 24px 6px">
+<table role="presentation" cellpadding="0" cellspacing="0" align="center"><tr>
+<td style="vertical-align:middle"><span style="display:inline-block;width:34px;height:34px;border-radius:10px;background:${BRAND.primary};color:#ffffff;font-size:19px;line-height:34px;text-align:center;font-weight:700">&#10003;</span></td>
+<td style="vertical-align:middle;padding-left:10px;font-size:20px;font-weight:700;letter-spacing:-0.02em;color:${BRAND.ink}">Lifedeck</td>
+</tr></table>
+</td></tr>
+<tr><td style="padding:18px 32px 8px">
+<h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.ink}">${title}</h1>
+${body}
+</td></tr>
+<tr><td align="center" style="padding:24px 32px 30px">
+<hr style="border:none;border-top:1px solid ${BRAND.divider};margin:0 0 18px"/>
+<p style="margin:0 0 4px;font-size:12px;color:#b0b5bf">© ${year} Lifedeck · ${escapeHtml(
+    footer.tagline,
+  )}</p>
+<p style="margin:0;font-size:12px;color:#b0b5bf">${escapeHtml(
+    footer.automated,
+  )}</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>`
+}
+
+function paragraph(html: string): string {
+  return `<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${BRAND.body}">${html}</p>`
+}
+
+function button(url: string, label: string, fallback: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td align="center" style="padding:6px 0 24px"><a href="${url}" target="_blank" style="display:inline-block;background-color:${BRAND.primary};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 40px;border-radius:10px;line-height:1">${escapeHtml(
+    label,
+  )}</a></td></tr></table><p style="margin:0 0 6px;font-size:13px;line-height:1.5;color:${BRAND.muted}">${escapeHtml(
+    fallback,
+  )}</p><p style="margin:0;font-size:13px;line-height:1.5;word-break:break-all"><a href="${url}" style="color:${BRAND.primary};text-decoration:underline">${url}</a></p>`
+}
+
+function codeBox(code: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td align="center" style="padding:4px 0 8px"><div style="display:inline-block;background:${BRAND.codeBg};border-radius:12px;padding:16px 28px;font-size:30px;font-weight:700;letter-spacing:8px;color:${BRAND.primary}">${escapeHtml(
+    code,
+  )}</div></td></tr></table>`
 }
 
 type VerificationCopy = {
   subject: (appName: string) => string
   title: string
   intro: string
-}
-
-type InvitationCopy = {
-  subject: (listTitle: string) => string
-  title: string
-  body: (listTitle: string, url: string) => string
 }
 
 const VERIFICATION_COPY: Record<EmailLocale, VerificationCopy> = {
@@ -44,6 +119,34 @@ const VERIFICATION_COPY: Record<EmailLocale, VerificationCopy> = {
   },
 }
 
+type InvitationCopy = {
+  subject: (listTitle: string) => string
+  title: string
+  intro: (listTitle: string) => string
+  cta: string
+}
+
+const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
+  en: {
+    subject: listTitle => `You were invited to "${listTitle}"`,
+    title: 'A list is waiting for you',
+    intro: listTitle => `You can collaborate on <strong>${listTitle}</strong>.`,
+    cta: 'Open the list',
+  },
+  pt: {
+    subject: listTitle => `Você foi convidado para "${listTitle}"`,
+    title: 'Uma lista espera por você',
+    intro: listTitle => `Você pode colaborar em <strong>${listTitle}</strong>.`,
+    cta: 'Abrir a lista',
+  },
+  es: {
+    subject: listTitle => `Te invitaron a "${listTitle}"`,
+    title: 'Una lista te espera',
+    intro: listTitle => `Puedes colaborar en <strong>${listTitle}</strong>.`,
+    cta: 'Abrir la lista',
+  },
+}
+
 type AssignmentCopy = {
   subject: (taskTitle: string) => string
   title: string
@@ -55,40 +158,19 @@ const ASSIGNMENT_COPY: Record<EmailLocale, AssignmentCopy> = {
     subject: taskTitle => `You were assigned "${taskTitle}"`,
     title: 'A task is yours',
     body: (taskTitle, listTitle) =>
-      `<p>You were assigned <strong>${taskTitle}</strong> on <strong>${listTitle}</strong>.</p>`,
+      `You were assigned <strong>${taskTitle}</strong> on <strong>${listTitle}</strong>.`,
   },
   pt: {
     subject: taskTitle => `Você recebeu a tarefa "${taskTitle}"`,
     title: 'Uma tarefa é sua',
     body: (taskTitle, listTitle) =>
-      `<p>Você foi designado para <strong>${taskTitle}</strong> em <strong>${listTitle}</strong>.</p>`,
+      `Você foi designado para <strong>${taskTitle}</strong> em <strong>${listTitle}</strong>.`,
   },
   es: {
     subject: taskTitle => `Se te asignó "${taskTitle}"`,
     title: 'Una tarea es tuya',
     body: (taskTitle, listTitle) =>
-      `<p>Se te asignó <strong>${taskTitle}</strong> en <strong>${listTitle}</strong>.</p>`,
-  },
-}
-
-const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
-  en: {
-    subject: listTitle => `You were invited to "${listTitle}"`,
-    title: 'A list is waiting for you',
-    body: (listTitle, url) =>
-      `<p>You can collaborate on <strong>${listTitle}</strong>.</p><p><a href="${url}">Open the list</a></p>`,
-  },
-  pt: {
-    subject: listTitle => `Você foi convidado para "${listTitle}"`,
-    title: 'Uma lista espera por você',
-    body: (listTitle, url) =>
-      `<p>Você pode colaborar em <strong>${listTitle}</strong>.</p><p><a href="${url}">Abrir a lista</a></p>`,
-  },
-  es: {
-    subject: listTitle => `Te invitaron a "${listTitle}"`,
-    title: 'Una lista te espera',
-    body: (listTitle, url) =>
-      `<p>Puedes colaborar en <strong>${listTitle}</strong>.</p><p><a href="${url}">Abrir la lista</a></p>`,
+      `Se te asignó <strong>${taskTitle}</strong> en <strong>${listTitle}</strong>.`,
   },
 }
 
@@ -131,14 +213,19 @@ function digestBody(
   copy: DigestCopy,
   data: { total: number; completed: number; pendingTitles: string[] },
 ): string {
-  const summary = `<p>${copy.summary(data.completed, data.total)}</p>`
+  const summary = paragraph(copy.summary(data.completed, data.total))
   if (data.pendingTitles.length === 0) {
-    return `${summary}<p>${copy.allDone}</p>`
+    return `${summary}${paragraph(copy.allDone)}`
   }
   const items = data.pendingTitles
-    .map(title => `<li>${escapeHtml(title)}</li>`)
+    .map(
+      title =>
+        `<li style="margin:0 0 8px;font-size:15px;line-height:1.5;color:${BRAND.ink}">${escapeHtml(
+          title,
+        )}</li>`,
+    )
     .join('')
-  return `${summary}<p style="font-weight:600;margin-top:16px">${copy.pendingLabel}</p><ul>${items}</ul>`
+  return `${summary}<p style="margin:0 0 10px;font-size:14px;font-weight:600;color:${BRAND.ink}">${copy.pendingLabel}</p><ul style="margin:0 0 8px;padding-left:20px">${items}</ul>`
 }
 
 export function renderEmail(
@@ -152,7 +239,8 @@ export function renderEmail(
         subject: copy.subject(template.data.appName),
         html: layout(
           copy.title,
-          `<p>${copy.intro}</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${escapeHtml(template.data.code)}</p>`,
+          `${paragraph(copy.intro)}${codeBox(template.data.code)}`,
+          locale,
         ),
       }
     }
@@ -162,10 +250,14 @@ export function renderEmail(
         subject: copy.subject(template.data.listTitle),
         html: layout(
           copy.title,
-          copy.body(
-            escapeHtml(template.data.listTitle),
+          `${paragraph(
+            copy.intro(escapeHtml(template.data.listTitle)),
+          )}${button(
             escapeHtml(template.data.url),
-          ),
+            copy.cta,
+            LINK_FALLBACK[locale],
+          )}`,
+          locale,
         ),
       }
     }
@@ -175,10 +267,13 @@ export function renderEmail(
         subject: copy.subject(template.data.taskTitle),
         html: layout(
           copy.title,
-          copy.body(
-            escapeHtml(template.data.taskTitle),
-            escapeHtml(template.data.listTitle),
+          paragraph(
+            copy.body(
+              escapeHtml(template.data.taskTitle),
+              escapeHtml(template.data.listTitle),
+            ),
           ),
+          locale,
         ),
       }
     }
@@ -186,7 +281,7 @@ export function renderEmail(
       const copy = DIGEST_COPY[locale]
       return {
         subject: copy.subject,
-        html: layout(copy.title, digestBody(copy, template.data)),
+        html: layout(copy.title, digestBody(copy, template.data), locale),
       }
     }
   }
