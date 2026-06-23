@@ -10,6 +10,10 @@ export { Card, type CardProps } from '@/components/card'
 export { Avatar, type AvatarProps } from '@/components/avatar'
 export { Badge, type BadgeProps } from '@/components/badge'
 export { TextField, type TextFieldProps } from '@/components/text-field'
+export {
+  PasswordField,
+  type PasswordFieldProps,
+} from '@/components/password-field'
 export { Tabs, type TabsProps, type TabItem } from '@/components/tabs'
 export { Toast, type ToastProps } from '@/components/toast'
 export { Skeleton, type SkeletonProps } from '@/components/skeleton'

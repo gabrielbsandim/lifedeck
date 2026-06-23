@@ -210,6 +210,8 @@ export const pt: Messages = {
     signOut: 'Sair',
     email: 'Email',
     password: 'Senha',
+    showPassword: 'Mostrar senha',
+    hidePassword: 'Ocultar senha',
     register: 'Criar conta',
     continueWithGoogle: 'Continuar com o Google',
     haveAccount: 'Já tem uma conta? Entrar',

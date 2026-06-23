@@ -15,6 +15,7 @@ const USER = {
   email: 'gab@example.com',
   isGuest: false,
   isEmailVerified: true,
+  hasPassword: true,
   locale: 'en',
   createdAt: '2026-06-22T10:00:00.000Z',
 }

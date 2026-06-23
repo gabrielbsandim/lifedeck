@@ -55,6 +55,7 @@ export const userViewSchema = z.object({
   email: z.string().nullable(),
   isGuest: z.boolean(),
   isEmailVerified: z.boolean(),
+  hasPassword: z.boolean(),
   locale: z.string(),
   carryOverMode: z.enum(['manual', 'auto']),
   createdAt: z.string().datetime(),

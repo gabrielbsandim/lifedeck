@@ -209,6 +209,8 @@ export const en: Messages = {
     signOut: 'Sign out',
     email: 'Email',
     password: 'Password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     register: 'Create account',
     continueWithGoogle: 'Continue with Google',
     haveAccount: 'Already have an account? Sign in',

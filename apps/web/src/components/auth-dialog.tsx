@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, TextField } from '@lifedeck/ui'
+import { Button, Dialog, PasswordField, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useRegister,
@@ -118,11 +118,12 @@ export function AuthDialog({
             autoComplete="email"
             autoFocus
           />
-          <TextField
-            type="password"
+          <PasswordField
             value={password}
             onChange={event => setPassword(event.target.value)}
             label={messages.auth.password}
+            showLabel={messages.auth.showPassword}
+            hideLabel={messages.auth.hidePassword}
             autoComplete={
               mode === 'register' ? 'new-password' : 'current-password'
             }

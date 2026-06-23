@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Badge, Button, Dialog, TextField } from '@lifedeck/ui'
+import { Badge, Button, Dialog, PasswordField, TextField } from '@lifedeck/ui'
 import type { UserView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
@@ -138,38 +138,42 @@ export function AccountDialog({
           </Button>
         </form>
 
-        <form onSubmit={submitPassword} className="flex flex-col gap-2">
-          <TextField
-            type="password"
-            value={currentPassword}
-            onChange={event => setCurrentPassword(event.target.value)}
-            label={messages.auth.currentPassword}
-            autoComplete="current-password"
-          />
-          <TextField
-            type="password"
-            value={newPassword}
-            onChange={event => setNewPassword(event.target.value)}
-            label={messages.auth.newPassword}
-            autoComplete="new-password"
-          />
-          {changePassword.isError && (
-            <p className="text-danger text-xs">
-              {errorText(changePassword.error, messages.common.error)}
-            </p>
-          )}
-          <Button
-            type="submit"
-            variant="ghost"
-            className="self-start text-xs"
-            isLoading={changePassword.isPending}
-            disabled={!currentPassword || newPassword.length < 8}
-          >
-            {changePassword.isSuccess
-              ? messages.auth.saved
-              : messages.auth.changePassword}
-          </Button>
-        </form>
+        {user.hasPassword && (
+          <form onSubmit={submitPassword} className="flex flex-col gap-2">
+            <PasswordField
+              value={currentPassword}
+              onChange={event => setCurrentPassword(event.target.value)}
+              label={messages.auth.currentPassword}
+              showLabel={messages.auth.showPassword}
+              hideLabel={messages.auth.hidePassword}
+              autoComplete="current-password"
+            />
+            <PasswordField
+              value={newPassword}
+              onChange={event => setNewPassword(event.target.value)}
+              label={messages.auth.newPassword}
+              showLabel={messages.auth.showPassword}
+              hideLabel={messages.auth.hidePassword}
+              autoComplete="new-password"
+            />
+            {changePassword.isError && (
+              <p className="text-danger text-xs">
+                {errorText(changePassword.error, messages.common.error)}
+              </p>
+            )}
+            <Button
+              type="submit"
+              variant="ghost"
+              className="self-start text-xs"
+              isLoading={changePassword.isPending}
+              disabled={!currentPassword || newPassword.length < 8}
+            >
+              {changePassword.isSuccess
+                ? messages.auth.saved
+                : messages.auth.changePassword}
+            </Button>
+          </form>
+        )}
 
         <div className="border-line flex flex-col gap-2 border-t pt-4">
           <span className="text-ink-700 text-sm font-medium">

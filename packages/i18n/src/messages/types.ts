@@ -205,6 +205,8 @@ export type Messages = {
     signOut: string
     email: string
     password: string
+    showPassword: string
+    hidePassword: string
     register: string
     continueWithGoogle: string
     haveAccount: string
