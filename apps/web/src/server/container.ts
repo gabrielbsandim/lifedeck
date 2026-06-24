@@ -8,6 +8,7 @@ import {
   makeCreateCalendarEvent,
   makeCreateGuestUser,
   makeDeleteRemoteCalendarEvent,
+  makeDeliverReminder,
   makeHandleCalendarNotification,
   makePullCalendarChanges,
   makePushCalendarEvent,
@@ -15,6 +16,7 @@ import {
   CALENDAR_PULL_JOB,
   CALENDAR_PUSH_JOB,
   CALENDAR_DELETE_JOB,
+  REMINDER_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
   makeDeleteList,
@@ -312,6 +314,13 @@ function build(
     calendarConnections,
     provider: googleCalendar,
   })
+  const deliverReminder = makeDeliverReminder({
+    calendarEvents,
+    notifications,
+    jobQueue,
+    ids,
+    clock,
+  })
   const dispatchDueJobs = makeDispatchDueJobs({
     scheduledJobs,
     clock,
@@ -329,6 +338,13 @@ function build(
         await deleteRemoteCalendarEvent(
           String(payload.userId),
           String(payload.externalId),
+        )
+      },
+      [REMINDER_JOB]: async payload => {
+        await deliverReminder(
+          String(payload.eventId),
+          String(payload.userId),
+          Number(payload.minutesBefore),
         )
       },
     },

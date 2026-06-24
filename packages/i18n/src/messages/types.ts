@@ -106,6 +106,8 @@ export type Messages = {
     googleConnected: string
     googleError: string
     syncedTag: string
+    reminders: string
+    atStart: string
     previous: string
     next: string
   }

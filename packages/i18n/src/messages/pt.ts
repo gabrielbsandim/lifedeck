@@ -95,6 +95,8 @@ export const pt: Messages = {
     googleConnected: 'Google Agenda conectado.',
     googleError: 'Não foi possível conectar seu Google Agenda.',
     syncedTag: 'Google',
+    reminders: 'Lembretes',
+    atStart: 'No início',
     previous: 'Anterior',
     next: 'Próximo',
   },

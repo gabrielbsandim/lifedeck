@@ -20,6 +20,21 @@ function isoToLocalInput(iso: string): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+const REMINDER_OPTIONS = [0, 10, 30, 60, 1440]
+
+function reminderLabel(minutes: number, atStart: string): string {
+  if (minutes === 0) {
+    return atStart
+  }
+  if (minutes < 60) {
+    return `${minutes}m`
+  }
+  if (minutes < 1440) {
+    return `${minutes / 60}h`
+  }
+  return `${minutes / 1440}d`
+}
+
 type Props = {
   open: boolean
   onClose: () => void
@@ -42,6 +57,7 @@ export function EventEditorDialog({
   const [location, setLocation] = useState(event?.location ?? '')
   const [description, setDescription] = useState(event?.description ?? '')
   const [allDay, setAllDay] = useState(event?.allDay ?? false)
+  const [reminders, setReminders] = useState<number[]>(event?.reminders ?? [])
   const [startsAt, setStartsAt] = useState(
     event ? isoToLocalInput(event.startsAt) : `${defaultDay}T09:00`,
   )
@@ -62,6 +78,7 @@ export function EventEditorDialog({
       startsAt: new Date(startsAt).toISOString(),
       endsAt: new Date(endsAt).toISOString(),
       allDay,
+      reminders: [...reminders].sort((a, b) => a - b),
       location: location.trim() || null,
       description: description.trim() || null,
     }
@@ -149,6 +166,38 @@ export function EventEditorDialog({
             className="border-line text-ink-800 focus-visible:border-brand-600 rounded-xl border-[1.5px] bg-white px-3.5 py-2.5 text-sm outline-none"
           />
         </label>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-ink-700 text-sm font-medium">
+            {t.reminders}
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {REMINDER_OPTIONS.map(minutes => {
+              const active = reminders.includes(minutes)
+              return (
+                <button
+                  key={minutes}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() =>
+                    setReminders(current =>
+                      active
+                        ? current.filter(value => value !== minutes)
+                        : [...current, minutes],
+                    )
+                  }
+                  className={
+                    active
+                      ? 'bg-brand-50 text-brand-700 rounded-full px-3 py-1 text-xs font-semibold'
+                      : 'border-line text-ink-600 hover:bg-bg rounded-full border px-3 py-1 text-xs font-medium'
+                  }
+                >
+                  {reminderLabel(minutes, t.atStart)}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <div className="mt-1 flex items-center gap-2">
           <Button

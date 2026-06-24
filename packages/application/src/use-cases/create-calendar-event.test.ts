@@ -3,6 +3,7 @@ import { asEntityId } from '@lifedeck/domain'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { makeCreateCalendarEvent } from '@/use-cases/create-calendar-event'
 import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
+import { REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
 const NOW = new Date('2026-06-24T10:00:00.000Z')
 const OWNER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
@@ -39,6 +40,23 @@ describe('createCalendarEvent', () => {
       payload: { userId: OWNER_ID, eventId: NEW_ID },
       runAt: NOW,
     })
+  })
+
+  it('arms a reminder job for each future offset', async () => {
+    const { create, enqueue } = setup()
+    await create(OWNER_ID, {
+      title: 'Dentist',
+      startsAt: '2026-07-01T09:00:00.000Z',
+      endsAt: '2026-07-01T10:00:00.000Z',
+      reminders: [30],
+    })
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: REMINDER_JOB,
+        payload: { eventId: NEW_ID, userId: OWNER_ID, minutesBefore: 30 },
+        runAt: new Date('2026-07-01T08:30:00.000Z'),
+      }),
+    )
   })
 
   it('rejects an invalid payload', async () => {

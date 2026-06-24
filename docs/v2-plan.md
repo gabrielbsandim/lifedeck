@@ -678,11 +678,19 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       with V2-6 scheduling fan-out), RRULE<->RecurrenceRule mapping, mobile tab-bar/
       profile-sheet calendar entry, hour-grid (time-axis) week/day views.
 
-### V2-6 - Reminders and proactive delivery
+### V2-6 - Reminders and proactive delivery (reminders DONE)
 
-- [ ] `scheduleReminder`; creating an event enqueues reminder jobs in the same
-      transaction; dispatch routes to push/email (WhatsApp channel added in V2-8).
-- [ ] Reminder config on the event editor.
+- [x] Creating an event enqueues an `event-reminder` job per future offset
+      (runAt = startsAt - minutes). The `event-reminder` handler delivers an
+      in-app `Notification`, self-rescheduling if the event moved later and
+      skipping if it already started (so deleted events / removed offsets drop
+      cleanly). In-app is the V2-6 channel; email/WhatsApp routing lands in V2-8.
+- [x] Reminder config on the event editor (toggle chips: at start / 10m / 30m /
+      1h / 1d).
+- [ ] **Remaining (fan-out enqueuers):** per-user daily-digest fan-out (deferred
+      since V2-2) + calendar channel-renew + full reconcile fan-out (deferred
+      since V2-5), each enqueuing per-user/per-connection jobs on a cron tick.
+      Needs repository "list" methods + an internal cron endpoint.
 
 ### V2-7 - WhatsApp transport and identity
 

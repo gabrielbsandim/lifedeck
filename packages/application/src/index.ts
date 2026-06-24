@@ -174,6 +174,11 @@ export {
   CALENDAR_PUSH_JOB,
   CALENDAR_DELETE_JOB,
 } from '@/use-cases/calendar-sync-jobs'
+export { REMINDER_JOB } from '@/use-cases/reminder-jobs'
+export {
+  makeDeliverReminder,
+  type ReminderResult,
+} from '@/use-cases/deliver-reminder'
 export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {

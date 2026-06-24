@@ -10,6 +10,7 @@ import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { JobQueue } from '@/ports/job-queue'
 import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
+import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
 type Dependencies = {
   calendarEvents: CalendarEventRepository
@@ -53,6 +54,23 @@ export function makeCreateCalendarEvent({
       payload: { userId: ownerId, eventId: event.id as string },
       runAt: clock.now(),
     })
+
+    // Arm a reminder job for each offset whose fire time is still in the future.
+    const startsAt = event.startsAt.getTime()
+    for (const minutesBefore of event.reminders) {
+      const fireAt = startsAt - minutesBefore * MINUTE_MS
+      if (fireAt > clock.now().getTime()) {
+        await jobQueue.enqueue({
+          type: REMINDER_JOB,
+          payload: {
+            eventId: event.id as string,
+            userId: ownerId,
+            minutesBefore,
+          },
+          runAt: new Date(fireAt),
+        })
+      }
+    }
 
     return toCalendarEventView(event)
   }

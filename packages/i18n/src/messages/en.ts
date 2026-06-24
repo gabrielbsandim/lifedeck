@@ -95,6 +95,8 @@ export const en: Messages = {
     googleConnected: 'Google Calendar connected.',
     googleError: "We couldn't connect your Google Calendar.",
     syncedTag: 'Google',
+    reminders: 'Reminders',
+    atStart: 'At start',
     previous: 'Previous',
     next: 'Next',
   },
