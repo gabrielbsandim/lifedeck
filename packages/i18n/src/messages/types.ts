@@ -78,8 +78,36 @@ export type Messages = {
     analytics: string
     generate: string
     developers: string
+    calendar: string
     profile: string
     menu: string
+  }
+  calendar: {
+    title: string
+    today: string
+    month: string
+    week: string
+    day: string
+    newEvent: string
+    editEvent: string
+    allDay: string
+    startsAt: string
+    endsAt: string
+    location: string
+    description: string
+    save: string
+    delete: string
+    cancel: string
+    untitled: string
+    empty: string
+    emptyHint: string
+    comingSoon: string
+    connectGoogle: string
+    googleConnected: string
+    googleError: string
+    syncedTag: string
+    previous: string
+    next: string
   }
   notifications: {
     title: string

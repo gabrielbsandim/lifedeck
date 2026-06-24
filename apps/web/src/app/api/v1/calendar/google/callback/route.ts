@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
   if (!code || !state || state !== expectedState) {
     return NextResponse.redirect(
-      new URL('/settings?calendar=error', request.url),
+      new URL('/calendar?calendar=error', request.url),
     )
   }
 
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     }
 
     const response = NextResponse.redirect(
-      new URL('/settings?calendar=connected', request.url),
+      new URL('/calendar?calendar=connected', request.url),
     )
     response.cookies.set(
       CALENDAR_OAUTH_STATE_COOKIE,
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     return response
   } catch {
     return NextResponse.redirect(
-      new URL('/settings?calendar=error', request.url),
+      new URL('/calendar?calendar=error', request.url),
     )
   }
 }

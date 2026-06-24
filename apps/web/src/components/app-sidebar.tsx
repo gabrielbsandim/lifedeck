@@ -1,16 +1,19 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogoMark } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { useSession } from '@/lib/api/use-session'
 import { AccountMenu } from '@/components/account-menu'
 
 type NavItem = {
   href:
     | '/'
     | '/lists'
+    | '/calendar'
     | '/analytics'
     | '/generate'
     | '/recurring'
@@ -40,6 +43,9 @@ function Icon({ children }: { children: ReactNode }) {
 export function AppSidebar() {
   const { messages } = useI18n()
   const pathname = usePathname()
+  const session = useSession()
+  const hasCalendar =
+    session.data?.entitlements?.includes('calendarSync') ?? false
 
   const items: NavItem[] = [
     {
@@ -61,6 +67,20 @@ export function AppSidebar() {
         </Icon>
       ),
     },
+    ...(hasCalendar
+      ? [
+          {
+            href: '/calendar' as const,
+            label: messages.nav.calendar,
+            icon: (
+              <Icon>
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+              </Icon>
+            ),
+          },
+        ]
+      : []),
     {
       href: '/analytics',
       label: messages.nav.analytics,
@@ -125,7 +145,7 @@ export function AppSidebar() {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as Route}
               aria-current={active ? 'page' : undefined}
               className={
                 active

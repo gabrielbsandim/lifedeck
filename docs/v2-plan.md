@@ -668,10 +668,15 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       event was synced. Pull writes via the repo directly, so inbound changes never
       echo back out. Google tokens are encrypted at rest (AES-256-GCM,
       `CALENDAR_TOKEN_KEY`; plaintext passthrough in dev).
-- [ ] **Next slice (UI):** calendar month/week/day + integrations settings, plus
-      the deferred V2-1 nav-filter "Em breve" badge. Flag-gated. **Remaining
-      follow-ups:** periodic channel-renew + full reconcile jobs (pair with V2-6
-      scheduling fan-out), RRULE<->RecurrenceRule mapping.
+- [x] **Calendar UI (DONE):** `/calendar` page with month grid + week/day agenda
+      views, prev/today/next navigation, an event editor sheet (create/edit/delete,
+      Google-sourced events are read-only-delete-guarded), and a Google connect
+      button. Hooks (`use-calendar-events`) + view math (`lib/calendar/calendar-view`)
+      are unit-tested; i18n added across en/pt/es. Nav entry is gated on the
+      `calendarSync` entitlement (hidden until granted = true dark-launch).
+      **Remaining follow-ups:** periodic channel-renew + full reconcile jobs (pair
+      with V2-6 scheduling fan-out), RRULE<->RecurrenceRule mapping, mobile tab-bar/
+      profile-sheet calendar entry, hour-grid (time-axis) week/day views.
 
 ### V2-6 - Reminders and proactive delivery
 
