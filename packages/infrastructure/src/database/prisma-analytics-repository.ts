@@ -13,27 +13,26 @@ export class PrismaAnalyticsRepository implements AnalyticsRepository {
     ownerId: EntityId,
     from: Date,
     toExclusive: Date,
-    timeZone: string,
+    _timeZone: string,
   ): Promise<DailyCompletion[]> {
     const rows = await this.prisma.$queryRaw<
-      { date: string; completed: bigint }[]
+      { date: string; total: bigint; completed: bigint }[]
     >`
-      SELECT to_char(
-               (t.completed_at AT TIME ZONE 'UTC') AT TIME ZONE ${timeZone},
-               'YYYY-MM-DD'
-             ) AS date,
-             COUNT(*) AS completed
+      SELECT to_char(l.reference_date, 'YYYY-MM-DD') AS date,
+             COUNT(*) AS total,
+             COUNT(*) FILTER (WHERE t.status = 'completed') AS completed
       FROM tasks t
       JOIN lists l ON l.id = t.list_id
       WHERE l.owner_id = ${ownerId}
-        AND t.status = 'completed'
-        AND t.completed_at >= ${from}
-        AND t.completed_at < ${toExclusive}
+        AND l.type = 'daily'
+        AND l.reference_date >= ${from}
+        AND l.reference_date < ${toExclusive}
       GROUP BY 1
       ORDER BY 1
     `
     return rows.map(row => ({
       date: row.date,
+      total: Number(row.total),
       completed: Number(row.completed),
     }))
   }

@@ -10,7 +10,7 @@ const VIEW = {
   totalCompleted: 7,
   completionRate: 0.7,
   currentStreak: 3,
-  days: [{ date: '2026-06-22', completed: 2 }],
+  days: [{ date: '2026-06-22', total: 3, completed: 2 }],
 }
 
 describe('useAnalytics', () => {

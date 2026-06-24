@@ -6,19 +6,19 @@ import type { AnalyticsView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useAnalytics } from '@/lib/api/use-analytics'
 
-type RangeKey = 'daily' | 'weekly' | 'monthly'
-type Bucket = { label: string; value: number }
+type RangeKey = 'weekly' | 'monthly' | 'yearly'
+type Bucket = { label: string; value: number; total: number }
 
 const RANGES: Record<
   RangeKey,
-  { days: number; bucket: 'day' | 'week' | 'month' }
+  { days: number; bucket: 'day' | 'month' | 'year' }
 > = {
-  daily: { days: 7, bucket: 'day' },
-  weekly: { days: 56, bucket: 'week' },
+  weekly: { days: 7, bucket: 'day' },
   monthly: { days: 180, bucket: 'month' },
+  yearly: { days: 2190, bucket: 'year' },
 }
 
-const TABS: RangeKey[] = ['daily', 'weekly', 'monthly']
+const TABS: RangeKey[] = ['weekly', 'monthly', 'yearly']
 
 function dayFrom(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`)
@@ -26,7 +26,7 @@ function dayFrom(date: string): Date {
 
 function bucketize(
   days: AnalyticsView['days'],
-  bucket: 'day' | 'week' | 'month',
+  bucket: 'day' | 'month' | 'year',
   locale: string,
 ): Bucket[] {
   if (bucket === 'day') {
@@ -37,39 +37,42 @@ function bucketize(
     return days.map(day => ({
       label: weekday.format(dayFrom(day.date)),
       value: day.completed,
+      total: day.total,
     }))
   }
 
-  if (bucket === 'week') {
-    const out: Bucket[] = []
-    const dm = new Intl.DateTimeFormat(locale, {
-      day: 'numeric',
-      month: 'numeric',
+  if (bucket === 'month') {
+    const month = new Intl.DateTimeFormat(locale, {
+      month: 'short',
       timeZone: 'UTC',
     })
-    for (let i = 0; i < days.length; i += 7) {
-      const chunk = days.slice(i, i + 7)
-      if (chunk.length === 0) continue
-      out.push({
-        label: dm.format(dayFrom(chunk[0]!.date)),
-        value: chunk.reduce((sum, day) => sum + day.completed, 0),
-      })
+    const byMonth = new Map<string, { value: number; total: number }>()
+    for (const day of days) {
+      const key = day.date.slice(0, 7)
+      const acc = byMonth.get(key) ?? { value: 0, total: 0 }
+      acc.value += day.completed
+      acc.total += day.total
+      byMonth.set(key, acc)
     }
-    return out
+    return Array.from(byMonth.entries()).map(([key, acc]) => ({
+      label: month.format(new Date(`${key}-01T00:00:00.000Z`)),
+      value: acc.value,
+      total: acc.total,
+    }))
   }
 
-  const month = new Intl.DateTimeFormat(locale, {
-    month: 'short',
-    timeZone: 'UTC',
-  })
-  const byMonth = new Map<string, number>()
+  const byYear = new Map<string, { value: number; total: number }>()
   for (const day of days) {
-    const key = day.date.slice(0, 7)
-    byMonth.set(key, (byMonth.get(key) ?? 0) + day.completed)
+    const key = day.date.slice(0, 4)
+    const acc = byYear.get(key) ?? { value: 0, total: 0 }
+    acc.value += day.completed
+    acc.total += day.total
+    byYear.set(key, acc)
   }
-  return Array.from(byMonth.entries()).map(([key, value]) => ({
-    label: month.format(new Date(`${key}-01T00:00:00.000Z`)),
-    value,
+  return Array.from(byYear.entries()).map(([key, acc]) => ({
+    label: key,
+    value: acc.value,
+    total: acc.total,
   }))
 }
 
@@ -196,55 +199,61 @@ export function AnalyticsScreen() {
           <p className="text-ink-500 text-sm">{messages.common.error}</p>
         </Card>
       ) : (
-        <>
-          <Card className="flex flex-col gap-5 p-5 sm:p-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-ink-500 text-sm">
-                {messages.analytics.completionRate}
-              </span>
-              <div className="flex items-end gap-3">
-                <span className="text-brand-600 text-5xl font-extrabold leading-none tracking-tight">
-                  {Math.round(analytics.data.completionRate * 100)}%
-                </span>
-                {(() => {
-                  const delta = trendPct(analytics.data.days)
-                  if (delta === null) return null
-                  const up = delta >= 0
-                  return (
-                    <span
-                      className={`pb-1 text-sm font-semibold ${
-                        up ? 'text-success' : 'text-danger'
-                      }`}
-                    >
-                      {up ? '+' : ''}
-                      {delta}%
+        (() => {
+          const bucket = RANGES[range].bucket
+          const buckets = bucketize(analytics.data.days, bucket, locale)
+          const scope = bucket === 'day' ? buckets : buckets.slice(-1)
+          const totalTasks = scope.reduce((sum, b) => sum + b.total, 0)
+          const completedTasks = scope.reduce((sum, b) => sum + b.value, 0)
+          const rate = totalTasks > 0 ? completedTasks / totalTasks : 0
+          return (
+            <>
+              <Card className="flex flex-col gap-5 p-5 sm:p-6">
+                <div className="flex flex-col gap-1">
+                  <span className="text-ink-500 text-sm">
+                    {messages.analytics.completionRate}
+                  </span>
+                  <div className="flex items-end gap-3">
+                    <span className="text-brand-600 text-5xl font-extrabold leading-none tracking-tight">
+                      {Math.round(rate * 100)}%
                     </span>
-                  )
-                })()}
-              </div>
-            </div>
-            <CompletionChart
-              buckets={bucketize(
-                analytics.data.days,
-                RANGES[range].bucket,
-                locale,
-              )}
-              empty={messages.analytics.empty}
-            />
-          </Card>
+                    {(() => {
+                      const delta = trendPct(analytics.data.days)
+                      if (delta === null) return null
+                      const up = delta >= 0
+                      return (
+                        <span
+                          className={`pb-1 text-sm font-semibold ${
+                            up ? 'text-success' : 'text-danger'
+                          }`}
+                        >
+                          {up ? '+' : ''}
+                          {delta}%
+                        </span>
+                      )
+                    })()}
+                  </div>
+                </div>
+                <CompletionChart
+                  buckets={buckets}
+                  empty={messages.analytics.empty}
+                />
+              </Card>
 
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard
-              label={messages.analytics.dayStreak}
-              value={String(analytics.data.currentStreak)}
-              accent
-            />
-            <StatCard
-              label={messages.analytics.tasksDone}
-              value={String(analytics.data.totalCompleted)}
-            />
-          </div>
-        </>
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard
+                  label={messages.analytics.dayStreak}
+                  value={String(analytics.data.currentStreak)}
+                  accent
+                />
+                <StatCard
+                  label={messages.analytics.tasksDone}
+                  value={String(analytics.data.totalCompleted)}
+                />
+              </div>
+            </>
+          )
+        })()
       )}
     </section>
   )

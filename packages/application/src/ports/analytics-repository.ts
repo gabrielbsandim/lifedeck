@@ -2,6 +2,7 @@ import type { EntityId } from '@lifedeck/domain'
 
 export type DailyCompletion = {
   date: string
+  total: number
   completed: number
 }
 

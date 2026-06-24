@@ -10,6 +10,7 @@ export const analyticsViewSchema = z.object({
   days: z.array(
     z.object({
       date: z.string(),
+      total: z.number(),
       completed: z.number(),
     }),
   ),

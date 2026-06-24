@@ -9,7 +9,7 @@ import type { Clock } from '@/ports/clock'
 import type { UserRepository } from '@/ports/user-repository'
 
 const DEFAULT_DAYS = 30
-const MAX_DAYS = 365
+const MAX_DAYS = 3660
 const DAY_MS = 86_400_000
 
 function toIsoDate(date: Date): string {
@@ -44,12 +44,17 @@ export function makeGetAnalytics({ analytics, users, clock }: Dependencies) {
       new Date(toExclusive.getTime() + DAY_MS),
       timeZone,
     )
-    const counts = new Map(rows.map(row => [row.date, row.completed]))
+    const byDate = new Map(rows.map(row => [row.date, row]))
 
-    const series: { date: string; completed: number }[] = []
+    const series: { date: string; total: number; completed: number }[] = []
     for (let i = 0; i < days; i += 1) {
       const date = toIsoDate(new Date(from.getTime() + i * DAY_MS))
-      series.push({ date, completed: counts.get(date) ?? 0 })
+      const row = byDate.get(date)
+      series.push({
+        date,
+        total: row?.total ?? 0,
+        completed: row?.completed ?? 0,
+      })
     }
 
     const totals = await analytics.totals(owner)
