@@ -10,6 +10,7 @@ import {
   toDomainCalendarConnection,
   type CalendarConnectionRecord,
 } from '@/database/calendar-connection-record'
+import { decryptToken, encryptToken } from '@/crypto/token-cipher'
 
 function fromPrisma(record: {
   id: string
@@ -30,8 +31,8 @@ function fromPrisma(record: {
     id: record.id,
     ownerId: record.ownerId,
     provider: record.provider as CalendarProviderName,
-    accessToken: record.accessToken,
-    refreshToken: record.refreshToken,
+    accessToken: decryptToken(record.accessToken),
+    refreshToken: decryptToken(record.refreshToken),
     tokenExpiresAt: record.tokenExpiresAt,
     calendarId: record.calendarId,
     syncToken: record.syncToken,
@@ -50,12 +51,14 @@ export class PrismaCalendarConnectionRepository
 
   async save(connection: CalendarConnection): Promise<void> {
     const record = toCalendarConnectionRecord(connection)
+    const accessToken = encryptToken(record.accessToken)
+    const refreshToken = encryptToken(record.refreshToken)
     await this.prisma.calendarConnection.upsert({
       where: { id: record.id },
-      create: record,
+      create: { ...record, accessToken, refreshToken },
       update: {
-        accessToken: record.accessToken,
-        refreshToken: record.refreshToken,
+        accessToken,
+        refreshToken,
         tokenExpiresAt: record.tokenExpiresAt,
         calendarId: record.calendarId,
         syncToken: record.syncToken,

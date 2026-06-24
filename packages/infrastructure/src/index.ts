@@ -116,3 +116,7 @@ export {
   toCalendarConnectionRecord,
   type CalendarConnectionRecord,
 } from '@/database/calendar-connection-record'
+export {
+  GoogleCalendarProvider,
+  type GoogleCalendarConfig,
+} from '@/calendar/google-calendar-provider'

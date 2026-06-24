@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { asEntityId } from '@lifedeck/domain'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { makeCreateCalendarEvent } from '@/use-cases/create-calendar-event'
+import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
 
 const NOW = new Date('2026-06-24T10:00:00.000Z')
 const OWNER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
@@ -9,17 +10,19 @@ const NEW_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 
 function setup() {
   const calendarEvents = new InMemoryCalendarEventRepository()
+  const enqueue = vi.fn().mockResolvedValue(undefined)
   const create = makeCreateCalendarEvent({
     calendarEvents,
+    jobQueue: { enqueue },
     ids: { generate: () => asEntityId(NEW_ID) },
     clock: { now: () => NOW },
   })
-  return { calendarEvents, create }
+  return { calendarEvents, create, enqueue }
 }
 
 describe('createCalendarEvent', () => {
-  it('persists a new event and returns its view', async () => {
-    const { calendarEvents, create } = setup()
+  it('persists a new event and enqueues an outbound push', async () => {
+    const { calendarEvents, create, enqueue } = setup()
     const view = await create(OWNER_ID, {
       title: 'Dentist',
       startsAt: '2026-06-25T09:00:00.000Z',
@@ -31,6 +34,11 @@ describe('createCalendarEvent', () => {
     expect(view.reminders).toEqual([10, 30])
     expect(view.startsAt).toBe('2026-06-25T09:00:00.000Z')
     expect(await calendarEvents.findById(asEntityId(NEW_ID))).not.toBeNull()
+    expect(enqueue).toHaveBeenCalledWith({
+      type: CALENDAR_PUSH_JOB,
+      payload: { userId: OWNER_ID, eventId: NEW_ID },
+      runAt: NOW,
+    })
   })
 
   it('rejects an invalid payload', async () => {

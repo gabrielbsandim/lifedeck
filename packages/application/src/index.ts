@@ -166,6 +166,14 @@ export {
 } from '@/use-cases/pull-calendar-changes'
 export { makePushCalendarEvent } from '@/use-cases/push-calendar-event'
 export { makeConnectGoogleCalendar } from '@/use-cases/connect-google-calendar'
+export { makeWatchGoogleCalendar } from '@/use-cases/watch-google-calendar'
+export { makeHandleCalendarNotification } from '@/use-cases/handle-calendar-notification'
+export { makeDeleteRemoteCalendarEvent } from '@/use-cases/delete-remote-calendar-event'
+export {
+  CALENDAR_PULL_JOB,
+  CALENDAR_PUSH_JOB,
+  CALENDAR_DELETE_JOB,
+} from '@/use-cases/calendar-sync-jobs'
 export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {

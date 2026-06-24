@@ -8,15 +8,19 @@ import { toCalendarEventView } from '@/mappers/calendar-event-mapper'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
+import type { JobQueue } from '@/ports/job-queue'
+import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
 
 type Dependencies = {
   calendarEvents: CalendarEventRepository
+  jobQueue: JobQueue
   ids: IdGenerator
   clock: Clock
 }
 
 export function makeCreateCalendarEvent({
   calendarEvents,
+  jobQueue,
   ids,
   clock,
 }: Dependencies) {
@@ -41,6 +45,14 @@ export function makeCreateCalendarEvent({
     })
 
     await calendarEvents.save(event)
+
+    // Outbound sync is best-effort and handled off the request path; the push
+    // worker is a no-op when the user has no calendar connection.
+    await jobQueue.enqueue({
+      type: CALENDAR_PUSH_JOB,
+      payload: { userId: ownerId, eventId: event.id as string },
+      runAt: clock.now(),
+    })
 
     return toCalendarEventView(event)
   }

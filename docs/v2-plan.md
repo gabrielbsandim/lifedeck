@@ -654,12 +654,24 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       by `updatedAt`, create/update/delete reconcile, advances syncToken),
       `pushCalendarEvent` (outbound, links external id/etag), `connectGoogleCalendar`
       (token exchange + upsert connection). Fully unit-tested with a fake provider.
-- [ ] **Next slice (Google live wiring):** `GoogleCalendarProvider` HTTP adapter
-      (OAuth incremental consent, Calendar REST, watch channel); OAuth connect/
-      callback routes; watch webhook `/api/v1/webhooks/google` -> enqueue pull job;
-      reconcile/renew-channel handlers on the V2-2 dispatcher; container wiring.
+- [x] **Google live wiring (DONE):** `GoogleCalendarProvider` HTTP adapter
+      (OAuth consent `authUrl`, token exchange/refresh, Calendar REST v3 list/
+      push/delete, incremental `syncToken` with 410->full-resync, watch channel);
+      OAuth connect (`/api/v1/calendar/google/connect`) + callback routes (state
+      cookie, then best-effort watch + initial pull); watch webhook
+      `/api/v1/webhooks/google` -> `handleCalendarNotification` enqueues a
+      `calendar-pull` job; `calendar-pull` handler on the V2-2 dispatcher runs
+      `pullCalendarChanges`; container fully wired. All flag-gated (`calendar`).
+- [x] **Outbound push + token security (DONE):** local create/update enqueue a
+      `calendar-push` job (-> `pushCalendarEvent`, no-op without a connection);
+      delete enqueues `calendar-delete` (-> `deleteRemoteCalendarEvent`) when the
+      event was synced. Pull writes via the repo directly, so inbound changes never
+      echo back out. Google tokens are encrypted at rest (AES-256-GCM,
+      `CALENDAR_TOKEN_KEY`; plaintext passthrough in dev).
 - [ ] **Next slice (UI):** calendar month/week/day + integrations settings, plus
-      the deferred V2-1 nav-filter "Em breve" badge. Flag-gated.
+      the deferred V2-1 nav-filter "Em breve" badge. Flag-gated. **Remaining
+      follow-ups:** periodic channel-renew + full reconcile jobs (pair with V2-6
+      scheduling fan-out), RRULE<->RecurrenceRule mapping.
 
 ### V2-6 - Reminders and proactive delivery
 

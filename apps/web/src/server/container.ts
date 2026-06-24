@@ -2,10 +2,19 @@ import {
   makeAuthenticateApiKey,
   makeBringTaskToToday,
   makeChangePassword,
+  makeConnectGoogleCalendar,
   makeConsumeCredits,
   makeCreateApiKey,
   makeCreateCalendarEvent,
   makeCreateGuestUser,
+  makeDeleteRemoteCalendarEvent,
+  makeHandleCalendarNotification,
+  makePullCalendarChanges,
+  makePushCalendarEvent,
+  makeWatchGoogleCalendar,
+  CALENDAR_PULL_JOB,
+  CALENDAR_PUSH_JOB,
+  CALENDAR_DELETE_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
   makeDeleteList,
@@ -81,6 +90,8 @@ import {
   type UsageEventLedger,
   type UsageMeter,
   type CalendarEventRepository,
+  type CalendarConnectionRepository,
+  type CalendarProvider,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -106,10 +117,13 @@ import {
   PrismaSubscriptionRepository,
   PrismaUsageEventRepository,
   PrismaCalendarEventRepository,
+  PrismaCalendarConnectionRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
   AsaasPaymentGateway,
   StripePaymentGateway,
+  GoogleCalendarProvider,
+  OutboxJobQueue,
   createUsageMeter,
   Argon2PasswordHasher,
   RandomTokenGenerator,
@@ -191,6 +205,12 @@ type Container = {
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
   listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
   getCalendarEvent: ReturnType<typeof makeGetCalendarEvent>
+  connectGoogleCalendar: ReturnType<typeof makeConnectGoogleCalendar>
+  pullCalendarChanges: ReturnType<typeof makePullCalendarChanges>
+  pushCalendarEvent: ReturnType<typeof makePushCalendarEvent>
+  watchGoogleCalendar: ReturnType<typeof makeWatchGoogleCalendar>
+  handleCalendarNotification: ReturnType<typeof makeHandleCalendarNotification>
+  googleCalendarAuthUrl: (state: string) => string
   entitlements: EntitlementService
 }
 
@@ -209,6 +229,7 @@ type Repositories = {
   subscriptions: SubscriptionRepository
   usageEvents: UsageEventLedger
   calendarEvents: CalendarEventRepository
+  calendarConnections: CalendarConnectionRepository
 }
 
 type Services = {
@@ -220,6 +241,7 @@ type Services = {
   healthProbes: HealthProbe[]
   fileStorage: FileStorage
   usageMeter: UsageMeter
+  googleCalendar: CalendarProvider & { authUrl(state: string): string }
 }
 
 function build(
@@ -238,6 +260,7 @@ function build(
     subscriptions,
     usageEvents,
     calendarEvents,
+    calendarConnections,
   }: Repositories,
   {
     hasher,
@@ -248,6 +271,7 @@ function build(
     healthProbes,
     fileStorage,
     usageMeter,
+    googleCalendar,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -270,12 +294,42 @@ function build(
     emailSender,
     clock,
   })
+  const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock)
+  const pullCalendarChanges = makePullCalendarChanges({
+    calendarConnections,
+    calendarEvents,
+    provider: googleCalendar,
+    ids,
+    clock,
+  })
+  const pushCalendarEvent = makePushCalendarEvent({
+    calendarConnections,
+    calendarEvents,
+    provider: googleCalendar,
+    clock,
+  })
+  const deleteRemoteCalendarEvent = makeDeleteRemoteCalendarEvent({
+    calendarConnections,
+    provider: googleCalendar,
+  })
   const dispatchDueJobs = makeDispatchDueJobs({
     scheduledJobs,
     clock,
     handlers: {
       'daily-digest': async payload => {
         await sendDailyDigest(String(payload.userId))
+      },
+      [CALENDAR_PULL_JOB]: async payload => {
+        await pullCalendarChanges(String(payload.userId))
+      },
+      [CALENDAR_PUSH_JOB]: async payload => {
+        await pushCalendarEvent(String(payload.userId), String(payload.eventId))
+      },
+      [CALENDAR_DELETE_JOB]: async payload => {
+        await deleteRemoteCalendarEvent(
+          String(payload.userId),
+          String(payload.externalId),
+        )
       },
     },
   })
@@ -440,13 +494,41 @@ function build(
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
     createCalendarEvent: makeCreateCalendarEvent({
       calendarEvents,
+      jobQueue,
       ids,
       clock,
     }),
-    updateCalendarEvent: makeUpdateCalendarEvent({ calendarEvents, clock }),
-    deleteCalendarEvent: makeDeleteCalendarEvent({ calendarEvents }),
+    updateCalendarEvent: makeUpdateCalendarEvent({
+      calendarEvents,
+      jobQueue,
+      clock,
+    }),
+    deleteCalendarEvent: makeDeleteCalendarEvent({
+      calendarEvents,
+      jobQueue,
+      clock,
+    }),
     listCalendarEvents: makeListCalendarEvents({ calendarEvents }),
     getCalendarEvent: makeGetCalendarEvent({ calendarEvents }),
+    connectGoogleCalendar: makeConnectGoogleCalendar({
+      calendarConnections,
+      provider: googleCalendar,
+      ids,
+      clock,
+    }),
+    pullCalendarChanges,
+    pushCalendarEvent,
+    watchGoogleCalendar: makeWatchGoogleCalendar({
+      calendarConnections,
+      provider: googleCalendar,
+      clock,
+    }),
+    handleCalendarNotification: makeHandleCalendarNotification({
+      calendarConnections,
+      jobQueue,
+      clock,
+    }),
+    googleCalendarAuthUrl: (state: string) => googleCalendar.authUrl(state),
     entitlements: new PlanEntitlementService(resolvePlan),
   }
 }
@@ -496,6 +578,21 @@ function buildGoogleProvider(): GoogleOAuthProvider {
   })
 }
 
+export function googleCalendarRedirectUri(): string {
+  return (
+    process.env.GOOGLE_CALENDAR_REDIRECT_URI ??
+    `${siteUrl()}/api/v1/calendar/google/callback`
+  )
+}
+
+function buildGoogleCalendarProvider(): GoogleCalendarProvider {
+  return new GoogleCalendarProvider({
+    clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    redirectUri: googleCalendarRedirectUri(),
+  })
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -517,6 +614,7 @@ export function getContainer(): Container {
         subscriptions: new PrismaSubscriptionRepository(db),
         usageEvents: new PrismaUsageEventRepository(db),
         calendarEvents: new PrismaCalendarEventRepository(db),
+        calendarConnections: new PrismaCalendarConnectionRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),
@@ -527,6 +625,7 @@ export function getContainer(): Container {
         healthProbes: buildHealthProbes(),
         fileStorage: new VercelBlobStorage(),
         usageMeter: createUsageMeter(),
+        googleCalendar: buildGoogleCalendarProvider(),
       },
       new PrismaUnitOfWork(prisma),
     )

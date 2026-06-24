@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CalendarEvent, asEntityId } from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
@@ -24,6 +24,7 @@ async function setup() {
   )
   const update = makeUpdateCalendarEvent({
     calendarEvents,
+    jobQueue: { enqueue: vi.fn().mockResolvedValue(undefined) },
     clock: { now: () => LATER },
   })
   return { calendarEvents, update }

@@ -31,6 +31,7 @@ export default mergeConfig(
         'src/billing/asaas-payment-gateway.ts',
         'src/billing/stripe-payment-gateway.ts',
         'src/usage/redis-usage-meter.ts',
+        'src/calendar/google-calendar-provider.ts',
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',
