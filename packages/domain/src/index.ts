@@ -70,6 +70,12 @@ export {
 } from '@/entities/email-verification'
 export { Notification, type NotificationProps } from '@/entities/notification'
 export {
+  ScheduledJob,
+  SCHEDULED_JOB_STATUSES,
+  type ScheduledJobStatus,
+  type ScheduledJobProps,
+} from '@/entities/scheduled-job'
+export {
   API_SCOPES,
   isApiScope,
   type ApiScope,

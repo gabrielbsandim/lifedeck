@@ -82,3 +82,10 @@ export {
   PlanEntitlementService,
   type PlanResolver,
 } from '@/entitlements/plan-entitlement-service'
+export { PrismaScheduledJobRepository } from '@/database/prisma-scheduled-job-repository'
+export {
+  toDomainScheduledJob,
+  toScheduledJobRecord,
+  type ScheduledJobRecord,
+} from '@/database/scheduled-job-record'
+export { OutboxJobQueue } from '@/scheduling/outbox-job-queue'

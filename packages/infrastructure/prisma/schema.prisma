@@ -195,3 +195,17 @@ model ShareLink {
   @@index([listId])
   @@map("share_links")
 }
+
+model ScheduledJob {
+  id        String   @id @default(uuid())
+  type      String
+  payload   Json     @default("{}")
+  runAt     DateTime @map("run_at")
+  status    String   @default("pending")
+  attempts  Int      @default(0)
+  lastError String?  @map("last_error")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([status, runAt])
+  @@map("scheduled_jobs")
+}

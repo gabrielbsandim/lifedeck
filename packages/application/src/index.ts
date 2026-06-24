@@ -96,6 +96,13 @@ export type {
   EntitlementService,
   UserEntitlements,
 } from '@/ports/entitlement-service'
+export type { ScheduledJobRepository } from '@/ports/scheduled-job-repository'
+export type { JobQueue, EnqueueJobInput } from '@/ports/job-queue'
+export {
+  makeDispatchDueJobs,
+  type JobHandler,
+  type DispatchResult,
+} from '@/use-cases/dispatch-due-jobs'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,
@@ -214,3 +221,4 @@ export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-t
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 export { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
+export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'

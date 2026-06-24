@@ -16,6 +16,7 @@ import {
   makeDeleteRecurringTask,
   makeDeleteUser,
   makeCheckHealth,
+  makeDispatchDueJobs,
   makeExportUserData,
   makeGenerateList,
   makeGetAnalytics,
@@ -64,6 +65,7 @@ import {
   type OAuthProvider,
   type PasswordHasher,
   type RecurringTaskRepository,
+  type ScheduledJobRepository,
   type ShareLinkRepository,
   type TaskRepository,
   type UnitOfWork,
@@ -85,6 +87,7 @@ import {
   PrismaMembershipRepository,
   PrismaNotificationRepository,
   PrismaRecurringTaskRepository,
+  PrismaScheduledJobRepository,
   PrismaShareLinkRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
@@ -158,6 +161,7 @@ type Container = {
   revokeApiKey: ReturnType<typeof makeRevokeApiKey>
   authenticateApiKey: ReturnType<typeof makeAuthenticateApiKey>
   checkHealth: ReturnType<typeof makeCheckHealth>
+  dispatchDueJobs: ReturnType<typeof makeDispatchDueJobs>
   entitlements: EntitlementService
 }
 
@@ -172,6 +176,7 @@ type Repositories = {
   analytics: AnalyticsRepository
   notifications: NotificationRepository
   apiKeys: ApiKeyRepository
+  scheduledJobs: ScheduledJobRepository
 }
 
 type Services = {
@@ -196,6 +201,7 @@ function build(
     analytics,
     notifications,
     apiKeys,
+    scheduledJobs,
   }: Repositories,
   {
     hasher,
@@ -220,6 +226,21 @@ function build(
     ids,
     clock,
     unitOfWork,
+  })
+  const sendDailyDigest = makeSendDailyDigest({
+    getDailyBoard,
+    users,
+    emailSender,
+    clock,
+  })
+  const dispatchDueJobs = makeDispatchDueJobs({
+    scheduledJobs,
+    clock,
+    handlers: {
+      'daily-digest': async payload => {
+        await sendDailyDigest(String(payload.userId))
+      },
+    },
   })
   return {
     createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
@@ -333,12 +354,7 @@ function build(
     leaveList: makeLeaveList({ lists, memberships }),
     getAnalytics: makeGetAnalytics({ analytics, users, clock }),
     generateList: makeGenerateList({ generator: listGenerator }),
-    sendDailyDigest: makeSendDailyDigest({
-      getDailyBoard,
-      users,
-      emailSender,
-      clock,
-    }),
+    sendDailyDigest,
     listNotifications: makeListNotifications({ notifications }),
     markNotificationRead: makeMarkNotificationRead({ notifications, clock }),
     markAllNotificationsRead: makeMarkAllNotificationsRead({
@@ -364,6 +380,7 @@ function build(
       clock,
       version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
     }),
+    dispatchDueJobs,
     entitlements: new PlanEntitlementService(),
   }
 }
@@ -430,6 +447,7 @@ export function getContainer(): Container {
         analytics: new PrismaAnalyticsRepository(db),
         notifications: new PrismaNotificationRepository(db),
         apiKeys: new PrismaApiKeyRepository(db),
+        scheduledJobs: new PrismaScheduledJobRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),
