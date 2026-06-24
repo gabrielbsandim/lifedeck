@@ -103,6 +103,18 @@ export {
   type JobHandler,
   type DispatchResult,
 } from '@/use-cases/dispatch-due-jobs'
+export type { SubscriptionRepository } from '@/ports/subscription-repository'
+export type {
+  PaymentGateway,
+  PaymentInterval,
+  Market,
+  CheckoutInput,
+  CheckoutSession,
+  SubscriptionEvent,
+} from '@/ports/payment-gateway'
+export { makeStartCheckout, gatewayForMarket } from '@/use-cases/start-checkout'
+export { makeHandleSubscriptionWebhook } from '@/use-cases/handle-subscription-webhook'
+export { makeResolvePlanFromSubscription } from '@/use-cases/resolve-plan-from-subscription'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,
@@ -123,6 +135,7 @@ export {
 } from '@/dtos/api-key-dto'
 export { toApiKeyView } from '@/mappers/api-key-mapper'
 export { analyticsViewSchema, type AnalyticsView } from '@/dtos/analytics-dto'
+export { checkoutRequestSchema, type CheckoutRequest } from '@/dtos/billing-dto'
 export type { HealthProbe, HealthProbeResult } from '@/ports/health-probe'
 export {
   healthStatusSchema,
@@ -222,3 +235,4 @@ export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repo
 export { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
+export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'

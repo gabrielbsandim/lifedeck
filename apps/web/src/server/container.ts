@@ -25,6 +25,7 @@ import {
   makeGetList,
   makeGetSharedBoard,
   makeGetUser,
+  makeHandleSubscriptionWebhook,
   makeInviteToList,
   makeJoinListByToken,
   makeListApiKeys,
@@ -40,9 +41,11 @@ import {
   makeRemoveMember,
   makeRenameUser,
   makeRequestEmailVerification,
+  makeResolvePlanFromSubscription,
   makeRevokeApiKey,
   makeRevokeShareLink,
   makeSendDailyDigest,
+  makeStartCheckout,
   makeSetCarryOverMode,
   makeSetTimezone,
   makeSetAvatar,
@@ -67,6 +70,7 @@ import {
   type RecurringTaskRepository,
   type ScheduledJobRepository,
   type ShareLinkRepository,
+  type SubscriptionRepository,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -89,8 +93,11 @@ import {
   PrismaRecurringTaskRepository,
   PrismaScheduledJobRepository,
   PrismaShareLinkRepository,
+  PrismaSubscriptionRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
+  AsaasPaymentGateway,
+  StripePaymentGateway,
   Argon2PasswordHasher,
   RandomTokenGenerator,
   ResendEmailSender,
@@ -162,6 +169,8 @@ type Container = {
   authenticateApiKey: ReturnType<typeof makeAuthenticateApiKey>
   checkHealth: ReturnType<typeof makeCheckHealth>
   dispatchDueJobs: ReturnType<typeof makeDispatchDueJobs>
+  startCheckout: ReturnType<typeof makeStartCheckout>
+  handleSubscriptionWebhook: ReturnType<typeof makeHandleSubscriptionWebhook>
   entitlements: EntitlementService
 }
 
@@ -177,6 +186,7 @@ type Repositories = {
   notifications: NotificationRepository
   apiKeys: ApiKeyRepository
   scheduledJobs: ScheduledJobRepository
+  subscriptions: SubscriptionRepository
 }
 
 type Services = {
@@ -202,6 +212,7 @@ function build(
     notifications,
     apiKeys,
     scheduledJobs,
+    subscriptions,
   }: Repositories,
   {
     hasher,
@@ -242,6 +253,11 @@ function build(
       },
     },
   })
+  const gateways = {
+    asaas: new AsaasPaymentGateway(),
+    stripe: new StripePaymentGateway(),
+  }
+  const resolvePlan = makeResolvePlanFromSubscription({ subscriptions, clock })
   return {
     createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
     updateTask: makeUpdateTask({
@@ -381,7 +397,14 @@ function build(
       version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
     }),
     dispatchDueJobs,
-    entitlements: new PlanEntitlementService(),
+    startCheckout: makeStartCheckout({ gateways }),
+    handleSubscriptionWebhook: makeHandleSubscriptionWebhook({
+      gateways,
+      subscriptions,
+      ids,
+      clock,
+    }),
+    entitlements: new PlanEntitlementService(resolvePlan),
   }
 }
 
@@ -448,6 +471,7 @@ export function getContainer(): Container {
         notifications: new PrismaNotificationRepository(db),
         apiKeys: new PrismaApiKeyRepository(db),
         scheduledJobs: new PrismaScheduledJobRepository(db),
+        subscriptions: new PrismaSubscriptionRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),

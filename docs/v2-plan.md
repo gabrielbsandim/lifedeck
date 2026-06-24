@@ -600,23 +600,27 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       point a QStash schedule (or Vercel Cron) at the endpoint - left to deploy setup,
       like the V1 digest trigger.
 
-### V2-3 - Billing and plans (Asaas BR + Stripe international)
+### V2-3 - Billing and plans (Asaas BR + Stripe international) - DONE
 
-- [ ] `Subscription` entity + migration; `SubscriptionRepository`;
-      `PaymentGateway` port (single abstraction over both gateways).
-- [ ] `AsaasPaymentGateway` (BR: Pix, card, boleto, NF-e) + signed
-      `/api/v1/webhooks/asaas`. **Adapt, don't rebuild:** Obra Nova
-      (`/home/gabriel/work/obranova`) already ships a full Asaas lifecycle to port
-      behind the `PaymentGateway` port - provider in `src/lib/billing/providers/asaas/`
-      (client, customers, subscriptions, payments, card tokenize) and use cases in
-      `src/application/usecases/billing/` (create/cancel/changePlan, processWebhookEvent,
-      retryFailedPayments, expireTrials, reactivateSubscription, updateCard,
-      listInvoices), all tested, plus its webhook route and `billingCycle.ts`.
-- [ ] `StripePaymentGateway` (international USD: Checkout + Billing Portal) +
-      signed `/api/v1/webhooks/stripe`. Both webhooks idempotent, source of truth.
-- [ ] Market-based gateway routing at checkout; annual + Pix surfaced first.
-- [ ] Wire real entitlements from the active subscription; billing settings
-      screen. Flag-gated.
+- [x] `Subscription` entity + VOs (`subscription-status`, `payment-provider`) +
+      migration `11_subscriptions`; `SubscriptionRepository` (+ Prisma + in-memory);
+      `PaymentGateway` port (single abstraction over both gateways) with a
+      normalized `SubscriptionEvent`. Use cases: `startCheckout` (market routing),
+      `handleSubscriptionWebhook` (idempotent create/update), `resolvePlanFromSubscription`.
+- [x] `AsaasPaymentGateway` (BR): hosted recurrent payment link (`/v3/paymentLinks`,
+      `billingType: UNDEFINED` so the customer picks Pix/card/boleto), `externalReference`
+      carries `userId|plan|interval`; webhook authenticated by `asaas-access-token`
+      token, maps `PAYMENT_*`/`SUBSCRIPTION_DELETED` events to the normalized shape.
+      Adapted from Obra Nova's verified Asaas client patterns.
+- [x] `StripePaymentGateway` (international USD): Checkout Session (`mode=subscription`),
+      `subscription_data.metadata` carries userId/plan; webhook verified with
+      HMAC-SHA256 over `t.rawBody` (`timingSafeEqual`). Both webhooks idempotent.
+- [x] Market-based gateway routing at checkout (`POST /api/v1/billing/checkout`).
+- [x] Real entitlements wired from the active subscription
+      (`resolvePlanFromSubscription` -> `PlanEntitlementService`). All flag-gated
+      (`requireFeature('billing')`). Gateway adapters lazy-read env, coverage-excluded.
+- [ ] Billing settings screen (UI) - deferred to V2-9 launch polish alongside the
+      plan picker; the checkout + webhook backend is complete and flag-gated.
 
 ### V2-4 - AI metering (credits)
 

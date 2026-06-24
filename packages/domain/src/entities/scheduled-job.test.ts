@@ -26,6 +26,12 @@ describe('ScheduledJob', () => {
     expect(job.payload).toEqual({ userId: 'u1' })
   })
 
+  it('exposes its id and run time', () => {
+    const job = build()
+    expect(job.id).toBe(JOB_ID)
+    expect(job.runAt).toEqual(new Date('2026-06-24T09:00:00.000Z'))
+  })
+
   it('rejects an empty type', () => {
     expect(() =>
       ScheduledJob.create({

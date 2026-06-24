@@ -89,3 +89,11 @@ export {
   type ScheduledJobRecord,
 } from '@/database/scheduled-job-record'
 export { OutboxJobQueue } from '@/scheduling/outbox-job-queue'
+export { PrismaSubscriptionRepository } from '@/database/prisma-subscription-repository'
+export {
+  toDomainSubscription,
+  toSubscriptionRecord,
+  type SubscriptionRecord,
+} from '@/database/subscription-record'
+export { AsaasPaymentGateway } from '@/billing/asaas-payment-gateway'
+export { StripePaymentGateway } from '@/billing/stripe-payment-gateway'

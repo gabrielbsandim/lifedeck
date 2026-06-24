@@ -50,6 +50,16 @@ export {
   type PlanQuota,
 } from '@/value-objects/plan'
 export {
+  SUBSCRIPTION_STATUSES,
+  isSubscriptionStatus,
+  type SubscriptionStatus,
+} from '@/value-objects/subscription-status'
+export {
+  PAYMENT_PROVIDERS,
+  isPaymentProvider,
+  type PaymentProvider,
+} from '@/value-objects/payment-provider'
+export {
   DEFAULT_TIME_ZONE,
   isTimeZone,
   civilDate,
@@ -75,6 +85,7 @@ export {
   type ScheduledJobStatus,
   type ScheduledJobProps,
 } from '@/entities/scheduled-job'
+export { Subscription, type SubscriptionProps } from '@/entities/subscription'
 export {
   API_SCOPES,
   isApiScope,

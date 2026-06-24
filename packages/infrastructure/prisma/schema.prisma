@@ -62,6 +62,7 @@ model User {
   emailVerification EmailVerification?
   notifications     Notification[]
   apiKeys           ApiKey[]
+  subscriptions     Subscription[]
 
   @@map("users")
 }
@@ -208,4 +209,22 @@ model ScheduledJob {
 
   @@index([status, runAt])
   @@map("scheduled_jobs")
+}
+
+model Subscription {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  plan             String
+  status           String
+  provider         String
+  providerRef      String    @map("provider_ref")
+  currentPeriodEnd DateTime? @map("current_period_end")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerRef])
+  @@index([userId])
+  @@map("subscriptions")
 }
