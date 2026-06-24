@@ -107,6 +107,44 @@ describe('CalendarEvent', () => {
     expect(event.toJSON().recurrence).toBeNull()
   })
 
+  it('defaults to a local source with no external link', () => {
+    const event = build()
+    expect(event.source).toBe('local')
+    expect(event.externalId).toBeNull()
+    expect(event.etag).toBeNull()
+  })
+
+  it('links to and re-syncs an external event', () => {
+    const event = build()
+    const syncedAt = new Date('2026-06-24T11:00:00.000Z')
+    event.linkToExternal('google-evt-1', 'etag-1', syncedAt)
+    expect(event.externalId).toBe('google-evt-1')
+    expect(event.etag).toBe('etag-1')
+    expect(event.toJSON().syncedAt).toEqual(syncedAt)
+
+    const later = new Date('2026-06-24T12:00:00.000Z')
+    event.markSynced('etag-2', later)
+    expect(event.etag).toBe('etag-2')
+    expect(event.toJSON().syncedAt).toEqual(later)
+  })
+
+  it('adopts an external source and id on creation', () => {
+    const event = CalendarEvent.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      title: 'From Google',
+      startsAt: STARTS,
+      endsAt: ENDS,
+      source: 'google',
+      externalId: 'google-evt-2',
+      etag: 'etag-9',
+      now: NOW,
+    })
+    expect(event.source).toBe('google')
+    expect(event.externalId).toBe('google-evt-2')
+    expect(event.updatedAt).toEqual(NOW)
+  })
+
   it('restores from persisted props', () => {
     const event = build({ reminders: [10] })
     expect(CalendarEvent.restore(event.toJSON()).toJSON()).toEqual(

@@ -1,4 +1,9 @@
-import type { CalendarEvent, EntityId, RecurrenceRule } from '@lifedeck/domain'
+import type {
+  CalendarEvent,
+  CalendarEventSource,
+  EntityId,
+  RecurrenceRule,
+} from '@lifedeck/domain'
 import type { CalendarEventRepository } from '@lifedeck/application'
 import { Prisma, type PrismaClient } from '@prisma/client'
 import {
@@ -18,6 +23,10 @@ function fromPrisma(record: {
   allDay: boolean
   reminders: number[]
   recurrence: unknown
+  source: string
+  externalId: string | null
+  etag: string | null
+  syncedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }): CalendarEventRecord {
@@ -32,6 +41,10 @@ function fromPrisma(record: {
     allDay: record.allDay,
     reminders: record.reminders,
     recurrence: (record.recurrence as RecurrenceRule | null) ?? null,
+    source: record.source as CalendarEventSource,
+    externalId: record.externalId,
+    etag: record.etag,
+    syncedAt: record.syncedAt,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   }
@@ -59,6 +72,10 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         allDay: record.allDay,
         reminders: record.reminders,
         recurrence,
+        source: record.source,
+        externalId: record.externalId,
+        etag: record.etag,
+        syncedAt: record.syncedAt,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt,
       },
@@ -71,6 +88,10 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         allDay: record.allDay,
         reminders: { set: record.reminders },
         recurrence,
+        source: record.source,
+        externalId: record.externalId,
+        etag: record.etag,
+        syncedAt: record.syncedAt,
         updatedAt: record.updatedAt,
       },
     })
@@ -79,6 +100,16 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
   async findById(id: EntityId): Promise<CalendarEvent | null> {
     const row = await this.prisma.calendarEvent.findUnique({
       where: { id: id as string },
+    })
+    return row ? toDomainCalendarEvent(fromPrisma(row)) : null
+  }
+
+  async findByExternalId(
+    ownerId: EntityId,
+    externalId: string,
+  ): Promise<CalendarEvent | null> {
+    const row = await this.prisma.calendarEvent.findFirst({
+      where: { ownerId: ownerId as string, externalId },
     })
     return row ? toDomainCalendarEvent(fromPrisma(row)) : null
   }

@@ -5,6 +5,7 @@ import {
   validateRecurrenceRule,
   type RecurrenceRule,
 } from '@/value-objects/recurrence-rule'
+import type { CalendarEventSource } from '@/value-objects/calendar-event-source'
 
 const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 2000
@@ -22,6 +23,10 @@ export type CalendarEventProps = {
   allDay: boolean
   reminders: number[]
   recurrence: RecurrenceRule | null
+  source: CalendarEventSource
+  externalId: string | null
+  etag: string | null
+  syncedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -71,6 +76,9 @@ export class CalendarEvent {
     allDay?: boolean
     reminders?: number[]
     recurrence?: RecurrenceRule | null
+    source?: CalendarEventSource
+    externalId?: string | null
+    etag?: string | null
     now: Date
   }): CalendarEvent {
     const title = guard.maxLength(
@@ -102,6 +110,10 @@ export class CalendarEvent {
       recurrence: input.recurrence
         ? validateRecurrenceRule(input.recurrence)
         : null,
+      source: input.source ?? 'local',
+      externalId: input.externalId ?? null,
+      etag: input.etag ?? null,
+      syncedAt: null,
       createdAt: input.now,
       updatedAt: input.now,
     })
@@ -131,8 +143,39 @@ export class CalendarEvent {
     return [...this.props.reminders]
   }
 
+  get source(): CalendarEventSource {
+    return this.props.source
+  }
+
+  get externalId(): string | null {
+    return this.props.externalId
+  }
+
+  get etag(): string | null {
+    return this.props.etag
+  }
+
+  get updatedAt(): Date {
+    return this.props.updatedAt
+  }
+
   isOwnedBy(userId: EntityId): boolean {
     return this.props.ownerId === userId
+  }
+
+  linkToExternal(
+    externalId: string,
+    etag: string | null,
+    syncedAt: Date,
+  ): void {
+    this.props.externalId = externalId
+    this.props.etag = etag
+    this.props.syncedAt = syncedAt
+  }
+
+  markSynced(etag: string | null, syncedAt: Date): void {
+    this.props.etag = etag
+    this.props.syncedAt = syncedAt
   }
 
   update(

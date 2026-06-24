@@ -14,6 +14,8 @@ export function toCalendarEventView(event: CalendarEvent): CalendarEventView {
     allDay: props.allDay,
     reminders: props.reminders,
     recurrence: props.recurrence,
+    source: props.source,
+    externalId: props.externalId,
     createdAt: props.createdAt.toISOString(),
     updatedAt: props.updatedAt.toISOString(),
   }

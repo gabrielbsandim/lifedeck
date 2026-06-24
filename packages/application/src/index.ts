@@ -151,6 +151,22 @@ export { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
 export { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 export { makeGetCalendarEvent } from '@/use-cases/get-calendar-event'
 export { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
+export type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
+export type {
+  CalendarProvider,
+  ExternalCalendarEvent,
+  CalendarSyncPage,
+  OAuthTokens,
+  RefreshedToken,
+  WatchChannel,
+} from '@/ports/calendar-provider'
+export {
+  makePullCalendarChanges,
+  type CalendarPullResult,
+} from '@/use-cases/pull-calendar-changes'
+export { makePushCalendarEvent } from '@/use-cases/push-calendar-event'
+export { makeConnectGoogleCalendar } from '@/use-cases/connect-google-calendar'
+export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,

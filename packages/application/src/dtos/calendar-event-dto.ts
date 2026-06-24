@@ -49,6 +49,8 @@ export const calendarEventViewSchema = z.object({
   allDay: z.boolean(),
   reminders: z.array(z.number().int()),
   recurrence: recurrenceRuleSchema.nullable(),
+  source: z.enum(['local', 'google']),
+  externalId: z.string().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 })

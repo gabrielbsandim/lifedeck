@@ -17,6 +17,10 @@ const RECORD: CalendarEventRecord = {
   allDay: false,
   reminders: [10, 30],
   recurrence: null,
+  source: 'local',
+  externalId: null,
+  etag: null,
+  syncedAt: null,
   createdAt: new Date('2026-06-24T10:00:00.000Z'),
   updatedAt: new Date('2026-06-24T10:00:00.000Z'),
 }
@@ -40,6 +44,10 @@ describe('calendar-event-record', () => {
       allDay: RECORD.allDay,
       reminders: RECORD.reminders,
       recurrence: RECORD.recurrence,
+      source: RECORD.source,
+      externalId: RECORD.externalId,
+      etag: RECORD.etag,
+      syncedAt: RECORD.syncedAt,
       createdAt: RECORD.createdAt,
       updatedAt: RECORD.updatedAt,
     })

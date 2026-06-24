@@ -1,6 +1,7 @@
 import {
   CalendarEvent,
   asEntityId,
+  type CalendarEventSource,
   type RecurrenceRule,
 } from '@lifedeck/domain'
 
@@ -15,6 +16,10 @@ export type CalendarEventRecord = {
   allDay: boolean
   reminders: number[]
   recurrence: RecurrenceRule | null
+  source: CalendarEventSource
+  externalId: string | null
+  etag: string | null
+  syncedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -33,6 +38,10 @@ export function toDomainCalendarEvent(
     allDay: record.allDay,
     reminders: record.reminders,
     recurrence: record.recurrence,
+    source: record.source,
+    externalId: record.externalId,
+    etag: record.etag,
+    syncedAt: record.syncedAt,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   })
@@ -53,6 +62,10 @@ export function toCalendarEventRecord(
     allDay: props.allDay,
     reminders: props.reminders,
     recurrence: props.recurrence,
+    source: props.source,
+    externalId: props.externalId,
+    etag: props.etag,
+    syncedAt: props.syncedAt,
     createdAt: props.createdAt,
     updatedAt: props.updatedAt,
   }

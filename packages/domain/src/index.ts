@@ -98,6 +98,20 @@ export {
   type CalendarEventProps,
 } from '@/entities/calendar-event'
 export {
+  CALENDAR_EVENT_SOURCES,
+  isCalendarEventSource,
+  type CalendarEventSource,
+} from '@/value-objects/calendar-event-source'
+export {
+  CALENDAR_PROVIDERS,
+  isCalendarProvider,
+  type CalendarProviderName,
+} from '@/value-objects/calendar-provider'
+export {
+  CalendarConnection,
+  type CalendarConnectionProps,
+} from '@/entities/calendar-connection'
+export {
   API_SCOPES,
   isApiScope,
   type ApiScope,

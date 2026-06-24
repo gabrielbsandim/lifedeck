@@ -646,11 +646,18 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
 - [x] Event CRUD + range-list/get use cases + REST (`/api/v1/calendar/events`
       [+ `/{id}`], feature-gated `calendar` + new `calendar:read`/`calendar:write`
       scopes) + OpenAPI (`CalendarEventView` + 5 paths).
-- [ ] **Next slice (Google sync):** `CalendarConnection` model; `CalendarProvider`
-      port; `GoogleCalendarProvider` with incremental OAuth, watch-channel inbound
-      (`/api/v1/webhooks/google`), outbound push, conflict resolution, periodic
-      reconcile on the scheduler (V2-2 dispatcher). Adds sync columns
-      (externalId/etag/source) to `calendar_events` via an additive migration.
+- [x] **Google sync core (DONE):** sync columns (source/externalId/etag/syncedAt)
+      on `calendar_events` + `CalendarConnection` model, both via additive migration
+      `14_calendar_sync`. `CalendarProvider` port (exchangeCode/refresh/listChanges/
+      pushEvent/deleteEvent/watch) + `CalendarConnectionRepository`. Use cases
+      `pullCalendarChanges` (incremental: refresh-token-if-needed, last-writer-wins
+      by `updatedAt`, create/update/delete reconcile, advances syncToken),
+      `pushCalendarEvent` (outbound, links external id/etag), `connectGoogleCalendar`
+      (token exchange + upsert connection). Fully unit-tested with a fake provider.
+- [ ] **Next slice (Google live wiring):** `GoogleCalendarProvider` HTTP adapter
+      (OAuth incremental consent, Calendar REST, watch channel); OAuth connect/
+      callback routes; watch webhook `/api/v1/webhooks/google` -> enqueue pull job;
+      reconcile/renew-channel handlers on the V2-2 dispatcher; container wiring.
 - [ ] **Next slice (UI):** calendar month/week/day + integrations settings, plus
       the deferred V2-1 nav-filter "Em breve" badge. Flag-gated.
 

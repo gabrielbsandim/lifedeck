@@ -26,6 +26,7 @@ export default mergeConfig(
         'src/database/prisma-subscription-repository.ts',
         'src/database/prisma-usage-event-repository.ts',
         'src/database/prisma-calendar-event-repository.ts',
+        'src/database/prisma-calendar-connection-repository.ts',
         'src/database/prisma-health-probe.ts',
         'src/billing/asaas-payment-gateway.ts',
         'src/billing/stripe-payment-gateway.ts',

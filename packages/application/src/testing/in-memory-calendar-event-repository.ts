@@ -14,6 +14,17 @@ export class InMemoryCalendarEventRepository
     return this.items.get(id as string) ?? null
   }
 
+  async findByExternalId(
+    ownerId: EntityId,
+    externalId: string,
+  ): Promise<CalendarEvent | null> {
+    return (
+      [...this.items.values()].find(
+        event => event.isOwnedBy(ownerId) && event.externalId === externalId,
+      ) ?? null
+    )
+  }
+
   async listByOwnerInRange(
     ownerId: EntityId,
     from: Date,
