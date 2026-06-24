@@ -1,6 +1,13 @@
 'use client'
 
-import { useState, type CSSProperties, type ReactNode, type Ref } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type {
@@ -11,10 +18,10 @@ import type {
 import { Avatar, TaskCheckbox } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
+  ChevronLeftIcon,
   GripIcon,
   LockIcon,
   NoteIcon,
-  PencilIcon,
   PlusIcon,
   RecurringIcon,
   TrashIcon,
@@ -22,12 +29,7 @@ import {
 } from '@/components/icons'
 
 const iconButtonClass =
-  'flex h-8 w-7 flex-none items-center justify-center rounded-lg transition-colors sm:w-8'
-
-// Secondary actions stay calm on desktop (revealed on hover/focus) but are
-// always tappable on touch where there is no hover.
-const revealClass =
-  'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100'
+  'flex h-8 w-8 flex-none items-center justify-center rounded-lg transition-colors'
 
 const gripClass =
   'text-ink-300 hover:text-ink-500 flex h-7 w-4 flex-none items-center justify-center sm:w-5'
@@ -71,8 +73,25 @@ function TaskRowBody({
   const [noteDraft, setNoteDraft] = useState(task.observation ?? '')
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState(task.title)
+  const [actionsOpen, setActionsOpen] = useState(false)
+  const actionsRef = useRef<HTMLDivElement>(null)
+
+  // While the action drawer is open, a tap anywhere outside it slides it back.
+  useEffect(() => {
+    if (!actionsOpen) {
+      return
+    }
+    function onOutside(event: PointerEvent) {
+      if (!actionsRef.current?.contains(event.target as Node)) {
+        setActionsOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', onOutside)
+    return () => document.removeEventListener('pointerdown', onOutside)
+  }, [actionsOpen])
 
   function openTitle() {
+    setActionsOpen(false)
     setTitleDraft(task.title)
     setEditingTitle(true)
   }
@@ -94,6 +113,7 @@ function TaskRowBody({
   const assignee = options.find(option => option.id === task.assigneeId) ?? null
 
   function openNote() {
+    setActionsOpen(false)
     setNoteDraft(task.observation ?? '')
     setEditingNote(true)
   }
@@ -108,7 +128,7 @@ function TaskRowBody({
     <li
       ref={containerRef}
       style={style}
-      className={`border-line group relative flex items-center gap-1.5 rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:gap-3 sm:pl-2 sm:pr-2.5 ${
+      className={`border-line relative flex items-center gap-1.5 overflow-hidden rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:gap-3 sm:pl-2 sm:pr-2.5 ${
         overlay
           ? 'ring-brand-200/70 cursor-grabbing shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
           : 'shadow-[0_1px_2px_rgba(70,60,90,0.05)]'
@@ -146,15 +166,18 @@ function TaskRowBody({
             className="border-line text-ink-800 focus-visible:border-brand-600 w-full rounded-md border bg-white px-2 py-1 text-base font-medium outline-none sm:text-sm"
           />
         ) : (
-          <span
-            className={
+          <button
+            type="button"
+            onClick={openTitle}
+            aria-label={t.editTitle}
+            className={`block w-full break-words text-left text-sm ${
               completed
-                ? 'text-ink-500 block break-words text-sm line-through'
-                : 'text-ink-800 block break-words text-sm font-medium'
-            }
+                ? 'text-ink-500 line-through'
+                : 'text-ink-800 font-medium'
+            }`}
           >
             {task.title}
-          </span>
+          </button>
         )}
         {task.carriedFromDate && (
           <span className="text-ink-400 text-xs">
@@ -202,98 +225,115 @@ function TaskRowBody({
         ) : null}
       </div>
 
-      <div className="flex flex-none items-center gap-0.5 sm:gap-1">
+      <div
+        ref={actionsRef}
+        className="relative flex flex-none items-center self-stretch"
+      >
         {task.recurringTaskId && (
           <span
             aria-hidden
             title={t.recurring}
-            className="text-brand-400 flex h-8 w-5 items-center justify-center sm:w-6"
+            className="text-brand-400 flex h-8 w-6 items-center justify-center"
           >
             <RecurringIcon size={14} />
           </span>
         )}
 
-        {!task.observation && !editingNote && (
-          <button
-            type="button"
-            aria-label={t.addNote}
-            onClick={openNote}
-            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg ${revealClass}`}
-          >
-            <NoteIcon size={15} />
-          </button>
-        )}
-
-        {!editingTitle && (
-          <button
-            type="button"
-            aria-label={t.editTitle}
-            title={t.editTitle}
-            onClick={openTitle}
-            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg ${revealClass}`}
-          >
-            <PencilIcon size={15} />
-          </button>
-        )}
-
-        <button
-          type="button"
-          aria-label={t.togglePrivacy}
-          aria-pressed={task.isPrivate}
-          title={task.isPrivate ? t.private : t.visible}
-          onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
-          className={`${iconButtonClass} hover:bg-bg ${
-            task.isPrivate
-              ? 'text-brand-600'
-              : `text-ink-400 hover:text-ink-700 ${revealClass}`
+        {/* Action drawer: slides in from the right, over the description. */}
+        <div
+          className={`absolute inset-y-0 right-8 flex items-center gap-0.5 bg-white pl-3 transition-all duration-200 ease-out ${
+            actionsOpen
+              ? 'translate-x-0 opacity-100 shadow-[-12px_0_14px_-10px_rgba(70,60,90,0.18)]'
+              : 'pointer-events-none translate-x-full opacity-0'
           }`}
         >
-          {task.isPrivate ? <LockIcon size={15} /> : <UnlockIcon size={15} />}
-        </button>
-
-        {options.length > 0 && (
-          <div className="relative h-7 w-7 flex-none">
-            <span aria-hidden className="pointer-events-none absolute inset-0">
-              {assignee ? (
-                <Avatar name={assignee.name} size="sm" />
-              ) : (
-                <span className="border-line text-ink-400 flex h-7 w-7 items-center justify-center rounded-full border border-dashed">
-                  <PlusIcon size={14} />
-                </span>
-              )}
-            </span>
-            <select
-              aria-label={t.assignee}
-              value={task.assigneeId ?? ''}
-              onChange={event =>
-                onUpdate(task.id, {
-                  assigneeId:
-                    event.target.value === '' ? null : event.target.value,
-                })
-              }
-              className="absolute inset-0 cursor-pointer opacity-0"
-            >
-              <option value="">—</option>
-              {options.map(option => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {onDelete && (
           <button
             type="button"
-            aria-label={t.delete}
-            title={t.delete}
-            onClick={() => onDelete(task)}
-            className={`${iconButtonClass} text-ink-400 hover:text-danger hover:bg-bg ${revealClass}`}
+            aria-label={task.observation ? t.editNote : t.addNote}
+            onClick={openNote}
+            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg`}
           >
-            <TrashIcon size={15} />
+            <NoteIcon size={16} />
           </button>
-        )}
+
+          <button
+            type="button"
+            aria-label={t.togglePrivacy}
+            aria-pressed={task.isPrivate}
+            title={task.isPrivate ? t.private : t.visible}
+            onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
+            className={`${iconButtonClass} hover:bg-bg ${
+              task.isPrivate
+                ? 'text-brand-600'
+                : 'text-ink-400 hover:text-ink-700'
+            }`}
+          >
+            {task.isPrivate ? <LockIcon size={16} /> : <UnlockIcon size={16} />}
+          </button>
+
+          {options.length > 0 && (
+            <div className="relative h-8 w-8 flex-none">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 flex items-center justify-center"
+              >
+                {assignee ? (
+                  <Avatar name={assignee.name} size="sm" />
+                ) : (
+                  <span className="border-line text-ink-400 flex h-7 w-7 items-center justify-center rounded-full border border-dashed">
+                    <PlusIcon size={14} />
+                  </span>
+                )}
+              </span>
+              <select
+                aria-label={t.assignee}
+                value={task.assigneeId ?? ''}
+                onChange={event =>
+                  onUpdate(task.id, {
+                    assigneeId:
+                      event.target.value === '' ? null : event.target.value,
+                  })
+                }
+                className="absolute inset-0 cursor-pointer opacity-0"
+              >
+                <option value="">—</option>
+                {options.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {onDelete && (
+            <button
+              type="button"
+              aria-label={t.delete}
+              title={t.delete}
+              onClick={() => onDelete(task)}
+              className={`${iconButtonClass} text-ink-400 hover:text-danger hover:bg-bg`}
+            >
+              <TrashIcon size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* The only control visible when the drawer is closed. */}
+        <button
+          type="button"
+          aria-label={t.actions}
+          aria-expanded={actionsOpen}
+          onClick={() => setActionsOpen(open => !open)}
+          className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg relative z-10`}
+        >
+          <ChevronLeftIcon
+            size={18}
+            className={`transition-transform duration-200 ${
+              actionsOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
       </div>
     </li>
   )

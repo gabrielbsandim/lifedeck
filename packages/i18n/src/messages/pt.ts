@@ -133,6 +133,7 @@ export const pt: Messages = {
     delete: 'Excluir tarefa',
     save: 'Salvar',
     cancel: 'Cancelar',
+    actions: 'Ações',
   },
   list: {
     daily: 'Lista do dia',

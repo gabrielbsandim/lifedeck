@@ -142,6 +142,7 @@ export type Messages = {
     delete: string
     save: string
     cancel: string
+    actions: string
   }
   list: {
     daily: string

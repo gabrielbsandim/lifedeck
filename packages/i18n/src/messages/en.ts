@@ -132,6 +132,7 @@ export const en: Messages = {
     delete: 'Delete task',
     save: 'Save',
     cancel: 'Cancel',
+    actions: 'Actions',
   },
   list: {
     daily: 'Daily list',

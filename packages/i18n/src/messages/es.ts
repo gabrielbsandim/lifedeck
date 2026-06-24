@@ -134,6 +134,7 @@ export const es: Messages = {
     delete: 'Eliminar tarea',
     save: 'Guardar',
     cancel: 'Cancelar',
+    actions: 'Acciones',
   },
   list: {
     daily: 'Lista del día',
