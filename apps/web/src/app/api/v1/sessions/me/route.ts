@@ -8,8 +8,10 @@ export async function GET(request: Request) {
     if (!userId) {
       return fail('UNAUTHORIZED', 'No active session.', 401)
     }
-    const user = await getContainer().getUser(userId)
-    return ok(user)
+    const container = getContainer()
+    const user = await container.getUser(userId)
+    const { plan, entitlements } = await container.entitlements.for(userId)
+    return ok({ ...user, plan, entitlements })
   } catch (error) {
     return handleError(error)
   }

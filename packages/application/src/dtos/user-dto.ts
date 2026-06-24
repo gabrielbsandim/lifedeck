@@ -67,6 +67,10 @@ export const userViewSchema = z.object({
   timezone: z.string(),
   avatarUrl: z.string().nullable(),
   carryOverMode: z.enum(['manual', 'auto']),
+  plan: z.enum(['free', 'pro', 'premium']).optional(),
+  entitlements: z
+    .array(z.enum(['calendarSync', 'whatsappAssistant', 'premiumModel']))
+    .optional(),
   createdAt: z.string().datetime(),
 })
 

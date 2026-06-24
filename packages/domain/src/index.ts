@@ -35,6 +35,21 @@ export {
   type CarryOverMode,
 } from '@/value-objects/carry-over-mode'
 export {
+  ENTITLEMENTS,
+  isEntitlement,
+  type Entitlement,
+} from '@/value-objects/entitlement'
+export {
+  PLANS,
+  DEFAULT_PLAN,
+  isPlan,
+  entitlementsForPlan,
+  planGrants,
+  quotaForPlan,
+  type Plan,
+  type PlanQuota,
+} from '@/value-objects/plan'
+export {
   DEFAULT_TIME_ZONE,
   isTimeZone,
   civilDate,

@@ -92,6 +92,10 @@ export {
   type GeneratedListView,
 } from '@/dtos/ai-dto'
 export type { ListGenerator } from '@/ports/list-generator'
+export type {
+  EntitlementService,
+  UserEntitlements,
+} from '@/ports/entitlement-service'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,

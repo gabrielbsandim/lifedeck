@@ -69,6 +69,7 @@ import {
   type UnitOfWork,
   type UserRepository,
   type FileStorage,
+  type EntitlementService,
 } from '@lifedeck/application'
 import {
   AiSdkListGenerator,
@@ -92,6 +93,7 @@ import {
   ResendEmailSender,
   ScryptPasswordHasher,
   Sha256KeyHasher,
+  PlanEntitlementService,
   StubListGenerator,
   SystemClock,
   UuidGenerator,
@@ -156,6 +158,7 @@ type Container = {
   revokeApiKey: ReturnType<typeof makeRevokeApiKey>
   authenticateApiKey: ReturnType<typeof makeAuthenticateApiKey>
   checkHealth: ReturnType<typeof makeCheckHealth>
+  entitlements: EntitlementService
 }
 
 type Repositories = {
@@ -361,6 +364,7 @@ function build(
       clock,
       version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
     }),
+    entitlements: new PlanEntitlementService(),
   }
 }
 

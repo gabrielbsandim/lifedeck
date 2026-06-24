@@ -78,3 +78,7 @@ export {
   toApiKeyRecord,
   type ApiKeyRecord,
 } from '@/database/api-key-record'
+export {
+  PlanEntitlementService,
+  type PlanResolver,
+} from '@/entitlements/plan-entitlement-service'
