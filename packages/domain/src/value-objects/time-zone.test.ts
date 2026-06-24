@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   civilDate,
+  civilHour,
   isTimeZone,
   startOfCivilDay,
 } from '@/value-objects/time-zone'
@@ -23,6 +24,18 @@ describe('time zone', () => {
   it('falls back to UTC for an invalid zone', () => {
     const instant = new Date('2026-06-23T02:00:00.000Z')
     expect(civilDate(instant, 'Nowhere/Land')).toBe('2026-06-23')
+  })
+
+  it('computes the local hour of day in the target zone', () => {
+    const instant = new Date('2026-06-23T02:00:00.000Z')
+    // 02:00 UTC is 23:00 the previous day in Sao Paulo (UTC-3)
+    expect(civilHour(instant, 'America/Sao_Paulo')).toBe(23)
+    expect(civilHour(instant, 'UTC')).toBe(2)
+  })
+
+  it('falls back to UTC when computing the hour for an invalid zone', () => {
+    const instant = new Date('2026-06-23T02:00:00.000Z')
+    expect(civilHour(instant, 'Nowhere/Land')).toBe(2)
   })
 
   it('returns the UTC-midnight marker for the local civil day', () => {

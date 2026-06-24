@@ -83,4 +83,9 @@ export class PrismaCalendarConnectionRepository
     })
     return row ? toDomainCalendarConnection(fromPrisma(row)) : null
   }
+
+  async listAll(): Promise<CalendarConnection[]> {
+    const rows = await this.prisma.calendarConnection.findMany()
+    return rows.map(row => toDomainCalendarConnection(fromPrisma(row)))
+  }
 }

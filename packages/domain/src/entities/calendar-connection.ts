@@ -76,6 +76,14 @@ export class CalendarConnection {
     return this.props.syncToken
   }
 
+  get channelId(): string | null {
+    return this.props.channelId
+  }
+
+  get channelExpiresAt(): Date | null {
+    return this.props.channelExpiresAt
+  }
+
   isOwnedBy(userId: EntityId): boolean {
     return this.props.ownerId === userId
   }

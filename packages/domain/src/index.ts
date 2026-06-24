@@ -69,6 +69,7 @@ export {
   DEFAULT_TIME_ZONE,
   isTimeZone,
   civilDate,
+  civilHour,
   startOfCivilDay,
 } from '@/value-objects/time-zone'
 export { Task, type TaskProps } from '@/entities/task'

@@ -23,4 +23,8 @@ export class InMemoryCalendarConnectionRepository
       ) ?? null
     )
   }
+
+  async listAll(): Promise<CalendarConnection[]> {
+    return [...this.items.values()]
+  }
 }

@@ -22,6 +22,10 @@ export class InMemoryUserRepository implements UserRepository {
     return null
   }
 
+  async listForDailyDigest(): Promise<User[]> {
+    return [...this.store.values()].filter(user => user.email !== null)
+  }
+
   async delete(id: EntityId): Promise<void> {
     this.store.delete(id)
   }

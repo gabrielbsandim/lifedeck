@@ -35,6 +35,13 @@ export class PrismaUserRepository implements UserRepository {
     return record ? toDomainUser(record) : null
   }
 
+  async listForDailyDigest(): Promise<User[]> {
+    const records = await this.prisma.user.findMany({
+      where: { email: { not: null }, isGuest: false },
+    })
+    return records.map(toDomainUser)
+  }
+
   async delete(id: EntityId): Promise<void> {
     await this.prisma.user.delete({ where: { id } })
   }

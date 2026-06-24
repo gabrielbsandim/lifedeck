@@ -73,6 +73,16 @@ describe('CalendarConnection', () => {
     expect(props.channelId).toBe('chan-1')
     expect(props.resourceId).toBe('res-1')
     expect(props.updatedAt).toEqual(later)
+    expect(connection.channelId).toBe('chan-1')
+    expect(connection.channelExpiresAt).toEqual(
+      new Date('2026-06-31T10:00:00.000Z'),
+    )
+  })
+
+  it('exposes a null watch channel before one is registered', () => {
+    const connection = build()
+    expect(connection.channelId).toBeNull()
+    expect(connection.channelExpiresAt).toBeNull()
   })
 
   it('restores from persisted props', () => {

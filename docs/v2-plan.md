@@ -678,7 +678,7 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       with V2-6 scheduling fan-out), RRULE<->RecurrenceRule mapping, mobile tab-bar/
       profile-sheet calendar entry, hour-grid (time-axis) week/day views.
 
-### V2-6 - Reminders and proactive delivery (reminders DONE)
+### V2-6 - Reminders and proactive delivery - DONE
 
 - [x] Creating an event enqueues an `event-reminder` job per future offset
       (runAt = startsAt - minutes). The `event-reminder` handler delivers an
@@ -687,10 +687,15 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       cleanly). In-app is the V2-6 channel; email/WhatsApp routing lands in V2-8.
 - [x] Reminder config on the event editor (toggle chips: at start / 10m / 30m /
       1h / 1d).
-- [ ] **Remaining (fan-out enqueuers):** per-user daily-digest fan-out (deferred
-      since V2-2) + calendar channel-renew + full reconcile fan-out (deferred
-      since V2-5), each enqueuing per-user/per-connection jobs on a cron tick.
-      Needs repository "list" methods + an internal cron endpoint.
+- [x] **Fan-out enqueuers (DONE):** `enqueueDailyDigests` (per-user digest at
+      their local morning hour, via `civilHour` + `users.listForDailyDigest`),
+      `reconcileCalendars` (a `calendar-pull` per connection), and
+      `renewCalendarChannels` (a `calendar-watch` per channel within 24h of
+      expiry). A new `calendar-watch` job type drives `watchGoogleCalendar` on the
+      dispatcher. All three run from `runScheduledFanOut`, exposed at the cron
+      endpoint `POST /api/v1/internal/fan-out-jobs` (guarded by `isAuthorizedCron`).
+      Repos gained `listForDailyDigest` / `listAll`. Operational: point a QStash
+      schedule (or Vercel Cron) at the endpoint, like the dispatch endpoint.
 
 ### V2-7 - WhatsApp transport and identity
 

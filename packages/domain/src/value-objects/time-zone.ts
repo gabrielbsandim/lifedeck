@@ -28,3 +28,13 @@ export function civilDate(instant: Date, timeZone: string): string {
 export function startOfCivilDay(instant: Date, timeZone: string): Date {
   return new Date(`${civilDate(instant, timeZone)}T00:00:00.000Z`)
 }
+
+export function civilHour(instant: Date, timeZone: string): number {
+  const zone = isTimeZone(timeZone) ? timeZone : DEFAULT_TIME_ZONE
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: zone,
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(instant)
+  return Number(parts.find(part => part.type === 'hour')?.value ?? '0')
+}

@@ -9,6 +9,9 @@ import {
   makeCreateGuestUser,
   makeDeleteRemoteCalendarEvent,
   makeDeliverReminder,
+  makeEnqueueDailyDigests,
+  makeReconcileCalendars,
+  makeRenewCalendarChannels,
   makeHandleCalendarNotification,
   makePullCalendarChanges,
   makePushCalendarEvent,
@@ -16,6 +19,8 @@ import {
   CALENDAR_PULL_JOB,
   CALENDAR_PUSH_JOB,
   CALENDAR_DELETE_JOB,
+  CALENDAR_WATCH_JOB,
+  DAILY_DIGEST_JOB,
   REMINDER_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
@@ -213,6 +218,11 @@ type Container = {
   watchGoogleCalendar: ReturnType<typeof makeWatchGoogleCalendar>
   handleCalendarNotification: ReturnType<typeof makeHandleCalendarNotification>
   googleCalendarAuthUrl: (state: string) => string
+  runScheduledFanOut: () => Promise<{
+    digests: number
+    reconciled: number
+    renewed: number
+  }>
   entitlements: EntitlementService
 }
 
@@ -321,11 +331,32 @@ function build(
     ids,
     clock,
   })
+  const watchGoogleCalendar = makeWatchGoogleCalendar({
+    calendarConnections,
+    provider: googleCalendar,
+    clock,
+  })
+  const calendarWebhookUrl = `${siteUrl()}/api/v1/webhooks/google`
+  const enqueueDailyDigests = makeEnqueueDailyDigests({
+    users,
+    jobQueue,
+    clock,
+  })
+  const reconcileCalendars = makeReconcileCalendars({
+    calendarConnections,
+    jobQueue,
+    clock,
+  })
+  const renewCalendarChannels = makeRenewCalendarChannels({
+    calendarConnections,
+    jobQueue,
+    clock,
+  })
   const dispatchDueJobs = makeDispatchDueJobs({
     scheduledJobs,
     clock,
     handlers: {
-      'daily-digest': async payload => {
+      [DAILY_DIGEST_JOB]: async payload => {
         await sendDailyDigest(String(payload.userId))
       },
       [CALENDAR_PULL_JOB]: async payload => {
@@ -340,6 +371,9 @@ function build(
           String(payload.externalId),
         )
       },
+      [CALENDAR_WATCH_JOB]: async payload => {
+        await watchGoogleCalendar(String(payload.userId), calendarWebhookUrl)
+      },
       [REMINDER_JOB]: async payload => {
         await deliverReminder(
           String(payload.eventId),
@@ -349,6 +383,18 @@ function build(
       },
     },
   })
+  const runScheduledFanOut = async () => {
+    const [digests, reconciled, renewed] = await Promise.all([
+      enqueueDailyDigests(),
+      reconcileCalendars(),
+      renewCalendarChannels(),
+    ])
+    return {
+      digests: digests.enqueued,
+      reconciled: reconciled.enqueued,
+      renewed: renewed.enqueued,
+    }
+  }
   const gateways = {
     asaas: new AsaasPaymentGateway(),
     stripe: new StripePaymentGateway(),
@@ -534,17 +580,14 @@ function build(
     }),
     pullCalendarChanges,
     pushCalendarEvent,
-    watchGoogleCalendar: makeWatchGoogleCalendar({
-      calendarConnections,
-      provider: googleCalendar,
-      clock,
-    }),
+    watchGoogleCalendar,
     handleCalendarNotification: makeHandleCalendarNotification({
       calendarConnections,
       jobQueue,
       clock,
     }),
     googleCalendarAuthUrl: (state: string) => googleCalendar.authUrl(state),
+    runScheduledFanOut,
     entitlements: new PlanEntitlementService(resolvePlan),
   }
 }
