@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Skeleton } from '@lifedeck/ui'
 import { useSession } from '@/lib/api/use-session'
 import { useSyncTimezone } from '@/lib/api/use-account'
@@ -15,6 +16,7 @@ const plainMain =
 export function AppHome() {
   const session = useSession()
   useSyncTimezone(session.data)
+  const [date, setDate] = useState(() => todayIso())
 
   if (session.isPending) {
     return (
@@ -37,7 +39,7 @@ export function AppHome() {
 
   return (
     <AppShell>
-      <DailyBoard date={todayIso()} />
+      <DailyBoard date={date} onDateChange={setDate} />
     </AppShell>
   )
 }

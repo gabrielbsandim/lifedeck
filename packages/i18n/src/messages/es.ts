@@ -10,6 +10,10 @@ export const es: Messages = {
     morning: 'Buenos días',
     afternoon: 'Buenas tardes',
     evening: 'Buenas noches',
+    previousDay: 'Día anterior',
+    nextDay: 'Día siguiente',
+    goToToday: 'Hoy',
+    pickDate: 'Elegir fecha',
   },
   footer: {
     description:
@@ -114,7 +118,8 @@ export const es: Messages = {
   },
   task: {
     add: 'Añadir tarea',
-    empty: 'Aquí no hay nada todavía. Añade tu primera tarea.',
+    empty: 'Aquí no hay nada todavía',
+    emptyHint: 'Añade tu primera tarea para empezar.',
     completed: 'Completada',
     pending: 'Pendiente',
     allDone: 'Todo listo — ¡buen trabajo! 🎉',

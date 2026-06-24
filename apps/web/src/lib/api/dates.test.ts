@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toIsoDate, todayIso } from '@/lib/api/dates'
+import { addDays, toIsoDate, todayIso } from '@/lib/api/dates'
 
 describe('dates', () => {
   it('formats a local date as YYYY-MM-DD with padding', () => {
@@ -9,5 +9,12 @@ describe('dates', () => {
 
   it('uses the provided date for today', () => {
     expect(todayIso(new Date(2026, 0, 1))).toBe('2026-01-01')
+  })
+
+  it('shifts an ISO date by whole days across month boundaries', () => {
+    expect(addDays('2026-06-24', -1)).toBe('2026-06-23')
+    expect(addDays('2026-06-24', 1)).toBe('2026-06-25')
+    expect(addDays('2026-03-01', -1)).toBe('2026-02-28')
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01')
   })
 })

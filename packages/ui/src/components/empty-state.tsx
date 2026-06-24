@@ -19,7 +19,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'bg-bg flex flex-col items-center rounded-2xl px-6 py-8 text-center',
+        'border-line flex flex-col items-center rounded-2xl border bg-white px-6 py-8 text-center',
         className,
       )}
     >
@@ -28,7 +28,7 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <p className="text-ink-800 text-base font-semibold">{title}</p>
+      <p className="text-ink-800 text-[15px] font-semibold">{title}</p>
       {description && (
         <p className="text-ink-500 mt-1 max-w-xs text-sm">{description}</p>
       )}

@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type {
   CreateTaskInput,
   DailyBoardView,
@@ -17,6 +22,7 @@ export function useDailyBoard(date: string) {
         `/api/v1/daily?date=${encodeURIComponent(date)}`,
       ),
     refetchInterval: 10_000,
+    placeholderData: keepPreviousData,
   })
 }
 

@@ -32,7 +32,12 @@ import {
 import { ShareDialog } from '@/components/share-dialog'
 import { DailyTaskRow, DailyTaskRowOverlay } from '@/components/daily-task-row'
 import { TaskDragList } from '@/components/task-drag-list'
-import { ChevronLeftIcon, ShareIcon, TrashIcon } from '@/components/icons'
+import {
+  CheckSquareIcon,
+  ChevronLeftIcon,
+  ShareIcon,
+  TrashIcon,
+} from '@/components/icons'
 
 export function StandaloneListView({ listId }: { listId: string }) {
   const { messages } = useI18n()
@@ -302,7 +307,11 @@ export function StandaloneListView({ listId }: { listId: string }) {
         </form>
 
         {rows.length === 0 ? (
-          <EmptyState title={messages.task.empty} />
+          <EmptyState
+            icon={<CheckSquareIcon size={22} />}
+            title={messages.task.empty}
+            description={messages.task.emptyHint}
+          />
         ) : (
           <TaskDragList
             items={rows}

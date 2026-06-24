@@ -22,6 +22,10 @@ export type Messages = {
     morning: string
     afternoon: string
     evening: string
+    previousDay: string
+    nextDay: string
+    goToToday: string
+    pickDate: string
   }
   footer: {
     description: string
@@ -123,6 +127,7 @@ export type Messages = {
   task: {
     add: string
     empty: string
+    emptyHint: string
     completed: string
     pending: string
     allDone: string

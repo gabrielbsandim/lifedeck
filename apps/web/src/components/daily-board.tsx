@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent, type TouchEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
@@ -28,7 +28,15 @@ import { ShareDialog } from '@/components/share-dialog'
 import { DailyTaskRow, DailyTaskRowOverlay } from '@/components/daily-task-row'
 import { TaskDragList } from '@/components/task-drag-list'
 import { NotificationBell } from '@/components/notification-bell'
-import { ShareIcon, UndoIcon } from '@/components/icons'
+import {
+  CalendarIcon,
+  CheckSquareIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ShareIcon,
+  UndoIcon,
+} from '@/components/icons'
+import { addDays, todayIso } from '@/lib/api/dates'
 
 function formatDate(date: string, locale: string): string {
   const parsed = new Date(`${date}T00:00:00.000Z`)
@@ -55,7 +63,13 @@ function greetingFor(hour: number): 'morning' | 'afternoon' | 'evening' {
   return 'evening'
 }
 
-export function DailyBoard({ date }: { date: string }) {
+export function DailyBoard({
+  date,
+  onDateChange,
+}: {
+  date: string
+  onDateChange: (date: string) => void
+}) {
   const { messages, locale } = useI18n()
   const board = useDailyBoard(date)
   const session = useSession()
@@ -68,6 +82,41 @@ export function DailyBoard({ date }: { date: string }) {
   const bringTask = useBringTaskToToday(date)
   const [title, setTitle] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const dateInput = useRef<HTMLInputElement>(null)
+
+  const today = todayIso()
+  const isToday = date === today
+  const goToPreviousDay = () => onDateChange(addDays(date, -1))
+  const goToNextDay = () => {
+    if (!isToday) {
+      onDateChange(addDays(date, 1))
+    }
+  }
+
+  function onTouchStart(event: TouchEvent) {
+    const point = event.touches[0]
+    touchStart.current = point ? { x: point.clientX, y: point.clientY } : null
+  }
+
+  function onTouchEnd(event: TouchEvent) {
+    const start = touchStart.current
+    touchStart.current = null
+    const point = event.changedTouches[0]
+    if (!start || !point) {
+      return
+    }
+    const dx = point.clientX - start.x
+    const dy = point.clientY - start.y
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) {
+      return
+    }
+    if (dx > 0) {
+      goToPreviousDay()
+    } else {
+      goToNextDay()
+    }
+  }
 
   if (board.isPending) {
     return <Skeleton className="h-72 w-full rounded-2xl" />
@@ -133,7 +182,11 @@ export function DailyBoard({ date }: { date: string }) {
   const greeting = messages.home[greetingFor(new Date().getHours())]
 
   return (
-    <section className="flex flex-col gap-6">
+    <section
+      className="flex flex-col gap-6"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       <header className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -144,16 +197,72 @@ export function DailyBoard({ date }: { date: string }) {
           </div>
           <NotificationBell />
         </div>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-1.5">
           <h1
             suppressHydrationWarning
             className="text-2xl font-bold tracking-tight sm:text-3xl"
           >
             {firstName ? `${greeting}, ${firstName}` : greeting}
           </h1>
-          <p className="text-ink-500 text-sm capitalize">
-            {formatDate(date, locale)}
-          </p>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={goToPreviousDay}
+              aria-label={messages.home.previousDay}
+              className="text-ink-400 hover:text-ink-700 hover:bg-bg -ml-1 flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-colors"
+            >
+              <ChevronLeftIcon size={18} />
+            </button>
+            <div className="relative">
+              <button
+                type="button"
+                aria-label={messages.home.pickDate}
+                onClick={() => {
+                  try {
+                    dateInput.current?.showPicker()
+                  } catch {
+                    dateInput.current?.focus()
+                  }
+                }}
+                className="text-ink-500 hover:text-ink-700 flex items-center gap-1.5 rounded-lg px-1.5 py-0.5 text-sm font-medium capitalize transition-colors"
+              >
+                <CalendarIcon size={14} />
+                {formatDate(date, locale)}
+              </button>
+              <input
+                ref={dateInput}
+                type="date"
+                value={date}
+                max={today}
+                onChange={event => {
+                  if (event.target.value) {
+                    onDateChange(event.target.value)
+                  }
+                }}
+                aria-hidden
+                tabIndex={-1}
+                className="pointer-events-none absolute inset-0 opacity-0"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={goToNextDay}
+              disabled={isToday}
+              aria-label={messages.home.nextDay}
+              className="text-ink-400 hover:text-ink-700 hover:bg-bg flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-colors disabled:pointer-events-none disabled:opacity-30"
+            >
+              <ChevronRightIcon size={18} />
+            </button>
+            {!isToday && (
+              <button
+                type="button"
+                onClick={() => onDateChange(today)}
+                className="text-brand-600 hover:bg-brand-50 ml-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-colors"
+              >
+                {messages.home.goToToday}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -248,7 +357,11 @@ export function DailyBoard({ date }: { date: string }) {
         )}
 
         {tasks.length === 0 ? (
-          <EmptyState title={messages.task.empty} />
+          <EmptyState
+            icon={<CheckSquareIcon size={22} />}
+            title={messages.task.empty}
+            description={messages.task.emptyHint}
+          />
         ) : (
           <TaskDragList
             items={rows}
