@@ -5,6 +5,7 @@ import {
   useBringTaskToToday,
   useCreateTask,
   useDailyBoard,
+  useDeleteDailyTask,
   useReorderDailyTasks,
   useUpdateTask,
 } from '@/lib/api/use-daily-board'
@@ -173,5 +174,47 @@ describe('useDailyBoard', () => {
       `/api/v1/lists/${BOARD.list.id}/tasks`,
       expect.objectContaining({ method: 'PATCH' }),
     )
+  })
+
+  it('deletes a task via DELETE and removes it from the cached board', async () => {
+    const fetchMock = mockFetchOnce({ data: { deleted: true } })
+    const { Wrapper, queryClient } = createWrapper()
+    queryClient.setQueryData(dailyBoardKey('2026-06-21'), {
+      list: BOARD.list,
+      tasks: [task('a', 0), task('b', 1)],
+    })
+
+    const { result } = renderHook(() => useDeleteDailyTask('2026-06-21'), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync('a')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/tasks/a',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+    const cached = queryClient.getQueryData(dailyBoardKey('2026-06-21')) as {
+      tasks: { id: string }[]
+    }
+    expect(cached.tasks.map(t => t.id)).toEqual(['b'])
+  })
+
+  it('restores the task when a delete fails', async () => {
+    mockFetchOnce({ error: { message: 'nope' } }, false, 422)
+    const { Wrapper, queryClient } = createWrapper()
+    queryClient.setQueryData(dailyBoardKey('2026-06-21'), {
+      list: BOARD.list,
+      tasks: [task('a', 0), task('b', 1)],
+    })
+
+    const { result } = renderHook(() => useDeleteDailyTask('2026-06-21'), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync('a').catch(() => undefined)
+
+    const cached = queryClient.getQueryData(dailyBoardKey('2026-06-21')) as {
+      tasks: { id: string }[]
+    }
+    expect(cached.tasks.map(t => t.id)).toEqual(['a', 'b'])
   })
 })
