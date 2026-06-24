@@ -92,35 +92,35 @@ function CompletionChart({
   buckets: Bucket[]
   empty: string
 }) {
-  const total = buckets.reduce((sum, b) => sum + b.value, 0)
-  if (total === 0) {
+  const hasTasks = buckets.some(b => b.total > 0)
+  if (!hasTasks) {
     return (
       <div className="text-ink-400 flex h-40 items-center justify-center text-sm">
         {empty}
       </div>
     )
   }
-  const max = Math.max(1, ...buckets.map(b => b.value))
 
   return (
     <div className="flex h-40 items-end justify-between gap-1.5">
       {buckets.map((bucket, index) => {
         const last = index === buckets.length - 1
-        const pct = Math.round((bucket.value / max) * 100)
+        const pct =
+          bucket.total > 0 ? Math.round((bucket.value / bucket.total) * 100) : 0
         return (
           <div
             key={`${bucket.label}-${index}`}
             className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"
           >
             <div
-              title={`${bucket.label}: ${bucket.value}`}
+              title={`${bucket.label}: ${pct}%`}
               className={`w-full max-w-[34px] rounded-t-lg transition-[height] duration-500 ${
                 last
                   ? 'to-brand-600 bg-gradient-to-b from-violet-500'
                   : 'bg-brand-200'
               }`}
               style={{
-                height: `${Math.max(pct, bucket.value > 0 ? 6 : 2)}%`,
+                height: `${Math.max(pct, bucket.total > 0 ? 4 : 0)}%`,
               }}
             />
             <span className="text-ink-400 truncate text-[10px]">
