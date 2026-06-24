@@ -137,6 +137,11 @@ export type Messages = {
     editNote: string
     note: string
     notePlaceholder: string
+    edit: string
+    editTitle: string
+    delete: string
+    save: string
+    cancel: string
   }
   list: {
     daily: string
@@ -157,6 +162,9 @@ export type Messages = {
     newList: string
     deleteTitle: string
     deleteBody: string
+    leave: string
+    leaveTitle: string
+    leaveBody: string
   }
   share: {
     title: string

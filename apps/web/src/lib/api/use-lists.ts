@@ -62,16 +62,48 @@ export function useDeleteList() {
   })
 }
 
+export function useLeaveList() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest<{ left: boolean }>(`/api/v1/lists/${id}/membership`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userListsKey })
+    },
+  })
+}
+
 export function useReorderListTasks(id: string) {
   const queryClient = useQueryClient()
+  const key = listTasksKey(id)
   return useMutation({
     mutationFn: (taskIds: string[]) =>
       apiRequest<TaskView[]>(`/api/v1/lists/${id}/tasks`, {
         method: 'PATCH',
         body: JSON.stringify({ taskIds }),
       }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: listTasksKey(id) })
+    onMutate: async (taskIds: string[]) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<TaskView[]>(key)
+      if (previous) {
+        const byId = new Map(previous.map(task => [task.id, task]))
+        const reordered = taskIds
+          .map(taskId => byId.get(taskId))
+          .filter((task): task is TaskView => task !== undefined)
+        const missing = previous.filter(task => !taskIds.includes(task.id))
+        queryClient.setQueryData<TaskView[]>(key, [...reordered, ...missing])
+      }
+      return { previous }
+    },
+    onError: (_error, _taskIds, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(key, context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
     },
   })
 }
@@ -121,6 +153,7 @@ export function useCreateListTask(id: string) {
 
 export function useUpdateListTask(id: string) {
   const queryClient = useQueryClient()
+  const key = listTasksKey(id)
   return useMutation({
     mutationFn: ({
       id: taskId,
@@ -133,8 +166,56 @@ export function useUpdateListTask(id: string) {
         method: 'PATCH',
         body: JSON.stringify(input),
       }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: listTasksKey(id) })
+    onMutate: async ({ id: taskId, input }) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<TaskView[]>(key)
+      if (previous) {
+        queryClient.setQueryData<TaskView[]>(
+          key,
+          previous.map(task =>
+            task.id === taskId ? { ...task, ...input } : task,
+          ),
+        )
+      }
+      return { previous }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(key, context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+    },
+  })
+}
+
+export function useDeleteListTask(id: string) {
+  const queryClient = useQueryClient()
+  const key = listTasksKey(id)
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      apiRequest<{ deleted: boolean }>(`/api/v1/tasks/${taskId}`, {
+        method: 'DELETE',
+      }),
+    onMutate: async (taskId: string) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<TaskView[]>(key)
+      if (previous) {
+        queryClient.setQueryData<TaskView[]>(
+          key,
+          previous.filter(task => task.id !== taskId),
+        )
+      }
+      return { previous }
+    },
+    onError: (_error, _taskId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(key, context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
     },
   })
 }

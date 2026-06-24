@@ -6,6 +6,8 @@ import {
   makeCreateGuestUser,
   makeCreateList,
   makeDeleteList,
+  makeDeleteTask,
+  makeLeaveList,
   makeRenameList,
   makeReorderTasks,
   makeCreateRecurringTask,
@@ -104,6 +106,7 @@ import { siteUrl } from '@/lib/site'
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
   updateTask: ReturnType<typeof makeUpdateTask>
+  deleteTask: ReturnType<typeof makeDeleteTask>
   listListTasks: ReturnType<typeof makeListListTasks>
   createGuestUser: ReturnType<typeof makeCreateGuestUser>
   getUser: ReturnType<typeof makeGetUser>
@@ -141,6 +144,7 @@ type Container = {
   joinListByToken: ReturnType<typeof makeJoinListByToken>
   listMembers: ReturnType<typeof makeListMembers>
   removeMember: ReturnType<typeof makeRemoveMember>
+  leaveList: ReturnType<typeof makeLeaveList>
   getAnalytics: ReturnType<typeof makeGetAnalytics>
   generateList: ReturnType<typeof makeGenerateList>
   sendDailyDigest: ReturnType<typeof makeSendDailyDigest>
@@ -226,6 +230,7 @@ function build(
       ids,
       clock,
     }),
+    deleteTask: makeDeleteTask({ tasks, lists, memberships }),
     listListTasks: makeListListTasks({ tasks, lists, memberships }),
     createGuestUser: makeCreateGuestUser({ users, ids, clock }),
     getUser: makeGetUser({ users }),
@@ -322,6 +327,7 @@ function build(
     }),
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
+    leaveList: makeLeaveList({ lists, memberships }),
     getAnalytics: makeGetAnalytics({ analytics, users, clock }),
     generateList: makeGenerateList({ generator: listGenerator }),
     sendDailyDigest: makeSendDailyDigest({

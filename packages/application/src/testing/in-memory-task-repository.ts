@@ -17,4 +17,8 @@ export class InMemoryTaskRepository implements TaskRepository {
       .filter(task => task.toJSON().listId === listId)
       .sort((a, b) => a.position - b.position)
   }
+
+  async delete(id: EntityId): Promise<void> {
+    this.store.delete(id)
+  }
 }

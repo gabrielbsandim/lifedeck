@@ -18,6 +18,7 @@ import {
   useBringTaskToToday,
   useCreateTask,
   useDailyBoard,
+  useDeleteDailyTask,
   useReorderDailyTasks,
   useUpdateTask,
 } from '@/lib/api/use-daily-board'
@@ -62,6 +63,7 @@ export function DailyBoard({ date }: { date: string }) {
   const members = useMembers(listId, listId !== '')
   const createTask = useCreateTask(date)
   const updateTask = useUpdateTask(date)
+  const deleteTask = useDeleteDailyTask(date)
   const reorderTasks = useReorderDailyTasks(date, listId)
   const bringTask = useBringTaskToToday(date)
   const [title, setTitle] = useState('')
@@ -82,6 +84,12 @@ export function DailyBoard({ date }: { date: string }) {
   }
 
   const { list, tasks, carryOver } = board.data
+  // Keep unchecked tasks first and move completed ones to the end, preserving
+  // their relative order within each group (Array.prototype.sort is stable).
+  const rows = [...tasks].sort(
+    (a, b) =>
+      Number(a.status === 'completed') - Number(b.status === 'completed'),
+  )
   const doneCount = tasks.filter(task => task.status === 'completed').length
   const pct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
   const allDone = tasks.length > 0 && doneCount === tasks.length
@@ -112,6 +120,10 @@ export function DailyBoard({ date }: { date: string }) {
 
   function update(id: string, input: UpdateTaskInput) {
     updateTask.mutate({ id, input })
+  }
+
+  function removeTask(task: TaskView) {
+    deleteTask.mutate(task.id)
   }
 
   const self = session.data
@@ -239,7 +251,7 @@ export function DailyBoard({ date }: { date: string }) {
           <EmptyState title={messages.task.empty} />
         ) : (
           <TaskDragList
-            items={tasks}
+            items={rows}
             getId={task => task.id}
             onReorder={ids => reorderTasks.mutate(ids)}
             className="flex flex-col gap-2"
@@ -250,6 +262,7 @@ export function DailyBoard({ date }: { date: string }) {
                 self,
                 onToggle: toggle,
                 onUpdate: update,
+                onDelete: removeTask,
               }
               return overlay ? (
                 <DailyTaskRowOverlay {...rowProps} />

@@ -68,6 +68,37 @@ export function useUpdateTask(date: string) {
   })
 }
 
+export function useDeleteDailyTask(date: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      apiRequest<{ deleted: boolean }>(`/api/v1/tasks/${taskId}`, {
+        method: 'DELETE',
+      }),
+    onMutate: async (taskId: string) => {
+      await queryClient.cancelQueries({ queryKey: dailyBoardKey(date) })
+      const previous = queryClient.getQueryData<DailyBoardView>(
+        dailyBoardKey(date),
+      )
+      if (previous) {
+        queryClient.setQueryData<DailyBoardView>(dailyBoardKey(date), {
+          ...previous,
+          tasks: previous.tasks.filter(task => task.id !== taskId),
+        })
+      }
+      return { previous }
+    },
+    onError: (_error, _taskId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(dailyBoardKey(date), context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: dailyBoardKey(date) })
+    },
+  })
+}
+
 export function useBringTaskToToday(date: string) {
   const queryClient = useQueryClient()
   return useMutation({

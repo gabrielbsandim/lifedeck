@@ -21,6 +21,8 @@ import { useMembers } from '@/lib/api/use-share'
 import {
   useCreateListTask,
   useDeleteList,
+  useDeleteListTask,
+  useLeaveList,
   useList,
   useListTasks,
   useRenameList,
@@ -44,14 +46,17 @@ export function StandaloneListView({ listId }: { listId: string }) {
   const members = useMembers(listId, isOwner && listId !== '')
   const createTask = useCreateListTask(listId)
   const updateTask = useUpdateListTask(listId)
+  const deleteTask = useDeleteListTask(listId)
   const reorderTasks = useReorderListTasks(listId)
   const renameList = useRenameList(listId)
   const deleteList = useDeleteList()
+  const leaveList = useLeaveList()
   const [title, setTitle] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [listTitle, setListTitle] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [confirmingLeave, setConfirmingLeave] = useState(false)
 
   if (list.isPending || tasks.isPending) {
     return <Skeleton className="h-72 w-full rounded-2xl" />
@@ -67,7 +72,12 @@ export function StandaloneListView({ listId }: { listId: string }) {
     )
   }
 
-  const rows = tasks.data
+  // Keep unchecked tasks first and move completed ones to the end, preserving
+  // their relative order within each group (Array.prototype.sort is stable).
+  const rows = [...tasks.data].sort(
+    (a, b) =>
+      Number(a.status === 'completed') - Number(b.status === 'completed'),
+  )
   const doneCount = rows.filter(task => task.status === 'completed').length
   const pct = rows.length ? Math.round((doneCount / rows.length) * 100) : 0
   const allDone = rows.length > 0 && doneCount === rows.length
@@ -114,6 +124,14 @@ export function StandaloneListView({ listId }: { listId: string }) {
 
   function removeList() {
     deleteList.mutate(listId, { onSuccess: () => router.push('/lists') })
+  }
+
+  function removeTask(task: TaskView) {
+    deleteTask.mutate(task.id)
+  }
+
+  function leaveCurrentList() {
+    leaveList.mutate(listId, { onSuccess: () => router.push('/lists') })
   }
 
   const self = session.data
@@ -184,7 +202,20 @@ export function StandaloneListView({ listId }: { listId: string }) {
               </button>
             </div>
           )}
-          {!isOwner && <Badge tone="shared">{messages.list.shared}</Badge>}
+          {!isOwner && (
+            <div className="flex flex-none items-center gap-2">
+              <Badge tone="shared">{messages.list.shared}</Badge>
+              <button
+                type="button"
+                aria-label={messages.lists.leave}
+                title={messages.lists.leave}
+                onClick={() => setConfirmingLeave(true)}
+                className="text-ink-400 hover:text-danger flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
+              >
+                <TrashIcon size={18} />
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -215,6 +246,32 @@ export function StandaloneListView({ listId }: { listId: string }) {
               variant="ghost"
               className="h-9 text-xs"
               onClick={() => setConfirmingDelete(false)}
+            >
+              {messages.recurring.cancel}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={confirmingLeave}
+        onClose={() => setConfirmingLeave(false)}
+        title={messages.lists.leaveTitle}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-ink-500 text-sm">{messages.lists.leaveBody}</p>
+          <div className="flex gap-2">
+            <Button
+              className="bg-danger h-9 flex-1 text-xs hover:opacity-90"
+              isLoading={leaveList.isPending}
+              onClick={leaveCurrentList}
+            >
+              {messages.lists.leave}
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-9 text-xs"
+              onClick={() => setConfirmingLeave(false)}
             >
               {messages.recurring.cancel}
             </Button>
@@ -259,6 +316,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 self,
                 onToggle: toggle,
                 onUpdate: update,
+                onDelete: removeTask,
               }
               return overlay ? (
                 <DailyTaskRowOverlay {...rowProps} />

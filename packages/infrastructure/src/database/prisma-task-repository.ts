@@ -39,4 +39,8 @@ export class PrismaTaskRepository implements TaskRepository {
     })
     return records.map(toDomainTask)
   }
+
+  async delete(id: EntityId): Promise<void> {
+    await this.prisma.task.deleteMany({ where: { id } })
+  }
 }

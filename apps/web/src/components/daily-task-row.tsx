@@ -14,8 +14,10 @@ import {
   GripIcon,
   LockIcon,
   NoteIcon,
+  PencilIcon,
   PlusIcon,
   RecurringIcon,
+  TrashIcon,
   UnlockIcon,
 } from '@/components/icons'
 
@@ -38,6 +40,7 @@ type SharedProps = {
   self: { id: string; name: string } | null
   onToggle: (task: TaskView) => void
   onUpdate: (id: string, input: UpdateTaskInput) => void
+  onDelete?: (task: TaskView) => void
 }
 
 type TaskRowBodyProps = SharedProps & {
@@ -54,6 +57,7 @@ function TaskRowBody({
   self,
   onToggle,
   onUpdate,
+  onDelete,
   grip,
   containerRef,
   style,
@@ -65,6 +69,21 @@ function TaskRowBody({
   const completed = task.status === 'completed'
   const [editingNote, setEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState(task.observation ?? '')
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState(task.title)
+
+  function openTitle() {
+    setTitleDraft(task.title)
+    setEditingTitle(true)
+  }
+
+  function saveTitle() {
+    const trimmed = titleDraft.trim()
+    if (trimmed && trimmed !== task.title) {
+      onUpdate(task.id, { title: trimmed })
+    }
+    setEditingTitle(false)
+  }
 
   const options: AssigneeOption[] = [
     ...(self ? [{ id: self.id, name: self.name }] : []),
@@ -106,15 +125,37 @@ function TaskRowBody({
       </div>
 
       <div className="min-w-0 flex-1">
-        <span
-          className={
-            completed
-              ? 'text-ink-500 block break-words text-sm line-through'
-              : 'text-ink-800 block break-words text-sm font-medium'
-          }
-        >
-          {task.title}
-        </span>
+        {editingTitle ? (
+          <input
+            autoFocus
+            value={titleDraft}
+            onChange={event => setTitleDraft(event.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                saveTitle()
+              }
+              if (event.key === 'Escape') {
+                setTitleDraft(task.title)
+                setEditingTitle(false)
+              }
+            }}
+            aria-label={t.editTitle}
+            maxLength={280}
+            className="border-line text-ink-800 focus-visible:border-brand-600 w-full rounded-md border bg-white px-2 py-1 text-base font-medium outline-none sm:text-sm"
+          />
+        ) : (
+          <span
+            className={
+              completed
+                ? 'text-ink-500 block break-words text-sm line-through'
+                : 'text-ink-800 block break-words text-sm font-medium'
+            }
+          >
+            {task.title}
+          </span>
+        )}
         {task.carriedFromDate && (
           <span className="text-ink-400 text-xs">
             {messages.carryOver.broughtFrom.replace(
@@ -146,7 +187,7 @@ function TaskRowBody({
             placeholder={t.notePlaceholder}
             aria-label={t.note}
             maxLength={2000}
-            className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-xs outline-none"
+            className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-base outline-none sm:text-xs"
           />
         ) : task.observation ? (
           <button
@@ -180,6 +221,18 @@ function TaskRowBody({
             className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg ${revealClass}`}
           >
             <NoteIcon size={15} />
+          </button>
+        )}
+
+        {!editingTitle && (
+          <button
+            type="button"
+            aria-label={t.editTitle}
+            title={t.editTitle}
+            onClick={openTitle}
+            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg ${revealClass}`}
+          >
+            <PencilIcon size={15} />
           </button>
         )}
 
@@ -228,6 +281,18 @@ function TaskRowBody({
               ))}
             </select>
           </div>
+        )}
+
+        {onDelete && (
+          <button
+            type="button"
+            aria-label={t.delete}
+            title={t.delete}
+            onClick={() => onDelete(task)}
+            className={`${iconButtonClass} text-ink-400 hover:text-danger hover:bg-bg ${revealClass}`}
+          >
+            <TrashIcon size={15} />
+          </button>
         )}
       </div>
     </li>

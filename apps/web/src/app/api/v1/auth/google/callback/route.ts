@@ -11,6 +11,7 @@ import {
   oauthStateCookieOptions,
   parseOAuthStateCookie,
 } from '@/server/session/oauth-state'
+import { getUserIdFromRequest } from '@/server/session/session'
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -23,7 +24,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const user = await getContainer().signInWithGoogle(code)
+    const guestId = await getUserIdFromRequest(request)
+    const user = await getContainer().signInWithGoogle(code, guestId)
     const token = await createSessionToken(user.id, new Date())
 
     const response = NextResponse.redirect(new URL('/', request.url))

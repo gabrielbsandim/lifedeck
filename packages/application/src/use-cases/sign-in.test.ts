@@ -189,6 +189,59 @@ describe('signInWithGoogle', () => {
     expect(view.id).toBe(ID.otherUser)
   })
 
+  it('claims the current guest so their lists carry over', async () => {
+    const ctx = setup(
+      new FakeOAuthProvider({
+        email: 'guest@example.com',
+        displayName: 'From Google',
+        emailVerified: true,
+        avatarUrl: 'https://lh3.googleusercontent.com/a/guest',
+      }),
+    )
+    const guest = User.createGuest({
+      id: ID.otherUser,
+      displayName: 'Guest Name',
+      locale: 'en',
+      createdAt: NOW,
+    })
+    await ctx.users.save(guest)
+
+    const view = await ctx.signIn('auth-code', ID.otherUser)
+
+    expect(view.id).toBe(ID.otherUser)
+    expect(view.email).toBe('guest@example.com')
+    expect(view.isGuest).toBe(false)
+    expect(view.displayName).toBe('Guest Name')
+    expect(view.avatarUrl).toBe('https://lh3.googleusercontent.com/a/guest')
+  })
+
+  it('creates a new user when the guest is already registered', async () => {
+    const ctx = setup(
+      new FakeOAuthProvider({
+        email: 'fresh@example.com',
+        displayName: 'Fresh',
+        emailVerified: true,
+      }),
+    )
+    const registered = User.createGuest({
+      id: ID.otherUser,
+      displayName: 'Already',
+      locale: 'en',
+      createdAt: NOW,
+    })
+    registered.register({
+      email: 'already@example.com',
+      passwordHash: null,
+      emailVerifiedAt: NOW,
+    })
+    await ctx.users.save(registered)
+
+    const view = await ctx.signIn('auth-code', ID.otherUser)
+
+    expect(view.id).toBe(ID.user)
+    expect(view.email).toBe('fresh@example.com')
+  })
+
   it('falls back to the email local part when the profile name is blank', async () => {
     const ctx = setup(
       new FakeOAuthProvider({

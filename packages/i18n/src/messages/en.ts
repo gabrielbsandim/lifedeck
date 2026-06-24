@@ -127,6 +127,11 @@ export const en: Messages = {
     editNote: 'Edit note',
     note: 'Task note',
     notePlaceholder: 'Add a note',
+    edit: 'Edit task',
+    editTitle: 'Edit title',
+    delete: 'Delete task',
+    save: 'Save',
+    cancel: 'Cancel',
   },
   list: {
     daily: 'Daily list',
@@ -147,6 +152,10 @@ export const en: Messages = {
     newList: 'New list',
     deleteTitle: 'Delete this list?',
     deleteBody: 'This permanently deletes the list and all its tasks.',
+    leave: 'Leave list',
+    leaveTitle: 'Leave this list?',
+    leaveBody:
+      'It will be removed from your lists. The owner keeps it and you can rejoin with the link.',
   },
   share: {
     title: 'Share this list',

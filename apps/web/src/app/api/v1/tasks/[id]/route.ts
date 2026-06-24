@@ -20,3 +20,20 @@ export async function PATCH(
     return handleError(error)
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const auth = await requireScope(request, 'tasks:write')
+    if (auth instanceof NextResponse) {
+      return auth
+    }
+    const { id } = await params
+    await getContainer().deleteTask(auth.userId, id)
+    return ok({ deleted: true })
+  } catch (error) {
+    return handleError(error)
+  }
+}

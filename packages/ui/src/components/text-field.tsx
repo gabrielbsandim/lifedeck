@@ -32,7 +32,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? errorId : undefined}
           className={cn(
-            'text-ink-800 focus-visible:ring-3 h-11 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none transition',
+            'text-ink-800 focus-visible:ring-3 h-11 rounded-xl border-[1.5px] bg-white px-3.5 text-base outline-none transition sm:text-sm',
             invalid
               ? 'border-danger bg-danger/5 focus-visible:ring-danger/20'
               : 'border-line focus-visible:border-brand-600 focus-visible:ring-brand-600/15',

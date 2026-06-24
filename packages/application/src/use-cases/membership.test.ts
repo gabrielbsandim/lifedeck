@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { List, ShareLink, User, asEntityId } from '@lifedeck/domain'
+import {
+  List,
+  ShareLink,
+  User,
+  ValidationError,
+  asEntityId,
+} from '@lifedeck/domain'
 import { makeJoinListByToken } from '@/use-cases/join-list-by-token'
+import { makeLeaveList } from '@/use-cases/leave-list'
 import { makeListMembers } from '@/use-cases/list-members'
 import { makeRemoveMember } from '@/use-cases/remove-member'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -68,6 +75,7 @@ async function setup(role: 'editor' | 'viewer' = 'editor') {
     }),
     listMembers: makeListMembers({ lists, memberships, users }),
     removeMember: makeRemoveMember({ lists, memberships }),
+    leaveList: makeLeaveList({ lists, memberships }),
   }
 }
 
@@ -145,5 +153,33 @@ describe('membership', () => {
     await expect(removeMember(ID.user, ID.list, ID.otherUser)).rejects.toThrow(
       NotFoundError,
     )
+  })
+
+  it('lets a member leave a list they joined', async () => {
+    const { joinListByToken, leaveList, listMembers } = await setup()
+    await joinListByToken(ID.otherUser, 'secret-token')
+
+    await leaveList(ID.otherUser, ID.list)
+
+    expect(await listMembers(ID.user, ID.list)).toEqual([])
+  })
+
+  it('rejects leaving when not a member', async () => {
+    const { leaveList } = await setup()
+    await expect(leaveList(ID.otherUser, ID.list)).rejects.toThrow(
+      NotFoundError,
+    )
+  })
+
+  it('rejects the owner leaving their own list', async () => {
+    const { leaveList } = await setup()
+    await expect(leaveList(ID.user, ID.list)).rejects.toThrow(ValidationError)
+  })
+
+  it('rejects leaving an unknown list', async () => {
+    const { leaveList } = await setup()
+    await expect(
+      leaveList(ID.otherUser, '00000000-0000-4000-8000-000000000000'),
+    ).rejects.toThrow(NotFoundError)
   })
 })

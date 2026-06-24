@@ -129,6 +129,11 @@ export const es: Messages = {
     editNote: 'Editar nota',
     note: 'Nota de la tarea',
     notePlaceholder: 'Añadir una nota',
+    edit: 'Editar tarea',
+    editTitle: 'Editar título',
+    delete: 'Eliminar tarea',
+    save: 'Guardar',
+    cancel: 'Cancelar',
   },
   list: {
     daily: 'Lista del día',
@@ -149,6 +154,10 @@ export const es: Messages = {
     newList: 'Nueva lista',
     deleteTitle: '¿Eliminar esta lista?',
     deleteBody: 'Esto elimina la lista y todas sus tareas de forma permanente.',
+    leave: 'Salir de la lista',
+    leaveTitle: '¿Salir de esta lista?',
+    leaveBody:
+      'Se quitará de tus listas. El propietario la conserva y puedes volver a unirte con el enlace.',
   },
   share: {
     title: 'Compartir esta lista',
