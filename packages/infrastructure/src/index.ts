@@ -97,3 +97,10 @@ export {
 } from '@/database/subscription-record'
 export { AsaasPaymentGateway } from '@/billing/asaas-payment-gateway'
 export { StripePaymentGateway } from '@/billing/stripe-payment-gateway'
+export { createUsageMeter } from '@/usage/redis-usage-meter'
+export { PrismaUsageEventRepository } from '@/database/prisma-usage-event-repository'
+export {
+  toDomainUsageEvent,
+  toUsageEventRecord,
+  type UsageEventRecord,
+} from '@/database/usage-event-record'

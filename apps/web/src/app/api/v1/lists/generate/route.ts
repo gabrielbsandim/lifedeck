@@ -1,6 +1,7 @@
 import { getContainer } from '@/server/container'
 import { fail, handleError, ok } from '@/server/api/respond'
 import { getUserIdFromRequest } from '@/server/session/session'
+import { isFeatureEnabled } from '@/server/api/features'
 import {
   checkGenerateRateLimit,
   rateLimitHeaders,
@@ -18,8 +19,12 @@ export async function POST(request: Request) {
         headers: rateLimitHeaders(rate),
       })
     }
+    const container = getContainer()
+    if (isFeatureEnabled('v2')) {
+      await container.consumeCredits(userId, 'listGeneration')
+    }
     const body = await request.json()
-    const draft = await getContainer().generateList(body)
+    const draft = await container.generateList(body)
     return ok(draft)
   } catch (error) {
     return handleError(error)

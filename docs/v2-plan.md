@@ -622,13 +622,19 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
 - [ ] Billing settings screen (UI) - deferred to V2-9 launch polish alongside the
       plan picker; the checkout + webhook backend is complete and flag-gated.
 
-### V2-4 - AI metering (credits)
+### V2-4 - AI metering (credits) - DONE
 
-- [ ] `UsageMeter` port; `RedisUsageMeter` (Upstash counters) + `UsageEvent`
-      ledger (migration); credit-cost weighting on the `Plan` config.
-- [ ] Rolling 5-hour and weekly windows; `consumeCredits` / `getUsage` use cases.
-- [ ] Enforce on `/lists/generate` (closes the Phase 6.5 quota TODO); usage view
-      in account.
+- [x] `UsageMeter` port + `RedisUsageMeter` (Upstash REST sorted-set rolling
+      windows, credit-weighted members, no-op when Upstash unset) + `UsageEvent`
+      ledger entity/port/Prisma repo + migration `12_usage_events`; credit-cost
+      weighting in domain (`value-objects/ai-operation.ts`: listGeneration/
+      assistantText 1, assistantPro 6, audio/vision 2).
+- [x] Rolling 5-hour and weekly windows enforced against `quotaForPlan`;
+      `consumeCredits` (checks both windows, debits, records ledger, throws
+      `QuotaExceededError`) and `getUsage` use cases. `QuotaExceededError` -> HTTP 429.
+- [x] Enforced on `/lists/generate` (gated by `isFeatureEnabled('v2')` so V1 is
+      untouched until launch); `GET /api/v1/usage` view. Container wires meter +
+      ledger + both use cases, reusing the subscription-backed `resolvePlan`.
 
 ### V2-5 - Calendar core and Google sync
 

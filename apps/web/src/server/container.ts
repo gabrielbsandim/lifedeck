@@ -2,6 +2,7 @@ import {
   makeAuthenticateApiKey,
   makeBringTaskToToday,
   makeChangePassword,
+  makeConsumeCredits,
   makeCreateApiKey,
   makeCreateGuestUser,
   makeCreateList,
@@ -24,6 +25,7 @@ import {
   makeGetGoogleAuthUrl,
   makeGetList,
   makeGetSharedBoard,
+  makeGetUsage,
   makeGetUser,
   makeHandleSubscriptionWebhook,
   makeInviteToList,
@@ -71,6 +73,8 @@ import {
   type ScheduledJobRepository,
   type ShareLinkRepository,
   type SubscriptionRepository,
+  type UsageEventLedger,
+  type UsageMeter,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -94,10 +98,12 @@ import {
   PrismaScheduledJobRepository,
   PrismaShareLinkRepository,
   PrismaSubscriptionRepository,
+  PrismaUsageEventRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
   AsaasPaymentGateway,
   StripePaymentGateway,
+  createUsageMeter,
   Argon2PasswordHasher,
   RandomTokenGenerator,
   ResendEmailSender,
@@ -171,6 +177,8 @@ type Container = {
   dispatchDueJobs: ReturnType<typeof makeDispatchDueJobs>
   startCheckout: ReturnType<typeof makeStartCheckout>
   handleSubscriptionWebhook: ReturnType<typeof makeHandleSubscriptionWebhook>
+  consumeCredits: ReturnType<typeof makeConsumeCredits>
+  getUsage: ReturnType<typeof makeGetUsage>
   entitlements: EntitlementService
 }
 
@@ -187,6 +195,7 @@ type Repositories = {
   apiKeys: ApiKeyRepository
   scheduledJobs: ScheduledJobRepository
   subscriptions: SubscriptionRepository
+  usageEvents: UsageEventLedger
 }
 
 type Services = {
@@ -197,6 +206,7 @@ type Services = {
   listGenerator: ListGenerator
   healthProbes: HealthProbe[]
   fileStorage: FileStorage
+  usageMeter: UsageMeter
 }
 
 function build(
@@ -213,6 +223,7 @@ function build(
     apiKeys,
     scheduledJobs,
     subscriptions,
+    usageEvents,
   }: Repositories,
   {
     hasher,
@@ -222,6 +233,7 @@ function build(
     listGenerator,
     healthProbes,
     fileStorage,
+    usageMeter,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -404,6 +416,14 @@ function build(
       ids,
       clock,
     }),
+    consumeCredits: makeConsumeCredits({
+      usageMeter,
+      ledger: usageEvents,
+      resolvePlan,
+      ids,
+      clock,
+    }),
+    getUsage: makeGetUsage({ usageMeter, resolvePlan }),
     entitlements: new PlanEntitlementService(resolvePlan),
   }
 }
@@ -472,6 +492,7 @@ export function getContainer(): Container {
         apiKeys: new PrismaApiKeyRepository(db),
         scheduledJobs: new PrismaScheduledJobRepository(db),
         subscriptions: new PrismaSubscriptionRepository(db),
+        usageEvents: new PrismaUsageEventRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),
@@ -481,6 +502,7 @@ export function getContainer(): Container {
         listGenerator: buildListGenerator(),
         healthProbes: buildHealthProbes(),
         fileStorage: new VercelBlobStorage(),
+        usageMeter: createUsageMeter(),
       },
       new PrismaUnitOfWork(prisma),
     )

@@ -15,3 +15,20 @@ export class ForbiddenError extends Error {
     this.name = 'ForbiddenError'
   }
 }
+
+export class QuotaExceededError extends Error {
+  readonly code = 'QUOTA_EXCEEDED'
+
+  constructor(
+    readonly window: 'fiveHour' | 'weekly',
+    readonly limit: number,
+    readonly used: number,
+  ) {
+    super(
+      `AI usage limit reached for the ${
+        window === 'fiveHour' ? '5-hour' : 'weekly'
+      } window.`,
+    )
+    this.name = 'QuotaExceededError'
+  }
+}

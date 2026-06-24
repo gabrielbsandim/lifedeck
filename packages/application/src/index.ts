@@ -24,7 +24,11 @@ export type {
   DailyCompletion,
   CompletionTotals,
 } from '@/ports/analytics-repository'
-export { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
+export {
+  NotFoundError,
+  ForbiddenError,
+  QuotaExceededError,
+} from '@/errors/use-case-error'
 export {
   createTaskSchema,
   updateTaskSchema,
@@ -115,6 +119,20 @@ export type {
 export { makeStartCheckout, gatewayForMarket } from '@/use-cases/start-checkout'
 export { makeHandleSubscriptionWebhook } from '@/use-cases/handle-subscription-webhook'
 export { makeResolvePlanFromSubscription } from '@/use-cases/resolve-plan-from-subscription'
+export type { UsageMeter, UsageCounts, UsageWindow } from '@/ports/usage-meter'
+export type { UsageEventLedger } from '@/ports/usage-event-ledger'
+export {
+  makeConsumeCredits,
+  type UsageSummary,
+} from '@/use-cases/consume-credits'
+export { makeGetUsage } from '@/use-cases/get-usage'
+export {
+  usageViewSchema,
+  usageWindowViewSchema,
+  type UsageView,
+} from '@/dtos/usage-dto'
+export { InMemoryUsageMeter } from '@/testing/in-memory-usage-meter'
+export { InMemoryUsageEventLedger } from '@/testing/in-memory-usage-event-ledger'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,

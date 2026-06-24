@@ -60,6 +60,12 @@ export {
   type PaymentProvider,
 } from '@/value-objects/payment-provider'
 export {
+  AI_OPERATIONS,
+  isAiOperation,
+  creditCostOf,
+  type AiOperation,
+} from '@/value-objects/ai-operation'
+export {
   DEFAULT_TIME_ZONE,
   isTimeZone,
   civilDate,
@@ -86,6 +92,7 @@ export {
   type ScheduledJobProps,
 } from '@/entities/scheduled-job'
 export { Subscription, type SubscriptionProps } from '@/entities/subscription'
+export { UsageEvent, type UsageEventProps } from '@/entities/usage-event'
 export {
   API_SCOPES,
   isApiScope,

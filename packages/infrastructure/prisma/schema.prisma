@@ -63,6 +63,7 @@ model User {
   notifications     Notification[]
   apiKeys           ApiKey[]
   subscriptions     Subscription[]
+  usageEvents       UsageEvent[]
 
   @@map("users")
 }
@@ -227,4 +228,17 @@ model Subscription {
   @@unique([provider, providerRef])
   @@index([userId])
   @@map("subscriptions")
+}
+
+model UsageEvent {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  operation String
+  credits   Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("usage_events")
 }

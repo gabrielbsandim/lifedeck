@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { ZodError } from 'zod'
 import { ValidationError } from '@lifedeck/domain'
-import { ForbiddenError, NotFoundError } from '@lifedeck/application'
+import {
+  ForbiddenError,
+  NotFoundError,
+  QuotaExceededError,
+} from '@lifedeck/application'
 import { log } from '@/server/api/logger'
 
 export type ApiErrorBody = {
@@ -44,6 +48,13 @@ export function handleError(error: unknown): NextResponse<ApiErrorBody> {
   }
   if (error instanceof ForbiddenError) {
     return fail('FORBIDDEN', error.message, 403)
+  }
+  if (error instanceof QuotaExceededError) {
+    return fail('QUOTA_EXCEEDED', error.message, 429, {
+      window: error.window,
+      limit: error.limit,
+      used: error.used,
+    })
   }
   Sentry.captureException(error)
   log('error', 'Unhandled API error', {
