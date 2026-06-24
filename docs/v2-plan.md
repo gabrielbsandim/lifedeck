@@ -636,15 +636,23 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       untouched until launch); `GET /api/v1/usage` view. Container wires meter +
       ledger + both use cases, reusing the subscription-backed `resolvePlan`.
 
-### V2-5 - Calendar core and Google sync
+### V2-5 - Calendar core and Google sync (backend core DONE)
 
-- [ ] Domain: `CalendarEvent`, `Reminder`, `CalendarConnection` (+ reuse
-      `RecurrenceRule`). Repositories + migration.
-- [ ] Event CRUD + range list use cases + REST + OpenAPI (`calendar:*` scopes).
-- [ ] `CalendarProvider` port; `GoogleCalendarProvider` with incremental OAuth,
-      watch-channel inbound (`/api/v1/webhooks/google`), outbound push, conflict
-      resolution, periodic reconcile (on the scheduler).
-- [ ] Calendar UI (month/week/day) + integrations settings. Flag-gated.
+- [x] Domain: `CalendarEvent` (title/description/location/start/end/allDay,
+      reminder offsets, reuses `RecurrenceRule`, `isOwnedBy`, window invariant).
+      Repository port + in-memory + Prisma + migration `13_calendar_events`
+      (reminders `Int[]`, recurrence `JSONB`). Reminder offsets live on the event;
+      `Reminder` dispatch entity belongs to V2-6.
+- [x] Event CRUD + range-list/get use cases + REST (`/api/v1/calendar/events`
+      [+ `/{id}`], feature-gated `calendar` + new `calendar:read`/`calendar:write`
+      scopes) + OpenAPI (`CalendarEventView` + 5 paths).
+- [ ] **Next slice (Google sync):** `CalendarConnection` model; `CalendarProvider`
+      port; `GoogleCalendarProvider` with incremental OAuth, watch-channel inbound
+      (`/api/v1/webhooks/google`), outbound push, conflict resolution, periodic
+      reconcile on the scheduler (V2-2 dispatcher). Adds sync columns
+      (externalId/etag/source) to `calendar_events` via an additive migration.
+- [ ] **Next slice (UI):** calendar month/week/day + integrations settings, plus
+      the deferred V2-1 nav-filter "Em breve" badge. Flag-gated.
 
 ### V2-6 - Reminders and proactive delivery
 

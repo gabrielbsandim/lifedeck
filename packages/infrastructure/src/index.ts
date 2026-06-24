@@ -104,3 +104,9 @@ export {
   toUsageEventRecord,
   type UsageEventRecord,
 } from '@/database/usage-event-record'
+export { PrismaCalendarEventRepository } from '@/database/prisma-calendar-event-repository'
+export {
+  toDomainCalendarEvent,
+  toCalendarEventRecord,
+  type CalendarEventRecord,
+} from '@/database/calendar-event-record'

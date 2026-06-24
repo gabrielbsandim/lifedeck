@@ -133,6 +133,24 @@ export {
 } from '@/dtos/usage-dto'
 export { InMemoryUsageMeter } from '@/testing/in-memory-usage-meter'
 export { InMemoryUsageEventLedger } from '@/testing/in-memory-usage-event-ledger'
+export type { CalendarEventRepository } from '@/ports/calendar-event-repository'
+export {
+  createCalendarEventSchema,
+  updateCalendarEventSchema,
+  listCalendarEventsQuerySchema,
+  calendarEventViewSchema,
+  type CreateCalendarEventInput,
+  type UpdateCalendarEventInput,
+  type ListCalendarEventsQuery,
+  type CalendarEventView,
+} from '@/dtos/calendar-event-dto'
+export { toCalendarEventView } from '@/mappers/calendar-event-mapper'
+export { makeCreateCalendarEvent } from '@/use-cases/create-calendar-event'
+export { makeUpdateCalendarEvent } from '@/use-cases/update-calendar-event'
+export { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
+export { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
+export { makeGetCalendarEvent } from '@/use-cases/get-calendar-event'
+export { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,

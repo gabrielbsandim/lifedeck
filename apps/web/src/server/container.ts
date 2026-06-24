@@ -4,11 +4,15 @@ import {
   makeChangePassword,
   makeConsumeCredits,
   makeCreateApiKey,
+  makeCreateCalendarEvent,
   makeCreateGuestUser,
   makeCreateList,
+  makeDeleteCalendarEvent,
   makeDeleteList,
   makeDeleteTask,
+  makeGetCalendarEvent,
   makeLeaveList,
+  makeListCalendarEvents,
   makeRenameList,
   makeReorderTasks,
   makeCreateRecurringTask,
@@ -54,6 +58,7 @@ import {
   makeRemoveAvatar,
   makeSignInWithEmail,
   makeSignInWithGoogle,
+  makeUpdateCalendarEvent,
   makeUpdateRecurringTask,
   makeUpdateTask,
   makeVerifyEmail,
@@ -75,6 +80,7 @@ import {
   type SubscriptionRepository,
   type UsageEventLedger,
   type UsageMeter,
+  type CalendarEventRepository,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -99,6 +105,7 @@ import {
   PrismaShareLinkRepository,
   PrismaSubscriptionRepository,
   PrismaUsageEventRepository,
+  PrismaCalendarEventRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
   AsaasPaymentGateway,
@@ -179,6 +186,11 @@ type Container = {
   handleSubscriptionWebhook: ReturnType<typeof makeHandleSubscriptionWebhook>
   consumeCredits: ReturnType<typeof makeConsumeCredits>
   getUsage: ReturnType<typeof makeGetUsage>
+  createCalendarEvent: ReturnType<typeof makeCreateCalendarEvent>
+  updateCalendarEvent: ReturnType<typeof makeUpdateCalendarEvent>
+  deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
+  listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
+  getCalendarEvent: ReturnType<typeof makeGetCalendarEvent>
   entitlements: EntitlementService
 }
 
@@ -196,6 +208,7 @@ type Repositories = {
   scheduledJobs: ScheduledJobRepository
   subscriptions: SubscriptionRepository
   usageEvents: UsageEventLedger
+  calendarEvents: CalendarEventRepository
 }
 
 type Services = {
@@ -224,6 +237,7 @@ function build(
     scheduledJobs,
     subscriptions,
     usageEvents,
+    calendarEvents,
   }: Repositories,
   {
     hasher,
@@ -424,6 +438,15 @@ function build(
       clock,
     }),
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
+    createCalendarEvent: makeCreateCalendarEvent({
+      calendarEvents,
+      ids,
+      clock,
+    }),
+    updateCalendarEvent: makeUpdateCalendarEvent({ calendarEvents, clock }),
+    deleteCalendarEvent: makeDeleteCalendarEvent({ calendarEvents }),
+    listCalendarEvents: makeListCalendarEvents({ calendarEvents }),
+    getCalendarEvent: makeGetCalendarEvent({ calendarEvents }),
     entitlements: new PlanEntitlementService(resolvePlan),
   }
 }
@@ -493,6 +516,7 @@ export function getContainer(): Container {
         scheduledJobs: new PrismaScheduledJobRepository(db),
         subscriptions: new PrismaSubscriptionRepository(db),
         usageEvents: new PrismaUsageEventRepository(db),
+        calendarEvents: new PrismaCalendarEventRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),

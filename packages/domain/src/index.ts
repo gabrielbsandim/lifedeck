@@ -94,6 +94,10 @@ export {
 export { Subscription, type SubscriptionProps } from '@/entities/subscription'
 export { UsageEvent, type UsageEventProps } from '@/entities/usage-event'
 export {
+  CalendarEvent,
+  type CalendarEventProps,
+} from '@/entities/calendar-event'
+export {
   API_SCOPES,
   isApiScope,
   type ApiScope,

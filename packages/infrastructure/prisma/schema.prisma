@@ -64,6 +64,7 @@ model User {
   apiKeys           ApiKey[]
   subscriptions     Subscription[]
   usageEvents       UsageEvent[]
+  calendarEvents    CalendarEvent[]
 
   @@map("users")
 }
@@ -241,4 +242,24 @@ model UsageEvent {
 
   @@index([userId, createdAt])
   @@map("usage_events")
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  ownerId     String   @map("owner_id")
+  title       String
+  description String?
+  location    String?
+  startsAt    DateTime @map("starts_at")
+  endsAt      DateTime @map("ends_at")
+  allDay      Boolean  @default(false) @map("all_day")
+  reminders   Int[]    @default([])
+  recurrence  Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, startsAt])
+  @@map("calendar_events")
 }

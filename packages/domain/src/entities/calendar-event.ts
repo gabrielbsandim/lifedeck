@@ -1,0 +1,198 @@
+import { ValidationError } from '@/shared/domain-error'
+import { guard } from '@/shared/guard'
+import type { EntityId } from '@/shared/id'
+import {
+  validateRecurrenceRule,
+  type RecurrenceRule,
+} from '@/value-objects/recurrence-rule'
+
+const MAX_TITLE_LENGTH = 200
+const MAX_DESCRIPTION_LENGTH = 2000
+const MAX_LOCATION_LENGTH = 300
+const MAX_REMINDERS = 5
+
+export type CalendarEventProps = {
+  id: EntityId
+  ownerId: EntityId
+  title: string
+  description: string | null
+  location: string | null
+  startsAt: Date
+  endsAt: Date
+  allDay: boolean
+  reminders: number[]
+  recurrence: RecurrenceRule | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+function normalizeReminders(reminders: number[]): number[] {
+  for (const minutes of reminders) {
+    if (!Number.isInteger(minutes) || minutes < 0) {
+      throw new ValidationError(
+        'Reminder offsets must be non-negative whole minutes.',
+      )
+    }
+  }
+  if (reminders.length > MAX_REMINDERS) {
+    throw new ValidationError(
+      `An event may have at most ${MAX_REMINDERS} reminders.`,
+    )
+  }
+  return [...new Set(reminders)].sort((a, b) => a - b)
+}
+
+function cleanText(
+  value: string | null | undefined,
+  max: number,
+  field: string,
+): string | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+  const trimmed = value.trim()
+  if (trimmed.length === 0) {
+    return null
+  }
+  return guard.maxLength(trimmed, max, field)
+}
+
+export class CalendarEvent {
+  private constructor(private props: CalendarEventProps) {}
+
+  static create(input: {
+    id: EntityId
+    ownerId: EntityId
+    title: string
+    description?: string | null
+    location?: string | null
+    startsAt: Date
+    endsAt: Date
+    allDay?: boolean
+    reminders?: number[]
+    recurrence?: RecurrenceRule | null
+    now: Date
+  }): CalendarEvent {
+    const title = guard.maxLength(
+      guard.notEmpty(input.title, 'Event title'),
+      MAX_TITLE_LENGTH,
+      'Event title',
+    )
+    if (input.endsAt.getTime() < input.startsAt.getTime()) {
+      throw new ValidationError('Event end must not be before its start.')
+    }
+    return new CalendarEvent({
+      id: input.id,
+      ownerId: input.ownerId,
+      title,
+      description: cleanText(
+        input.description,
+        MAX_DESCRIPTION_LENGTH,
+        'Event description',
+      ),
+      location: cleanText(
+        input.location,
+        MAX_LOCATION_LENGTH,
+        'Event location',
+      ),
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      allDay: input.allDay ?? false,
+      reminders: normalizeReminders(input.reminders ?? []),
+      recurrence: input.recurrence
+        ? validateRecurrenceRule(input.recurrence)
+        : null,
+      createdAt: input.now,
+      updatedAt: input.now,
+    })
+  }
+
+  static restore(props: CalendarEventProps): CalendarEvent {
+    return new CalendarEvent({ ...props })
+  }
+
+  get id(): EntityId {
+    return this.props.id
+  }
+
+  get ownerId(): EntityId {
+    return this.props.ownerId
+  }
+
+  get startsAt(): Date {
+    return this.props.startsAt
+  }
+
+  get endsAt(): Date {
+    return this.props.endsAt
+  }
+
+  get reminders(): number[] {
+    return [...this.props.reminders]
+  }
+
+  isOwnedBy(userId: EntityId): boolean {
+    return this.props.ownerId === userId
+  }
+
+  update(
+    input: {
+      title?: string
+      description?: string | null
+      location?: string | null
+      startsAt?: Date
+      endsAt?: Date
+      allDay?: boolean
+      reminders?: number[]
+      recurrence?: RecurrenceRule | null
+    },
+    now: Date,
+  ): void {
+    if (input.title !== undefined) {
+      this.props.title = guard.maxLength(
+        guard.notEmpty(input.title, 'Event title'),
+        MAX_TITLE_LENGTH,
+        'Event title',
+      )
+    }
+    if (input.description !== undefined) {
+      this.props.description = cleanText(
+        input.description,
+        MAX_DESCRIPTION_LENGTH,
+        'Event description',
+      )
+    }
+    if (input.location !== undefined) {
+      this.props.location = cleanText(
+        input.location,
+        MAX_LOCATION_LENGTH,
+        'Event location',
+      )
+    }
+    if (input.startsAt !== undefined) {
+      this.props.startsAt = input.startsAt
+    }
+    if (input.endsAt !== undefined) {
+      this.props.endsAt = input.endsAt
+    }
+    if (this.props.endsAt.getTime() < this.props.startsAt.getTime()) {
+      throw new ValidationError('Event end must not be before its start.')
+    }
+    if (input.allDay !== undefined) {
+      this.props.allDay = input.allDay
+    }
+    if (input.reminders !== undefined) {
+      this.props.reminders = normalizeReminders(input.reminders)
+    }
+    if (input.recurrence !== undefined) {
+      this.props.recurrence = input.recurrence
+        ? validateRecurrenceRule(input.recurrence)
+        : null
+    }
+    this.props.updatedAt = now
+  }
+
+  toJSON(): CalendarEventProps {
+    return { ...this.props, reminders: [...this.props.reminders] }
+  }
+}

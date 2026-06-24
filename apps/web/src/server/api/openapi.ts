@@ -7,7 +7,9 @@ import { z } from 'zod'
 import {
   analyticsViewSchema,
   apiKeyViewSchema,
+  calendarEventViewSchema,
   createApiKeySchema,
+  createCalendarEventSchema,
   createdApiKeyViewSchema,
   createListSchema,
   createRecurringTaskSchema,
@@ -25,6 +27,7 @@ import {
   reorderTasksSchema,
   shareLinkViewSchema,
   taskViewSchema,
+  updateCalendarEventSchema,
   updateRecurringTaskSchema,
   updateTaskSchema,
 } from '@lifedeck/application'
@@ -79,6 +82,10 @@ const ApiKeyView = registry.register('ApiKeyView', apiKeyViewSchema)
 const CreatedApiKeyView = registry.register(
   'CreatedApiKeyView',
   createdApiKeyViewSchema,
+)
+const CalendarEventView = registry.register(
+  'CalendarEventView',
+  calendarEventViewSchema,
 )
 const NotificationListView = registry.register(
   'NotificationListView',
@@ -519,6 +526,95 @@ registry.registerPath({
       'The shared board.',
       z.object({ list: ListView, tasks: z.array(TaskView) }),
     ),
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'get',
+  path: '/calendar/events',
+  summary: 'List calendar events overlapping a time range',
+  operationId: 'listCalendarEvents',
+  security: apiKeySecurity,
+  request: {
+    query: z.object({
+      from: z.string().openapi({ example: '2026-06-01T00:00:00.000Z' }),
+      to: z.string().openapi({ example: '2026-06-30T23:59:59.000Z' }),
+    }),
+  },
+  responses: {
+    200: jsonResponse('Events in the range.', z.array(CalendarEventView)),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+    422: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/calendar/events',
+  summary: 'Create a calendar event',
+  operationId: 'createCalendarEvent',
+  security: apiKeySecurity,
+  request: { body: jsonBody(createCalendarEventSchema) },
+  responses: {
+    201: jsonResponse('The created event.', CalendarEventView),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+    422: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'get',
+  path: '/calendar/events/{id}',
+  summary: 'Get a calendar event',
+  operationId: 'getCalendarEvent',
+  security: apiKeySecurity,
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    200: jsonResponse('The event.', CalendarEventView),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'patch',
+  path: '/calendar/events/{id}',
+  summary: 'Update a calendar event',
+  operationId: 'updateCalendarEvent',
+  security: apiKeySecurity,
+  request: {
+    params: z.object({ id: idParam }),
+    body: jsonBody(updateCalendarEventSchema),
+  },
+  responses: {
+    200: jsonResponse('The updated event.', CalendarEventView),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+    422: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'delete',
+  path: '/calendar/events/{id}',
+  summary: 'Delete a calendar event',
+  operationId: 'deleteCalendarEvent',
+  security: apiKeySecurity,
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    200: jsonResponse(
+      'Deletion acknowledged.',
+      z.object({ deleted: z.boolean() }),
+    ),
+    401: errorResponse,
+    403: errorResponse,
     404: errorResponse,
   },
 })
