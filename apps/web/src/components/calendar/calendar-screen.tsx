@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { CalendarEventView } from '@lifedeck/application'
 import { Button, cn } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
@@ -24,8 +25,16 @@ export function CalendarScreen() {
   const { messages, locale } = useI18n()
   const t = messages.calendar
   const session = useSession()
+  const params = useSearchParams()
   const timeZone = session.data?.timezone || browserTimeZone()
   const today = todayIso()
+
+  const connectStatus = params.get('calendar')
+  const [notice, setNotice] = useState<'connected' | 'error' | null>(
+    connectStatus === 'connected' || connectStatus === 'error'
+      ? connectStatus
+      : null,
+  )
 
   const [view, setView] = useState<CalendarView>('month')
   const [anchor, setAnchor] = useState(today)
@@ -62,6 +71,21 @@ export function CalendarScreen() {
           </h1>
           <GoogleCalendarConnect />
         </div>
+
+        {notice && (
+          <button
+            type="button"
+            onClick={() => setNotice(null)}
+            className={cn(
+              'rounded-xl border px-4 py-3 text-left text-sm',
+              notice === 'connected'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                : 'border-red-200 bg-red-50 text-red-800',
+            )}
+          >
+            {notice === 'connected' ? t.googleConnected : t.googleError}
+          </button>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="border-line inline-flex rounded-xl border bg-white p-0.5">
