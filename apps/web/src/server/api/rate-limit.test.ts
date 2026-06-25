@@ -23,6 +23,7 @@ import {
   checkGenerateRateLimit,
   checkRateLimit,
   checkSessionRateLimit,
+  checkWhatsappRateLimit,
   clientIp,
   rateLimitHeaders,
 } from '@/server/api/rate-limit'
@@ -60,6 +61,12 @@ describe('rate limit', () => {
     const result = await checkGenerateRateLimit('generate:abc')
     expect(result.ok).toBe(true)
     expect(result.limit).toBe(6)
+  })
+
+  it('allows whatsapp messages when Upstash is not configured', async () => {
+    const result = await checkWhatsappRateLimit('whatsapp:5511999990000')
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(10)
   })
 
   it('reads the client IP from x-forwarded-for then x-real-ip', () => {

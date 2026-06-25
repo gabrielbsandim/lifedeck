@@ -7,6 +7,8 @@ import { getContainer } from '@/server/container'
 import { handleError } from '@/server/api/respond'
 import { isFeatureEnabled } from '@/server/api/features'
 import { log } from '@/server/api/logger'
+import { checkWhatsappRateLimit } from '@/server/api/rate-limit'
+import { markMessageProcessed } from '@/server/api/whatsapp-dedup'
 
 export async function GET(request: Request) {
   if (!isFeatureEnabled('whatsapp')) {
@@ -36,11 +38,19 @@ export async function POST(request: Request) {
     }
     const messages = parseInboundMessages(JSON.parse(rawBody))
     const container = getContainer()
-    // Always ack 200 to Meta. Processing each message in isolation prevents a
-    // single failure from triggering a batch-wide retry, which would re-charge
-    // credits and re-run tools (no message-id dedup yet; tracked for V2-9).
+    // Always ack 200 to Meta. Each message is processed in isolation so a single
+    // failure never triggers a batch-wide retry. Dedup on the Meta message id
+    // makes a retry a no-op, and a per-sender rate limit throttles pairing-code
+    // guessing and spam; both gracefully no-op without Upstash.
     for (const message of messages) {
       try {
+        if (!(await markMessageProcessed(message.messageId))) {
+          continue
+        }
+        const allowed = await checkWhatsappRateLimit(`whatsapp:${message.from}`)
+        if (!allowed.ok) {
+          continue
+        }
         await container.handleInboundWhatsApp(
           message.kind === 'text'
             ? { from: message.from, kind: 'text', text: message.text }

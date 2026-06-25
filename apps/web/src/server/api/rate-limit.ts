@@ -33,6 +33,12 @@ const GENERATE_LIMIT: LimiterConfig = {
   prefix: 'lifedeck/ratelimit/generate',
 }
 
+const WHATSAPP_LIMIT: LimiterConfig = {
+  requests: 10,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/whatsapp',
+}
+
 export type RateLimitResult = {
   ok: boolean
   limit: number
@@ -105,6 +111,12 @@ export function checkGenerateRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
   return check(GENERATE_LIMIT, identifier)
+}
+
+export function checkWhatsappRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(WHATSAPP_LIMIT, identifier)
 }
 
 export function clientIp(request: Request): string {

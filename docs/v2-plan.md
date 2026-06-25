@@ -715,9 +715,11 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       code (bound to the inbound address), and otherwise replies with
       until-linked guidance. A verified number gets an echo (V2-8 swaps in the
       AI assistant). All flag-gated (`whatsapp`).
-- [ ] **Deferred to V2-9 security pass:** dedicated Upstash rate limiter on the
-      WhatsApp webhook + `messageId` idempotency/replay store (the 10-min code
-      expiry already bounds brute-force; both are listed in the security section).
+- [x] **Webhook hardening (DONE in V2-9 security pass):** per-sender Upstash rate
+      limiter (`checkWhatsappRateLimit`, 10/min) + `messageId` dedup
+      (`markMessageProcessed`, SET NX EX 24h) on the WhatsApp webhook; both
+      gracefully no-op without Upstash. A Meta retry is now a no-op and
+      pairing-code guessing/spam is throttled per number.
 
 ### V2-8 - WhatsApp AI assistant - DONE
 
