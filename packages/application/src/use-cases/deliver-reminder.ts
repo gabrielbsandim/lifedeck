@@ -2,16 +2,26 @@ import { Notification, asEntityId } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
+import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
+import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { NotificationRepository } from '@/ports/notification-repository'
 import type { JobQueue } from '@/ports/job-queue'
 import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
+export type ReminderTemplate = {
+  name: string
+  language: string
+}
+
 type Dependencies = {
   calendarEvents: CalendarEventRepository
   notifications: NotificationRepository
+  channelIdentities: ChannelIdentityRepository
+  messaging: MessagingChannel
   jobQueue: JobQueue
   ids: IdGenerator
   clock: Clock
+  reminderTemplate?: ReminderTemplate
 }
 
 export type ReminderResult = {
@@ -22,9 +32,12 @@ export type ReminderResult = {
 export function makeDeliverReminder({
   calendarEvents,
   notifications,
+  channelIdentities,
+  messaging,
   jobQueue,
   ids,
   clock,
+  reminderTemplate,
 }: Dependencies) {
   return async function deliverReminder(
     eventId: string,
@@ -70,6 +83,28 @@ export function makeDeliverReminder({
         createdAt: clock.now(),
       }),
     )
+
+    // Best-effort proactive WhatsApp alert when the user linked a number and a
+    // utility template is configured. A failure here must not undo the in-app
+    // notification, so it is swallowed.
+    if (reminderTemplate?.name) {
+      const identity = await channelIdentities.findByUser(
+        asEntityId(userId),
+        'whatsapp',
+      )
+      if (identity?.isVerified() && identity.address) {
+        try {
+          await messaging.sendTemplate(identity.address, {
+            name: reminderTemplate.name,
+            language: reminderTemplate.language,
+            params: [props.title, props.startsAt.toISOString()],
+          })
+        } catch {
+          // Ignore; the in-app notification already landed.
+        }
+      }
+    }
+
     return { delivered: true }
   }
 }

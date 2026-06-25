@@ -48,6 +48,17 @@ const OPERATION: Record<InboundWhatsappMessage['kind'], AiOperation> = {
   image: 'imageVision',
 }
 
+// Premium users get the stronger model for non-trivial text requests. Short
+// messages stay on Flash so a quick "ok" never burns a Pro-weight credit.
+const PRO_WORD_THRESHOLD = 8
+
+function wantsProModel(granted: readonly string[], text: string): boolean {
+  if (!granted.includes('premiumModel')) {
+    return false
+  }
+  return text.trim().split(/\s+/).filter(Boolean).length >= PRO_WORD_THRESHOLD
+}
+
 type Dependencies = {
   channelIdentities: ChannelIdentityRepository
   messaging: MessagingChannel
@@ -108,10 +119,15 @@ export function makeHandleInboundWhatsApp({
       return { action: 'denied' }
     }
 
+    const pro = message.kind === 'text' && wantsProModel(granted, message.text)
+    const operation: AiOperation = pro
+      ? 'assistantPro'
+      : OPERATION[message.kind]
+
     // Meter before any model call so an exhausted user never spends one. The
-    // credit weight follows the modality (audio/image cost more than text).
+    // credit weight follows the modality and the chosen model tier.
     try {
-      await consumeCredits(userId, OPERATION[message.kind])
+      await consumeCredits(userId, operation)
     } catch (error) {
       if (error instanceof QuotaExceededError) {
         await messaging.sendText(message.from, ASSISTANT_QUOTA_MESSAGE)
@@ -125,7 +141,12 @@ export function makeHandleInboundWhatsApp({
     try {
       text = await toText(message)
       const history = await conversations.load(userId)
-      reply = await agent.run({ userId, message: text, history })
+      reply = await agent.run({
+        userId,
+        message: text,
+        history,
+        model: pro ? 'pro' : 'flash',
+      })
     } catch {
       await messaging.sendText(message.from, ASSISTANT_ERROR_MESSAGE)
       return { action: 'error' }

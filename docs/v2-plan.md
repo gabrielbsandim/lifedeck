@@ -717,7 +717,7 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       WhatsApp webhook + `messageId` idempotency/replay store (the 10-min code
       expiry already bounds brute-force; both are listed in the security section).
 
-### V2-8 - WhatsApp AI assistant (text + tools + multimodal DONE)
+### V2-8 - WhatsApp AI assistant - DONE
 
 - [x] **Agent text path (DONE):** `AgentRunner` port + `AiSdkAgentRunner`
       (Vercel AI SDK `generateText`, Gemini Flash by default, same provider
@@ -739,10 +739,16 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       meters by modality (`audioTranscription`/`imageVision` = 2 credits vs
       `assistantText` = 1) before fetching, then transcribes/describes and feeds
       the text to the agent.
-- [ ] Premium routes complex requests to Gemini 3.1 Pro (debit `assistantPro` =
-      6 credits instead of the flat `assistantText`).
-- [ ] Proactive WhatsApp alerts (utility templates) as a reminder channel
-      (extend `MessagingChannel` with `sendTemplate`; route from `deliverReminder`).
+- [x] **Pro routing (DONE):** Premium users' non-trivial text (>= 8 words)
+      routes to Gemini 3.1 Pro, debited `assistantPro` = 6 (short messages and
+      Flash users stay `assistantText` = 1). `AiSdkAgentRunner` holds a flash and
+      a pro model and picks by `AgentRunInput.model`. The word-count proxy for
+      "complex" is tunable.
+- [x] **Proactive alerts (DONE):** `MessagingChannel.sendTemplate` (Meta utility
+      template) + `deliverReminder` sends a best-effort WhatsApp template (event
+      title + start time) when the user has a verified number and
+      `WHATSAPP_REMINDER_TEMPLATE` is set, alongside the in-app notification. A
+      per-reminder opt-in toggle is a later refinement.
 
 ### V2-9 - Launch polish
 

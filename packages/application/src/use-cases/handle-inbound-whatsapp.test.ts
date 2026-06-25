@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ChannelIdentity, asEntityId } from '@lifedeck/domain'
+import { ChannelIdentity, asEntityId, type Entitlement } from '@lifedeck/domain'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 import { QuotaExceededError } from '@/errors/use-case-error'
@@ -18,6 +18,7 @@ const FROM = '5511999990000'
 
 type Options = {
   entitled?: boolean
+  grants?: Entitlement[]
   consumeCredits?: (userId: string, operation: string) => Promise<unknown>
   agentRun?: () => Promise<{ text: string }>
 }
@@ -26,6 +27,7 @@ function setup(options: Options = {}) {
   const channelIdentities = new InMemoryChannelIdentityRepository()
   const conversations = new InMemoryConversationStore()
   const sendText = vi.fn().mockResolvedValue(undefined)
+  const sendTemplate = vi.fn().mockResolvedValue(undefined)
   const fetchMedia = vi
     .fn()
     .mockResolvedValue({ data: new ArrayBuffer(8), mimeType: 'audio/ogg' })
@@ -35,11 +37,15 @@ function setup(options: Options = {}) {
   const describe = vi.fn().mockResolvedValue('a photo of a receipt')
   const handleInboundWhatsApp = makeHandleInboundWhatsApp({
     channelIdentities,
-    messaging: { sendText, fetchMedia },
+    messaging: { sendText, sendTemplate, fetchMedia },
     entitlements: {
       for: async () => ({
-        plan: 'pro',
-        entitlements: options.entitled === false ? [] : ['whatsappAssistant'],
+        plan: 'pro' as const,
+        entitlements:
+          options.grants ??
+          (options.entitled === false
+            ? []
+            : (['whatsappAssistant'] as Entitlement[])),
       }),
     },
     consumeCredits: consume,
@@ -101,6 +107,7 @@ describe('handleInboundWhatsApp', () => {
       userId: ID.user,
       message: 'buy milk',
       history: [],
+      model: 'flash',
     })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Added milk.')
     const stored = await ctx.conversations.load(ID.user)
@@ -127,6 +134,7 @@ describe('handleInboundWhatsApp', () => {
         { role: 'user', content: 'hi' },
         { role: 'assistant', content: 'hello' },
       ],
+      model: 'flash',
     })
   })
 
@@ -230,6 +238,34 @@ describe('handleInboundWhatsApp', () => {
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, PAIR_GUIDANCE_MESSAGE)
   })
 
+  it('routes a long text from a premium user to the pro model', async () => {
+    const ctx = setup({ grants: ['whatsappAssistant', 'premiumModel'] })
+    await verified(ctx.channelIdentities)
+
+    await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'please plan a detailed week of workouts and meals for me today',
+    })
+
+    expect(ctx.consume).toHaveBeenCalledWith(ID.user, 'assistantPro')
+    expect(ctx.run).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'pro' }),
+    )
+  })
+
+  it('keeps a short premium text on the flash model', async () => {
+    const ctx = setup({ grants: ['whatsappAssistant', 'premiumModel'] })
+    await verified(ctx.channelIdentities)
+
+    await ctx.handleInboundWhatsApp({ from: FROM, kind: 'text', text: 'hi' })
+
+    expect(ctx.consume).toHaveBeenCalledWith(ID.user, 'assistantText')
+    expect(ctx.run).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'flash' }),
+    )
+  })
+
   it('transcribes an audio message and meters it as audio', async () => {
     const ctx = setup()
     await verified(ctx.channelIdentities)
@@ -248,6 +284,7 @@ describe('handleInboundWhatsApp', () => {
       userId: ID.user,
       message: 'remind me to call mom',
       history: [],
+      model: 'flash',
     })
   })
 

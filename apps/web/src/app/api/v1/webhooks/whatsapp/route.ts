@@ -6,6 +6,7 @@ import {
 import { getContainer } from '@/server/container'
 import { handleError } from '@/server/api/respond'
 import { isFeatureEnabled } from '@/server/api/features'
+import { log } from '@/server/api/logger'
 
 export async function GET(request: Request) {
   if (!isFeatureEnabled('whatsapp')) {
@@ -35,16 +36,23 @@ export async function POST(request: Request) {
     }
     const messages = parseInboundMessages(JSON.parse(rawBody))
     const container = getContainer()
+    // Always ack 200 to Meta. Processing each message in isolation prevents a
+    // single failure from triggering a batch-wide retry, which would re-charge
+    // credits and re-run tools (no message-id dedup yet; tracked for V2-9).
     for (const message of messages) {
-      await container.handleInboundWhatsApp(
-        message.kind === 'text'
-          ? { from: message.from, kind: 'text', text: message.text }
-          : {
-              from: message.from,
-              kind: message.kind,
-              mediaId: message.mediaId,
-            },
-      )
+      try {
+        await container.handleInboundWhatsApp(
+          message.kind === 'text'
+            ? { from: message.from, kind: 'text', text: message.text }
+            : {
+                from: message.from,
+                kind: message.kind,
+                mediaId: message.mediaId,
+              },
+        )
+      } catch (error) {
+        log('error', 'whatsapp inbound failed', { error: String(error) })
+      }
     }
     return new NextResponse(null, { status: 200 })
   } catch (error) {

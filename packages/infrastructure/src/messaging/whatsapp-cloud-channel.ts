@@ -1,9 +1,17 @@
-import type { MediaPayload, MessagingChannel } from '@lifedeck/application'
+import type {
+  MediaPayload,
+  MessageTemplate,
+  MessagingChannel,
+} from '@lifedeck/application'
 
 const GRAPH_VERSION = 'v21.0'
 
 class NoopMessagingChannel implements MessagingChannel {
   async sendText(): Promise<void> {
+    // No WhatsApp credentials configured; sends are dropped (dev/preview).
+  }
+
+  async sendTemplate(): Promise<void> {
     // No WhatsApp credentials configured; sends are dropped (dev/preview).
   }
 
@@ -37,6 +45,39 @@ export class WhatsAppCloudChannel implements MessagingChannel {
     if (!response.ok) {
       const detail = await response.text()
       throw new Error(`WhatsApp send failed (${response.status}): ${detail}`)
+    }
+  }
+
+  async sendTemplate(to: string, template: MessageTemplate): Promise<void> {
+    const url = `https://graph.facebook.com/${GRAPH_VERSION}/${this.phoneNumberId}/messages`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${this.accessToken}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to,
+        type: 'template',
+        template: {
+          name: template.name,
+          language: { code: template.language },
+          components: [
+            {
+              type: 'body',
+              parameters: template.params.map(text => ({ type: 'text', text })),
+            },
+          ],
+        },
+      }),
+    })
+    if (!response.ok) {
+      const detail = await response.text()
+      throw new Error(
+        `WhatsApp template failed (${response.status}): ${detail}`,
+      )
     }
   }
 

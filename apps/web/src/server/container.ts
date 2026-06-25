@@ -351,12 +351,21 @@ function build(
     calendarConnections,
     provider: googleCalendar,
   })
+  const reminderTemplateName = process.env.WHATSAPP_REMINDER_TEMPLATE?.trim()
   const deliverReminder = makeDeliverReminder({
     calendarEvents,
     notifications,
+    channelIdentities,
+    messaging,
     jobQueue,
     ids,
     clock,
+    reminderTemplate: reminderTemplateName
+      ? {
+          name: reminderTemplateName,
+          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
+        }
+      : undefined,
   })
   const watchGoogleCalendar = makeWatchGoogleCalendar({
     calendarConnections,

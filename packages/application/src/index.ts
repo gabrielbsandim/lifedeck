@@ -179,6 +179,7 @@ export { REMINDER_JOB } from '@/use-cases/reminder-jobs'
 export {
   makeDeliverReminder,
   type ReminderResult,
+  type ReminderTemplate,
 } from '@/use-cases/deliver-reminder'
 export {
   makeEnqueueDailyDigests,
@@ -208,6 +209,7 @@ export type {
   AgentRunner,
   AgentRunInput,
   AgentReply,
+  AgentModelTier,
 } from '@/ports/agent-runner'
 export type {
   ConversationStore,
@@ -218,7 +220,7 @@ export type {
   AssistantTaskSummary,
   AssistantEventSummary,
 } from '@/ports/assistant-tools'
-export type { MediaPayload } from '@/ports/messaging-channel'
+export type { MediaPayload, MessageTemplate } from '@/ports/messaging-channel'
 export type { Transcriber } from '@/ports/transcriber'
 export type { VisionReader } from '@/ports/vision-reader'
 export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'

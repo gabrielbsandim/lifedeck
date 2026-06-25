@@ -10,6 +10,7 @@ import type {
 } from '@lifedeck/application'
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
+const DEFAULT_GEMINI_PRO_MODEL = 'gemini-3-pro-preview'
 
 const SYSTEM_PROMPT = `You are the Lifedeck assistant, helping the user organize their life over WhatsApp. Be concise, friendly, and practical; reply in the user's language.
 
@@ -27,7 +28,8 @@ class StubAgentRunner implements AgentRunner {
 
 export class AiSdkAgentRunner implements AgentRunner {
   constructor(
-    private readonly model: LanguageModel,
+    private readonly flashModel: LanguageModel,
+    private readonly proModel: LanguageModel,
     private readonly tools: AssistantTools,
   ) {}
 
@@ -73,7 +75,7 @@ export class AiSdkAgentRunner implements AgentRunner {
       { role: 'user', content: input.message },
     ]
     const { text } = await generateText({
-      model: this.model,
+      model: input.model === 'pro' ? this.proModel : this.flashModel,
       system: SYSTEM_PROMPT,
       messages,
       tools: this.toolsFor(input.userId),
@@ -87,12 +89,14 @@ export function createAgentRunner(tools: AssistantTools): AgentRunner {
   const geminiKey = process.env.GEMINI_API_KEY?.trim()
   if (geminiKey) {
     const google = createGoogleGenerativeAI({ apiKey: geminiKey })
-    const modelId = process.env.GEMINI_MODEL_ID?.trim() || DEFAULT_GEMINI_MODEL
-    return new AiSdkAgentRunner(google(modelId), tools)
+    const flashId = process.env.GEMINI_MODEL_ID?.trim() || DEFAULT_GEMINI_MODEL
+    const proId =
+      process.env.GEMINI_PRO_MODEL_ID?.trim() || DEFAULT_GEMINI_PRO_MODEL
+    return new AiSdkAgentRunner(google(flashId), google(proId), tools)
   }
   const model = process.env.AI_MODEL?.trim()
   if (model) {
-    return new AiSdkAgentRunner(model, tools)
+    return new AiSdkAgentRunner(model, model, tools)
   }
   return new StubAgentRunner()
 }
