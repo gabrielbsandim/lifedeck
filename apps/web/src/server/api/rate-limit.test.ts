@@ -21,6 +21,7 @@ vi.mock('@upstash/ratelimit', () => ({
 import {
   checkAuthRateLimit,
   checkGenerateRateLimit,
+  checkGuestSessionRateLimit,
   checkRateLimit,
   checkSessionRateLimit,
   checkWhatsappRateLimit,
@@ -67,6 +68,12 @@ describe('rate limit', () => {
     const result = await checkWhatsappRateLimit('whatsapp:5511999990000')
     expect(result.ok).toBe(true)
     expect(result.limit).toBe(10)
+  })
+
+  it('allows guest sessions when Upstash is not configured', async () => {
+    const result = await checkGuestSessionRateLimit('guest:1.2.3.4')
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(5)
   })
 
   it('reads the client IP from x-forwarded-for then x-real-ip', () => {

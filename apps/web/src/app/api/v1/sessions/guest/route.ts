@@ -1,5 +1,10 @@
 import { getContainer } from '@/server/container'
-import { handleError, ok } from '@/server/api/respond'
+import { fail, handleError, ok } from '@/server/api/respond'
+import {
+  checkGuestSessionRateLimit,
+  clientIp,
+  rateLimitHeaders,
+} from '@/server/api/rate-limit'
 import {
   SESSION_COOKIE,
   SESSION_TTL_SECONDS,
@@ -9,6 +14,12 @@ import {
 
 export async function POST(request: Request) {
   try {
+    const rate = await checkGuestSessionRateLimit(`guest:${clientIp(request)}`)
+    if (!rate.ok) {
+      return fail('RATE_LIMITED', 'Too many requests.', 429, undefined, {
+        headers: rateLimitHeaders(rate),
+      })
+    }
     const body = await request.json()
     const user = await getContainer().createGuestUser(body)
     const token = await createSessionToken(user.id, new Date())

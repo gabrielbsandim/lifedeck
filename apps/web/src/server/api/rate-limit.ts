@@ -39,6 +39,12 @@ const WHATSAPP_LIMIT: LimiterConfig = {
   prefix: 'lifedeck/ratelimit/whatsapp',
 }
 
+const GUEST_LIMIT: LimiterConfig = {
+  requests: 5,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/guest',
+}
+
 export type RateLimitResult = {
   ok: boolean
   limit: number
@@ -117,6 +123,12 @@ export function checkWhatsappRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
   return check(WHATSAPP_LIMIT, identifier)
+}
+
+export function checkGuestSessionRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(GUEST_LIMIT, identifier)
 }
 
 export function clientIp(request: Request): string {
