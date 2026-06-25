@@ -97,11 +97,9 @@ export type Messages = {
     description: string
     save: string
     delete: string
-    cancel: string
     untitled: string
     empty: string
     emptyHint: string
-    comingSoon: string
     connectGoogle: string
     googleConnected: string
     googleError: string
@@ -114,7 +112,6 @@ export type Messages = {
   billing: {
     title: string
     subtitle: string
-    currentPlan: string
     monthly: string
     annual: string
     annualHint: string
