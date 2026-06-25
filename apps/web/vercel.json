@@ -2,5 +2,15 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@lifedeck/web"
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@lifedeck/web",
+  "crons": [
+    {
+      "path": "/api/v1/internal/dispatch-jobs",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/v1/internal/fan-out-jobs",
+      "schedule": "*/15 * * * *"
+    }
+  ]
 }

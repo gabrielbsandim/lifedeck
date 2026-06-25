@@ -13,3 +13,6 @@ export async function POST(request: Request) {
     return handleError(error)
   }
 }
+
+// Vercel Cron invokes endpoints with GET; reuse the same guarded handler.
+export const GET = POST
