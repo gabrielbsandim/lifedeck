@@ -766,6 +766,11 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       Calendar access, paid subscriptions, and the new subprocessors (Meta,
       Google, Stripe, Asaas, AI providers). Developer docs added:
       `docs/calendar.md`, `docs/whatsapp.md`, `docs/billing.md`.
+- [x] **Reminders survive edits (DONE):** `updateCalendarEvent` now re-arms
+      `event-reminder` jobs for the current offsets/times; `deliverReminder`
+      dedups against already-delivered notifications (scan of recent
+      notifications by eventId+offset) so the overlap with create-time jobs
+      never double-delivers, and a moved-earlier event gets a correctly-timed job.
 - [ ] E2E happy paths (calendar create + reminder; WhatsApp link + a tool call
       against a stubbed channel); OpenAPI complete.
 - [ ] Full code review (parallel reviewers per layer, as in Phase 12.6); flip

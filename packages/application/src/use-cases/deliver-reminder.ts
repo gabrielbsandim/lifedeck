@@ -13,6 +13,8 @@ export type ReminderTemplate = {
   language: string
 }
 
+const DEDUP_SCAN_LIMIT = 50
+
 type Dependencies = {
   calendarEvents: CalendarEventRepository
   notifications: NotificationRepository
@@ -66,6 +68,23 @@ export function makeDeliverReminder({
 
     // The event has already started: a late reminder is noise, skip it.
     if (now > props.startsAt.getTime()) {
+      return { delivered: false }
+    }
+
+    // An edit can leave more than one job for the same offset; deliver once.
+    const recent = await notifications.listByUser(
+      asEntityId(userId),
+      DEDUP_SCAN_LIMIT,
+    )
+    const alreadyDelivered = recent.some(notification => {
+      const stored = notification.toJSON()
+      return (
+        stored.type === REMINDER_JOB &&
+        stored.data.eventId === eventId &&
+        stored.data.minutesBefore === String(minutesBefore)
+      )
+    })
+    if (alreadyDelivered) {
       return { delivered: false }
     }
 

@@ -106,6 +106,16 @@ describe('deliverReminder', () => {
     expect(sendTemplate).not.toHaveBeenCalled()
   })
 
+  it('delivers only once when an edit armed a duplicate job', async () => {
+    const { deliver, notifications } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+    })
+    expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: true })
+    expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: false })
+    const stored = await notifications.listByUser(asEntityId(OWNER_ID), 10)
+    expect(stored).toHaveLength(1)
+  })
+
   it('drops the reminder when the event is gone', async () => {
     const { deliver } = await setup({
       now: new Date('2026-06-25T08:30:00.000Z'),

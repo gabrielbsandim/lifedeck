@@ -10,6 +10,7 @@ import type { Clock } from '@/ports/clock'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { JobQueue } from '@/ports/job-queue'
 import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
+import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
 type Dependencies = {
   calendarEvents: CalendarEventRepository
@@ -55,6 +56,25 @@ export function makeUpdateCalendarEvent({
       payload: { userId: ownerId, eventId: event.id as string },
       runAt: clock.now(),
     })
+
+    // Re-arm reminders for the (possibly edited) offsets and times. The handler
+    // dedups against already-delivered notifications, so the overlap with jobs
+    // armed at create time never double-delivers.
+    const startsAt = event.startsAt.getTime()
+    for (const minutesBefore of event.reminders) {
+      const fireAt = startsAt - minutesBefore * MINUTE_MS
+      if (fireAt > clock.now().getTime()) {
+        await jobQueue.enqueue({
+          type: REMINDER_JOB,
+          payload: {
+            eventId: event.id as string,
+            userId: ownerId,
+            minutesBefore,
+          },
+          runAt: new Date(fireAt),
+        })
+      }
+    }
 
     return toCalendarEventView(event)
   }

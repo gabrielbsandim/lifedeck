@@ -22,12 +22,13 @@ async function setup() {
       now: NOW,
     }),
   )
+  const enqueue = vi.fn().mockResolvedValue(undefined)
   const update = makeUpdateCalendarEvent({
     calendarEvents,
-    jobQueue: { enqueue: vi.fn().mockResolvedValue(undefined) },
+    jobQueue: { enqueue },
     clock: { now: () => LATER },
   })
-  return { calendarEvents, update }
+  return { calendarEvents, update, enqueue }
 }
 
 describe('updateCalendarEvent', () => {
@@ -36,6 +37,18 @@ describe('updateCalendarEvent', () => {
     const view = await update(OWNER_ID, ID, { title: 'Dentist appointment' })
     expect(view.title).toBe('Dentist appointment')
     expect(view.updatedAt).toBe(LATER.toISOString())
+  })
+
+  it('arms reminder jobs for future offsets added on edit', async () => {
+    const { update, enqueue } = await setup()
+    await update(OWNER_ID, ID, { reminders: [30] })
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'event-reminder',
+        payload: { eventId: ID, userId: OWNER_ID, minutesBefore: 30 },
+        runAt: new Date('2026-06-25T08:30:00.000Z'),
+      }),
+    )
   })
 
   it('rejects an unknown event', async () => {
