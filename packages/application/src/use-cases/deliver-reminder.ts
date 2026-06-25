@@ -13,8 +13,6 @@ export type ReminderTemplate = {
   language: string
 }
 
-const DEDUP_SCAN_LIMIT = 50
-
 type Dependencies = {
   calendarEvents: CalendarEventRepository
   notifications: NotificationRepository
@@ -72,18 +70,11 @@ export function makeDeliverReminder({
     }
 
     // An edit can leave more than one job for the same offset; deliver once.
-    const recent = await notifications.listByUser(
+    const alreadyDelivered = await notifications.hasReminder(
       asEntityId(userId),
-      DEDUP_SCAN_LIMIT,
+      eventId,
+      String(minutesBefore),
     )
-    const alreadyDelivered = recent.some(notification => {
-      const stored = notification.toJSON()
-      return (
-        stored.type === REMINDER_JOB &&
-        stored.data.eventId === eventId &&
-        stored.data.minutesBefore === String(minutesBefore)
-      )
-    })
     if (alreadyDelivered) {
       return { delivered: false }
     }

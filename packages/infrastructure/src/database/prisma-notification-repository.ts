@@ -51,6 +51,24 @@ export class PrismaNotificationRepository implements NotificationRepository {
     return records.map(record => toDomainNotification(fromPrisma(record)))
   }
 
+  async hasReminder(
+    userId: EntityId,
+    eventId: string,
+    minutesBefore: string,
+  ): Promise<boolean> {
+    const count = await this.prisma.notification.count({
+      where: {
+        userId,
+        type: 'event-reminder',
+        AND: [
+          { data: { path: ['eventId'], equals: eventId } },
+          { data: { path: ['minutesBefore'], equals: minutesBefore } },
+        ],
+      },
+    })
+    return count > 0
+  }
+
   async countUnread(userId: EntityId): Promise<number> {
     return this.prisma.notification.count({
       where: { userId, readAt: null },

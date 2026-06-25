@@ -22,6 +22,22 @@ export class InMemoryNotificationRepository implements NotificationRepository {
       .slice(0, limit)
   }
 
+  async hasReminder(
+    userId: EntityId,
+    eventId: string,
+    minutesBefore: string,
+  ): Promise<boolean> {
+    return [...this.items.values()].some(item => {
+      const stored = item.toJSON()
+      return (
+        item.userId === userId &&
+        stored.type === 'event-reminder' &&
+        stored.data.eventId === eventId &&
+        stored.data.minutesBefore === minutesBefore
+      )
+    })
+  }
+
   async countUnread(userId: EntityId): Promise<number> {
     return [...this.items.values()].filter(
       item => item.userId === userId && !item.isRead,

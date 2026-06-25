@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ChannelIdentity, CalendarEvent, asEntityId } from '@lifedeck/domain'
+import {
+  ChannelIdentity,
+  CalendarEvent,
+  Notification,
+  asEntityId,
+} from '@lifedeck/domain'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
@@ -114,6 +119,29 @@ describe('deliverReminder', () => {
     expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: false })
     const stored = await notifications.listByUser(asEntityId(OWNER_ID), 10)
     expect(stored).toHaveLength(1)
+  })
+
+  it('still dedups when the prior reminder is buried under newer noise', async () => {
+    const { deliver, notifications } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+    })
+    expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: true })
+    for (let i = 0; i < 60; i += 1) {
+      await notifications.save(
+        Notification.create({
+          id: asEntityId(
+            `eeeeeeee-eeee-4eee-8eee-${String(i).padStart(12, '0')}`,
+          ),
+          userId: asEntityId(OWNER_ID),
+          type: 'list-shared',
+          data: {},
+          createdAt: new Date(
+            `2026-06-25T09:${String(i % 60).padStart(2, '0')}:00.000Z`,
+          ),
+        }),
+      )
+    }
+    expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: false })
   })
 
   it('drops the reminder when the event is gone', async () => {
