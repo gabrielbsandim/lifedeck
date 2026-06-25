@@ -40,24 +40,21 @@ export function makeConsumeCredits({
     const cost = creditCostOf(operation)
     const plan = await resolvePlan(userId)
     const quota = quotaForPlan(plan)
-    const current = await usageMeter.current(userId)
 
-    if (current.fiveHour + cost > quota.fiveHourCredits) {
-      throw new QuotaExceededError(
-        'fiveHour',
-        quota.fiveHourCredits,
-        current.fiveHour,
-      )
-    }
-    if (current.weekly + cost > quota.weeklyCredits) {
-      throw new QuotaExceededError(
-        'weekly',
-        quota.weeklyCredits,
-        current.weekly,
-      )
+    const result = await usageMeter.consume(userId, cost, {
+      fiveHour: quota.fiveHourCredits,
+      weekly: quota.weeklyCredits,
+    })
+
+    if (!result.ok) {
+      const limit =
+        result.window === 'fiveHour'
+          ? quota.fiveHourCredits
+          : quota.weeklyCredits
+      throw new QuotaExceededError(result.window, limit, result.used)
     }
 
-    const updated = await usageMeter.add(userId, cost)
+    const updated = result.counts
     await ledger.record(
       UsageEvent.create({
         id: ids.generate(),

@@ -58,12 +58,26 @@ describe('consumeCredits', () => {
     })
   })
 
+  it('reports the weekly window when only it overflows on the meter', async () => {
+    const usageMeter = new InMemoryUsageMeter()
+    const result = await usageMeter.consume(USER_ID, 1, {
+      fiveHour: 10,
+      weekly: 0,
+    })
+    expect(result).toEqual({ ok: false, window: 'weekly', used: 0 })
+  })
+
   it('rejects when only the weekly window is exhausted', async () => {
     const ledger = new InMemoryUsageEventLedger()
     const consume = makeConsumeCredits({
       usageMeter: {
         current: async () => ({ fiveHour: 0, weekly: 200 }),
         add: async () => ({ fiveHour: 1, weekly: 201 }),
+        consume: async () => ({
+          ok: false as const,
+          window: 'weekly' as const,
+          used: 200,
+        }),
       },
       ledger,
       resolvePlan: async () => 'pro',

@@ -1,4 +1,8 @@
-import type { UsageCounts, UsageMeter } from '@/ports/usage-meter'
+import type {
+  ConsumeResult,
+  UsageCounts,
+  UsageMeter,
+} from '@/ports/usage-meter'
 
 export class InMemoryUsageMeter implements UsageMeter {
   private readonly counts = new Map<string, UsageCounts>()
@@ -15,5 +19,20 @@ export class InMemoryUsageMeter implements UsageMeter {
     }
     this.counts.set(userId, next)
     return next
+  }
+
+  async consume(
+    userId: string,
+    credits: number,
+    limits: UsageCounts,
+  ): Promise<ConsumeResult> {
+    const current = await this.current(userId)
+    if (current.fiveHour + credits > limits.fiveHour) {
+      return { ok: false, window: 'fiveHour', used: current.fiveHour }
+    }
+    if (current.weekly + credits > limits.weekly) {
+      return { ok: false, window: 'weekly', used: current.weekly }
+    }
+    return { ok: true, counts: await this.add(userId, credits) }
   }
 }

@@ -119,7 +119,12 @@ export type {
 export { makeStartCheckout, gatewayForMarket } from '@/use-cases/start-checkout'
 export { makeHandleSubscriptionWebhook } from '@/use-cases/handle-subscription-webhook'
 export { makeResolvePlanFromSubscription } from '@/use-cases/resolve-plan-from-subscription'
-export type { UsageMeter, UsageCounts, UsageWindow } from '@/ports/usage-meter'
+export type {
+  UsageMeter,
+  UsageCounts,
+  UsageWindow,
+  ConsumeResult,
+} from '@/ports/usage-meter'
 export type { UsageEventLedger } from '@/ports/usage-event-ledger'
 export {
   makeConsumeCredits,
