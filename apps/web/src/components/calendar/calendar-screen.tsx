@@ -34,8 +34,12 @@ export function CalendarScreen() {
     day: string
   } | null>(null)
 
+  const available =
+    (session.data?.features?.calendar ?? false) &&
+    (session.data?.entitlements?.includes('calendarSync') ?? false)
+
   const range = useMemo(() => rangeFor(view, anchor), [view, anchor])
-  const events = useCalendarEvents(range)
+  const events = useCalendarEvents(range, available)
   const list = events.data ?? []
 
   const headingFormat = new Intl.DateTimeFormat(locale, {
@@ -44,6 +48,10 @@ export function CalendarScreen() {
     timeZone: 'UTC',
   })
   const heading = headingFormat.format(new Date(`${anchor}T00:00:00.000Z`))
+
+  if (!available) {
+    return null
+  }
 
   return (
     <div className="flex flex-col gap-4">

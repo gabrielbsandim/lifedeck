@@ -50,18 +50,19 @@ export function CalendarMonthView({
           const outside = monthOf(day) !== anchorMonth
           const isToday = day === today
           return (
-            <button
+            <div
               key={day}
-              type="button"
-              onClick={() => onSelectDay(day)}
               className={cn(
-                'border-line hover:bg-brand-50/40 flex min-h-20 flex-col gap-1 border-b border-r p-1.5 text-left transition-colors',
+                'border-line flex min-h-20 flex-col gap-1 border-b border-r p-1.5 text-left',
                 outside && 'bg-bg/40',
               )}
             >
-              <span
+              <button
+                type="button"
+                onClick={() => onSelectDay(day)}
+                aria-label={day}
                 className={cn(
-                  'flex h-6 w-6 items-center justify-center self-start rounded-full text-xs font-semibold',
+                  'hover:ring-brand-200 flex h-6 w-6 items-center justify-center self-start rounded-full text-xs font-semibold transition hover:ring-2',
                   isToday
                     ? 'bg-brand-600 text-white'
                     : outside
@@ -70,40 +71,30 @@ export function CalendarMonthView({
                 )}
               >
                 {Number(day.slice(8, 10))}
-              </span>
-              <span className="flex flex-col gap-0.5">
+              </button>
+              <div className="flex flex-col gap-0.5">
                 {dayEvents.slice(0, 3).map(event => (
-                  <span
+                  <button
                     key={event.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={clicked => {
-                      clicked.stopPropagation()
-                      onSelectEvent(event)
-                    }}
-                    onKeyDown={pressed => {
-                      if (pressed.key === 'Enter') {
-                        pressed.stopPropagation()
-                        onSelectEvent(event)
-                      }
-                    }}
+                    type="button"
+                    onClick={() => onSelectEvent(event)}
                     className={cn(
-                      'truncate rounded px-1 py-0.5 text-[11px] font-medium',
+                      'truncate rounded px-1 py-0.5 text-left text-[11px] font-medium',
                       event.source === 'google'
                         ? 'bg-violet-500/15 text-violet-600'
                         : 'bg-brand-50 text-brand-700',
                     )}
                   >
                     {eventTime(event, timeZone, locale)} {event.title}
-                  </span>
+                  </button>
                 ))}
                 {dayEvents.length > 3 && (
                   <span className="text-ink-400 px-1 text-[11px]">
                     +{dayEvents.length - 3}
                   </span>
                 )}
-              </span>
-            </button>
+              </div>
+            </div>
           )
         })}
       </div>

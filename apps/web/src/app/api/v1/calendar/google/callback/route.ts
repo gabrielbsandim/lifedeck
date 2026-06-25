@@ -3,7 +3,7 @@ import { getContainer, googleCalendarRedirectUri } from '@/server/container'
 import { isFeatureEnabled } from '@/server/api/features'
 import { getUserIdFromRequest } from '@/server/session/session'
 import { oauthStateCookieOptions } from '@/server/session/oauth-state'
-import { CALENDAR_OAUTH_STATE_COOKIE } from '@/app/api/v1/calendar/google/connect/route'
+import { CALENDAR_OAUTH_STATE_COOKIE } from '@/server/calendar/oauth-cookie'
 
 function readStateCookie(request: Request): string | null {
   const header = request.headers.get('cookie')

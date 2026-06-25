@@ -7,6 +7,8 @@ import {
 const MAX_TURNS = 20
 const TTL_SECONDS = 24 * 60 * 60
 
+type PipelineResult = Array<{ result: unknown }>
+
 class RedisConversationStore implements ConversationStore {
   constructor(
     private readonly url: string,
@@ -17,46 +19,54 @@ class RedisConversationStore implements ConversationStore {
     return `lifedeck/conversation/${userId}`
   }
 
-  private async command(parts: unknown[]): Promise<unknown> {
-    const response = await fetch(`${this.url}/${parts.map(String).join('/')}`, {
-      headers: { Authorization: `Bearer ${this.token}` },
+  private async pipeline(commands: unknown[][]): Promise<unknown[]> {
+    const response = await fetch(`${this.url}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(commands),
     })
     if (!response.ok) {
-      throw new Error(`Upstash command failed with status ${response.status}`)
+      throw new Error(`Upstash pipeline failed with status ${response.status}`)
     }
-    const body = (await response.json()) as { result: unknown }
-    return body.result
+    const body = (await response.json()) as PipelineResult
+    return body.map(entry => entry.result)
   }
 
   async load(userId: string): Promise<ConversationTurn[]> {
-    const raw = await this.command(['GET', this.key(userId)])
-    if (typeof raw !== 'string' || !raw) {
+    const [members] = await this.pipeline([['LRANGE', this.key(userId), 0, -1]])
+    if (!Array.isArray(members)) {
       return []
     }
-    try {
-      const parsed = JSON.parse(raw)
-      return Array.isArray(parsed) ? (parsed as ConversationTurn[]) : []
-    } catch {
-      return []
+    const turns: ConversationTurn[] = []
+    for (const member of members) {
+      try {
+        turns.push(JSON.parse(String(member)) as ConversationTurn)
+      } catch {
+        // Skip a corrupt entry rather than drop the whole history.
+      }
     }
+    return turns
   }
 
   async append(userId: string, turns: ConversationTurn[]): Promise<void> {
-    const next = [...(await this.load(userId)), ...turns].slice(-MAX_TURNS)
-    const url = `${this.url}/SET/${this.key(userId)}/${encodeURIComponent(
-      JSON.stringify(next),
-    )}?EX=${TTL_SECONDS}`
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${this.token}` },
-    })
-    if (!response.ok) {
-      throw new Error(`Upstash command failed with status ${response.status}`)
+    if (turns.length === 0) {
+      return
     }
+    const key = this.key(userId)
+    // Atomic: append, trim to the rolling window, refresh the TTL. No
+    // read-modify-write, so concurrent messages cannot drop each other.
+    await this.pipeline([
+      ['RPUSH', key, ...turns.map(turn => JSON.stringify(turn))],
+      ['LTRIM', key, -MAX_TURNS, -1],
+      ['EXPIRE', key, TTL_SECONDS],
+    ])
   }
 
   async clear(userId: string): Promise<void> {
-    await this.command(['DEL', this.key(userId)])
+    await this.pipeline([['DEL', this.key(userId)]])
   }
 }
 

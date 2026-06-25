@@ -4,8 +4,7 @@ import { getContainer } from '@/server/container'
 import { requireFeature } from '@/server/api/entitlement-guard'
 import { getUserIdFromRequest } from '@/server/session/session'
 import { oauthStateCookieOptions } from '@/server/session/oauth-state'
-
-export const CALENDAR_OAUTH_STATE_COOKIE = 'lifedeck_calendar_oauth_state'
+import { CALENDAR_OAUTH_STATE_COOKIE } from '@/server/calendar/oauth-cookie'
 
 export async function GET(request: Request) {
   const gate = requireFeature('calendar')

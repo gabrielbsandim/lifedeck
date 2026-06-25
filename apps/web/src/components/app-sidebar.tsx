@@ -45,7 +45,8 @@ export function AppSidebar() {
   const pathname = usePathname()
   const session = useSession()
   const hasCalendar =
-    session.data?.entitlements?.includes('calendarSync') ?? false
+    (session.data?.features?.calendar ?? false) &&
+    (session.data?.entitlements?.includes('calendarSync') ?? false)
 
   const items: NavItem[] = [
     {
