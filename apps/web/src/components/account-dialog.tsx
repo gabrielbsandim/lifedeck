@@ -15,7 +15,7 @@ import {
   PasswordField,
   TextField,
 } from '@lifedeck/ui'
-import type { UserView } from '@lifedeck/application'
+import type { SessionUser } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useChangePassword,
@@ -52,7 +52,7 @@ export function AccountDialog({
 }: {
   open: boolean
   onClose: () => void
-  user: UserView
+  user: SessionUser
 }) {
   const { messages } = useI18n()
   const [name, setName] = useState(user.displayName)
@@ -333,6 +333,21 @@ export function AccountDialog({
             </button>
           )}
         </div>
+
+        {user.features?.billing && (
+          <div className="border-line flex flex-col gap-2 border-t pt-4">
+            <span className="text-ink-700 text-sm font-medium">
+              {messages.billing.title}
+            </span>
+            <a
+              href="/settings/billing"
+              onClick={onClose}
+              className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+            >
+              {messages.billing.manage}
+            </a>
+          </div>
+        )}
 
         <div className="border-line flex flex-col gap-3 border-t pt-4">
           <a

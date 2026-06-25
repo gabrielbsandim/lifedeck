@@ -111,6 +111,29 @@ export type Messages = {
     previous: string
     next: string
   }
+  billing: {
+    title: string
+    subtitle: string
+    currentPlan: string
+    monthly: string
+    annual: string
+    annualHint: string
+    free: string
+    pro: string
+    premium: string
+    freeDesc: string
+    proDesc: string
+    premiumDesc: string
+    perMonth: string
+    perYear: string
+    current: string
+    choose: string
+    processing: string
+    manage: string
+    successBanner: string
+    cancelledBanner: string
+    error: string
+  }
   notifications: {
     title: string
     empty: string

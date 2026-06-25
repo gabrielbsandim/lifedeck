@@ -619,8 +619,10 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
 - [x] Real entitlements wired from the active subscription
       (`resolvePlanFromSubscription` -> `PlanEntitlementService`). All flag-gated
       (`requireFeature('billing')`). Gateway adapters lazy-read env, coverage-excluded.
-- [ ] Billing settings screen (UI) - deferred to V2-9 launch polish alongside the
-      plan picker; the checkout + webhook backend is complete and flag-gated.
+- [x] Billing settings screen (UI) - done in V2-9b: `/settings/billing` with a
+      monthly/annual plan picker (Free/Pro/Premium), market-aware prices, and a
+      success/cancelled banner; entry point in the account dialog gated on the
+      `billing` feature flag (now surfaced to the client via `session.features`).
 
 ### V2-4 - AI metering (credits) - DONE
 

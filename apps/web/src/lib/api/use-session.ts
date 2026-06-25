@@ -4,12 +4,20 @@ import { ApiError, apiRequest } from '@/lib/api/client'
 
 export const sessionKey = ['session'] as const
 
+export type ClientFeatures = {
+  calendar: boolean
+  whatsapp: boolean
+  billing: boolean
+}
+
+export type SessionUser = UserView & { features?: ClientFeatures }
+
 export function useSession() {
-  return useQuery<UserView | null>({
+  return useQuery<SessionUser | null>({
     queryKey: sessionKey,
     queryFn: async () => {
       try {
-        return await apiRequest<UserView>('/api/v1/sessions/me')
+        return await apiRequest<SessionUser>('/api/v1/sessions/me')
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           return null
