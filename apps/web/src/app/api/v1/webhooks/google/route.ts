@@ -8,6 +8,15 @@ export async function POST(request: Request) {
     if (!isFeatureEnabled('calendar')) {
       return new NextResponse(null, { status: 404 })
     }
+    // When a channel token is configured we set it on every watch channel, so
+    // a notification missing it did not originate from a channel we created.
+    const expectedToken = process.env.GOOGLE_CALENDAR_WEBHOOK_TOKEN?.trim()
+    if (
+      expectedToken &&
+      request.headers.get('x-goog-channel-token') !== expectedToken
+    ) {
+      return new NextResponse(null, { status: 401 })
+    }
     const channelId = request.headers.get('x-goog-channel-id')
     const resourceState = request.headers.get('x-goog-resource-state')
     // Google sends a one-off `sync` handshake when the channel opens; only

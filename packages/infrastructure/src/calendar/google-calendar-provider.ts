@@ -182,7 +182,14 @@ export class GoogleCalendarProvider implements CalendarProvider {
       'POST',
       `/calendars/${encodeURIComponent(connection.calendarId)}/events/watch`,
       connection.accessToken,
-      { id: randomUUID(), type: 'web_hook', address: callbackUrl },
+      {
+        id: randomUUID(),
+        type: 'web_hook',
+        address: callbackUrl,
+        ...(process.env.GOOGLE_CALENDAR_WEBHOOK_TOKEN?.trim()
+          ? { token: process.env.GOOGLE_CALENDAR_WEBHOOK_TOKEN.trim() }
+          : {}),
+      },
     )
     return {
       channelId: result.id,

@@ -38,8 +38,18 @@ describe('token-cipher', () => {
       delete process.env.CALENDAR_TOKEN_KEY
     })
 
-    it('stores tokens as plaintext', () => {
+    it('stores tokens as plaintext outside production', () => {
       expect(encryptToken('token')).toBe('token')
+    })
+
+    it('refuses to store plaintext tokens in production', () => {
+      const previous = process.env.NODE_ENV
+      process.env.NODE_ENV = 'production'
+      try {
+        expect(() => encryptToken('token')).toThrow(/CALENDAR_TOKEN_KEY/)
+      } finally {
+        process.env.NODE_ENV = previous
+      }
     })
 
     it('cannot decrypt an encrypted value and returns it as-is', () => {

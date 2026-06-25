@@ -19,6 +19,12 @@ function key(): Buffer | null {
 export function encryptToken(plain: string): string {
   const k = key()
   if (!k) {
+    // Fail closed in production: never silently persist tokens in cleartext.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'CALENDAR_TOKEN_KEY is required to store calendar tokens in production.',
+      )
+    }
     return plain
   }
   const iv = randomBytes(12)
