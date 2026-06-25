@@ -1,9 +1,12 @@
 # Lifedeck V2 plan
 
-Status: **planning**. This document is the master plan for Lifedeck V2. It is a
-design and roadmap document, not yet implemented. V1 stays the shipped product;
-V2 lands incrementally on `main` behind feature flags so V1 bugfixes and
-improvements continue uninterrupted.
+Status: **implemented, dark-launched**. This document is the master plan for
+Lifedeck V2. The three pillars (calendar sync, WhatsApp AI assistant, metering and
+paid plans) are built and merged on `main` behind `FEATURES_V2` plus per-pillar
+flags and per-user entitlements, so they stay invisible in production until the
+flags are flipped. What remains is operational: flip the flags and complete the
+external provider setup. V1 stays the shipped product; V2 landed incrementally so
+V1 bugfixes and improvements continued uninterrupted.
 
 V2 turns Lifedeck from a daily life-organization app into "your whole life in the
 palm of your hand": a calendar you actually live in, and an AI assistant on

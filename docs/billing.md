@@ -73,6 +73,24 @@ entitlements flow from the active subscription. The same data surfaces on the cl
 through the session, and `requireFeature` / `requireEntitlement` guards sit alongside
 `requireScope` in the route handlers.
 
+## Credit metering
+
+AI usage is metered in cost-weighted credits across two rolling windows: a 5-hour
+window and a weekly window. Each operation has a credit weight in
+`packages/domain/src/value-objects/ai-operation.ts` (`assistantText` and
+`listGeneration` = 1, `audioTranscription` and `imageVision` = 2, `assistantPro`
+= 6). `consumeCredits` (`packages/application/src/use-cases/consume-credits.ts`)
+resolves the plan quota and calls `UsageMeter.consume(userId, credits, limits)`.
+
+The Upstash implementation (`packages/infrastructure/src/usage/redis-usage-meter.ts`)
+runs the check-and-add atomically in a single Redis `EVAL` Lua script: it trims both
+windows by score, sums the remaining credits, and only `ZADD`s the new charge when
+neither window would exceed its limit. This closes the check-then-add race, so two
+concurrent requests near the cap cannot both pass. When a window is full the use
+case throws `QuotaExceededError`, which the API maps to HTTP `429`; the WhatsApp
+assistant turns it into a friendly "limit reached" reply. Without Upstash the meter
+is a no-op (everything allowed), which is the local-dev default.
+
 ## Plans and prices
 
 | Plan | Entitlements added | 5-hour / weekly credits |

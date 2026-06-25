@@ -57,7 +57,9 @@ abstraction: `exchangeCode`, `refreshAccessToken`, `listChanges`, `pushEvent`,
   loops.
 - **Token security:** Google tokens are encrypted at rest with AES-256-GCM
   (`packages/infrastructure/src/crypto/token-cipher.ts`, key from
-  `CALENDAR_TOKEN_KEY`; plaintext passthrough when unset, for dev).
+  `CALENDAR_TOKEN_KEY`). The cipher fails closed in production: with `NODE_ENV`
+  set to `production` and no key, encryption throws rather than store plaintext.
+  Plaintext passthrough happens only outside production, for local dev.
 
 ## Reminders
 
@@ -98,10 +100,17 @@ works the same way.
 Under `apps/web/src/app/api/v1/`, all `calendar`-flag gated:
 
 - `calendar/events` (GET list by range, POST create) and `calendar/events/[id]`
-  (GET, PATCH, DELETE). Scopes: `calendar:read`, `calendar:write`.
+  (GET, PATCH, DELETE). Scopes: `calendar:read`, `calendar:write`. Every calendar
+  endpoint, plus the OAuth connect/callback, also enforces the `calendarSync`
+  per-user entitlement (`requireEntitlement`), so flipping the feature flag does not
+  by itself open calendar to non-entitled users.
 - `calendar/google/connect` (start OAuth) and `calendar/google/callback`.
 - `webhooks/google` (watch notifications, keyed by the `X-Goog-Channel-ID` header).
+  When `GOOGLE_CALENDAR_WEBHOOK_TOKEN` is set, the route verifies the
+  `X-Goog-Channel-Token` header against it and returns `401` on mismatch; the watch
+  channel is opened with the same token.
 
 Env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
-`GOOGLE_CALENDAR_REDIRECT_URI`, `CALENDAR_TOKEN_KEY`, `CRON_SECRET`,
+`GOOGLE_CALENDAR_REDIRECT_URI`, `CALENDAR_TOKEN_KEY`,
+`GOOGLE_CALENDAR_WEBHOOK_TOKEN` (optional), `CRON_SECRET`,
 `WHATSAPP_REMINDER_TEMPLATE`, `WHATSAPP_TEMPLATE_LANGUAGE`.

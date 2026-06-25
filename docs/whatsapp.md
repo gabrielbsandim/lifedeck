@@ -29,6 +29,14 @@ The helpers `verifyWhatsAppSignature` and `parseInboundMessages` live in
 `packages/infrastructure/src/messaging/whatsapp-webhook.ts`. Inbound messages parse
 into text, audio, or image variants (each carrying `from` and `messageId`).
 
+**Hardening.** After the signature check, each message is processed at most once:
+`markMessageProcessed(messageId)` (`apps/web/src/server/api/whatsapp-dedup.ts`) does
+an Upstash `SET NX` with a 24h TTL, so Meta retries are deduped. Each sender is then
+rate limited (`checkWhatsappRateLimit`, 10 messages per 60s in
+`apps/web/src/server/api/rate-limit.ts`). Both degrade to a graceful no-op when
+Upstash is not configured, and the route always answers `200` so Meta does not
+retry storm.
+
 ## Identity pairing
 
 A WhatsApp number must be bound to an account before the agent acts as that user.
