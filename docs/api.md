@@ -61,6 +61,15 @@ requests per 60 seconds) on top of that. Responses carry `X-RateLimit-Limit`,
 `429 RATE_LIMITED`. Rate limiting is backed by Upstash Redis and is a no-op when
 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset (local dev).
 
+### Cross-origin (CORS)
+
+Every `/api/v1` route answers cross-origin requests: preflight `OPTIONS` returns
+`204` and responses carry `Access-Control-Allow-Origin: *` with
+`Authorization`, `Content-Type`, and `X-API-Key` allowed. Credentials are **not**
+allowed (`Access-Control-Allow-Credentials` is never sent), so a browser app on
+another origin authenticates with an API key in a header. The first-party session
+cookie is `SameSite=Lax` and only works same-origin, by design.
+
 ### Quickstart
 
 ```bash
