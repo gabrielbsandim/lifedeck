@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { corsHeaders, isPublicApiPath } from '@/server/api/cors'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
@@ -30,6 +31,17 @@ function buildCsp(nonce: string): string {
 }
 
 export function proxy(request: NextRequest): NextResponse {
+  if (isPublicApiPath(request.nextUrl.pathname)) {
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, { status: 204, headers: corsHeaders() })
+    }
+    const response = NextResponse.next()
+    for (const [key, value] of Object.entries(corsHeaders())) {
+      response.headers.set(key, value)
+    }
+    return response
+  }
+
   const nonce = generateNonce()
   const csp = buildCsp(nonce)
 
