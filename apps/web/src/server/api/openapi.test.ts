@@ -42,4 +42,19 @@ describe('openApiDocument', () => {
     >
     expect(tasks.post?.security).toBeDefined()
   })
+
+  it('declares the required scope per scoped endpoint', () => {
+    const tasks = doc.paths['/tasks'] as Record<
+      string,
+      { security?: Array<Record<string, string[]>> }
+    >
+    expect(tasks.post?.security?.[0]?.ApiKeyAuth).toEqual(['tasks:write'])
+
+    const events = doc.paths['/calendar/events'] as Record<
+      string,
+      { security?: Array<Record<string, string[]>> }
+    >
+    expect(events.get?.security?.[0]?.ApiKeyAuth).toEqual(['calendar:read'])
+    expect(events.post?.security?.[0]?.ApiKeyAuth).toEqual(['calendar:write'])
+  })
 })

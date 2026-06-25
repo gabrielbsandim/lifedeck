@@ -42,10 +42,14 @@ const ApiKeyAuth = registry.registerComponent('securitySchemes', 'ApiKeyAuth', {
   type: 'http',
   scheme: 'bearer',
   description:
-    'Send a personal API key as `Authorization: Bearer tk_live_...` (or the `X-API-Key` header). Keys are scoped and rate limited per key.',
+    'Send a personal API key as `Authorization: Bearer tk_live_...` (or the `X-API-Key` header). Keys are scoped and rate limited per key. Each endpoint lists the scope it requires in its `security` entry; a request whose key lacks that scope is rejected with `403`. Available scopes: `lists:read`, `lists:write`, `tasks:read`, `tasks:write`, `analytics:read`, `calendar:read`, `calendar:write`.',
 })
 
 const apiKeySecurity = [{ [ApiKeyAuth.name]: [] }]
+
+function scoped(scope: string) {
+  return [{ [ApiKeyAuth.name]: [scope] }]
+}
 
 function envelope<T extends z.ZodTypeAny>(schema: T) {
   return z.object({ data: schema })
@@ -178,7 +182,7 @@ registry.registerPath({
   path: '/tasks',
   summary: 'Create a task',
   operationId: 'createTask',
-  security: apiKeySecurity,
+  security: scoped('tasks:write'),
   request: { body: jsonBody(createTaskSchema) },
   responses: {
     201: jsonResponse('Task created.', TaskView),
@@ -194,7 +198,7 @@ registry.registerPath({
   path: '/tasks/{id}',
   summary: 'Update a task',
   operationId: 'updateTask',
-  security: apiKeySecurity,
+  security: scoped('tasks:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(updateTaskSchema),
@@ -213,7 +217,7 @@ registry.registerPath({
   path: '/lists',
   summary: "List the current user's lists",
   operationId: 'listLists',
-  security: apiKeySecurity,
+  security: scoped('lists:read'),
   responses: {
     200: jsonResponse('Lists owned by the current user.', z.array(ListView)),
     401: errorResponse,
@@ -225,7 +229,7 @@ registry.registerPath({
   path: '/lists',
   summary: 'Create a list',
   operationId: 'createList',
-  security: apiKeySecurity,
+  security: scoped('lists:write'),
   request: { body: jsonBody(createListSchema) },
   responses: {
     201: jsonResponse('List created.', ListView),
@@ -239,7 +243,7 @@ registry.registerPath({
   path: '/lists/{id}',
   summary: 'Get a list by id',
   operationId: 'getList',
-  security: apiKeySecurity,
+  security: scoped('lists:read'),
   request: { params: z.object({ id: idParam }) },
   responses: {
     200: jsonResponse('The requested list.', ListView),
@@ -252,7 +256,7 @@ registry.registerPath({
   path: '/lists/{id}',
   summary: 'Rename a list',
   operationId: 'renameList',
-  security: apiKeySecurity,
+  security: scoped('lists:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(renameListSchema),
@@ -271,7 +275,7 @@ registry.registerPath({
   path: '/lists/{id}',
   summary: 'Delete a list',
   operationId: 'deleteList',
-  security: apiKeySecurity,
+  security: scoped('lists:write'),
   request: { params: z.object({ id: idParam }) },
   responses: {
     200: jsonResponse('List deleted.', z.object({ deleted: z.boolean() })),
@@ -286,7 +290,7 @@ registry.registerPath({
   path: '/lists/{id}/tasks',
   summary: 'List the tasks of a list',
   operationId: 'listListTasks',
-  security: apiKeySecurity,
+  security: scoped('tasks:read'),
   request: { params: z.object({ id: idParam }) },
   responses: {
     200: jsonResponse('Tasks of the list.', z.array(TaskView)),
@@ -299,7 +303,7 @@ registry.registerPath({
   path: '/lists/{id}/tasks',
   summary: 'Reorder the tasks of a list',
   operationId: 'reorderTasks',
-  security: apiKeySecurity,
+  security: scoped('tasks:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(reorderTasksSchema),
@@ -368,7 +372,7 @@ registry.registerPath({
   path: '/daily',
   summary: "Get the current user's daily board for a date",
   operationId: 'getDailyBoard',
-  security: apiKeySecurity,
+  security: scoped('tasks:read'),
   request: {
     query: z.object({
       date: z.string().openapi({ example: '2026-06-22' }),
@@ -473,7 +477,7 @@ registry.registerPath({
   path: '/analytics',
   summary: 'Completion analytics',
   operationId: 'getAnalytics',
-  security: apiKeySecurity,
+  security: scoped('analytics:read'),
   request: {
     query: z.object({
       days: z.coerce.number().int().min(1).max(365).optional(),
@@ -535,7 +539,7 @@ registry.registerPath({
   path: '/calendar/events',
   summary: 'List calendar events overlapping a time range',
   operationId: 'listCalendarEvents',
-  security: apiKeySecurity,
+  security: scoped('calendar:read'),
   request: {
     query: z.object({
       from: z.string().openapi({ example: '2026-06-01T00:00:00.000Z' }),
@@ -556,7 +560,7 @@ registry.registerPath({
   path: '/calendar/events',
   summary: 'Create a calendar event',
   operationId: 'createCalendarEvent',
-  security: apiKeySecurity,
+  security: scoped('calendar:write'),
   request: { body: jsonBody(createCalendarEventSchema) },
   responses: {
     201: jsonResponse('The created event.', CalendarEventView),
@@ -572,7 +576,7 @@ registry.registerPath({
   path: '/calendar/events/{id}',
   summary: 'Get a calendar event',
   operationId: 'getCalendarEvent',
-  security: apiKeySecurity,
+  security: scoped('calendar:read'),
   request: { params: z.object({ id: idParam }) },
   responses: {
     200: jsonResponse('The event.', CalendarEventView),
@@ -587,7 +591,7 @@ registry.registerPath({
   path: '/calendar/events/{id}',
   summary: 'Update a calendar event',
   operationId: 'updateCalendarEvent',
-  security: apiKeySecurity,
+  security: scoped('calendar:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(updateCalendarEventSchema),
@@ -606,7 +610,7 @@ registry.registerPath({
   path: '/calendar/events/{id}',
   summary: 'Delete a calendar event',
   operationId: 'deleteCalendarEvent',
-  security: apiKeySecurity,
+  security: scoped('calendar:write'),
   request: { params: z.object({ id: idParam }) },
   responses: {
     200: jsonResponse(
