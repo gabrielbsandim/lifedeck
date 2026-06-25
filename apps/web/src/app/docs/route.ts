@@ -1,3 +1,5 @@
+import { SITE_NAME } from '@/lib/site'
+
 const NONCE_PATTERN = /^[A-Za-z0-9+/=_-]{16,128}$/
 
 export function GET(request: Request) {
@@ -8,7 +10,7 @@ export function GET(request: Request) {
   const html = `<!doctype html>
 <html>
   <head>
-    <title>Lifedeck API Reference</title>
+    <title>${SITE_NAME} API Reference</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" />

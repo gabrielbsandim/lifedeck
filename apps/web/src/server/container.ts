@@ -162,7 +162,7 @@ import {
   prisma,
 } from '@lifedeck/infrastructure'
 import { createRedisHealthProbe } from '@/server/api/redis-health-probe'
-import { siteUrl } from '@/lib/site'
+import { SITE_NAME, siteUrl } from '@/lib/site'
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
@@ -725,8 +725,9 @@ function buildHealthProbes(): HealthProbe[] {
 function buildEmailSender(): EmailSender {
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
-    const from = process.env.EMAIL_FROM ?? 'Lifedeck <onboarding@resend.dev>'
-    return new ResendEmailSender(apiKey, from)
+    const from =
+      process.env.EMAIL_FROM ?? `${SITE_NAME} <onboarding@resend.dev>`
+    return new ResendEmailSender(apiKey, from, SITE_NAME)
   }
   return new ConsoleEmailSender()
 }

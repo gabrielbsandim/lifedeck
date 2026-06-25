@@ -3,7 +3,12 @@
 import Link from 'next/link'
 import { LogoMark } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
-import { COMPANY_CNPJ, COMPANY_EMAIL, COMPANY_NAME } from '@/lib/site'
+import {
+  COMPANY_CNPJ,
+  COMPANY_EMAIL,
+  COMPANY_NAME,
+  SITE_NAME,
+} from '@/lib/site'
 
 export function SiteFooter() {
   const { messages } = useI18n()
@@ -17,7 +22,9 @@ export function SiteFooter() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
               <LogoMark size={24} />
             </span>
-            <span className="text-lg font-bold tracking-tight">Lifedeck</span>
+            <span className="text-lg font-bold tracking-tight">
+              {SITE_NAME}
+            </span>
           </div>
           <p className="max-w-md text-balance text-sm text-white/70">
             {messages.footer.description}
