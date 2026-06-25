@@ -54,6 +54,10 @@ class RedisConversationStore implements ConversationStore {
       throw new Error(`Upstash command failed with status ${response.status}`)
     }
   }
+
+  async clear(userId: string): Promise<void> {
+    await this.command(['DEL', this.key(userId)])
+  }
 }
 
 export function createConversationStore(): ConversationStore {

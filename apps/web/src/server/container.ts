@@ -537,7 +537,7 @@ function build(
     getGoogleAuthUrl: makeGetGoogleAuthUrl({ oauth }),
     changePassword: makeChangePassword({ users, hasher }),
     renameUser: makeRenameUser({ users }),
-    deleteUser: makeDeleteUser({ users }),
+    deleteUser: makeDeleteUser({ users, conversations }),
     exportUserData: makeExportUserData({
       users,
       lists,
@@ -546,6 +546,9 @@ function build(
       shareLinks,
       notifications,
       apiKeys,
+      subscriptions,
+      calendarEvents,
+      channelIdentities,
     }),
     createList: makeCreateList({ lists, ids, clock }),
     renameList: makeRenameList({ lists, clock }),

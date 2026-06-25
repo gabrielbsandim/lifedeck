@@ -40,6 +40,12 @@ export class InMemoryCalendarEventRepository
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
   }
 
+  async listByOwner(ownerId: EntityId): Promise<CalendarEvent[]> {
+    return [...this.items.values()]
+      .filter(event => event.isOwnedBy(ownerId))
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+  }
+
   async delete(id: EntityId): Promise<void> {
     this.items.delete(id as string)
   }

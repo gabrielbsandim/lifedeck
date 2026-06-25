@@ -130,6 +130,14 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
     return rows.map(row => toDomainCalendarEvent(fromPrisma(row)))
   }
 
+  async listByOwner(ownerId: EntityId): Promise<CalendarEvent[]> {
+    const rows = await this.prisma.calendarEvent.findMany({
+      where: { ownerId: ownerId as string },
+      orderBy: { startsAt: 'asc' },
+    })
+    return rows.map(row => toDomainCalendarEvent(fromPrisma(row)))
+  }
+
   async delete(id: EntityId): Promise<void> {
     await this.prisma.calendarEvent.deleteMany({ where: { id: id as string } })
   }

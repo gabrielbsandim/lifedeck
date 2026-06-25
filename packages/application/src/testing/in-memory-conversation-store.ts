@@ -14,4 +14,8 @@ export class InMemoryConversationStore implements ConversationStore {
     const existing = this.turns.get(userId) ?? []
     this.turns.set(userId, [...existing, ...turns])
   }
+
+  async clear(userId: string): Promise<void> {
+    this.turns.delete(userId)
+  }
 }

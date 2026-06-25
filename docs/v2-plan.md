@@ -752,8 +752,13 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
 
 ### V2-9 - Launch polish
 
-- [ ] Extend `exportUserData` + deletion cascade to all new data; update
-      `/terms` and `/privacy` (en/pt/es).
+- [x] **Data lifecycle (DONE):** `exportUserData` now includes the subscription,
+      calendar events, and linked WhatsApp number (no tokens or pairing codes);
+      account deletion clears the Redis conversation log (`ConversationStore.clear`)
+      while relational children drop via Postgres FK cascade. New repo reads:
+      `CalendarEventRepository.listByOwner`.
+- [ ] Update `/terms` and `/privacy` (en/pt/es) to cover WhatsApp, AI, calendar,
+      payments.
 - [ ] E2E happy paths (calendar create + reminder; WhatsApp link + a tool call
       against a stubbed channel); docs (`docs/calendar.md`, `docs/whatsapp.md`,
       `docs/billing.md`); OpenAPI complete.

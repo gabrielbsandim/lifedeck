@@ -4,6 +4,7 @@ import { makeChangePassword } from '@/use-cases/change-password'
 import { makeRenameUser } from '@/use-cases/rename-user'
 import { makeDeleteUser } from '@/use-cases/delete-user'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 import { FakePasswordHasher } from '@/testing/fake-password-hasher'
 import { ID } from '@/testing/fakes'
 
@@ -25,12 +26,14 @@ async function setup(withPassword = true) {
     emailVerifiedAt: NOW,
   })
   await users.save(user)
+  const conversations = new InMemoryConversationStore()
   return {
     users,
     hasher,
+    conversations,
     changePassword: makeChangePassword({ users, hasher }),
     renameUser: makeRenameUser({ users }),
-    deleteUser: makeDeleteUser({ users }),
+    deleteUser: makeDeleteUser({ users, conversations }),
   }
 }
 
@@ -99,10 +102,12 @@ describe('renameUser', () => {
 })
 
 describe('deleteUser', () => {
-  it('removes the user', async () => {
+  it('removes the user and clears their conversation log', async () => {
     const ctx = await setup()
+    await ctx.conversations.append(ID.user, [{ role: 'user', content: 'hi' }])
     await ctx.deleteUser(ID.user)
     expect(await ctx.users.findById(ID.user)).toBeNull()
+    expect(await ctx.conversations.load(ID.user)).toEqual([])
   })
 
   it('throws for an unknown user', async () => {

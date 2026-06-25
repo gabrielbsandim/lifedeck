@@ -6,4 +6,5 @@ export type ConversationTurn = {
 export interface ConversationStore {
   load(userId: string): Promise<ConversationTurn[]>
   append(userId: string, turns: ConversationTurn[]): Promise<void>
+  clear(userId: string): Promise<void>
 }

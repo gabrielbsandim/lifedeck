@@ -12,5 +12,6 @@ export interface CalendarEventRepository {
     from: Date,
     to: Date,
   ): Promise<CalendarEvent[]>
+  listByOwner(ownerId: EntityId): Promise<CalendarEvent[]>
   delete(id: EntityId): Promise<void>
 }
