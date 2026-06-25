@@ -103,6 +103,8 @@ import {
   type CalendarProvider,
   type ChannelIdentityRepository,
   type MessagingChannel,
+  type AgentRunner,
+  type ConversationStore,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -137,6 +139,8 @@ import {
   GoogleCalendarProvider,
   OutboxJobQueue,
   createMessagingChannel,
+  createAgentRunner,
+  createConversationStore,
   createUsageMeter,
   Argon2PasswordHasher,
   RandomTokenGenerator,
@@ -264,6 +268,8 @@ type Services = {
   usageMeter: UsageMeter
   googleCalendar: CalendarProvider & { authUrl(state: string): string }
   messaging: MessagingChannel
+  agent: AgentRunner
+  conversations: ConversationStore
 }
 
 function build(
@@ -296,6 +302,8 @@ function build(
     usageMeter,
     googleCalendar,
     messaging,
+    agent,
+    conversations,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -412,6 +420,14 @@ function build(
     stripe: new StripePaymentGateway(),
   }
   const resolvePlan = makeResolvePlanFromSubscription({ subscriptions, clock })
+  const consumeCredits = makeConsumeCredits({
+    usageMeter,
+    ledger: usageEvents,
+    resolvePlan,
+    ids,
+    clock,
+  })
+  const entitlementService = new PlanEntitlementService(resolvePlan)
   return {
     createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
     updateTask: makeUpdateTask({
@@ -558,13 +574,7 @@ function build(
       ids,
       clock,
     }),
-    consumeCredits: makeConsumeCredits({
-      usageMeter,
-      ledger: usageEvents,
-      resolvePlan,
-      ids,
-      clock,
-    }),
+    consumeCredits,
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
     createCalendarEvent: makeCreateCalendarEvent({
       calendarEvents,
@@ -609,9 +619,13 @@ function build(
     handleInboundWhatsApp: makeHandleInboundWhatsApp({
       channelIdentities,
       messaging,
+      entitlements: entitlementService,
+      consumeCredits,
+      agent,
+      conversations,
       clock,
     }),
-    entitlements: new PlanEntitlementService(resolvePlan),
+    entitlements: entitlementService,
   }
 }
 
@@ -710,6 +724,8 @@ export function getContainer(): Container {
         usageMeter: createUsageMeter(),
         googleCalendar: buildGoogleCalendarProvider(),
         messaging: createMessagingChannel(),
+        agent: createAgentRunner(),
+        conversations: createConversationStore(),
       },
       new PrismaUnitOfWork(prisma),
     )

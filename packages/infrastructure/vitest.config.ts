@@ -34,6 +34,8 @@ export default mergeConfig(
         'src/usage/redis-usage-meter.ts',
         'src/calendar/google-calendar-provider.ts',
         'src/messaging/whatsapp-cloud-channel.ts',
+        'src/messaging/ai-sdk-agent-runner.ts',
+        'src/messaging/redis-conversation-store.ts',
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',

@@ -197,10 +197,24 @@ export {
   makeHandleInboundWhatsApp,
   PAIR_LINKED_MESSAGE,
   PAIR_GUIDANCE_MESSAGE,
+  ASSISTANT_LOCKED_MESSAGE,
+  ASSISTANT_QUOTA_MESSAGE,
+  ASSISTANT_ERROR_MESSAGE,
   type InboundWhatsappMessage,
   type InboundWhatsappResult,
+  type InboundWhatsappAction,
 } from '@/use-cases/handle-inbound-whatsapp'
+export type {
+  AgentRunner,
+  AgentRunInput,
+  AgentReply,
+} from '@/ports/agent-runner'
+export type {
+  ConversationStore,
+  ConversationTurn,
+} from '@/ports/conversation-store'
 export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
+export { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,
