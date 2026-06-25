@@ -42,7 +42,11 @@ Use cases (`packages/application/src/use-cases/`):
 - `startCheckout` routes by market via `gatewayForMarket(market)` (`BR` selects
   Asaas, otherwise Stripe). Routing is decided once at checkout, not per charge.
 - `handleSubscriptionWebhook` parses the provider event and does an idempotent
-  create or update of the subscription.
+  create or update of the subscription. When the event carries a reference (Asaas,
+  whose webhook is only token-authenticated), a subscription is created only if that
+  reference matches a `CheckoutIntent` persisted at checkout time, so a forged event
+  cannot grant a plan to an arbitrary user. Stripe events carry no reference and stay
+  trusted by their signature.
 - `resolvePlanFromSubscription` returns the active subscription's plan, falling back
   to the default `free` plan.
 
@@ -55,8 +59,9 @@ through a new checkout, and cancellations arrive via the webhook.)
   a hosted recurrent payment link (`POST /v3/paymentLinks`, `billingType: UNDEFINED`
   so the customer picks Pix, card, or boleto). `externalReference` carries
   `userId|plan|interval`. The webhook is authenticated by an `asaas-access-token`
-  header (timing-safe compare) and maps `PAYMENT_*` / `SUBSCRIPTION_DELETED` events
-  onto the normalized shape.
+  header (timing-safe compare), maps `PAYMENT_*` / `SUBSCRIPTION_DELETED` events
+  onto the normalized shape, and echoes the `externalReference` back so the handler
+  can cross-check it against a stored `CheckoutIntent`.
 - `StripePaymentGateway` (`packages/infrastructure/src/billing/stripe-payment-gateway.ts`):
   a Checkout Session (`mode: subscription`), with `userId` and `plan` carried in the
   subscription metadata. The webhook is verified with an HMAC-SHA256 signature over

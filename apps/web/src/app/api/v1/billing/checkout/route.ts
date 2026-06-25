@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       successUrl: `${base}/settings/billing?status=success`,
       cancelUrl: `${base}/settings/billing?status=cancelled`,
     })
-    return ok(session)
+    return ok({ url: session.url })
   } catch (error) {
     return handleError(error)
   }

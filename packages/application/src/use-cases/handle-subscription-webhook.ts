@@ -3,6 +3,7 @@ import {
   asEntityId,
   type PaymentProvider,
 } from '@lifedeck/domain'
+import type { CheckoutIntentRepository } from '@/ports/checkout-intent-repository'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { PaymentGateway } from '@/ports/payment-gateway'
@@ -11,6 +12,7 @@ import type { SubscriptionRepository } from '@/ports/subscription-repository'
 type Dependencies = {
   gateways: Record<PaymentProvider, PaymentGateway>
   subscriptions: SubscriptionRepository
+  checkoutIntents: CheckoutIntentRepository
   ids: IdGenerator
   clock: Clock
 }
@@ -18,6 +20,7 @@ type Dependencies = {
 export function makeHandleSubscriptionWebhook({
   gateways,
   subscriptions,
+  checkoutIntents,
   ids,
   clock,
 }: Dependencies) {
@@ -50,6 +53,16 @@ export function makeHandleSubscriptionWebhook({
 
     if (!event.userId || !event.plan) {
       return { handled: false }
+    }
+
+    if (event.reference) {
+      const intent = await checkoutIntents.findByReference(
+        provider,
+        event.reference,
+      )
+      if (!intent) {
+        return { handled: false }
+      }
     }
 
     const created = Subscription.create({

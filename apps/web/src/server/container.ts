@@ -97,6 +97,7 @@ import {
   type ScheduledJobRepository,
   type ShareLinkRepository,
   type SubscriptionRepository,
+  type CheckoutIntentRepository,
   type UsageEventLedger,
   type UsageMeter,
   type CalendarEventRepository,
@@ -131,6 +132,7 @@ import {
   PrismaScheduledJobRepository,
   PrismaShareLinkRepository,
   PrismaSubscriptionRepository,
+  PrismaCheckoutIntentRepository,
   PrismaUsageEventRepository,
   PrismaCalendarEventRepository,
   PrismaCalendarConnectionRepository,
@@ -256,6 +258,7 @@ type Repositories = {
   apiKeys: ApiKeyRepository
   scheduledJobs: ScheduledJobRepository
   subscriptions: SubscriptionRepository
+  checkoutIntents: CheckoutIntentRepository
   usageEvents: UsageEventLedger
   calendarEvents: CalendarEventRepository
   calendarConnections: CalendarConnectionRepository
@@ -292,6 +295,7 @@ function build(
     apiKeys,
     scheduledJobs,
     subscriptions,
+    checkoutIntents,
     usageEvents,
     calendarEvents,
     calendarConnections,
@@ -637,10 +641,16 @@ function build(
       version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
     }),
     dispatchDueJobs,
-    startCheckout: makeStartCheckout({ gateways }),
+    startCheckout: makeStartCheckout({
+      gateways,
+      checkoutIntents,
+      ids,
+      clock,
+    }),
     handleSubscriptionWebhook: makeHandleSubscriptionWebhook({
       gateways,
       subscriptions,
+      checkoutIntents,
       ids,
       clock,
     }),
@@ -776,6 +786,7 @@ export function getContainer(): Container {
         apiKeys: new PrismaApiKeyRepository(db),
         scheduledJobs: new PrismaScheduledJobRepository(db),
         subscriptions: new PrismaSubscriptionRepository(db),
+        checkoutIntents: new PrismaCheckoutIntentRepository(db),
         usageEvents: new PrismaUsageEventRepository(db),
         calendarEvents: new PrismaCalendarEventRepository(db),
         calendarConnections: new PrismaCalendarConnectionRepository(db),

@@ -93,6 +93,10 @@ export {
   type ScheduledJobProps,
 } from '@/entities/scheduled-job'
 export { Subscription, type SubscriptionProps } from '@/entities/subscription'
+export {
+  CheckoutIntent,
+  type CheckoutIntentProps,
+} from '@/entities/checkout-intent'
 export { UsageEvent, type UsageEventProps } from '@/entities/usage-event'
 export {
   CalendarEvent,

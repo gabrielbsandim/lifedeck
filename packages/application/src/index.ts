@@ -108,6 +108,7 @@ export {
   type DispatchResult,
 } from '@/use-cases/dispatch-due-jobs'
 export type { SubscriptionRepository } from '@/ports/subscription-repository'
+export type { CheckoutIntentRepository } from '@/ports/checkout-intent-repository'
 export type {
   PaymentGateway,
   PaymentInterval,
@@ -351,3 +352,4 @@ export { InMemoryNotificationRepository } from '@/testing/in-memory-notification
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
 export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
+export { InMemoryCheckoutIntentRepository } from '@/testing/in-memory-checkout-intent-repository'

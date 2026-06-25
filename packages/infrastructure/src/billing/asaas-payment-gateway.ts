@@ -107,6 +107,7 @@ export class AsaasPaymentGateway implements PaymentGateway {
 
   async startCheckout(input: CheckoutInput): Promise<CheckoutSession> {
     const config = readConfig()
+    const reference = encodeReference(input)
     const value =
       config.values[
         `${input.plan.toUpperCase()}_${input.interval === 'annual' ? 'ANNUAL' : 'MONTHLY'}`
@@ -130,7 +131,7 @@ export class AsaasPaymentGateway implements PaymentGateway {
         chargeType: 'RECURRENT',
         subscriptionCycle: input.interval === 'annual' ? 'YEARLY' : 'MONTHLY',
         value: Number(value),
-        externalReference: encodeReference(input),
+        externalReference: reference,
         callback: { successUrl: input.successUrl, autoRedirect: true },
       }),
     })
@@ -141,7 +142,7 @@ export class AsaasPaymentGateway implements PaymentGateway {
     if (!link.url) {
       throw new Error('Asaas payment link has no URL')
     }
-    return { url: link.url }
+    return { url: link.url, reference }
   }
 
   async parseWebhook(
@@ -174,10 +175,11 @@ export class AsaasPaymentGateway implements PaymentGateway {
       return null
     }
 
-    const reference = decodeReference(
+    const rawReference =
       payload.payment?.externalReference ??
-        payload.subscription?.externalReference,
-    )
+      payload.subscription?.externalReference ??
+      null
+    const reference = decodeReference(rawReference)
 
     return {
       providerRef,
@@ -188,6 +190,7 @@ export class AsaasPaymentGateway implements PaymentGateway {
         status === 'active'
           ? paidThrough(payload.payment?.dueDate, reference.interval)
           : null,
+      reference: rawReference,
     }
   }
 }

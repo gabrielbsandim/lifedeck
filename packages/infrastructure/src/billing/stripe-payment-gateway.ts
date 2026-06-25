@@ -113,7 +113,7 @@ export class StripePaymentGateway implements PaymentGateway {
     if (!session.url) {
       throw new Error('Stripe checkout session has no redirect URL')
     }
-    return { url: session.url }
+    return { url: session.url, reference: null }
   }
 
   async parseWebhook(
@@ -148,6 +148,7 @@ export class StripePaymentGateway implements PaymentGateway {
         plan: asPlan(metadata.plan),
         status: 'active',
         currentPeriodEnd: null,
+        reference: null,
       }
     }
 
@@ -171,6 +172,7 @@ export class StripePaymentGateway implements PaymentGateway {
         plan: asPlan(metadata.plan),
         status,
         currentPeriodEnd: periodEnd(object),
+        reference: null,
       }
     }
 

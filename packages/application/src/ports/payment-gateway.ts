@@ -19,6 +19,7 @@ export type CheckoutInput = {
 
 export type CheckoutSession = {
   url: string
+  reference: string | null
 }
 
 export type SubscriptionEvent = {
@@ -27,6 +28,7 @@ export type SubscriptionEvent = {
   plan: Plan | null
   status: SubscriptionStatus
   currentPeriodEnd: Date | null
+  reference: string | null
 }
 
 export interface PaymentGateway {

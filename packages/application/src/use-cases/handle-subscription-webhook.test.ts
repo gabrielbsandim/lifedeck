@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { asEntityId } from '@lifedeck/domain'
+import { CheckoutIntent, asEntityId } from '@lifedeck/domain'
+import { InMemoryCheckoutIntentRepository } from '@/testing/in-memory-checkout-intent-repository'
 import { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
 import { makeHandleSubscriptionWebhook } from '@/use-cases/handle-subscription-webhook'
 import type { PaymentGateway, SubscriptionEvent } from '@/ports/payment-gateway'
@@ -8,6 +9,7 @@ const NOW = new Date('2026-06-24T10:00:00.000Z')
 const clock = { now: () => NOW }
 const USER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
 const NEW_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+const INTENT_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 const ids = { generate: () => asEntityId(NEW_ID) }
 
 function gatewayWith(event: SubscriptionEvent | null): PaymentGateway {
@@ -21,10 +23,12 @@ function gatewayWith(event: SubscriptionEvent | null): PaymentGateway {
 function handlerFor(
   subscriptions: InMemorySubscriptionRepository,
   event: SubscriptionEvent | null,
+  checkoutIntents = new InMemoryCheckoutIntentRepository(),
 ) {
   return makeHandleSubscriptionWebhook({
     gateways: { asaas: gatewayWith(event), stripe: gatewayWith(null) },
     subscriptions,
+    checkoutIntents,
     ids,
     clock,
   })
@@ -39,6 +43,7 @@ describe('handleSubscriptionWebhook', () => {
       plan: 'pro',
       status: 'active',
       currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+      reference: null,
     })
 
     const result = await handle('asaas', 'raw', 'sig')
@@ -57,6 +62,7 @@ describe('handleSubscriptionWebhook', () => {
       plan: 'pro',
       status: 'active',
       currentPeriodEnd: null,
+      reference: null,
     })('asaas', 'raw', 'sig')
 
     const result = await handlerFor(subscriptions, {
@@ -65,6 +71,7 @@ describe('handleSubscriptionWebhook', () => {
       plan: null,
       status: 'canceled',
       currentPeriodEnd: null,
+      reference: null,
     })('asaas', 'raw', 'sig')
 
     expect(result).toEqual({ handled: true })
@@ -87,8 +94,55 @@ describe('handleSubscriptionWebhook', () => {
       plan: null,
       status: 'active',
       currentPeriodEnd: null,
+      reference: null,
     })
     expect(await handle('asaas', 'raw', 'sig')).toEqual({ handled: false })
     expect(await subscriptions.findByProviderRef('asaas', 'sub_x')).toBeNull()
+  })
+
+  it('rejects a referenced event with no matching checkout intent', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const handle = handlerFor(subscriptions, {
+      providerRef: 'sub_forged',
+      userId: USER_ID,
+      plan: 'premium',
+      status: 'active',
+      currentPeriodEnd: null,
+      reference: `${USER_ID}|premium|monthly`,
+    })
+
+    expect(await handle('asaas', 'raw', 'sig')).toEqual({ handled: false })
+    expect(
+      await subscriptions.findByProviderRef('asaas', 'sub_forged'),
+    ).toBeNull()
+  })
+
+  it('creates a referenced subscription when the checkout intent exists', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const checkoutIntents = new InMemoryCheckoutIntentRepository()
+    await checkoutIntents.save(
+      CheckoutIntent.create({
+        id: asEntityId(INTENT_ID),
+        provider: 'asaas',
+        reference: `${USER_ID}|pro|monthly`,
+        createdAt: NOW,
+      }),
+    )
+    const handle = handlerFor(
+      subscriptions,
+      {
+        providerRef: 'sub_real',
+        userId: USER_ID,
+        plan: 'pro',
+        status: 'active',
+        currentPeriodEnd: null,
+        reference: `${USER_ID}|pro|monthly`,
+      },
+      checkoutIntents,
+    )
+
+    expect(await handle('asaas', 'raw', 'sig')).toEqual({ handled: true })
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.plan).toBe('pro')
   })
 })
