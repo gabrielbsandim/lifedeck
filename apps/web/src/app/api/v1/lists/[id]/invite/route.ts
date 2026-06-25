@@ -1,6 +1,7 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { requireScope } from '@/server/api/authenticate'
 import { resolveLocaleFromHeader } from '@/lib/i18n/get-locale'
 
 export async function POST(
@@ -8,9 +9,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'lists:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const { id } = await params
     const body = await request.json().catch(() => ({}))
@@ -19,7 +20,7 @@ export async function POST(
       request.headers.get('accept-language'),
     )
     const link = await getContainer().inviteToList(
-      userId,
+      auth.userId,
       id,
       body,
       appUrl,

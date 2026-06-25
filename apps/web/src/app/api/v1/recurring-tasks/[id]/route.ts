@@ -1,20 +1,21 @@
+import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
-import { getUserIdFromRequest } from '@/server/session/session'
+import { handleError, ok } from '@/server/api/respond'
+import { requireScope } from '@/server/api/authenticate'
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'tasks:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const { id } = await params
     const body = await request.json()
     const definition = await getContainer().updateRecurringTask(
-      userId,
+      auth.userId,
       id,
       body,
     )
@@ -29,12 +30,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    const auth = await requireScope(request, 'tasks:write')
+    if (auth instanceof NextResponse) {
+      return auth
     }
     const { id } = await params
-    await getContainer().deleteRecurringTask(userId, id)
+    await getContainer().deleteRecurringTask(auth.userId, id)
     return ok({ deleted: true })
   } catch (error) {
     return handleError(error)

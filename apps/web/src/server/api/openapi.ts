@@ -322,7 +322,7 @@ registry.registerPath({
   path: '/lists/{id}/invite',
   summary: 'Invite a collaborator by email',
   operationId: 'inviteToList',
-  security: apiKeySecurity,
+  security: scoped('lists:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(inviteToListSchema),
@@ -340,7 +340,7 @@ registry.registerPath({
   path: '/lists/{id}/share',
   summary: 'Create a share link',
   operationId: 'createShareLink',
-  security: apiKeySecurity,
+  security: scoped('lists:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(createShareLinkSchema),
@@ -414,7 +414,7 @@ registry.registerPath({
   path: '/recurring-tasks',
   summary: "List the current user's recurring task definitions",
   operationId: 'listRecurringTasks',
-  security: apiKeySecurity,
+  security: scoped('tasks:read'),
   responses: {
     200: jsonResponse(
       'Recurring task definitions.',
@@ -429,7 +429,7 @@ registry.registerPath({
   path: '/recurring-tasks',
   summary: 'Create a recurring task definition',
   operationId: 'createRecurringTask',
-  security: apiKeySecurity,
+  security: scoped('tasks:write'),
   request: { body: jsonBody(createRecurringTaskSchema) },
   responses: {
     201: jsonResponse('Recurring task created.', RecurringTaskView),
@@ -443,7 +443,7 @@ registry.registerPath({
   path: '/recurring-tasks/{id}',
   summary: 'Update a recurring task definition',
   operationId: 'updateRecurringTask',
-  security: apiKeySecurity,
+  security: scoped('tasks:write'),
   request: {
     params: z.object({ id: idParam }),
     body: jsonBody(updateRecurringTaskSchema),
@@ -461,7 +461,7 @@ registry.registerPath({
   path: '/recurring-tasks/{id}',
   summary: 'Delete a recurring task definition',
   operationId: 'deleteRecurringTask',
-  security: apiKeySecurity,
+  security: scoped('tasks:write'),
   request: { params: z.object({ id: idParam }) },
   responses: {
     200: jsonResponse(
