@@ -17,6 +17,18 @@ export class ResendEmailSender implements EmailSender {
     this.client = new Resend(apiKey)
   }
 
+  private async send(to: string, subject: string, html: string): Promise<void> {
+    const { error } = await this.client.emails.send({
+      from: this.from,
+      to,
+      subject,
+      html,
+    })
+    if (error) {
+      throw new Error(`Resend failed to send email: ${error.message}`)
+    }
+  }
+
   async sendVerificationCode(
     to: string,
     code: string,
@@ -26,7 +38,7 @@ export class ResendEmailSender implements EmailSender {
       { type: 'verification-code', data: { code, appName: this.appName } },
       locale,
     )
-    await this.client.emails.send({ from: this.from, to, subject, html })
+    await this.send(to, subject, html)
   }
 
   async sendListInvitation(
@@ -39,7 +51,7 @@ export class ResendEmailSender implements EmailSender {
       { type: 'list-invitation', data: { listTitle, url } },
       locale,
     )
-    await this.client.emails.send({ from: this.from, to, subject, html })
+    await this.send(to, subject, html)
   }
 
   async sendTaskAssignment(
@@ -52,7 +64,7 @@ export class ResendEmailSender implements EmailSender {
       { type: 'task-assignment', data: { taskTitle, listTitle } },
       locale,
     )
-    await this.client.emails.send({ from: this.from, to, subject, html })
+    await this.send(to, subject, html)
   }
 
   async sendDailyDigest(
@@ -64,6 +76,6 @@ export class ResendEmailSender implements EmailSender {
       { type: 'daily-digest', data: summary },
       locale,
     )
-    await this.client.emails.send({ from: this.from, to, subject, html })
+    await this.send(to, subject, html)
   }
 }
