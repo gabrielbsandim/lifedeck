@@ -32,7 +32,10 @@ export function CalendarAgenda({
     timeZone: 'UTC',
   })
 
-  if (events.length === 0) {
+  const hasEventsOnShownDays = days.some(
+    day => (byDay.get(day) ?? []).length > 0,
+  )
+  if (!hasEventsOnShownDays) {
     return <EmptyState title={t.empty} description={t.emptyHint} />
   }
 
