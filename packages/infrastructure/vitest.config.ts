@@ -31,7 +31,6 @@ export default mergeConfig(
         'src/database/prisma-health-probe.ts',
         'src/billing/asaas-payment-gateway.ts',
         'src/billing/stripe-payment-gateway.ts',
-        'src/usage/redis-usage-meter.ts',
         'src/calendar/google-calendar-provider.ts',
         'src/messaging/whatsapp-cloud-channel.ts',
         'src/messaging/ai-sdk-agent-runner.ts',
