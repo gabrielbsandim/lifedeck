@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
 import { handleError, ok } from '@/server/api/respond'
 import { requireScope } from '@/server/api/authenticate'
-import { requireFeature } from '@/server/api/entitlement-guard'
+import {
+  requireEntitlement,
+  requireFeature,
+} from '@/server/api/entitlement-guard'
 
 export async function GET(
   request: Request,
@@ -16,6 +19,10 @@ export async function GET(
     const auth = await requireScope(request, 'calendar:read')
     if (auth instanceof NextResponse) {
       return auth
+    }
+    const entitled = await requireEntitlement(auth.userId, 'calendarSync')
+    if (entitled) {
+      return entitled
     }
     const { id } = await params
     const event = await getContainer().getCalendarEvent(auth.userId, id)
@@ -37,6 +44,10 @@ export async function PATCH(
     const auth = await requireScope(request, 'calendar:write')
     if (auth instanceof NextResponse) {
       return auth
+    }
+    const entitled = await requireEntitlement(auth.userId, 'calendarSync')
+    if (entitled) {
+      return entitled
     }
     const { id } = await params
     const body = await request.json()
@@ -63,6 +74,10 @@ export async function DELETE(
     const auth = await requireScope(request, 'calendar:write')
     if (auth instanceof NextResponse) {
       return auth
+    }
+    const entitled = await requireEntitlement(auth.userId, 'calendarSync')
+    if (entitled) {
+      return entitled
     }
     const { id } = await params
     await getContainer().deleteCalendarEvent(auth.userId, id)
