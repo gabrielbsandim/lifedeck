@@ -15,9 +15,11 @@ type Dependencies = {
   clock: Clock
   maxAttempts?: number
   backoff?: (attempt: number) => number
+  leaseMs?: number
 }
 
 const DEFAULT_MAX_ATTEMPTS = 5
+const DEFAULT_LEASE_MS = 5 * 60_000
 
 function defaultBackoff(attempt: number): number {
   return Math.min(2 ** attempt, 60) * 60_000
@@ -29,10 +31,15 @@ export function makeDispatchDueJobs({
   clock,
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
   backoff = defaultBackoff,
+  leaseMs = DEFAULT_LEASE_MS,
 }: Dependencies) {
   return async function dispatchDueJobs(limit = 50): Promise<DispatchResult> {
     const now = clock.now()
-    const due = await scheduledJobs.listDue(now, limit)
+    const due = await scheduledJobs.claimDue(
+      now,
+      limit,
+      new Date(now.getTime() + leaseMs),
+    )
     let succeeded = 0
     let failed = 0
 

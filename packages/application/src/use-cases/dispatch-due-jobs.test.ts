@@ -122,6 +122,19 @@ describe('dispatchDueJobs', () => {
     expect(doomed.attempts).toBe(1)
   })
 
+  it('leases claimed jobs so a second claim in the window skips them', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
+    const leaseUntil = new Date(NOW.getTime() + 60_000)
+
+    const first = await repo.claimDue(NOW, 10, leaseUntil)
+    const second = await repo.claimDue(NOW, 10, leaseUntil)
+
+    expect(first).toHaveLength(1)
+    expect(second).toHaveLength(0)
+    expect(first[0]?.runAt).toEqual(leaseUntil)
+  })
+
   it('respects the batch limit', async () => {
     const repo = new InMemoryScheduledJobRepository()
     await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))

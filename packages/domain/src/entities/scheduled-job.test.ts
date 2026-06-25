@@ -44,6 +44,14 @@ describe('ScheduledJob', () => {
     ).toThrow(ValidationError)
   })
 
+  it('leases the job by moving its run time forward', () => {
+    const job = build()
+    const until = new Date('2026-06-24T09:10:00.000Z')
+    job.lease(until)
+    expect(job.runAt).toEqual(until)
+    expect(job.status).toBe('pending')
+  })
+
   it('marks a job done', () => {
     const job = build()
     job.markDone()

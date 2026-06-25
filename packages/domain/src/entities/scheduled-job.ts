@@ -66,6 +66,10 @@ export class ScheduledJob {
     return this.props.attempts
   }
 
+  lease(until: Date): void {
+    this.props.runAt = until
+  }
+
   markDone(): void {
     this.props.status = 'done'
   }

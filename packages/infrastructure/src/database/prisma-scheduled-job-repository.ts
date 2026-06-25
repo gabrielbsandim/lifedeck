@@ -1,6 +1,7 @@
 import type { ScheduledJob, ScheduledJobStatus } from '@lifedeck/domain'
 import type { ScheduledJobRepository } from '@lifedeck/application'
-import type { PrismaClient, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
 import {
   toDomainScheduledJob,
   toScheduledJobRecord,
@@ -63,5 +64,49 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
       take: limit,
     })
     return rows.map(row => toDomainScheduledJob(fromPrisma(row)))
+  }
+
+  async claimDue(
+    now: Date,
+    limit: number,
+    leaseUntil: Date,
+  ): Promise<ScheduledJob[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        id: string
+        type: string
+        payload: unknown
+        run_at: Date
+        status: string
+        attempts: number
+        last_error: string | null
+        created_at: Date
+      }>
+    >(Prisma.sql`
+      UPDATE scheduled_jobs
+      SET run_at = ${leaseUntil}
+      WHERE id IN (
+        SELECT id FROM scheduled_jobs
+        WHERE status = 'pending' AND run_at <= ${now}
+        ORDER BY run_at ASC
+        LIMIT ${limit}
+        FOR UPDATE SKIP LOCKED
+      )
+      RETURNING id, type, payload, run_at, status, attempts, last_error, created_at
+    `)
+    return rows.map(row =>
+      toDomainScheduledJob(
+        fromPrisma({
+          id: row.id,
+          type: row.type,
+          payload: row.payload,
+          runAt: row.run_at,
+          status: row.status,
+          attempts: row.attempts,
+          lastError: row.last_error,
+          createdAt: row.created_at,
+        }),
+      ),
+    )
   }
 }

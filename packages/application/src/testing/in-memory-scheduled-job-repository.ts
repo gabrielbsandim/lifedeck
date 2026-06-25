@@ -14,4 +14,17 @@ export class InMemoryScheduledJobRepository implements ScheduledJobRepository {
       .sort((a, b) => a.runAt.getTime() - b.runAt.getTime())
       .slice(0, limit)
   }
+
+  async claimDue(
+    now: Date,
+    limit: number,
+    leaseUntil: Date,
+  ): Promise<ScheduledJob[]> {
+    const claimed = await this.listDue(now, limit)
+    for (const job of claimed) {
+      job.lease(leaseUntil)
+      await this.save(job)
+    }
+    return claimed
+  }
 }
