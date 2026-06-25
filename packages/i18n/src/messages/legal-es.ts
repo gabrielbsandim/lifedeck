@@ -94,7 +94,7 @@ const terms: LegalDocument = {
       blocks: [
         {
           kind: 'p',
-          text: 'Todo el contenido de la Plataforma — incluidos el código fuente, el diseño, los logotipos, las marcas, los textos, las funciones y las interfaces — es propiedad exclusiva de Lifedeck o de sus licenciantes, protegido por la legislación de propiedad intelectual aplicable.',
+          text: 'Todo el contenido de la Plataforma (incluidos el código fuente, el diseño, los logotipos, las marcas, los textos, las funciones y las interfaces) es propiedad exclusiva de Lifedeck o de sus licenciantes, protegido por la legislación de propiedad intelectual aplicable.',
         },
         {
           kind: 'p',
@@ -107,7 +107,7 @@ const terms: LegalDocument = {
       blocks: [
         {
           kind: 'p',
-          text: 'El tratamiento de tus datos personales se rige por nuestra [Política de Privacidad](/privacy), elaborada conforme a la Ley General de Protección de Datos de Brasil (LGPD — Ley n.º 13.709/2018). Al usar el Servicio, declaras haberla leído y aceptado.',
+          text: 'El tratamiento de tus datos personales se rige por nuestra [Política de Privacidad](/privacy), elaborada conforme a la Ley General de Protección de Datos de Brasil (LGPD, Ley n.º 13.709/2018). Al usar el Servicio, declaras haberla leído y aceptado.',
         },
       ],
     },
@@ -179,7 +179,7 @@ const terms: LegalDocument = {
 const privacy: LegalDocument = {
   title: 'Política de Privacidad',
   intro:
-    'Esta Política describe cómo Lifedeck recopila, utiliza, almacena y protege tu información personal, conforme a la Ley General de Protección de Datos de Brasil (LGPD — Ley n.º 13.709/2018) y demás normas aplicables.',
+    'Esta Política describe cómo Lifedeck recopila, utiliza, almacena y protege tu información personal, conforme a la Ley General de Protección de Datos de Brasil (LGPD, Ley n.º 13.709/2018) y demás normas aplicables.',
   sections: [
     {
       title: '1. Quiénes somos',
@@ -308,7 +308,7 @@ const privacy: LegalDocument = {
           kind: 'list',
           items: [
             'Cifrado en tránsito (TLS);',
-            'Contraseñas almacenadas con un algoritmo de hashing robusto (Argon2id) — nunca en texto plano;',
+            'Contraseñas almacenadas con un algoritmo de hashing robusto (Argon2id), nunca en texto plano;',
             'Control de acceso por rol y principio de mínimo privilegio;',
             'Cabeceras de seguridad y política de seguridad de contenido (CSP).',
           ],
@@ -332,7 +332,7 @@ const privacy: LegalDocument = {
         },
         {
           kind: 'p',
-          text: 'Para los demás derechos — o si el autoservicio no es suficiente — contáctanos en {email}. Responderemos dentro del plazo legal.',
+          text: 'Para los demás derechos, o si el autoservicio no es suficiente, contáctanos en {email}. Responderemos dentro del plazo legal.',
         },
       ],
     },

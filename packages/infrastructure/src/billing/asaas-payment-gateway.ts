@@ -125,7 +125,7 @@ export class AsaasPaymentGateway implements PaymentGateway {
       },
       body: JSON.stringify({
         name: `Lifedeck ${input.plan}`,
-        description: `Lifedeck — assinatura ${input.interval === 'annual' ? 'anual' : 'mensal'}`,
+        description: `Lifedeck: assinatura ${input.interval === 'annual' ? 'anual' : 'mensal'}`,
         billingType: 'UNDEFINED',
         chargeType: 'RECURRENT',
         subscriptionCycle: input.interval === 'annual' ? 'YEARLY' : 'MONTHLY',

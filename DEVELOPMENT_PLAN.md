@@ -158,10 +158,10 @@ Approach: locale follows the browser. The server resolves it from `Accept-Langua
 mirrors the team convention (browser language + `Accept-Language` propagation) without a
 client-side i18next rewrite, and keeps the typed message catalogs for compile-time safety.
 
-- [x] ~~next-intl / locale routing~~ — deliberately skipped. The typed SSR catalogs already
+- [x] ~~next-intl / locale routing~~: deliberately skipped. The typed SSR catalogs already
       resolve from `Accept-Language`; URL-based locale routing isn't wanted for this app.
       Browser-tag resolution uses an explicit fallback map (`resolveLocale`, codebox-style).
-- [x] ~~Language switcher~~ — deliberately skipped. Locale follows the browser (like the
+- [x] ~~Language switcher~~: deliberately skipped. Locale follows the browser (like the
       reference project); no manual override to persist.
 - [x] Translate all product copy (en, pt); extract remaining strings. Extracted the task-row
       and share-dialog literals into the catalogs; swept the app for remaining hardcoded copy.

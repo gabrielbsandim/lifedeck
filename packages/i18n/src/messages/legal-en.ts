@@ -94,7 +94,7 @@ const terms: LegalDocument = {
       blocks: [
         {
           kind: 'p',
-          text: 'All Platform content — including source code, design, logos, trademarks, text, features and interfaces — is the exclusive property of Lifedeck or its licensors, protected by applicable intellectual property law.',
+          text: 'All Platform content (including source code, design, logos, trademarks, text, features and interfaces) is the exclusive property of Lifedeck or its licensors, protected by applicable intellectual property law.',
         },
         {
           kind: 'p',
@@ -107,7 +107,7 @@ const terms: LegalDocument = {
       blocks: [
         {
           kind: 'p',
-          text: 'The processing of your personal data is governed by our [Privacy Policy](/privacy), prepared in compliance with the Brazilian General Data Protection Law (LGPD — Law No. 13.709/2018). By using the Service, you confirm that you have read and agreed to it.',
+          text: 'The processing of your personal data is governed by our [Privacy Policy](/privacy), prepared in compliance with the Brazilian General Data Protection Law (LGPD, Law No. 13.709/2018). By using the Service, you confirm that you have read and agreed to it.',
         },
       ],
     },
@@ -179,7 +179,7 @@ const terms: LegalDocument = {
 const privacy: LegalDocument = {
   title: 'Privacy Policy',
   intro:
-    'This Policy describes how Lifedeck collects, uses, stores and protects your personal information, in compliance with the Brazilian General Data Protection Law (LGPD — Law No. 13.709/2018) and other applicable rules.',
+    'This Policy describes how Lifedeck collects, uses, stores and protects your personal information, in compliance with the Brazilian General Data Protection Law (LGPD, Law No. 13.709/2018) and other applicable rules.',
   sections: [
     {
       title: '1. Who we are',
@@ -308,7 +308,7 @@ const privacy: LegalDocument = {
           kind: 'list',
           items: [
             'Encryption in transit (TLS);',
-            'Passwords stored with a strong hashing algorithm (Argon2id) — never in plain text;',
+            'Passwords stored with a strong hashing algorithm (Argon2id), never in plain text;',
             'Role-based access control and the principle of least privilege;',
             'Security headers and a Content Security Policy (CSP).',
           ],
@@ -332,7 +332,7 @@ const privacy: LegalDocument = {
         },
         {
           kind: 'p',
-          text: 'For the remaining rights — or if self-service does not suffice — contact us at {email}. We will respond within the legal deadline.',
+          text: 'For the remaining rights, or if self-service does not suffice, contact us at {email}. We will respond within the legal deadline.',
         },
       ],
     },

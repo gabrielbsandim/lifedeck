@@ -171,7 +171,7 @@ export const en: Messages = {
     emptyHint: 'Add your first task to get started.',
     completed: 'Completed',
     pending: 'Pending',
-    allDone: 'All done — lovely work! 🎉',
+    allDone: 'All done, lovely work! 🎉',
     progress: '{done} of {total} done',
     reorder: 'Drag to reorder',
     assignee: 'Assignee',
@@ -198,7 +198,7 @@ export const en: Messages = {
   lists: {
     manage: 'My lists',
     title: 'My lists',
-    subtitle: 'Lists that live beyond today — like wedding planning.',
+    subtitle: 'Lists that live beyond today, like wedding planning.',
     create: 'Create list',
     namePlaceholder: 'List name',
     empty: 'No lists yet. Create your first one.',

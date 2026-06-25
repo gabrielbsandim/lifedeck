@@ -32,7 +32,7 @@ sender):
 | `AI_MODEL` | Gateway model string, `creator/model`. Used only when `GEMINI_API_KEY` is unset. Examples: `anthropic/claude-opus-4-8`, `google/gemini-2.5-flash`. |
 | `AI_GATEWAY_API_KEY` | AI Gateway auth. Needed locally for the gateway path; on Vercel it is provided automatically via OIDC. |
 
-Prefer `GEMINI_API_KEY` when you already have Gemini quota/credits — the AI Gateway's
+Prefer `GEMINI_API_KEY` when you already have Gemini quota/credits; the AI Gateway's
 free credits are limited and, once exhausted, every gateway generation fails with a
 "credits" error. The Gateway path remains available for multi-provider routing and
 observability when credits are funded.

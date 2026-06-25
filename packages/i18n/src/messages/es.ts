@@ -174,7 +174,7 @@ export const es: Messages = {
     emptyHint: 'Añade tu primera tarea para empezar.',
     completed: 'Completada',
     pending: 'Pendiente',
-    allDone: 'Todo listo — ¡buen trabajo! 🎉',
+    allDone: 'Todo listo, ¡buen trabajo! 🎉',
     progress: '{done} de {total} completadas',
     reorder: 'Arrastra para reordenar',
     assignee: 'Responsable',
@@ -201,7 +201,7 @@ export const es: Messages = {
   lists: {
     manage: 'Mis listas',
     title: 'Mis listas',
-    subtitle: 'Listas que van más allá de hoy — como organizar una boda.',
+    subtitle: 'Listas que van más allá de hoy, como organizar una boda.',
     create: 'Crear lista',
     namePlaceholder: 'Nombre de la lista',
     empty: 'Aún no hay listas. Crea la primera.',

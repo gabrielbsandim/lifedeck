@@ -144,7 +144,7 @@ Content-Type: application/json
 ```
 
 The full surface (lists, tasks, recurring tasks, sharing, members, analytics,
-notifications, AI generation, auth, account settings — profile, password,
-timezone, carry-over, data export — and API keys) is documented in the live
+notifications, AI generation, auth, account settings (profile, password,
+timezone, carry-over, data export) and API keys) is documented in the live
 OpenAPI document. Browse it interactively at `/docs`; every entry is generated from the
 Zod DTOs, so `/docs` stays authoritative.

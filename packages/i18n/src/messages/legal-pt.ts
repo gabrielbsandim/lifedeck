@@ -94,7 +94,7 @@ const terms: LegalDocument = {
       blocks: [
         {
           kind: 'p',
-          text: 'Todo o conteúdo da Plataforma — incluindo código-fonte, design, logotipos, marcas, textos, funcionalidades e interfaces — é propriedade exclusiva do Lifedeck ou de seus licenciadores, protegido pela legislação de propriedade intelectual aplicável.',
+          text: 'Todo o conteúdo da Plataforma (incluindo código-fonte, design, logotipos, marcas, textos, funcionalidades e interfaces) é propriedade exclusiva do Lifedeck ou de seus licenciadores, protegido pela legislação de propriedade intelectual aplicável.',
         },
         {
           kind: 'p',
@@ -107,7 +107,7 @@ const terms: LegalDocument = {
       blocks: [
         {
           kind: 'p',
-          text: 'O tratamento de seus dados pessoais é regido pela nossa [Política de Privacidade](/privacy), elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018). Ao usar o Serviço, você declara ter lido e concordado com ela.',
+          text: 'O tratamento de seus dados pessoais é regido pela nossa [Política de Privacidade](/privacy), elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018). Ao usar o Serviço, você declara ter lido e concordado com ela.',
         },
       ],
     },
@@ -179,7 +179,7 @@ const terms: LegalDocument = {
 const privacy: LegalDocument = {
   title: 'Política de Privacidade',
   intro:
-    'Esta Política descreve como o Lifedeck coleta, utiliza, armazena e protege suas informações pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018) e demais normas aplicáveis.',
+    'Esta Política descreve como o Lifedeck coleta, utiliza, armazena e protege suas informações pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018) e demais normas aplicáveis.',
   sections: [
     {
       title: '1. Quem somos',
@@ -308,7 +308,7 @@ const privacy: LegalDocument = {
           kind: 'list',
           items: [
             'Criptografia em trânsito (TLS);',
-            'Senhas armazenadas com algoritmo de hashing forte (Argon2id) — nunca em texto puro;',
+            'Senhas armazenadas com algoritmo de hashing forte (Argon2id), nunca em texto puro;',
             'Controle de acesso por papel e princípio do menor privilégio;',
             'Cabeçalhos de segurança e política de segurança de conteúdo (CSP).',
           ],
@@ -332,7 +332,7 @@ const privacy: LegalDocument = {
         },
         {
           kind: 'p',
-          text: 'Para os demais direitos — ou caso o self-service não atenda — entre em contato pelo e-mail {email}. Responderemos no prazo legal.',
+          text: 'Para os demais direitos, ou caso o self-service não atenda, entre em contato pelo e-mail {email}. Responderemos no prazo legal.',
         },
       ],
     },

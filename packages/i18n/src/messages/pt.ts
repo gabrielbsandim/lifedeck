@@ -173,7 +173,7 @@ export const pt: Messages = {
     emptyHint: 'Adicione sua primeira tarefa para começar.',
     completed: 'Concluída',
     pending: 'Pendente',
-    allDone: 'Tudo pronto — ótimo trabalho! 🎉',
+    allDone: 'Tudo pronto, ótimo trabalho! 🎉',
     progress: '{done} de {total} concluídas',
     reorder: 'Arraste para reordenar',
     assignee: 'Responsável',
@@ -200,7 +200,7 @@ export const pt: Messages = {
   lists: {
     manage: 'Minhas listas',
     title: 'Minhas listas',
-    subtitle: 'Listas que vão além de hoje — como o casamento.',
+    subtitle: 'Listas que vão além de hoje, como o casamento.',
     create: 'Criar lista',
     namePlaceholder: 'Nome da lista',
     empty: 'Nenhuma lista ainda. Crie a primeira.',

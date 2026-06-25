@@ -50,7 +50,7 @@ function pinTimezone(userId: string): void {
   try {
     localStorage.setItem(timezonePinKey(userId), '1')
   } catch {
-    // localStorage unavailable (private mode / SSR) — auto-sync simply repeats.
+    // localStorage unavailable (private mode / SSR), auto-sync simply repeats.
   }
 }
 
@@ -72,7 +72,7 @@ export function useSetTimezone() {
 
 // Auto-detects the device time zone once per account+browser. After the first
 // sync (or any manual change, which pins the choice), the user's selection is
-// kept — including an explicit "UTC" — so the manual override is never reverted.
+// kept (including an explicit "UTC") so the manual override is never reverted.
 export function useSyncTimezone(user: UserView | null | undefined) {
   const queryClient = useQueryClient()
   const synced = useRef<string | null>(null)

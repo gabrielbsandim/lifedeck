@@ -31,15 +31,15 @@ type FooterCopy = { automated: string; tagline: string }
 
 const FOOTER_COPY: Record<EmailLocale, FooterCopy> = {
   en: {
-    automated: 'This is an automated email — no need to reply.',
+    automated: 'This is an automated email, no need to reply.',
     tagline: 'Your whole life, organized in one place.',
   },
   pt: {
-    automated: 'Este é um e-mail automático — não precisa responder.',
+    automated: 'Este é um e-mail automático, não precisa responder.',
     tagline: 'Sua vida inteira, organizada num só lugar.',
   },
   es: {
-    automated: 'Este es un correo automático — no necesitas responder.',
+    automated: 'Este es un correo automático, no necesitas responder.',
     tagline: 'Toda tu vida, organizada en un solo lugar.',
   },
 }
