@@ -1,10 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
-export type ParsedWhatsappMessage = {
-  from: string
-  text: string
-  messageId: string
-}
+export type ParsedWhatsappMessage = { from: string; messageId: string } & (
+  | { kind: 'text'; text: string }
+  | { kind: 'audio'; mediaId: string }
+  | { kind: 'image'; mediaId: string }
+)
 
 export function verifyWhatsAppSignature(
   rawBody: string,
@@ -21,19 +21,37 @@ export function verifyWhatsAppSignature(
   return a.length === b.length && timingSafeEqual(a, b)
 }
 
+type WhatsappMessage = {
+  from?: string
+  id?: string
+  type?: string
+  text?: { body?: string }
+  audio?: { id?: string }
+  image?: { id?: string }
+}
+
 type WhatsappPayload = {
   entry?: Array<{
-    changes?: Array<{
-      value?: {
-        messages?: Array<{
-          from?: string
-          id?: string
-          type?: string
-          text?: { body?: string }
-        }>
-      }
-    }>
+    changes?: Array<{ value?: { messages?: WhatsappMessage[] } }>
   }>
+}
+
+function parseMessage(message: WhatsappMessage): ParsedWhatsappMessage | null {
+  const from = message.from
+  const messageId = message.id
+  if (!from || !messageId) {
+    return null
+  }
+  if (message.type === 'text' && message.text?.body) {
+    return { from, messageId, kind: 'text', text: message.text.body }
+  }
+  if (message.type === 'audio' && message.audio?.id) {
+    return { from, messageId, kind: 'audio', mediaId: message.audio.id }
+  }
+  if (message.type === 'image' && message.image?.id) {
+    return { from, messageId, kind: 'image', mediaId: message.image.id }
+  }
+  return null
 }
 
 export function parseInboundMessages(
@@ -44,14 +62,9 @@ export function parseInboundMessages(
   for (const entry of typed.entry ?? []) {
     for (const change of entry.changes ?? []) {
       for (const message of change.value?.messages ?? []) {
-        if (message.type !== 'text') {
-          continue
-        }
-        const from = message.from
-        const text = message.text?.body
-        const messageId = message.id
-        if (from && text && messageId) {
-          messages.push({ from, text, messageId })
+        const parsed = parseMessage(message)
+        if (parsed) {
+          messages.push(parsed)
         }
       }
     }

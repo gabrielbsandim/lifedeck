@@ -140,3 +140,9 @@ export {
   createAgentRunner,
 } from '@/messaging/ai-sdk-agent-runner'
 export { createConversationStore } from '@/messaging/redis-conversation-store'
+export {
+  GeminiTranscriber,
+  GeminiVisionReader,
+  createTranscriber,
+  createVisionReader,
+} from '@/messaging/gemini-multimodal'

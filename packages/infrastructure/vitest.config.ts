@@ -36,6 +36,7 @@ export default mergeConfig(
         'src/messaging/whatsapp-cloud-channel.ts',
         'src/messaging/ai-sdk-agent-runner.ts',
         'src/messaging/redis-conversation-store.ts',
+        'src/messaging/gemini-multimodal.ts',
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',
         'src/auth/google-oauth-provider.ts',

@@ -213,6 +213,14 @@ export type {
   ConversationStore,
   ConversationTurn,
 } from '@/ports/conversation-store'
+export type {
+  AssistantTools,
+  AssistantTaskSummary,
+  AssistantEventSummary,
+} from '@/ports/assistant-tools'
+export type { MediaPayload } from '@/ports/messaging-channel'
+export type { Transcriber } from '@/ports/transcriber'
+export type { VisionReader } from '@/ports/vision-reader'
 export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 export { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 export type { NotificationRepository } from '@/ports/notification-repository'

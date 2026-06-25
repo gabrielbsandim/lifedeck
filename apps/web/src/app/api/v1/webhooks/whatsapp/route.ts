@@ -36,10 +36,15 @@ export async function POST(request: Request) {
     const messages = parseInboundMessages(JSON.parse(rawBody))
     const container = getContainer()
     for (const message of messages) {
-      await container.handleInboundWhatsApp({
-        from: message.from,
-        text: message.text,
-      })
+      await container.handleInboundWhatsApp(
+        message.kind === 'text'
+          ? { from: message.from, kind: 'text', text: message.text }
+          : {
+              from: message.from,
+              kind: message.kind,
+              mediaId: message.mediaId,
+            },
+      )
     }
     return new NextResponse(null, { status: 200 })
   } catch (error) {

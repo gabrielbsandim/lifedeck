@@ -717,7 +717,7 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       WhatsApp webhook + `messageId` idempotency/replay store (the 10-min code
       expiry already bounds brute-force; both are listed in the security section).
 
-### V2-8 - WhatsApp AI assistant (text path DONE)
+### V2-8 - WhatsApp AI assistant (text + tools + multimodal DONE)
 
 - [x] **Agent text path (DONE):** `AgentRunner` port + `AiSdkAgentRunner`
       (Vercel AI SDK `generateText`, Gemini Flash by default, same provider
@@ -728,11 +728,17 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       identity → entitlement (`whatsappAssistant`, else upsell) → meter
       (`consumeCredits` 1 credit before the model call, quota reply on
       `QuotaExceededError`) → agent → reply + persist the turn. Flag-gated.
-- [ ] **Tool registry (next slice):** thin tools over existing use cases
-      (createTask/getDailyBoard/createEvent/getWeekAgenda...) acting as the
-      linked user, plus `WeatherProvider`. Needs default-list/confirmation UX.
-- [ ] `Transcriber` (audio) and `VisionReader` (image) ports + Gemini adapters;
-      webhook handles audio/image message types (fetch media from Meta).
+- [x] **Tool registry (DONE):** `AssistantTools` port wired in the container
+      over existing use cases as the linked user (`getToday`/`addTask` on the
+      provisioned daily list, `getAgenda`/`addEvent` on the calendar);
+      `AiSdkAgentRunner` exposes them as AI SDK tools (`stopWhen: stepCountIs(5)`).
+      `WeatherProvider` and a richer surface remain later additions.
+- [x] **Multimodal (DONE):** `Transcriber` + `VisionReader` ports + Gemini
+      adapters (stub without a key); `MessagingChannel.fetchMedia` (Meta two-step
+      lookup+download). The webhook parses audio/image messages; the orchestrator
+      meters by modality (`audioTranscription`/`imageVision` = 2 credits vs
+      `assistantText` = 1) before fetching, then transcribes/describes and feeds
+      the text to the agent.
 - [ ] Premium routes complex requests to Gemini 3.1 Pro (debit `assistantPro` =
       6 credits instead of the flat `assistantText`).
 - [ ] Proactive WhatsApp alerts (utility templates) as a reminder channel

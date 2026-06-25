@@ -1,4 +1,4 @@
-import { normalizePhone } from '@lifedeck/domain'
+import { normalizePhone, type AiOperation } from '@lifedeck/domain'
 import { QuotaExceededError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { AgentRunner } from '@/ports/agent-runner'
@@ -6,6 +6,8 @@ import type { ChannelIdentityRepository } from '@/ports/channel-identity-reposit
 import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { MessagingChannel } from '@/ports/messaging-channel'
+import type { Transcriber } from '@/ports/transcriber'
+import type { VisionReader } from '@/ports/vision-reader'
 
 export const PAIR_LINKED_MESSAGE =
   'Your WhatsApp is now linked to Lifedeck. You can start sending messages.'
@@ -18,10 +20,10 @@ export const ASSISTANT_QUOTA_MESSAGE =
 export const ASSISTANT_ERROR_MESSAGE =
   'Something went wrong on my side. Please try again in a moment.'
 
-export type InboundWhatsappMessage = {
-  from: string
-  text: string
-}
+export type InboundWhatsappMessage =
+  | { from: string; kind: 'text'; text: string }
+  | { from: string; kind: 'audio'; mediaId: string }
+  | { from: string; kind: 'image'; mediaId: string }
 
 export type InboundWhatsappAction =
   | 'reply'
@@ -37,8 +39,14 @@ export type InboundWhatsappResult = {
 
 type ConsumeCredits = (
   userId: string,
-  operation: 'assistantText',
+  operation: AiOperation,
 ) => Promise<unknown>
+
+const OPERATION: Record<InboundWhatsappMessage['kind'], AiOperation> = {
+  text: 'assistantText',
+  audio: 'audioTranscription',
+  image: 'imageVision',
+}
 
 type Dependencies = {
   channelIdentities: ChannelIdentityRepository
@@ -47,6 +55,8 @@ type Dependencies = {
   consumeCredits: ConsumeCredits
   agent: AgentRunner
   conversations: ConversationStore
+  transcriber: Transcriber
+  visionReader: VisionReader
   clock: Clock
 }
 
@@ -57,6 +67,8 @@ export function makeHandleInboundWhatsApp({
   consumeCredits,
   agent,
   conversations,
+  transcriber,
+  visionReader,
   clock,
 }: Dependencies) {
   return async function handleInboundWhatsApp(
@@ -70,7 +82,7 @@ export function makeHandleInboundWhatsApp({
     }
 
     const now = clock.now()
-    const code = message.text.trim()
+    const code = message.kind === 'text' ? message.text.trim() : ''
     const pending = code
       ? await channelIdentities.findPendingByCode('whatsapp', code)
       : null
@@ -96,9 +108,10 @@ export function makeHandleInboundWhatsApp({
       return { action: 'denied' }
     }
 
-    // Meter before the model call so an exhausted user never spends an AI call.
+    // Meter before any model call so an exhausted user never spends one. The
+    // credit weight follows the modality (audio/image cost more than text).
     try {
-      await consumeCredits(userId, 'assistantText')
+      await consumeCredits(userId, OPERATION[message.kind])
     } catch (error) {
       if (error instanceof QuotaExceededError) {
         await messaging.sendText(message.from, ASSISTANT_QUOTA_MESSAGE)
@@ -107,20 +120,33 @@ export function makeHandleInboundWhatsApp({
       throw error
     }
 
-    const history = await conversations.load(userId)
     let reply
+    let text
     try {
-      reply = await agent.run({ userId, message: message.text, history })
+      text = await toText(message)
+      const history = await conversations.load(userId)
+      reply = await agent.run({ userId, message: text, history })
     } catch {
       await messaging.sendText(message.from, ASSISTANT_ERROR_MESSAGE)
       return { action: 'error' }
     }
 
     await conversations.append(userId, [
-      { role: 'user', content: message.text },
+      { role: 'user', content: text },
       { role: 'assistant', content: reply.text },
     ])
     await messaging.sendText(message.from, reply.text)
     return { action: 'reply' }
+  }
+
+  async function toText(message: InboundWhatsappMessage): Promise<string> {
+    if (message.kind === 'text') {
+      return message.text
+    }
+    const media = await messaging.fetchMedia(message.mediaId)
+    if (message.kind === 'audio') {
+      return transcriber.transcribe(media)
+    }
+    return visionReader.describe(media)
   }
 }

@@ -38,7 +38,7 @@ describe('verifyWhatsAppSignature', () => {
 })
 
 describe('parseInboundMessages', () => {
-  it('extracts text messages from a webhook payload', () => {
+  it('extracts text, audio, and image messages from a webhook payload', () => {
     const payload = {
       entry: [
         {
@@ -52,7 +52,19 @@ describe('parseInboundMessages', () => {
                     type: 'text',
                     text: { body: 'hello' },
                   },
-                  { from: '5511999990000', id: 'wamid.2', type: 'image' },
+                  {
+                    from: '5511999990000',
+                    id: 'wamid.2',
+                    type: 'audio',
+                    audio: { id: 'media-a' },
+                  },
+                  {
+                    from: '5511999990000',
+                    id: 'wamid.3',
+                    type: 'image',
+                    image: { id: 'media-i' },
+                  },
+                  { from: '5511999990000', id: 'wamid.4', type: 'sticker' },
                 ],
               },
             },
@@ -61,7 +73,24 @@ describe('parseInboundMessages', () => {
       ],
     }
     expect(parseInboundMessages(payload)).toEqual([
-      { from: '5511999990000', text: 'hello', messageId: 'wamid.1' },
+      {
+        from: '5511999990000',
+        messageId: 'wamid.1',
+        kind: 'text',
+        text: 'hello',
+      },
+      {
+        from: '5511999990000',
+        messageId: 'wamid.2',
+        kind: 'audio',
+        mediaId: 'media-a',
+      },
+      {
+        from: '5511999990000',
+        messageId: 'wamid.3',
+        kind: 'image',
+        mediaId: 'media-i',
+      },
     ])
   })
 

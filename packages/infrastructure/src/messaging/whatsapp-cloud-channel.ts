@@ -1,10 +1,14 @@
-import type { MessagingChannel } from '@lifedeck/application'
+import type { MediaPayload, MessagingChannel } from '@lifedeck/application'
 
 const GRAPH_VERSION = 'v21.0'
 
 class NoopMessagingChannel implements MessagingChannel {
   async sendText(): Promise<void> {
     // No WhatsApp credentials configured; sends are dropped (dev/preview).
+  }
+
+  async fetchMedia(): Promise<MediaPayload> {
+    throw new Error('WhatsApp media fetch is not configured.')
   }
 }
 
@@ -33,6 +37,30 @@ export class WhatsAppCloudChannel implements MessagingChannel {
     if (!response.ok) {
       const detail = await response.text()
       throw new Error(`WhatsApp send failed (${response.status}): ${detail}`)
+    }
+  }
+
+  async fetchMedia(mediaId: string): Promise<MediaPayload> {
+    const lookup = await fetch(
+      `https://graph.facebook.com/${GRAPH_VERSION}/${mediaId}`,
+      { headers: { authorization: `Bearer ${this.accessToken}` } },
+    )
+    if (!lookup.ok) {
+      throw new Error(`WhatsApp media lookup failed (${lookup.status}).`)
+    }
+    const meta = (await lookup.json()) as { url?: string; mime_type?: string }
+    if (!meta.url) {
+      throw new Error('WhatsApp media response had no URL.')
+    }
+    const download = await fetch(meta.url, {
+      headers: { authorization: `Bearer ${this.accessToken}` },
+    })
+    if (!download.ok) {
+      throw new Error(`WhatsApp media download failed (${download.status}).`)
+    }
+    return {
+      data: await download.arrayBuffer(),
+      mimeType: meta.mime_type ?? 'application/octet-stream',
     }
   }
 }

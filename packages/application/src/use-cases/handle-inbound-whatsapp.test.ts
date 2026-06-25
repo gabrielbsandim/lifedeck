@@ -18,10 +18,7 @@ const FROM = '5511999990000'
 
 type Options = {
   entitled?: boolean
-  consumeCredits?: (
-    userId: string,
-    operation: 'assistantText',
-  ) => Promise<unknown>
+  consumeCredits?: (userId: string, operation: string) => Promise<unknown>
   agentRun?: () => Promise<{ text: string }>
 }
 
@@ -29,11 +26,16 @@ function setup(options: Options = {}) {
   const channelIdentities = new InMemoryChannelIdentityRepository()
   const conversations = new InMemoryConversationStore()
   const sendText = vi.fn().mockResolvedValue(undefined)
+  const fetchMedia = vi
+    .fn()
+    .mockResolvedValue({ data: new ArrayBuffer(8), mimeType: 'audio/ogg' })
   const consume = vi.fn(options.consumeCredits ?? (async () => ({})))
   const run = vi.fn(options.agentRun ?? (async () => ({ text: 'Done.' })))
+  const transcribe = vi.fn().mockResolvedValue('remind me to call mom')
+  const describe = vi.fn().mockResolvedValue('a photo of a receipt')
   const handleInboundWhatsApp = makeHandleInboundWhatsApp({
     channelIdentities,
-    messaging: { sendText },
+    messaging: { sendText, fetchMedia },
     entitlements: {
       for: async () => ({
         plan: 'pro',
@@ -43,14 +45,19 @@ function setup(options: Options = {}) {
     consumeCredits: consume,
     agent: { run },
     conversations,
+    transcriber: { transcribe },
+    visionReader: { describe },
     clock: new FixedClock(NOW),
   })
   return {
     channelIdentities,
     conversations,
     sendText,
+    fetchMedia,
     consume,
     run,
+    transcribe,
+    describe,
     handleInboundWhatsApp,
   }
 }
@@ -84,6 +91,7 @@ describe('handleInboundWhatsApp', () => {
 
     const result = await ctx.handleInboundWhatsApp({
       from: FROM,
+      kind: 'text',
       text: 'buy milk',
     })
 
@@ -110,7 +118,7 @@ describe('handleInboundWhatsApp', () => {
       { role: 'assistant', content: 'hello' },
     ])
 
-    await ctx.handleInboundWhatsApp({ from: FROM, text: 'again' })
+    await ctx.handleInboundWhatsApp({ from: FROM, kind: 'text', text: 'again' })
 
     expect(ctx.run).toHaveBeenCalledWith({
       userId: ID.user,
@@ -126,7 +134,11 @@ describe('handleInboundWhatsApp', () => {
     const ctx = setup({ entitled: false })
     await verified(ctx.channelIdentities)
 
-    const result = await ctx.handleInboundWhatsApp({ from: FROM, text: 'hi' })
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'hi',
+    })
 
     expect(result).toEqual({ action: 'denied' })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, ASSISTANT_LOCKED_MESSAGE)
@@ -141,7 +153,11 @@ describe('handleInboundWhatsApp', () => {
     })
     await verified(ctx.channelIdentities)
 
-    const result = await ctx.handleInboundWhatsApp({ from: FROM, text: 'hi' })
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'hi',
+    })
 
     expect(result).toEqual({ action: 'quota' })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, ASSISTANT_QUOTA_MESSAGE)
@@ -156,7 +172,11 @@ describe('handleInboundWhatsApp', () => {
     })
     await verified(ctx.channelIdentities)
 
-    const result = await ctx.handleInboundWhatsApp({ from: FROM, text: 'hi' })
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'hi',
+    })
 
     expect(result).toEqual({ action: 'error' })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, ASSISTANT_ERROR_MESSAGE)
@@ -168,6 +188,7 @@ describe('handleInboundWhatsApp', () => {
 
     const result = await ctx.handleInboundWhatsApp({
       from: FROM,
+      kind: 'text',
       text: ' 123456 ',
     })
 
@@ -188,6 +209,7 @@ describe('handleInboundWhatsApp', () => {
 
     const result = await ctx.handleInboundWhatsApp({
       from: FROM,
+      kind: 'text',
       text: '123456',
     })
 
@@ -198,9 +220,54 @@ describe('handleInboundWhatsApp', () => {
   it('guides an unlinked number with no matching code', async () => {
     const ctx = setup()
 
-    const result = await ctx.handleInboundWhatsApp({ from: FROM, text: 'oi' })
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'oi',
+    })
 
     expect(result).toEqual({ action: 'guidance' })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, PAIR_GUIDANCE_MESSAGE)
+  })
+
+  it('transcribes an audio message and meters it as audio', async () => {
+    const ctx = setup()
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-1',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.fetchMedia).toHaveBeenCalledWith('media-1')
+    expect(ctx.transcribe).toHaveBeenCalled()
+    expect(ctx.consume).toHaveBeenCalledWith(ID.user, 'audioTranscription')
+    expect(ctx.run).toHaveBeenCalledWith({
+      userId: ID.user,
+      message: 'remind me to call mom',
+      history: [],
+    })
+  })
+
+  it('reads an image message and meters it as vision', async () => {
+    const ctx = setup()
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'image',
+      mediaId: 'media-2',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.describe).toHaveBeenCalled()
+    expect(ctx.consume).toHaveBeenCalledWith(ID.user, 'imageVision')
+    const stored = await ctx.conversations.load(ID.user)
+    expect(stored[0]).toEqual({
+      role: 'user',
+      content: 'a photo of a receipt',
+    })
   })
 })

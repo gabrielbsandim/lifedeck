@@ -1,3 +1,4 @@
+import { asEntityId, civilDate, DEFAULT_TIME_ZONE } from '@lifedeck/domain'
 import {
   makeAuthenticateApiKey,
   makeBringTaskToToday,
@@ -103,8 +104,10 @@ import {
   type CalendarProvider,
   type ChannelIdentityRepository,
   type MessagingChannel,
-  type AgentRunner,
+  type AssistantTools,
   type ConversationStore,
+  type Transcriber,
+  type VisionReader,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -141,6 +144,8 @@ import {
   createMessagingChannel,
   createAgentRunner,
   createConversationStore,
+  createTranscriber,
+  createVisionReader,
   createUsageMeter,
   Argon2PasswordHasher,
   RandomTokenGenerator,
@@ -268,8 +273,9 @@ type Services = {
   usageMeter: UsageMeter
   googleCalendar: CalendarProvider & { authUrl(state: string): string }
   messaging: MessagingChannel
-  agent: AgentRunner
   conversations: ConversationStore
+  transcriber: Transcriber
+  visionReader: VisionReader
 }
 
 function build(
@@ -302,8 +308,9 @@ function build(
     usageMeter,
     googleCalendar,
     messaging,
-    agent,
     conversations,
+    transcriber,
+    visionReader,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -428,8 +435,59 @@ function build(
     clock,
   })
   const entitlementService = new PlanEntitlementService(resolvePlan)
+  const createTask = makeCreateTask({ tasks, lists, memberships, ids, clock })
+  const listCalendarEvents = makeListCalendarEvents({ calendarEvents })
+  const createCalendarEvent = makeCreateCalendarEvent({
+    calendarEvents,
+    jobQueue,
+    ids,
+    clock,
+  })
+  const assistantTools: AssistantTools = {
+    async getToday(userId) {
+      const user = await users.findById(asEntityId(userId))
+      const date = civilDate(clock.now(), user?.timezone ?? DEFAULT_TIME_ZONE)
+      const board = await getDailyBoard(userId, date)
+      return {
+        tasks: board.tasks.map(task => ({
+          title: task.title,
+          status: task.status,
+        })),
+      }
+    },
+    async addTask(userId, title) {
+      const user = await users.findById(asEntityId(userId))
+      const date = civilDate(clock.now(), user?.timezone ?? DEFAULT_TIME_ZONE)
+      const board = await getDailyBoard(userId, date)
+      await createTask(userId, { listId: board.list.id, title })
+      return { added: true }
+    },
+    async getAgenda(userId) {
+      const now = clock.now()
+      const to = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      const events = await listCalendarEvents(userId, {
+        from: now.toISOString(),
+        to: to.toISOString(),
+      })
+      return {
+        events: events.map(event => ({
+          title: event.title,
+          startsAt: event.startsAt,
+        })),
+      }
+    },
+    async addEvent(userId, input) {
+      await createCalendarEvent(userId, {
+        title: input.title,
+        startsAt: input.startsAt,
+        endsAt: input.endsAt,
+      })
+      return { added: true }
+    },
+  }
+  const agent = createAgentRunner(assistantTools)
   return {
-    createTask: makeCreateTask({ tasks, lists, memberships, ids, clock }),
+    createTask,
     updateTask: makeUpdateTask({
       tasks,
       lists,
@@ -576,12 +634,7 @@ function build(
     }),
     consumeCredits,
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
-    createCalendarEvent: makeCreateCalendarEvent({
-      calendarEvents,
-      jobQueue,
-      ids,
-      clock,
-    }),
+    createCalendarEvent,
     updateCalendarEvent: makeUpdateCalendarEvent({
       calendarEvents,
       jobQueue,
@@ -592,7 +645,7 @@ function build(
       jobQueue,
       clock,
     }),
-    listCalendarEvents: makeListCalendarEvents({ calendarEvents }),
+    listCalendarEvents,
     getCalendarEvent: makeGetCalendarEvent({ calendarEvents }),
     connectGoogleCalendar: makeConnectGoogleCalendar({
       calendarConnections,
@@ -623,6 +676,8 @@ function build(
       consumeCredits,
       agent,
       conversations,
+      transcriber,
+      visionReader,
       clock,
     }),
     entitlements: entitlementService,
@@ -724,8 +779,9 @@ export function getContainer(): Container {
         usageMeter: createUsageMeter(),
         googleCalendar: buildGoogleCalendarProvider(),
         messaging: createMessagingChannel(),
-        agent: createAgentRunner(),
         conversations: createConversationStore(),
+        transcriber: createTranscriber(),
+        visionReader: createVisionReader(),
       },
       new PrismaUnitOfWork(prisma),
     )
