@@ -120,3 +120,18 @@ export {
   GoogleCalendarProvider,
   type GoogleCalendarConfig,
 } from '@/calendar/google-calendar-provider'
+export { PrismaChannelIdentityRepository } from '@/database/prisma-channel-identity-repository'
+export {
+  toDomainChannelIdentity,
+  toChannelIdentityRecord,
+  type ChannelIdentityRecord,
+} from '@/database/channel-identity-record'
+export {
+  WhatsAppCloudChannel,
+  createMessagingChannel,
+} from '@/messaging/whatsapp-cloud-channel'
+export {
+  verifyWhatsAppSignature,
+  parseInboundMessages,
+  type ParsedWhatsappMessage,
+} from '@/messaging/whatsapp-webhook'

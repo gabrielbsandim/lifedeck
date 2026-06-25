@@ -1,0 +1,74 @@
+import { describe, expect, it } from 'vitest'
+import { ChannelIdentity, asEntityId } from '@lifedeck/domain'
+import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
+import { FixedClock, ID } from '@/testing/fakes'
+import { makeStartWhatsappPairing } from '@/use-cases/start-whatsapp-pairing'
+
+const NOW = new Date('2026-06-24T10:00:00.000Z')
+
+function setup(code = '123456') {
+  const channelIdentities = new InMemoryChannelIdentityRepository()
+  const startWhatsappPairing = makeStartWhatsappPairing({
+    channelIdentities,
+    codes: { generate: () => code },
+    ids: { generate: () => ID.verification },
+    clock: new FixedClock(NOW),
+  })
+  return { channelIdentities, startWhatsappPairing }
+}
+
+describe('startWhatsappPairing', () => {
+  it('creates a pending identity with a fresh code that expires', async () => {
+    const { channelIdentities, startWhatsappPairing } = setup('123456')
+    const result = await startWhatsappPairing(ID.user)
+    expect(result).toEqual({
+      status: 'pending',
+      code: '123456',
+      expiresAt: new Date('2026-06-24T10:10:00.000Z'),
+    })
+    const stored = await channelIdentities.findByUser(
+      asEntityId(ID.user),
+      'whatsapp',
+    )
+    expect(stored?.pairingCode).toBe('123456')
+    expect(stored?.isCodeExpired(new Date('2026-06-24T10:11:00.000Z'))).toBe(
+      true,
+    )
+  })
+
+  it('regenerates the code on an existing pending identity', async () => {
+    const { channelIdentities, startWhatsappPairing } = setup('999000')
+    await channelIdentities.save(
+      ChannelIdentity.create({
+        id: ID.verification,
+        userId: asEntityId(ID.user),
+        channel: 'whatsapp',
+        pairingCode: '111111',
+        pairingExpiresAt: new Date('2026-06-24T09:30:00.000Z'),
+        now: NOW,
+      }),
+    )
+    const result = await startWhatsappPairing(ID.user)
+    expect(result).toEqual({
+      status: 'pending',
+      code: '999000',
+      expiresAt: new Date('2026-06-24T10:10:00.000Z'),
+    })
+  })
+
+  it('reports a linked identity without issuing a code', async () => {
+    const { channelIdentities, startWhatsappPairing } = setup()
+    const identity = ChannelIdentity.create({
+      id: ID.verification,
+      userId: asEntityId(ID.user),
+      channel: 'whatsapp',
+      pairingCode: '111111',
+      pairingExpiresAt: new Date('2026-06-24T10:10:00.000Z'),
+      now: NOW,
+    })
+    identity.verify('5511999990000', NOW)
+    await channelIdentities.save(identity)
+    const result = await startWhatsappPairing(ID.user)
+    expect(result).toEqual({ status: 'linked', address: '+5511999990000' })
+  })
+})

@@ -66,6 +66,7 @@ model User {
   usageEvents         UsageEvent[]
   calendarEvents      CalendarEvent[]
   calendarConnections CalendarConnection[]
+  channelIdentities   ChannelIdentity[]
 
   @@map("users")
 }
@@ -290,4 +291,23 @@ model CalendarConnection {
   @@unique([ownerId, provider])
   @@index([channelId])
   @@map("calendar_connections")
+}
+
+model ChannelIdentity {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  channel          String
+  address          String?
+  pairingCode      String?   @map("pairing_code")
+  pairingExpiresAt DateTime? @map("pairing_expires_at")
+  verifiedAt       DateTime? @map("verified_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channel])
+  @@unique([channel, address])
+  @@index([channel, pairingCode])
+  @@map("channel_identities")
 }

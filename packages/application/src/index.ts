@@ -187,6 +187,20 @@ export {
 export { makeReconcileCalendars } from '@/use-cases/reconcile-calendars'
 export { makeRenewCalendarChannels } from '@/use-cases/renew-calendar-channels'
 export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
+export type { MessagingChannel } from '@/ports/messaging-channel'
+export type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
+export {
+  makeStartWhatsappPairing,
+  type WhatsappPairingResult,
+} from '@/use-cases/start-whatsapp-pairing'
+export {
+  makeHandleInboundWhatsApp,
+  PAIR_LINKED_MESSAGE,
+  PAIR_GUIDANCE_MESSAGE,
+  type InboundWhatsappMessage,
+  type InboundWhatsappResult,
+} from '@/use-cases/handle-inbound-whatsapp'
+export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export {
   notificationViewSchema,

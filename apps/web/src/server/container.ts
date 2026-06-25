@@ -12,6 +12,8 @@ import {
   makeEnqueueDailyDigests,
   makeReconcileCalendars,
   makeRenewCalendarChannels,
+  makeStartWhatsappPairing,
+  makeHandleInboundWhatsApp,
   makeHandleCalendarNotification,
   makePullCalendarChanges,
   makePushCalendarEvent,
@@ -99,6 +101,8 @@ import {
   type CalendarEventRepository,
   type CalendarConnectionRepository,
   type CalendarProvider,
+  type ChannelIdentityRepository,
+  type MessagingChannel,
   type TaskRepository,
   type UnitOfWork,
   type UserRepository,
@@ -125,12 +129,14 @@ import {
   PrismaUsageEventRepository,
   PrismaCalendarEventRepository,
   PrismaCalendarConnectionRepository,
+  PrismaChannelIdentityRepository,
   PrismaTaskRepository,
   PrismaUserRepository,
   AsaasPaymentGateway,
   StripePaymentGateway,
   GoogleCalendarProvider,
   OutboxJobQueue,
+  createMessagingChannel,
   createUsageMeter,
   Argon2PasswordHasher,
   RandomTokenGenerator,
@@ -223,6 +229,8 @@ type Container = {
     reconciled: number
     renewed: number
   }>
+  startWhatsappPairing: ReturnType<typeof makeStartWhatsappPairing>
+  handleInboundWhatsApp: ReturnType<typeof makeHandleInboundWhatsApp>
   entitlements: EntitlementService
 }
 
@@ -242,6 +250,7 @@ type Repositories = {
   usageEvents: UsageEventLedger
   calendarEvents: CalendarEventRepository
   calendarConnections: CalendarConnectionRepository
+  channelIdentities: ChannelIdentityRepository
 }
 
 type Services = {
@@ -254,6 +263,7 @@ type Services = {
   fileStorage: FileStorage
   usageMeter: UsageMeter
   googleCalendar: CalendarProvider & { authUrl(state: string): string }
+  messaging: MessagingChannel
 }
 
 function build(
@@ -273,6 +283,7 @@ function build(
     usageEvents,
     calendarEvents,
     calendarConnections,
+    channelIdentities,
   }: Repositories,
   {
     hasher,
@@ -284,6 +295,7 @@ function build(
     fileStorage,
     usageMeter,
     googleCalendar,
+    messaging,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -588,6 +600,17 @@ function build(
     }),
     googleCalendarAuthUrl: (state: string) => googleCalendar.authUrl(state),
     runScheduledFanOut,
+    startWhatsappPairing: makeStartWhatsappPairing({
+      channelIdentities,
+      codes,
+      ids,
+      clock,
+    }),
+    handleInboundWhatsApp: makeHandleInboundWhatsApp({
+      channelIdentities,
+      messaging,
+      clock,
+    }),
     entitlements: new PlanEntitlementService(resolvePlan),
   }
 }
@@ -674,6 +697,7 @@ export function getContainer(): Container {
         usageEvents: new PrismaUsageEventRepository(db),
         calendarEvents: new PrismaCalendarEventRepository(db),
         calendarConnections: new PrismaCalendarConnectionRepository(db),
+        channelIdentities: new PrismaChannelIdentityRepository(db),
       },
       {
         hasher: new Argon2PasswordHasher(new ScryptPasswordHasher()),
@@ -685,6 +709,7 @@ export function getContainer(): Container {
         fileStorage: new VercelBlobStorage(),
         usageMeter: createUsageMeter(),
         googleCalendar: buildGoogleCalendarProvider(),
+        messaging: createMessagingChannel(),
       },
       new PrismaUnitOfWork(prisma),
     )

@@ -113,6 +113,16 @@ export {
   type CalendarConnectionProps,
 } from '@/entities/calendar-connection'
 export {
+  MESSAGE_CHANNELS,
+  isMessageChannel,
+  type MessageChannel,
+} from '@/value-objects/message-channel'
+export { isE164, normalizePhone } from '@/value-objects/phone-number'
+export {
+  ChannelIdentity,
+  type ChannelIdentityProps,
+} from '@/entities/channel-identity'
+export {
   API_SCOPES,
   isApiScope,
   type ApiScope,

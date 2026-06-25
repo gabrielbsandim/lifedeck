@@ -697,12 +697,25 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       Repos gained `listForDailyDigest` / `listAll`. Operational: point a QStash
       schedule (or Vercel Cron) at the endpoint, like the dispatch endpoint.
 
-### V2-7 - WhatsApp transport and identity
+### V2-7 - WhatsApp transport and identity - DONE
 
-- [ ] `MessagingChannel` port; `WhatsAppCloudChannel`; verified webhook
-      (`/api/v1/webhooks/whatsapp`, signature + handshake).
-- [ ] `ChannelIdentity` model + migration; pairing flow (`linkWhatsappNumber`);
-      until-linked guidance. Echo round-trip working (receive → reply). Flag-gated.
+- [x] `MessagingChannel` port (`sendText`) + `WhatsAppCloudChannel` (Meta Graph
+      v21 send; no-op when creds unset) + `createMessagingChannel` factory.
+      Verified webhook `/api/v1/webhooks/whatsapp`: GET `hub.challenge` handshake
+      (verify-token match), POST verifies `X-Hub-Signature-256` HMAC against
+      `WHATSAPP_APP_SECRET` (fails closed when the secret is unset). Pure
+      `verifyWhatsAppSignature` + `parseInboundMessages` helpers, tested.
+- [x] `ChannelIdentity` entity (channel/address-E.164/pairingCode + 10-min
+      expiry/verifiedAt) + `message-channel` + `phone-number` VOs + migration
+      `15_channel_identities`. Pairing: `startWhatsappPairing` issues a
+      time-boxed code (POST `/api/v1/messaging/whatsapp/pairing`, session-auth);
+      `handleInboundWhatsApp` resolves the sender, links on a valid unexpired
+      code (bound to the inbound address), and otherwise replies with
+      until-linked guidance. A verified number gets an echo (V2-8 swaps in the
+      AI assistant). All flag-gated (`whatsapp`).
+- [ ] **Deferred to V2-9 security pass:** dedicated Upstash rate limiter on the
+      WhatsApp webhook + `messageId` idempotency/replay store (the 10-min code
+      expiry already bounds brute-force; both are listed in the security section).
 
 ### V2-8 - WhatsApp AI assistant
 
