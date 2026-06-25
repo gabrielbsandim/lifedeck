@@ -16,6 +16,10 @@ const terms: LegalDocument = {
           kind: 'p',
           text: 'La Plataforma está en desarrollo continuo. Las funciones, los límites y las condiciones de uso pueden añadirse, modificarse o eliminarse con el tiempo.',
         },
+        {
+          kind: 'p',
+          text: 'Lifedeck ofrece planes de pago opcionales (Pro y Premium) con facturación recurrente. Las funciones de pago incluyen la sincronización con Google Calendar, los recordatorios y el asistente de WhatsApp. Puedes cancelar tu suscripción en cualquier momento, y permanece activa hasta el final del período pagado.',
+        },
       ],
     },
     {
@@ -78,6 +82,10 @@ const terms: LegalDocument = {
         {
           kind: 'p',
           text: 'El contenido generado no constituye asesoramiento profesional, jurídico, médico ni financiero. Revisa siempre el borrador antes de utilizarlo.',
+        },
+        {
+          kind: 'p',
+          text: 'Lifedeck también ofrece un asistente de IA opcional a través de WhatsApp, capaz de leer y actuar sobre tus tareas, listas y calendario en tu nombre. Los mensajes que envías al asistente, incluidos audios e imágenes, son procesados por proveedores de IA para generar respuestas. El uso de IA está sujeto a límites por plan.',
         },
       ],
     },
@@ -201,6 +209,9 @@ const privacy: LegalDocument = {
             '**Contenido del usuario:** las listas, tareas, notas y comparticiones que creas en la Plataforma;',
             '**Datos de uso:** registros de acceso, funciones utilizadas y registros de actividad;',
             '**Datos técnicos:** dirección IP, tipo de navegador, sistema operativo y cookies de sesión.',
+            'Número de teléfono de WhatsApp y el contenido de los mensajes que envías al asistente (texto, audio, imágenes), cuando vinculas WhatsApp;',
+            'Eventos del calendario y datos de conexión, cuando conectas Google Calendar;',
+            'Estado de suscripción y pago (nunca almacenamos números de tarjeta).',
           ],
         },
         {
@@ -261,6 +272,10 @@ const privacy: LegalDocument = {
             '**Upstash:** limitación de solicitudes (rate limiting) para la seguridad de la API;',
             '**Sentry:** monitoreo de errores para el diagnóstico y la estabilidad de la Plataforma;',
             '**Autoridades públicas:** cuando lo exija la ley, una orden judicial o la solicitud de un órgano competente.',
+            '**Meta (WhatsApp Cloud API):** entrega de mensajes del asistente;',
+            '**Google (Calendar API):** sincronización del calendario;',
+            '**Stripe y Asaas:** cobro de suscripciones;',
+            '**Proveedores de IA (p. ej. Google Gemini):** procesamiento de los mensajes del asistente.',
           ],
         },
       ],
@@ -275,6 +290,10 @@ const privacy: LegalDocument = {
         {
           kind: 'p',
           text: 'Recomendamos no introducir datos personales sensibles o confidenciales en los campos de descripción utilizados por la generación con IA.',
+        },
+        {
+          kind: 'p',
+          text: 'Los audios e imágenes enviados al asistente de WhatsApp son transcritos o analizados por proveedores de IA únicamente para atender tu solicitud. El contexto de la conversación se conserva brevemente para mantener la coherencia de las respuestas y puede eliminarse junto con tu cuenta.',
         },
       ],
     },

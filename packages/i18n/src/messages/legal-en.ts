@@ -16,6 +16,10 @@ const terms: LegalDocument = {
           kind: 'p',
           text: 'The Platform is under continuous development. Features, limits and conditions of use may be added, changed or removed over time.',
         },
+        {
+          kind: 'p',
+          text: 'Lifedeck offers optional paid plans (Pro and Premium) with recurring billing. Paid features include Google Calendar sync, reminders and the WhatsApp assistant. You can cancel your subscription at any time, and it remains active until the end of the paid period.',
+        },
       ],
     },
     {
@@ -78,6 +82,10 @@ const terms: LegalDocument = {
         {
           kind: 'p',
           text: 'Generated content does not constitute professional, legal, medical or financial advice. Always review the draft before using it.',
+        },
+        {
+          kind: 'p',
+          text: 'Lifedeck also offers an optional AI assistant over WhatsApp that can read and act on your tasks, lists and calendar on your behalf. Messages you send to the assistant, including audio and images, are processed by AI providers to produce responses. AI usage is subject to per-plan limits.',
         },
       ],
     },
@@ -201,6 +209,9 @@ const privacy: LegalDocument = {
             '**User content:** the lists, tasks, notes and shares you create on the Platform;',
             '**Usage data:** access records, features used and activity logs;',
             '**Technical data:** IP address, browser type, operating system and session cookies.',
+            'WhatsApp phone number and the content of messages you send to the assistant (text, audio, images), when you link WhatsApp;',
+            'Calendar events and connection data, when you connect Google Calendar;',
+            'Subscription and payment status (we never store card numbers).',
           ],
         },
         {
@@ -261,6 +272,10 @@ const privacy: LegalDocument = {
             '**Upstash:** request rate limiting for API security;',
             '**Sentry:** error monitoring for diagnostics and Platform stability;',
             '**Public authorities:** when required by law, court order or request from a competent body.',
+            '**Meta (WhatsApp Cloud API):** message delivery for the assistant;',
+            '**Google (Calendar API):** calendar synchronization;',
+            '**Stripe and Asaas:** subscription billing;',
+            '**AI providers (e.g. Google Gemini):** processing assistant messages.',
           ],
         },
       ],
@@ -275,6 +290,10 @@ const privacy: LegalDocument = {
         {
           kind: 'p',
           text: 'We recommend not entering sensitive or confidential personal data in the description fields used by AI generation.',
+        },
+        {
+          kind: 'p',
+          text: 'Audio and images sent to the WhatsApp assistant are transcribed or analyzed by AI providers solely to fulfill your request. Conversation context is retained briefly to keep replies coherent and can be deleted along with your account.',
         },
       ],
     },

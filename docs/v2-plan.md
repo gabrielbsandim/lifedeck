@@ -759,11 +759,13 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       account deletion clears the Redis conversation log (`ConversationStore.clear`)
       while relational children drop via Postgres FK cascade. New repo reads:
       `CalendarEventRepository.listByOwner`.
-- [ ] Update `/terms` and `/privacy` (en/pt/es) to cover WhatsApp, AI, calendar,
-      payments.
+- [x] **Legal + docs (DONE in V2-9c):** `/terms` and `/privacy` (en/pt/es) now
+      cover the WhatsApp assistant, AI processing of text/audio/image, Google
+      Calendar access, paid subscriptions, and the new subprocessors (Meta,
+      Google, Stripe, Asaas, AI providers). Developer docs added:
+      `docs/calendar.md`, `docs/whatsapp.md`, `docs/billing.md`.
 - [ ] E2E happy paths (calendar create + reminder; WhatsApp link + a tool call
-      against a stubbed channel); docs (`docs/calendar.md`, `docs/whatsapp.md`,
-      `docs/billing.md`); OpenAPI complete.
+      against a stubbed channel); OpenAPI complete.
 - [ ] Full code review (parallel reviewers per layer, as in Phase 12.6); flip
       `FEATURES_V2` on in production.
 
