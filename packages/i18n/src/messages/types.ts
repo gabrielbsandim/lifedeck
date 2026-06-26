@@ -200,6 +200,18 @@ export type Messages = {
     cancel: string
     actions: string
   }
+  subtask: {
+    title: string
+    add: string
+    progress: string
+    manage: string
+    show: string
+    hide: string
+    empty: string
+    rename: string
+    delete: string
+    reorder: string
+  }
   list: {
     daily: string
     shared: string

@@ -98,7 +98,7 @@ export function makeExportUserData({
         ])
         return {
           ...toListView(list),
-          tasks: listTasks.map(toTaskView),
+          tasks: listTasks.map(task => toTaskView(task)),
           shareLinks: links.map(toShareLinkView),
         }
       }),

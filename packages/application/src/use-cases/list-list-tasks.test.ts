@@ -4,6 +4,7 @@ import { makeCreateTask } from '@/use-cases/create-task'
 import { makeListListTasks } from '@/use-cases/list-list-tasks'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+import { InMemorySubtaskRepository } from '@/testing/in-memory-subtask-repository'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
@@ -24,6 +25,7 @@ function makeList(visibility: 'private' | 'link' = 'private') {
 
 function setup() {
   const tasks = new InMemoryTaskRepository()
+  const subtasks = new InMemorySubtaskRepository()
   const lists = new InMemoryListRepository()
   const memberships = new InMemoryMembershipRepository()
   const createTask = makeCreateTask({
@@ -38,7 +40,7 @@ function setup() {
     lists,
     memberships,
     createTask,
-    listListTasks: makeListListTasks({ tasks, lists, memberships }),
+    listListTasks: makeListListTasks({ tasks, subtasks, lists, memberships }),
   }
 }
 

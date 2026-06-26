@@ -193,6 +193,18 @@ export const pt: Messages = {
     cancel: 'Cancelar',
     actions: 'Ações',
   },
+  subtask: {
+    title: 'Subtarefas',
+    add: 'Adicionar subtarefa',
+    progress: '{done}/{total}',
+    manage: 'Subtarefas',
+    show: 'Mostrar subtarefas',
+    hide: 'Ocultar subtarefas',
+    empty: 'Divida esta tarefa em passos menores.',
+    rename: 'Renomear subtarefa',
+    delete: 'Excluir subtarefa',
+    reorder: 'Arraste para reordenar',
+  },
   list: {
     daily: 'Lista do dia',
     shared: 'Compartilhadas com você',

@@ -57,6 +57,6 @@ export function makeReorderTasks({
     })
 
     const reordered = await tasks.listByList(asEntityId(listId))
-    return reordered.map(toTaskView)
+    return reordered.map(task => toTaskView(task))
   }
 }

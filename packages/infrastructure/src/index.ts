@@ -6,6 +6,7 @@ export {
   createTransactionalClient,
 } from '@/database/prisma-unit-of-work'
 export { PrismaTaskRepository } from '@/database/prisma-task-repository'
+export { PrismaSubtaskRepository } from '@/database/prisma-subtask-repository'
 export { PrismaUserRepository } from '@/database/prisma-user-repository'
 export { PrismaListRepository } from '@/database/prisma-list-repository'
 export { PrismaRecurringTaskRepository } from '@/database/prisma-recurring-task-repository'

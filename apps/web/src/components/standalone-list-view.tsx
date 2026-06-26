@@ -19,6 +19,7 @@ import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { useMembers } from '@/lib/api/use-share'
 import {
+  listTasksKey,
   useCreateListTask,
   useDeleteList,
   useDeleteListTask,
@@ -323,6 +324,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 task,
                 members: members.data ?? [],
                 self,
+                boardKey: listTasksKey(listId),
                 onToggle: toggle,
                 onUpdate: update,
                 onDelete: removeTask,

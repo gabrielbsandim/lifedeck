@@ -1,5 +1,6 @@
 import {
   List,
+  Subtask,
   Task,
   asEntityId,
   startOfCivilDay,
@@ -7,10 +8,12 @@ import {
 } from '@lifedeck/domain'
 import { type TaskView } from '@/dtos/task-dto'
 import { toTaskView } from '@/mappers/task-mapper'
+import { summarizeSubtasks } from '@/mappers/subtask-summary'
 import { NotFoundError, ForbiddenError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
+import type { SubtaskRepository } from '@/ports/subtask-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { UnitOfWork } from '@/ports/unit-of-work'
@@ -18,6 +21,7 @@ import type { UnitOfWork } from '@/ports/unit-of-work'
 type Dependencies = {
   lists: ListRepository
   tasks: TaskRepository
+  subtasks: SubtaskRepository
   users: UserRepository
   ids: IdGenerator
   clock: Clock
@@ -27,6 +31,7 @@ type Dependencies = {
 export function makeBringTaskToToday({
   lists,
   tasks,
+  subtasks,
   users,
   ids,
   clock,
@@ -89,10 +94,28 @@ export function makeBringTaskToToday({
       task.markCarriedForward(clock.now())
       await tasks.save(task)
       await tasks.save(created)
+
+      const originals = await subtasks.listByTask(task.id)
+      for (const original of originals) {
+        const subtaskProps = original.toJSON()
+        const subtaskCopy = Subtask.create({
+          id: ids.generate(),
+          taskId: created.id,
+          title: subtaskProps.title,
+          position: subtaskProps.position,
+          createdAt: clock.now(),
+        })
+        if (subtaskProps.status === 'completed') {
+          subtaskCopy.complete(subtaskProps.completedAt ?? clock.now())
+        }
+        await subtasks.save(subtaskCopy)
+      }
+
       return created
     })
 
-    return toTaskView(copy)
+    const summaries = await summarizeSubtasks(subtasks, [copy.id])
+    return toTaskView(copy, summaries.get(copy.id))
 
     async function provisionToday(): Promise<List> {
       const created = List.create({

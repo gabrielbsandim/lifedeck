@@ -2,6 +2,10 @@ export type { Clock } from '@/ports/clock'
 export type { UnitOfWork } from '@/ports/unit-of-work'
 export type { IdGenerator } from '@/ports/id-generator'
 export type { TaskRepository } from '@/ports/task-repository'
+export type {
+  SubtaskRepository,
+  SubtaskCount,
+} from '@/ports/subtask-repository'
 export type { UserRepository } from '@/ports/user-repository'
 export type { ListRepository, ListPageParams } from '@/ports/list-repository'
 export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
@@ -48,6 +52,18 @@ export {
   type ReorderTasksInput,
   type TaskView,
 } from '@/dtos/task-dto'
+export {
+  createSubtaskSchema,
+  updateSubtaskSchema,
+  subtaskViewSchema,
+  reorderSubtasksSchema,
+  subtaskSummarySchema,
+  type CreateSubtaskInput,
+  type UpdateSubtaskInput,
+  type SubtaskView,
+  type ReorderSubtasksInput,
+  type SubtaskSummary,
+} from '@/dtos/subtask-dto'
 export {
   guestSignInSchema,
   registerSchema,
@@ -271,6 +287,8 @@ export {
   type HealthReportView,
 } from '@/dtos/health-dto'
 export { toTaskView } from '@/mappers/task-mapper'
+export { toSubtaskView } from '@/mappers/subtask-mapper'
+export { summarizeSubtasks } from '@/mappers/subtask-summary'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
 export { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
@@ -280,6 +298,11 @@ export { makeUpdateTask } from '@/use-cases/update-task'
 export { makeDeleteTask } from '@/use-cases/delete-task'
 export { makeReorderTasks } from '@/use-cases/reorder-tasks'
 export { makeListListTasks } from '@/use-cases/list-list-tasks'
+export { makeCreateSubtask } from '@/use-cases/create-subtask'
+export { makeListSubtasks } from '@/use-cases/list-subtasks'
+export { makeUpdateSubtask } from '@/use-cases/update-subtask'
+export { makeDeleteSubtask } from '@/use-cases/delete-subtask'
+export { makeReorderSubtasks } from '@/use-cases/reorder-subtasks'
 export { makeCreateGuestUser } from '@/use-cases/create-guest-user'
 export { makeGetUser } from '@/use-cases/get-user'
 export { makeRegisterWithEmail } from '@/use-cases/register-with-email'
@@ -343,6 +366,7 @@ export {
   type ApiKeyPrincipal,
 } from '@/use-cases/authenticate-api-key'
 export { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+export { InMemorySubtaskRepository } from '@/testing/in-memory-subtask-repository'
 export { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 export { InMemoryEmailVerificationRepository } from '@/testing/in-memory-email-verification-repository'
 export { FakePasswordHasher } from '@/testing/fake-password-hasher'

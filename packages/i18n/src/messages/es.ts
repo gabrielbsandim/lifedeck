@@ -194,6 +194,18 @@ export const es: Messages = {
     cancel: 'Cancelar',
     actions: 'Acciones',
   },
+  subtask: {
+    title: 'Subtareas',
+    add: 'Añadir subtarea',
+    progress: '{done}/{total}',
+    manage: 'Subtareas',
+    show: 'Mostrar subtareas',
+    hide: 'Ocultar subtareas',
+    empty: 'Divide esta tarea en pasos más pequeños.',
+    rename: 'Renombrar subtarea',
+    delete: 'Eliminar subtarea',
+    reorder: 'Arrastra para reordenar',
+  },
   list: {
     daily: 'Lista del día',
     shared: 'Compartidas contigo',

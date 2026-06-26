@@ -55,6 +55,11 @@ import {
   makeJoinListByToken,
   makeListApiKeys,
   makeListListTasks,
+  makeCreateSubtask,
+  makeListSubtasks,
+  makeUpdateSubtask,
+  makeDeleteSubtask,
+  makeReorderSubtasks,
   makeListMembers,
   makeListNotifications,
   makeMarkAllNotificationsRead,
@@ -110,6 +115,7 @@ import {
   type Transcriber,
   type VisionReader,
   type TaskRepository,
+  type SubtaskRepository,
   type UnitOfWork,
   type UserRepository,
   type FileStorage,
@@ -138,6 +144,7 @@ import {
   PrismaCalendarConnectionRepository,
   PrismaChannelIdentityRepository,
   PrismaTaskRepository,
+  PrismaSubtaskRepository,
   PrismaUserRepository,
   AsaasPaymentGateway,
   StripePaymentGateway,
@@ -171,6 +178,11 @@ type Container = {
   updateTask: ReturnType<typeof makeUpdateTask>
   deleteTask: ReturnType<typeof makeDeleteTask>
   listListTasks: ReturnType<typeof makeListListTasks>
+  createSubtask: ReturnType<typeof makeCreateSubtask>
+  listSubtasks: ReturnType<typeof makeListSubtasks>
+  updateSubtask: ReturnType<typeof makeUpdateSubtask>
+  deleteSubtask: ReturnType<typeof makeDeleteSubtask>
+  reorderSubtasks: ReturnType<typeof makeReorderSubtasks>
   createGuestUser: ReturnType<typeof makeCreateGuestUser>
   getUser: ReturnType<typeof makeGetUser>
   registerWithEmail: ReturnType<typeof makeRegisterWithEmail>
@@ -247,6 +259,7 @@ type Container = {
 
 type Repositories = {
   tasks: TaskRepository
+  subtasks: SubtaskRepository
   users: UserRepository
   lists: ListRepository
   recurringTasks: RecurringTaskRepository
@@ -284,6 +297,7 @@ type Services = {
 function build(
   {
     tasks,
+    subtasks,
     users,
     lists,
     recurringTasks,
@@ -325,6 +339,7 @@ function build(
   const getDailyBoard = makeGetDailyBoard({
     lists,
     tasks,
+    subtasks,
     recurringTasks,
     users,
     ids,
@@ -512,7 +527,31 @@ function build(
       clock,
     }),
     deleteTask: makeDeleteTask({ tasks, lists, memberships }),
-    listListTasks: makeListListTasks({ tasks, lists, memberships }),
+    listListTasks: makeListListTasks({ tasks, subtasks, lists, memberships }),
+    createSubtask: makeCreateSubtask({
+      subtasks,
+      tasks,
+      lists,
+      memberships,
+      ids,
+      clock,
+    }),
+    listSubtasks: makeListSubtasks({ subtasks, tasks, lists, memberships }),
+    updateSubtask: makeUpdateSubtask({
+      subtasks,
+      tasks,
+      lists,
+      memberships,
+      clock,
+    }),
+    deleteSubtask: makeDeleteSubtask({ subtasks, tasks, lists, memberships }),
+    reorderSubtasks: makeReorderSubtasks({
+      subtasks,
+      tasks,
+      lists,
+      memberships,
+      unitOfWork,
+    }),
     createGuestUser: makeCreateGuestUser({ users, ids, clock }),
     getUser: makeGetUser({ users }),
     registerWithEmail: makeRegisterWithEmail({
@@ -562,6 +601,7 @@ function build(
     listUserLists: makeListUserLists({ lists, memberships }),
     getDailyBoard,
     bringTaskToToday: makeBringTaskToToday({
+      subtasks,
       lists,
       tasks,
       users,
@@ -599,7 +639,13 @@ function build(
     }),
     listShareLinks: makeListShareLinks({ shareLinks, lists }),
     revokeShareLink: makeRevokeShareLink({ shareLinks, lists }),
-    getSharedBoard: makeGetSharedBoard({ shareLinks, lists, tasks, clock }),
+    getSharedBoard: makeGetSharedBoard({
+      shareLinks,
+      lists,
+      tasks,
+      subtasks,
+      clock,
+    }),
     joinListByToken: makeJoinListByToken({
       shareLinks,
       lists,
@@ -775,6 +821,7 @@ export function getContainer(): Container {
     container = build(
       {
         tasks: new PrismaTaskRepository(db),
+        subtasks: new PrismaSubtaskRepository(db),
         users: new PrismaUserRepository(db),
         lists: new PrismaListRepository(db),
         recurringTasks: new PrismaRecurringTaskRepository(db),

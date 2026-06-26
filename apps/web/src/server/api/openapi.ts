@@ -25,8 +25,12 @@ import {
   recurringTaskViewSchema,
   renameListSchema,
   reorderTasksSchema,
+  reorderSubtasksSchema,
   shareLinkViewSchema,
   taskViewSchema,
+  subtaskViewSchema,
+  createSubtaskSchema,
+  updateSubtaskSchema,
   updateCalendarEventSchema,
   updateRecurringTaskSchema,
   updateTaskSchema,
@@ -108,6 +112,7 @@ const cursorParam = z
 
 registry.register('RecurrenceRule', recurrenceRuleSchema)
 const TaskView = registry.register('TaskView', taskViewSchema)
+const SubtaskView = registry.register('SubtaskView', subtaskViewSchema)
 const ListView = registry.register('ListView', listViewSchema)
 const MemberView = registry.register('MemberView', memberViewSchema)
 const ShareLinkView = registry.register('ShareLinkView', shareLinkViewSchema)
@@ -368,6 +373,91 @@ registry.registerPath({
   },
   responses: {
     200: jsonResponse('Tasks reordered.', z.array(TaskView)),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'get',
+  path: '/tasks/{id}/subtasks',
+  summary: 'List the subtasks of a task',
+  operationId: 'listSubtasks',
+  security: scoped('tasks:read'),
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    200: jsonResponse('Subtasks of the task.', z.array(SubtaskView)),
+    401: errorResponse,
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/tasks/{id}/subtasks',
+  summary: 'Create a subtask',
+  operationId: 'createSubtask',
+  security: scoped('tasks:write'),
+  request: {
+    params: z.object({ id: idParam }),
+    body: jsonBody(createSubtaskSchema),
+  },
+  responses: {
+    201: jsonResponse('Subtask created.', SubtaskView),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+    422: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'patch',
+  path: '/tasks/{id}/subtasks',
+  summary: 'Reorder the subtasks of a task',
+  operationId: 'reorderSubtasks',
+  security: scoped('tasks:write'),
+  request: {
+    params: z.object({ id: idParam }),
+    body: jsonBody(reorderSubtasksSchema),
+  },
+  responses: {
+    200: jsonResponse('Subtasks reordered.', z.array(SubtaskView)),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'patch',
+  path: '/subtasks/{id}',
+  summary: 'Update a subtask',
+  operationId: 'updateSubtask',
+  security: scoped('tasks:write'),
+  request: {
+    params: z.object({ id: idParam }),
+    body: jsonBody(updateSubtaskSchema),
+  },
+  responses: {
+    200: jsonResponse('Subtask updated.', SubtaskView),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+    422: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'delete',
+  path: '/subtasks/{id}',
+  summary: 'Delete a subtask',
+  operationId: 'deleteSubtask',
+  security: scoped('tasks:write'),
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    200: jsonResponse('Subtask deleted.', z.object({ deleted: z.boolean() })),
     401: errorResponse,
     403: errorResponse,
     404: errorResponse,

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { subtaskSummarySchema } from '@/dtos/subtask-dto'
 
 export const createTaskSchema = z.object({
   listId: z.string().uuid(),
@@ -31,6 +32,7 @@ export const taskViewSchema = z.object({
   carriedForward: z.boolean(),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
+  subtasks: subtaskSummarySchema,
 })
 
 export type TaskView = z.infer<typeof taskViewSchema>

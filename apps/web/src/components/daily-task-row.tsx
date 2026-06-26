@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
+import type { QueryKey } from '@tanstack/react-query'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type {
@@ -15,11 +16,15 @@ import type {
   TaskView,
   UpdateTaskInput,
 } from '@lifedeck/application'
-import { Avatar, TaskCheckbox } from '@lifedeck/ui'
+import { Avatar, TaskCheckbox, cn } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { SubtaskInline, SubtaskDialog } from '@/components/subtask-panel'
 import {
+  CheckSquareIcon,
   ChevronLeftIcon,
+  ChevronRightIcon,
   GripIcon,
+  ListsIcon,
   LockIcon,
   NoteIcon,
   PlusIcon,
@@ -40,6 +45,7 @@ type SharedProps = {
   task: TaskView
   members: MemberView[]
   self: { id: string; name: string } | null
+  boardKey: QueryKey
   onToggle: (task: TaskView) => void
   onUpdate: (id: string, input: UpdateTaskInput) => void
   onDelete?: (task: TaskView) => void
@@ -57,6 +63,7 @@ function TaskRowBody({
   task,
   members,
   self,
+  boardKey,
   onToggle,
   onUpdate,
   onDelete,
@@ -74,7 +81,14 @@ function TaskRowBody({
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState(task.title)
   const [actionsOpen, setActionsOpen] = useState(false)
+  const [subtasksOpen, setSubtasksOpen] = useState(false)
+  const [manageOpen, setManageOpen] = useState(false)
   const actionsRef = useRef<HTMLDivElement>(null)
+  const subtaskTotal = task.subtasks.total
+  const subtaskDone = task.subtasks.completed
+  const subtaskPct = subtaskTotal
+    ? Math.round((subtaskDone / subtaskTotal) * 100)
+    : 0
 
   // While the action drawer is open, a tap anywhere outside it slides it back.
   useEffect(() => {
@@ -128,213 +142,283 @@ function TaskRowBody({
     <li
       ref={containerRef}
       style={style}
-      className={`border-line relative flex items-center gap-1.5 overflow-clip rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:gap-3 sm:pl-2 sm:pr-2.5 ${
+      className={cn(
+        'border-line relative flex flex-col overflow-clip rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:pl-2 sm:pr-2.5',
         overlay
           ? 'ring-brand-200/70 cursor-grabbing shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
-          : 'shadow-[0_1px_2px_rgba(70,60,90,0.05)]'
-      } ${dragging ? 'opacity-40' : ''}`}
+          : 'shadow-[0_1px_2px_rgba(70,60,90,0.05)]',
+        dragging && 'opacity-40',
+      )}
     >
-      {grip}
+      <div className="flex items-center gap-1.5 sm:gap-3">
+        {grip}
 
-      <div className="pt-0.5">
-        <TaskCheckbox
-          checked={completed}
-          label={task.title}
-          onChange={() => onToggle(task)}
-        />
-      </div>
-
-      <div className="min-w-0 flex-1">
-        {editingTitle ? (
-          <input
-            autoFocus
-            value={titleDraft}
-            onChange={event => setTitleDraft(event.target.value)}
-            onBlur={saveTitle}
-            onKeyDown={event => {
-              if (event.key === 'Enter' || event.key === 'Tab') {
-                event.preventDefault()
-                saveTitle()
-              }
-              if (event.key === 'Escape') {
-                setTitleDraft(task.title)
-                setEditingTitle(false)
-              }
-            }}
-            aria-label={t.editTitle}
-            maxLength={280}
-            className="border-line text-ink-800 focus-visible:border-brand-600 w-full rounded-md border bg-white px-2 py-1 text-base font-medium outline-none sm:text-sm"
+        <div className="pt-0.5">
+          <TaskCheckbox
+            checked={completed}
+            label={task.title}
+            onChange={() => onToggle(task)}
           />
-        ) : (
-          <button
-            type="button"
-            onClick={openTitle}
-            aria-label={t.editTitle}
-            className={`block w-full break-words text-left text-sm ${
-              completed
-                ? 'text-ink-500 line-through'
-                : 'text-ink-800 font-medium'
-            }`}
-          >
-            {task.title}
-          </button>
-        )}
-        {task.carriedFromDate && (
-          <span className="text-ink-400 text-xs">
-            {messages.carryOver.broughtFrom.replace(
-              '{date}',
-              new Intl.DateTimeFormat(locale, {
-                month: 'short',
-                day: 'numeric',
-                timeZone: 'UTC',
-              }).format(new Date(`${task.carriedFromDate}T00:00:00.000Z`)),
-            )}
-          </span>
-        )}
-        {editingNote ? (
-          <input
-            autoFocus
-            value={noteDraft}
-            onChange={event => setNoteDraft(event.target.value)}
-            onBlur={saveNote}
-            onKeyDown={event => {
-              if (event.key === 'Enter' || event.key === 'Tab') {
-                event.preventDefault()
-                saveNote()
-              }
-              if (event.key === 'Escape') {
-                setNoteDraft(task.observation ?? '')
-                setEditingNote(false)
-              }
-            }}
-            placeholder={t.notePlaceholder}
-            aria-label={t.note}
-            maxLength={2000}
-            className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-base outline-none sm:text-xs"
-          />
-        ) : task.observation ? (
-          <button
-            type="button"
-            onClick={openNote}
-            aria-label={t.editNote}
-            className="text-ink-500 hover:text-ink-700 mt-1 flex max-w-full items-center gap-1.5 text-left text-xs"
-          >
-            <NoteIcon size={12} strokeWidth={2.5} />
-            <span className="min-w-0 truncate">{task.observation}</span>
-          </button>
-        ) : null}
-      </div>
+        </div>
 
-      <div
-        ref={actionsRef}
-        className="relative flex flex-none items-center self-stretch"
-      >
-        {task.recurringTaskId && (
-          <span
-            aria-hidden
-            title={t.recurring}
-            className="text-brand-400 flex h-8 w-6 items-center justify-center"
-          >
-            <RecurringIcon size={14} />
-          </span>
-        )}
-
-        {/* Action drawer: slides in from the right, over the description. */}
-        <div
-          className={`absolute inset-y-0 right-8 flex items-center gap-0.5 bg-white pl-3 transition-all duration-200 ease-out ${
-            actionsOpen
-              ? 'translate-x-0 opacity-100 shadow-[-12px_0_14px_-10px_rgba(70,60,90,0.18)]'
-              : 'pointer-events-none translate-x-full opacity-0'
-          }`}
-        >
-          <button
-            type="button"
-            aria-label={task.observation ? t.editNote : t.addNote}
-            onClick={openNote}
-            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg`}
-          >
-            <NoteIcon size={16} />
-          </button>
-
-          <button
-            type="button"
-            aria-label={t.togglePrivacy}
-            aria-pressed={task.isPrivate}
-            title={task.isPrivate ? t.private : t.visible}
-            onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
-            className={`${iconButtonClass} hover:bg-bg ${
-              task.isPrivate
-                ? 'text-brand-600'
-                : 'text-ink-400 hover:text-ink-700'
-            }`}
-          >
-            {task.isPrivate ? <LockIcon size={16} /> : <UnlockIcon size={16} />}
-          </button>
-
-          {options.length > 0 && (
-            <div className="relative h-8 w-8 flex-none">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 flex items-center justify-center"
-              >
-                {assignee ? (
-                  <Avatar name={assignee.name} size="sm" />
-                ) : (
-                  <span className="border-line text-ink-400 flex h-7 w-7 items-center justify-center rounded-full border border-dashed">
-                    <PlusIcon size={14} />
-                  </span>
-                )}
-              </span>
-              <select
-                aria-label={t.assignee}
-                value={task.assigneeId ?? ''}
-                onChange={event =>
-                  onUpdate(task.id, {
-                    assigneeId:
-                      event.target.value === '' ? null : event.target.value,
-                  })
+        <div className="min-w-0 flex-1">
+          {editingTitle ? (
+            <input
+              autoFocus
+              value={titleDraft}
+              onChange={event => setTitleDraft(event.target.value)}
+              onBlur={saveTitle}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === 'Tab') {
+                  event.preventDefault()
+                  saveTitle()
                 }
-                className="absolute inset-0 cursor-pointer opacity-0"
-              >
-                <option value="">—</option>
-                {options.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {onDelete && (
+                if (event.key === 'Escape') {
+                  setTitleDraft(task.title)
+                  setEditingTitle(false)
+                }
+              }}
+              aria-label={t.editTitle}
+              maxLength={280}
+              className="border-line text-ink-800 focus-visible:border-brand-600 w-full rounded-md border bg-white px-2 py-1 text-base font-medium outline-none sm:text-sm"
+            />
+          ) : (
             <button
               type="button"
-              aria-label={t.delete}
-              title={t.delete}
-              onClick={() => onDelete(task)}
-              className={`${iconButtonClass} text-ink-400 hover:text-danger hover:bg-bg`}
+              onClick={openTitle}
+              aria-label={t.editTitle}
+              className={`block w-full break-words text-left text-sm ${
+                completed
+                  ? 'text-ink-500 line-through'
+                  : 'text-ink-800 font-medium'
+              }`}
             >
-              <TrashIcon size={16} />
+              {task.title}
+            </button>
+          )}
+          {task.carriedFromDate && (
+            <span className="text-ink-400 text-xs">
+              {messages.carryOver.broughtFrom.replace(
+                '{date}',
+                new Intl.DateTimeFormat(locale, {
+                  month: 'short',
+                  day: 'numeric',
+                  timeZone: 'UTC',
+                }).format(new Date(`${task.carriedFromDate}T00:00:00.000Z`)),
+              )}
+            </span>
+          )}
+          {editingNote ? (
+            <input
+              autoFocus
+              value={noteDraft}
+              onChange={event => setNoteDraft(event.target.value)}
+              onBlur={saveNote}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === 'Tab') {
+                  event.preventDefault()
+                  saveNote()
+                }
+                if (event.key === 'Escape') {
+                  setNoteDraft(task.observation ?? '')
+                  setEditingNote(false)
+                }
+              }}
+              placeholder={t.notePlaceholder}
+              aria-label={t.note}
+              maxLength={2000}
+              className="border-line text-ink-700 focus-visible:border-brand-600 mt-1 w-full rounded-md border bg-white px-2 py-1 text-base outline-none sm:text-xs"
+            />
+          ) : task.observation ? (
+            <button
+              type="button"
+              onClick={openNote}
+              aria-label={t.editNote}
+              className="text-ink-500 hover:text-ink-700 mt-1 flex max-w-full items-center gap-1.5 text-left text-xs"
+            >
+              <NoteIcon size={12} strokeWidth={2.5} />
+              <span className="min-w-0 truncate">{task.observation}</span>
+            </button>
+          ) : null}
+          {subtaskTotal > 0 && (
+            <button
+              type="button"
+              aria-label={
+                subtasksOpen ? messages.subtask.hide : messages.subtask.show
+              }
+              aria-expanded={subtasksOpen}
+              onClick={() => setSubtasksOpen(open => !open)}
+              className="text-ink-400 hover:text-ink-700 mt-1.5 flex items-center gap-1.5 text-xs font-medium transition-colors"
+            >
+              <ChevronRightIcon
+                size={12}
+                className={cn(
+                  'transition-transform duration-200',
+                  subtasksOpen && 'rotate-90',
+                )}
+              />
+              <CheckSquareIcon size={12} />
+              <span>
+                {messages.subtask.progress
+                  .replace('{done}', String(subtaskDone))
+                  .replace('{total}', String(subtaskTotal))}
+              </span>
+              <span className="bg-ink-500/15 relative h-1 w-10 overflow-hidden rounded-full">
+                <span
+                  className="bg-brand-600 absolute inset-y-0 left-0 rounded-full transition-all duration-300"
+                  style={{ width: `${subtaskPct}%` }}
+                />
+              </span>
             </button>
           )}
         </div>
 
-        {/* The only control visible when the drawer is closed. */}
-        <button
-          type="button"
-          aria-label={t.actions}
-          aria-expanded={actionsOpen}
-          onClick={() => setActionsOpen(open => !open)}
-          className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg relative z-10`}
+        <div
+          ref={actionsRef}
+          className="relative flex flex-none items-center self-stretch"
         >
-          <ChevronLeftIcon
-            size={18}
-            className={`transition-transform duration-200 ${
-              actionsOpen ? 'rotate-180' : ''
+          {task.recurringTaskId && (
+            <span
+              aria-hidden
+              title={t.recurring}
+              className="text-brand-400 flex h-8 w-6 items-center justify-center"
+            >
+              <RecurringIcon size={14} />
+            </span>
+          )}
+
+          {/* Action drawer: slides in from the right, over the description. */}
+          <div
+            className={`absolute inset-y-0 right-8 flex items-center gap-0.5 bg-white pl-3 transition-all duration-200 ease-out ${
+              actionsOpen
+                ? 'translate-x-0 opacity-100 shadow-[-12px_0_14px_-10px_rgba(70,60,90,0.18)]'
+                : 'pointer-events-none translate-x-full opacity-0'
             }`}
-          />
-        </button>
+          >
+            <button
+              type="button"
+              aria-label={task.observation ? t.editNote : t.addNote}
+              onClick={openNote}
+              className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg`}
+            >
+              <NoteIcon size={16} />
+            </button>
+
+            <button
+              type="button"
+              aria-label={t.togglePrivacy}
+              aria-pressed={task.isPrivate}
+              title={task.isPrivate ? t.private : t.visible}
+              onClick={() => onUpdate(task.id, { isPrivate: !task.isPrivate })}
+              className={`${iconButtonClass} hover:bg-bg ${
+                task.isPrivate
+                  ? 'text-brand-600'
+                  : 'text-ink-400 hover:text-ink-700'
+              }`}
+            >
+              {task.isPrivate ? (
+                <LockIcon size={16} />
+              ) : (
+                <UnlockIcon size={16} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              aria-label={messages.subtask.manage}
+              title={messages.subtask.manage}
+              onClick={() => {
+                setActionsOpen(false)
+                setManageOpen(true)
+              }}
+              className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg`}
+            >
+              <ListsIcon size={16} />
+            </button>
+
+            {options.length > 0 && (
+              <div className="relative h-8 w-8 flex-none">
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                >
+                  {assignee ? (
+                    <Avatar name={assignee.name} size="sm" />
+                  ) : (
+                    <span className="border-line text-ink-400 flex h-7 w-7 items-center justify-center rounded-full border border-dashed">
+                      <PlusIcon size={14} />
+                    </span>
+                  )}
+                </span>
+                <select
+                  aria-label={t.assignee}
+                  value={task.assigneeId ?? ''}
+                  onChange={event =>
+                    onUpdate(task.id, {
+                      assigneeId:
+                        event.target.value === '' ? null : event.target.value,
+                    })
+                  }
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                >
+                  <option value="">—</option>
+                  {options.map(option => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {onDelete && (
+              <button
+                type="button"
+                aria-label={t.delete}
+                title={t.delete}
+                onClick={() => onDelete(task)}
+                className={`${iconButtonClass} text-ink-400 hover:text-danger hover:bg-bg`}
+              >
+                <TrashIcon size={16} />
+              </button>
+            )}
+          </div>
+
+          {/* The only control visible when the drawer is closed. */}
+          <button
+            type="button"
+            aria-label={t.actions}
+            aria-expanded={actionsOpen}
+            onClick={() => setActionsOpen(open => !open)}
+            className={`${iconButtonClass} text-ink-400 hover:text-ink-700 hover:bg-bg relative z-10`}
+          >
+            <ChevronLeftIcon
+              size={18}
+              className={`transition-transform duration-200 ${
+                actionsOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+        </div>
       </div>
+
+      {subtasksOpen && !overlay && (
+        <SubtaskInline
+          taskId={task.id}
+          boardKey={boardKey}
+          onManage={() => setManageOpen(true)}
+        />
+      )}
+
+      {!overlay && (
+        <SubtaskDialog
+          taskId={task.id}
+          taskTitle={task.title}
+          boardKey={boardKey}
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+        />
+      )}
     </li>
   )
 }

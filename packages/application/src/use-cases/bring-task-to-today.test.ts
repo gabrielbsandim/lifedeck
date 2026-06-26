@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { List, Task, User, asEntityId } from '@lifedeck/domain'
+import { List, Subtask, Task, User, asEntityId } from '@lifedeck/domain'
 import { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+import { InMemorySubtaskRepository } from '@/testing/in-memory-subtask-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import {
   FakeUnitOfWork,
@@ -21,6 +22,7 @@ const COPY = asEntityId('ffffffff-ffff-4fff-8fff-ffffffffffff')
 async function setup(timezone?: string) {
   const lists = new InMemoryListRepository()
   const tasks = new InMemoryTaskRepository()
+  const subtasks = new InMemorySubtaskRepository()
   const users = new InMemoryUserRepository()
   await users.save(
     User.createGuest({
@@ -58,6 +60,7 @@ async function setup(timezone?: string) {
     bringTaskToToday: makeBringTaskToToday({
       lists,
       tasks,
+      subtasks,
       users,
       ids: new SequentialIdGenerator([TODAY_LIST, COPY]),
       clock: new FixedClock(NOW),
@@ -119,5 +122,89 @@ describe('bringTaskToToday', () => {
     await expect(
       ctx.bringTaskToToday(ID.user as string, COPY as string),
     ).rejects.toBeInstanceOf(NotFoundError)
+  })
+
+  it('copies the subtasks onto the brought-forward task', async () => {
+    const SUB_A = asEntityId('11111111-1111-4111-8111-111111111111')
+    const SUB_B = asEntityId('22222222-2222-4222-8222-222222222222')
+    const SUB_COPY_A = asEntityId('33333333-3333-4333-8333-333333333333')
+    const SUB_COPY_B = asEntityId('44444444-4444-4444-8444-444444444444')
+    const lists = new InMemoryListRepository()
+    const tasks = new InMemoryTaskRepository()
+    const subtasks = new InMemorySubtaskRepository()
+    const users = new InMemoryUserRepository()
+    await users.save(
+      User.createGuest({
+        id: ID.user,
+        displayName: 'Gabriel',
+        locale: 'en',
+        createdAt: NOW,
+      }),
+    )
+    await lists.save(
+      List.create({
+        id: PRIOR_LIST,
+        ownerId: ID.user,
+        title: '2026-06-20',
+        type: 'daily',
+        visibility: 'private',
+        referenceDate: new Date('2026-06-20T00:00:00.000Z'),
+        createdAt: new Date('2026-06-20T10:00:00.000Z'),
+      }),
+    )
+    await tasks.save(
+      Task.create({
+        id: PENDING,
+        listId: PRIOR_LIST,
+        title: 'Buy rings',
+        createdAt: NOW,
+      }),
+    )
+    const doneSub = Subtask.create({
+      id: SUB_A,
+      taskId: PENDING,
+      title: 'Pick metal',
+      position: 0,
+      createdAt: NOW,
+    })
+    doneSub.complete(NOW)
+    await subtasks.save(doneSub)
+    await subtasks.save(
+      Subtask.create({
+        id: SUB_B,
+        taskId: PENDING,
+        title: 'Get sizes',
+        position: 1,
+        createdAt: NOW,
+      }),
+    )
+
+    const bringTaskToToday = makeBringTaskToToday({
+      lists,
+      tasks,
+      subtasks,
+      users,
+      ids: new SequentialIdGenerator([
+        TODAY_LIST,
+        COPY,
+        SUB_COPY_A,
+        SUB_COPY_B,
+      ]),
+      clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
+    })
+
+    const view = await bringTaskToToday(ID.user as string, PENDING as string)
+
+    expect(view.subtasks).toEqual({ total: 2, completed: 1 })
+    const copied = await subtasks.listByTask(COPY)
+    expect(copied.map(subtask => subtask.toJSON().title)).toEqual([
+      'Pick metal',
+      'Get sizes',
+    ])
+    expect(copied.map(subtask => subtask.status)).toEqual([
+      'completed',
+      'pending',
+    ])
   })
 })

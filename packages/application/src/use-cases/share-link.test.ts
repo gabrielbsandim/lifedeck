@@ -8,6 +8,7 @@ import { makeCreateTask } from '@/use-cases/create-task'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
+import { InMemorySubtaskRepository } from '@/testing/in-memory-subtask-repository'
 import { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import {
@@ -36,6 +37,7 @@ function setup() {
   const shareLinks = new InMemoryShareLinkRepository()
   const lists = new InMemoryListRepository()
   const tasks = new InMemoryTaskRepository()
+  const subtasks = new InMemorySubtaskRepository()
   const clock = new FixedClock(NOW)
   return {
     shareLinks,
@@ -51,7 +53,13 @@ function setup() {
     }),
     listShareLinks: makeListShareLinks({ shareLinks, lists }),
     revokeShareLink: makeRevokeShareLink({ shareLinks, lists }),
-    getSharedBoard: makeGetSharedBoard({ shareLinks, lists, tasks, clock }),
+    getSharedBoard: makeGetSharedBoard({
+      shareLinks,
+      lists,
+      tasks,
+      subtasks,
+      clock,
+    }),
     createTask: makeCreateTask({
       tasks,
       lists,

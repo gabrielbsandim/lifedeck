@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   List,
   RecurringTask,
+  Subtask,
   Task,
   User,
   asEntityId,
@@ -12,6 +13,7 @@ import { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryTaskRepository } from '@/testing/in-memory-task-repository'
 import { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
+import { InMemorySubtaskRepository } from '@/testing/in-memory-subtask-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import {
   FakeUnitOfWork,
@@ -39,6 +41,7 @@ async function makeUserRepo(mode: CarryOverMode = 'manual') {
 async function setup(rule?: RecurrenceRule) {
   const lists = new InMemoryListRepository()
   const tasks = new InMemoryTaskRepository()
+  const subtasks = new InMemorySubtaskRepository()
   const recurringTasks = new InMemoryRecurringTaskRepository()
   const users = await makeUserRepo()
   if (rule) {
@@ -55,6 +58,7 @@ async function setup(rule?: RecurrenceRule) {
   const getDailyBoard = makeGetDailyBoard({
     lists,
     tasks,
+    subtasks,
     recurringTasks,
     users,
     ids: new SequentialIdGenerator([ID.list, ID.task]),
@@ -175,6 +179,7 @@ describe('getDailyBoard', () => {
   it('lists prior unfinished tasks as carry-over candidates in manual mode', async () => {
     const lists = new InMemoryListRepository()
     const tasks = new InMemoryTaskRepository()
+    const subtasks = new InMemorySubtaskRepository()
     const recurringTasks = new InMemoryRecurringTaskRepository()
     const users = await makeUserRepo('manual')
     await seedPriorDay(lists, tasks)
@@ -182,6 +187,7 @@ describe('getDailyBoard', () => {
     const getDailyBoard = makeGetDailyBoard({
       lists,
       tasks,
+      subtasks,
       recurringTasks,
       users,
       ids: new SequentialIdGenerator([TODAY_LIST]),
@@ -206,6 +212,7 @@ describe('getDailyBoard', () => {
     const COPY = asEntityId('ffffffff-ffff-4fff-8fff-ffffffffffff')
     const lists = new InMemoryListRepository()
     const tasks = new InMemoryTaskRepository()
+    const subtasks = new InMemorySubtaskRepository()
     const recurringTasks = new InMemoryRecurringTaskRepository()
     const users = await makeUserRepo('auto')
     await seedPriorDay(lists, tasks)
@@ -213,6 +220,7 @@ describe('getDailyBoard', () => {
     const getDailyBoard = makeGetDailyBoard({
       lists,
       tasks,
+      subtasks,
       recurringTasks,
       users,
       ids: new SequentialIdGenerator([TODAY_LIST, COPY]),
@@ -238,10 +246,75 @@ describe('getDailyBoard', () => {
     expect(await tasks.listByList(TODAY_LIST)).toHaveLength(1)
   })
 
+  it('copies subtasks onto the carried task, preserving their status', async () => {
+    const COPY = asEntityId('ffffffff-ffff-4fff-8fff-ffffffffffff')
+    const SUB_A = asEntityId('11111111-1111-4111-8111-111111111111')
+    const SUB_B = asEntityId('22222222-2222-4222-8222-222222222222')
+    const SUB_COPY_A = asEntityId('33333333-3333-4333-8333-333333333333')
+    const SUB_COPY_B = asEntityId('44444444-4444-4444-8444-444444444444')
+    const lists = new InMemoryListRepository()
+    const tasks = new InMemoryTaskRepository()
+    const subtasks = new InMemorySubtaskRepository()
+    const recurringTasks = new InMemoryRecurringTaskRepository()
+    const users = await makeUserRepo('auto')
+    await seedPriorDay(lists, tasks)
+    const doneSub = Subtask.create({
+      id: SUB_A,
+      taskId: PENDING,
+      title: 'Pick metal',
+      position: 0,
+      createdAt: NOW,
+    })
+    doneSub.complete(NOW)
+    await subtasks.save(doneSub)
+    await subtasks.save(
+      Subtask.create({
+        id: SUB_B,
+        taskId: PENDING,
+        title: 'Get sizes',
+        position: 1,
+        createdAt: NOW,
+      }),
+    )
+
+    const getDailyBoard = makeGetDailyBoard({
+      lists,
+      tasks,
+      subtasks,
+      recurringTasks,
+      users,
+      ids: new SequentialIdGenerator([
+        TODAY_LIST,
+        COPY,
+        SUB_COPY_A,
+        SUB_COPY_B,
+      ]),
+      clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
+    })
+
+    const board = await getDailyBoard(ID.user, '2026-06-21')
+
+    expect(board.tasks[0]).toMatchObject({
+      id: COPY,
+      subtasks: { total: 2, completed: 1 },
+    })
+    const copied = await subtasks.listByTask(COPY)
+    expect(copied.map(subtask => subtask.toJSON().title)).toEqual([
+      'Pick metal',
+      'Get sizes',
+    ])
+    expect(copied.map(subtask => subtask.status)).toEqual([
+      'completed',
+      'pending',
+    ])
+  })
+
   it('does not carry over when viewing a date that is not today', async () => {
     const PAST_LIST = asEntityId('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
     const lists = new InMemoryListRepository()
     const tasks = new InMemoryTaskRepository()
+    const subtasks = new InMemorySubtaskRepository()
     const recurringTasks = new InMemoryRecurringTaskRepository()
     const users = await makeUserRepo('auto')
 
@@ -268,6 +341,7 @@ describe('getDailyBoard', () => {
     const getDailyBoard = makeGetDailyBoard({
       lists,
       tasks,
+      subtasks,
       recurringTasks,
       users,
       ids: new SequentialIdGenerator([PAST_LIST]),

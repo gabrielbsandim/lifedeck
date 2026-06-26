@@ -15,6 +15,7 @@ import {
 } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
+  dailyBoardKey,
   useBringTaskToToday,
   useCreateTask,
   useDailyBoard,
@@ -373,6 +374,7 @@ export function DailyBoard({
                 task,
                 members: members.data ?? [],
                 self,
+                boardKey: dailyBoardKey(date),
                 onToggle: toggle,
                 onUpdate: update,
                 onDelete: removeTask,

@@ -1,5 +1,6 @@
 import {
   List,
+  Subtask,
   Task,
   asEntityId,
   occursOn,
@@ -15,9 +16,11 @@ import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
+import type { SubtaskRepository } from '@/ports/subtask-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { UnitOfWork } from '@/ports/unit-of-work'
+import { summarizeSubtasks } from '@/mappers/subtask-summary'
 
 const dateSchema = z.string().date()
 
@@ -39,6 +42,7 @@ export type DailyBoardView = {
 type Dependencies = {
   lists: ListRepository
   tasks: TaskRepository
+  subtasks: SubtaskRepository
   recurringTasks: RecurringTaskRepository
   users: UserRepository
   ids: IdGenerator
@@ -49,6 +53,7 @@ type Dependencies = {
 export function makeGetDailyBoard({
   lists,
   tasks,
+  subtasks,
   recurringTasks,
   users,
   ids,
@@ -89,9 +94,13 @@ export function makeGetDailyBoard({
     await unitOfWork.run(() => materializeRecurring(list))
 
     const items = await tasks.listByList(list.id)
+    const summaries = await summarizeSubtasks(
+      subtasks,
+      items.map(task => task.id),
+    )
     return {
       list: toListView(list),
-      tasks: items.map(toTaskView),
+      tasks: items.map(task => toTaskView(task, summaries.get(task.id))),
       carryOver,
     }
 
@@ -146,6 +155,28 @@ export function makeGetDailyBoard({
         task.markCarriedForward(clock.now())
         await tasks.save(task)
         await tasks.save(copy)
+        await copySubtasks(task.id, copy.id)
+      }
+    }
+
+    async function copySubtasks(
+      fromTaskId: Task['id'],
+      toTaskId: Task['id'],
+    ): Promise<void> {
+      const originals = await subtasks.listByTask(fromTaskId)
+      for (const original of originals) {
+        const props = original.toJSON()
+        const copy = Subtask.create({
+          id: ids.generate(),
+          taskId: toTaskId,
+          title: props.title,
+          position: props.position,
+          createdAt: clock.now(),
+        })
+        if (props.status === 'completed') {
+          copy.complete(props.completedAt ?? clock.now())
+        }
+        await subtasks.save(copy)
       }
     }
 

@@ -1,9 +1,16 @@
 import type { Task } from '@lifedeck/domain'
 import type { TaskView } from '@/dtos/task-dto'
+import type { SubtaskSummary } from '@/dtos/subtask-dto'
 
-export function toTaskView(task: Task): TaskView {
+const NO_SUBTASKS: SubtaskSummary = { total: 0, completed: 0 }
+
+export function toTaskView(
+  task: Task,
+  subtasks: SubtaskSummary = NO_SUBTASKS,
+): TaskView {
   const props = task.toJSON()
   return {
+    subtasks,
     id: props.id,
     listId: props.listId,
     title: props.title,
