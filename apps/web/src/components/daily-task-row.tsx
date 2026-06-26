@@ -128,7 +128,7 @@ function TaskRowBody({
     <li
       ref={containerRef}
       style={style}
-      className={`border-line relative flex items-center gap-1.5 overflow-hidden rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:gap-3 sm:pl-2 sm:pr-2.5 ${
+      className={`border-line relative flex items-center gap-1.5 overflow-clip rounded-2xl border bg-white py-2.5 pl-1.5 pr-1.5 transition-shadow sm:gap-3 sm:pl-2 sm:pr-2.5 ${
         overlay
           ? 'ring-brand-200/70 cursor-grabbing shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
           : 'shadow-[0_1px_2px_rgba(70,60,90,0.05)]'
