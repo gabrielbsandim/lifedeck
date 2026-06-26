@@ -284,15 +284,18 @@ daily digest.
 - **Outbox table** `ScheduledJob` (`runAt`, `type`, `payloadJson`, `status`,
   `attempts`). Writing a job is part of the same `UnitOfWork` transaction as the
   action that schedules it (e.g. creating an event also enqueues its reminders).
-- **Driver**: Upstash QStash (same vendor as the Redis already in use) calls a
-  protected `/api/v1/internal/dispatch-jobs` endpoint on a cadence; the handler
-  drains due jobs, dispatches each by `type`, and applies retry/backoff. QStash
-  also handles native scheduling for the recurring sync poll and digest.
-- Port `JobQueue` (enqueue, enqueueAt) + `ScheduledJobRepository`; infra
-  `QStashJobQueue`. Vercel Cron is the fallback driver if QStash is not configured
-  (graceful no-op, mirroring the Upstash rate-limit pattern).
-- The dispatch endpoint is authenticated (QStash signature verification) and
-  idempotent per job id.
+- **Driver (as shipped)**: the Postgres outbox is the source of truth and is
+  drained by **Vercel Cron**. `apps/web/vercel.json` schedules the protected
+  `/api/v1/internal/dispatch-jobs` endpoint every minute and
+  `/api/v1/internal/fan-out-jobs` every 15 minutes; each handler claims due jobs
+  (lease via `FOR UPDATE SKIP LOCKED`), dispatches by `type`, and applies
+  retry/backoff. QStash was the original design but was not needed: any HTTP
+  scheduler (Vercel Cron, QStash, or a plain cron hitting the endpoint with the
+  `CRON_SECRET` bearer) works.
+- Port `JobQueue` (enqueue) + `ScheduledJobRepository` (save/listDue/claimDue);
+  infra `OutboxJobQueue` (writes a `ScheduledJob` row).
+- The dispatch endpoints are authenticated (`Authorization: Bearer $CRON_SECRET`,
+  constant-time compare) and lease-guarded against concurrent runners.
 
 ---
 
@@ -531,28 +534,34 @@ into Pro.
 All optional-with-graceful-fallback where feasible, matching the V1 convention
 (unset AI key falls back to the stub; unset Upstash no-ops the limiter).
 
+The list below reflects the variables the shipped code actually reads (see
+`.env.example` for the authoritative set). The Postgres outbox + Vercel Cron
+driver means no QStash keys are needed; token-at-rest reuses a single
+`CALENDAR_TOKEN_KEY`; there is no weather tool yet.
+
 ```
+# Feature flags (master gate + per-pillar)
+FEATURES_V2, FEATURE_CALENDAR, FEATURE_WHATSAPP, FEATURE_BILLING
+
+# Scheduling (Vercel Cron hits the internal endpoints with this bearer)
+CRON_SECRET
+
 # Billing - Asaas (Brazil)
-ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, ASAAS_ENV (sandbox|production)
+ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, ASAAS_PRICE_* (per plan/interval, BRL)
 
 # Billing - Stripe (international)
 STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_* (per plan/interval, USD)
 
-# Scheduling
-QSTASH_TOKEN, QSTASH_CURRENT_SIGNING_KEY, QSTASH_NEXT_SIGNING_KEY
-
 # WhatsApp Cloud API
-WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_BUSINESS_ACCOUNT_ID,
-WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_VERIFY_TOKEN
+WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET,
+WHATSAPP_VERIFY_TOKEN, WHATSAPP_REMINDER_TEMPLATE, WHATSAPP_TEMPLATE_LANGUAGE
 
-# Google Calendar (extends existing Google OAuth)
-GOOGLE_CALENDAR_SCOPES (or reuse GOOGLE_CLIENT_ID/SECRET with calendar scopes)
+# Google Calendar (reuses the existing GOOGLE_CLIENT_ID/SECRET)
+GOOGLE_CALENDAR_REDIRECT_URI, GOOGLE_CALENDAR_WEBHOOK_TOKEN
 
-# Encryption + misc
-DATA_ENCRYPTION_KEY (token-at-rest encryption)
-WEATHER_API_KEY (weather tool)
-GEMINI_PRO_MODEL_ID (default for the Premium tier; reuses GEMINI_API_KEY)
-FEATURES_V2 / FEATURE_CALENDAR / FEATURE_WHATSAPP / FEATURE_BILLING
+# Encryption + AI
+CALENDAR_TOKEN_KEY (AES-256-GCM for stored Google tokens)
+GEMINI_API_KEY, GEMINI_PRO_MODEL_ID (Premium tier model)
 ```
 
 ---
