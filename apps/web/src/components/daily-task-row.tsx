@@ -152,7 +152,7 @@ function TaskRowBody({
             onChange={event => setTitleDraft(event.target.value)}
             onBlur={saveTitle}
             onKeyDown={event => {
-              if (event.key === 'Enter') {
+              if (event.key === 'Enter' || event.key === 'Tab') {
                 event.preventDefault()
                 saveTitle()
               }
@@ -198,7 +198,7 @@ function TaskRowBody({
             onChange={event => setNoteDraft(event.target.value)}
             onBlur={saveNote}
             onKeyDown={event => {
-              if (event.key === 'Enter') {
+              if (event.key === 'Enter' || event.key === 'Tab') {
                 event.preventDefault()
                 saveNote()
               }
