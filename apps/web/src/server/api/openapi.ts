@@ -69,6 +69,43 @@ function jsonResponse<T extends z.ZodTypeAny>(description: string, schema: T) {
   }
 }
 
+function pageEnvelope<T extends z.ZodTypeAny>(schema: T) {
+  return z.object({
+    data: z.array(schema),
+    nextCursor: z.string().nullable(),
+  })
+}
+
+function pageResponse<T extends z.ZodTypeAny>(description: string, schema: T) {
+  return {
+    description,
+    content: { 'application/json': { schema: pageEnvelope(schema) } },
+  }
+}
+
+const limitParam = z
+  .string()
+  .optional()
+  .openapi({
+    param: {
+      name: 'limit',
+      in: 'query',
+      description: 'Maximum items to return (1-100, default 50).',
+    },
+    example: '50',
+  })
+
+const cursorParam = z
+  .string()
+  .optional()
+  .openapi({
+    param: {
+      name: 'cursor',
+      in: 'query',
+      description: "Opaque cursor from a previous response's nextCursor.",
+    },
+  })
+
 registry.register('RecurrenceRule', recurrenceRuleSchema)
 const TaskView = registry.register('TaskView', taskViewSchema)
 const ListView = registry.register('ListView', listViewSchema)
@@ -219,9 +256,29 @@ registry.registerPath({
   summary: "List the current user's lists",
   operationId: 'listLists',
   security: scoped('lists:read'),
+  request: {
+    query: z.object({
+      limit: limitParam,
+      cursor: cursorParam,
+      type: z
+        .enum(['daily', 'standalone'])
+        .optional()
+        .openapi({
+          param: {
+            name: 'type',
+            in: 'query',
+            description: 'Filter lists by type.',
+          },
+        }),
+    }),
+  },
   responses: {
-    200: jsonResponse('Lists owned by the current user.', z.array(ListView)),
+    200: pageResponse(
+      'A page of lists accessible to the current user, newest first.',
+      ListView,
+    ),
     401: errorResponse,
+    422: errorResponse,
   },
 })
 
@@ -415,12 +472,16 @@ registry.registerPath({
   summary: "List the current user's recurring task definitions",
   operationId: 'listRecurringTasks',
   security: scoped('tasks:read'),
+  request: {
+    query: z.object({ limit: limitParam, cursor: cursorParam }),
+  },
   responses: {
-    200: jsonResponse(
-      'Recurring task definitions.',
-      z.array(RecurringTaskView),
+    200: pageResponse(
+      'A page of recurring task definitions, newest first.',
+      RecurringTaskView,
     ),
     401: errorResponse,
+    422: errorResponse,
   },
 })
 

@@ -1,7 +1,8 @@
-import { asEntityId, type List } from '@lifedeck/domain'
+import { asEntityId } from '@lifedeck/domain'
 import { type ListView } from '@/dtos/list-dto'
 import { toListView } from '@/mappers/list-mapper'
-import type { ListRepository } from '@/ports/list-repository'
+import type { Page } from '@/pagination'
+import type { ListPageParams, ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
 
 type Dependencies = {
@@ -10,20 +11,18 @@ type Dependencies = {
 }
 
 export function makeListUserLists({ lists, memberships }: Dependencies) {
-  return async function listUserLists(ownerId: string): Promise<ListView[]> {
+  return async function listUserLists(
+    ownerId: string,
+    params: ListPageParams,
+  ): Promise<Page<ListView>> {
     const userId = asEntityId(ownerId)
-    const owned = await lists.listByOwner(userId)
-    const ownedIds = new Set(owned.map(list => list.id))
-
     const joined = await memberships.listByUser(userId)
-    const joinedLists = (
-      await Promise.all(
-        joined
-          .filter(member => !ownedIds.has(member.listId))
-          .map(member => lists.findById(member.listId)),
-      )
-    ).filter((list): list is List => list !== null)
+    const joinedIds = joined.map(member => member.listId)
 
-    return [...owned, ...joinedLists].map(toListView)
+    const page = await lists.pageAccessible(userId, joinedIds, params)
+    return {
+      items: page.items.map(toListView),
+      nextCursor: page.nextCursor,
+    }
   }
 }

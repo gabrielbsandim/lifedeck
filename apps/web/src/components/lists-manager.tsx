@@ -169,9 +169,7 @@ export function ListsManager() {
     )
   }
 
-  const standalone = (lists.data ?? []).filter(
-    list => list.type === 'standalone',
-  )
+  const standalone = lists.data?.pages.flatMap(page => page.items) ?? []
 
   return (
     <section className="flex flex-col gap-5">
@@ -198,6 +196,16 @@ export function ListsManager() {
           {standalone.map((list, index) => (
             <ListSummaryCard key={list.id} list={list} index={index} />
           ))}
+
+          {lists.hasNextPage && (
+            <Button
+              variant="ghost"
+              isLoading={lists.isFetchingNextPage}
+              onClick={() => lists.fetchNextPage()}
+            >
+              {messages.common.loadMore}
+            </Button>
+          )}
 
           {creating ? (
             <form

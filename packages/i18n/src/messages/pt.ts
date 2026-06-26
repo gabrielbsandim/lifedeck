@@ -38,6 +38,7 @@ export const pt: Messages = {
     loading: 'Carregando…',
     error: 'Algo deu errado.',
     retry: 'Tentar de novo',
+    loadMore: 'Carregar mais',
   },
   recurring: {
     manage: 'Tarefas recorrentes',

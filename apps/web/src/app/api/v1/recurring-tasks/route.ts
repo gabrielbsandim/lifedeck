@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { handleError, ok } from '@/server/api/respond'
+import { handleError, ok, okPage } from '@/server/api/respond'
 import { requireScope } from '@/server/api/authenticate'
+import { parsePageParams } from '@/server/api/pagination'
 
 export async function POST(request: Request) {
   try {
@@ -26,8 +27,11 @@ export async function GET(request: Request) {
     if (auth instanceof NextResponse) {
       return auth
     }
-    const definitions = await getContainer().listRecurringTasks(auth.userId)
-    return ok(definitions)
+    const page = await getContainer().listRecurringTasks(
+      auth.userId,
+      parsePageParams(request),
+    )
+    return okPage(page)
   } catch (error) {
     return handleError(error)
   }

@@ -1,6 +1,7 @@
 import { asEntityId } from '@lifedeck/domain'
 import { type RecurringTaskView } from '@/dtos/recurring-task-dto'
 import { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
+import type { Page, PageParams } from '@/pagination'
 import type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 
 type Dependencies = {
@@ -10,8 +11,12 @@ type Dependencies = {
 export function makeListRecurringTasks({ recurringTasks }: Dependencies) {
   return async function listRecurringTasks(
     ownerId: string,
-  ): Promise<RecurringTaskView[]> {
-    const owned = await recurringTasks.listByOwner(asEntityId(ownerId))
-    return owned.map(toRecurringTaskView)
+    params: PageParams,
+  ): Promise<Page<RecurringTaskView>> {
+    const page = await recurringTasks.pageByOwner(asEntityId(ownerId), params)
+    return {
+      items: page.items.map(toRecurringTaskView),
+      nextCursor: page.nextCursor,
+    }
   }
 }

@@ -47,6 +47,8 @@ export function RecurringTasksManager() {
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
+  const definitions = list.data?.pages.flatMap(page => page.items) ?? []
+
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
@@ -82,13 +84,13 @@ export function RecurringTasksManager() {
           </div>
         )}
 
-        {list.isSuccess && list.data.length === 0 && !adding && (
+        {list.isSuccess && definitions.length === 0 && !adding && (
           <EmptyState title={messages.recurring.empty} />
         )}
 
-        {list.isSuccess && list.data.length > 0 && (
+        {list.isSuccess && definitions.length > 0 && (
           <ul className="flex flex-col gap-2">
-            {list.data.map(definition =>
+            {definitions.map(definition =>
               editingId === definition.id ? (
                 <li key={definition.id}>
                   <RecurringTaskForm
@@ -141,6 +143,16 @@ export function RecurringTasksManager() {
               ),
             )}
           </ul>
+        )}
+
+        {list.hasNextPage && (
+          <Button
+            variant="ghost"
+            isLoading={list.isFetchingNextPage}
+            onClick={() => list.fetchNextPage()}
+          >
+            {messages.common.loadMore}
+          </Button>
         )}
       </Card>
     </section>

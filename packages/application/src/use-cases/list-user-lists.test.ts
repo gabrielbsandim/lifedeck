@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { ListMember, asEntityId } from '@lifedeck/domain'
+import { List, ListMember, asEntityId, type EntityId } from '@lifedeck/domain'
 import { makeCreateList } from '@/use-cases/create-list'
 import { makeListUserLists } from '@/use-cases/list-user-lists'
+import { parsePageCursor, type ListPageParams } from '@/index'
 import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
+
+const ALL: ListPageParams = { limit: 50, cursor: null, type: null }
 
 function setup() {
   const lists = new InMemoryListRepository()
@@ -22,16 +25,40 @@ function setup() {
   }
 }
 
+function seedList(
+  lists: InMemoryListRepository,
+  input: {
+    id: string
+    ownerId: EntityId
+    title: string
+    type?: 'daily' | 'standalone'
+    createdAt: string
+  },
+): Promise<void> {
+  return lists.save(
+    List.create({
+      id: asEntityId(input.id),
+      ownerId: input.ownerId,
+      title: input.title,
+      type: input.type ?? 'standalone',
+      visibility: 'private',
+      referenceDate: input.type === 'daily' ? new Date(input.createdAt) : null,
+      createdAt: new Date(input.createdAt),
+    }),
+  )
+}
+
 describe('listUserLists', () => {
   it('returns the lists owned by the user', async () => {
     const { createList, listUserLists } = setup()
     await createList(ID.user, { title: 'Wedding' })
     await createList(ID.otherUser, { title: 'Work' })
 
-    const views = await listUserLists(ID.user)
+    const page = await listUserLists(ID.user, ALL)
 
-    expect(views).toHaveLength(1)
-    expect(views[0]).toMatchObject({ ownerId: ID.user, title: 'Wedding' })
+    expect(page.items).toHaveLength(1)
+    expect(page.items[0]).toMatchObject({ ownerId: ID.user, title: 'Wedding' })
+    expect(page.nextCursor).toBeNull()
   })
 
   it('also returns lists the user has joined as a member', async () => {
@@ -49,10 +76,10 @@ describe('listUserLists', () => {
       }),
     )
 
-    const views = await listUserLists(ID.user)
+    const page = await listUserLists(ID.user, ALL)
 
-    expect(views).toHaveLength(2)
-    expect(views.map(view => view.title).sort()).toEqual([
+    expect(page.items).toHaveLength(2)
+    expect(page.items.map(view => view.title).sort()).toEqual([
       'Groceries',
       'Wedding',
     ])
@@ -72,11 +99,77 @@ describe('listUserLists', () => {
       }),
     )
 
-    expect(await listUserLists(ID.user)).toHaveLength(1)
+    const page = await listUserLists(ID.user, ALL)
+    expect(page.items).toHaveLength(1)
   })
 
-  it('returns an empty array when the user has no lists', async () => {
+  it('returns an empty page when the user has no lists', async () => {
     const { listUserLists } = setup()
-    expect(await listUserLists(ID.user)).toEqual([])
+    const page = await listUserLists(ID.user, ALL)
+    expect(page.items).toEqual([])
+    expect(page.nextCursor).toBeNull()
+  })
+
+  it('filters by list type', async () => {
+    const { lists, listUserLists } = setup()
+    await seedList(lists, {
+      id: '11111111-1111-4111-8111-111111111111',
+      ownerId: ID.user,
+      title: 'Daily',
+      type: 'daily',
+      createdAt: '2026-06-20T10:00:00.000Z',
+    })
+    await seedList(lists, {
+      id: '22222222-2222-4222-8222-222222222222',
+      ownerId: ID.user,
+      title: 'Project',
+      type: 'standalone',
+      createdAt: '2026-06-21T10:00:00.000Z',
+    })
+
+    const standalone = await listUserLists(ID.user, {
+      ...ALL,
+      type: 'standalone',
+    })
+    expect(standalone.items.map(view => view.title)).toEqual(['Project'])
+
+    const daily = await listUserLists(ID.user, { ...ALL, type: 'daily' })
+    expect(daily.items.map(view => view.title)).toEqual(['Daily'])
+  })
+
+  it('pages newest-first and walks the cursor to exhaustion', async () => {
+    const { lists, listUserLists } = setup()
+    const seeds = [
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        title: 'Oldest',
+        createdAt: '2026-06-19T10:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        title: 'Middle',
+        createdAt: '2026-06-20T10:00:00.000Z',
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        title: 'Newest',
+        createdAt: '2026-06-21T10:00:00.000Z',
+      },
+    ]
+    for (const seed of seeds) {
+      await seedList(lists, { ...seed, ownerId: ID.user })
+    }
+
+    const first = await listUserLists(ID.user, { ...ALL, limit: 2 })
+    expect(first.items.map(view => view.title)).toEqual(['Newest', 'Middle'])
+    expect(first.nextCursor).not.toBeNull()
+
+    const second = await listUserLists(ID.user, {
+      ...ALL,
+      limit: 2,
+      cursor: parsePageCursor(first.nextCursor),
+    })
+    expect(second.items.map(view => view.title)).toEqual(['Oldest'])
+    expect(second.nextCursor).toBeNull()
   })
 })

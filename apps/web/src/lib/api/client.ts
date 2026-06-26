@@ -10,7 +10,10 @@ export class ApiError extends Error {
 }
 
 type ApiSuccess<T> = { data: T }
+type ApiPageSuccess<T> = { data: T[]; nextCursor: string | null }
 type ApiFailure = { error: { code: string; message: string } }
+
+export type ApiPage<T> = { items: T[]; nextCursor: string | null }
 
 function browserLanguage(): string | undefined {
   if (typeof navigator !== 'undefined' && navigator.language) {
@@ -19,10 +22,10 @@ function browserLanguage(): string | undefined {
   return undefined
 }
 
-export async function apiRequest<T>(
+async function apiFetch(
   path: string,
-  init: RequestInit = {},
-): Promise<T> {
+  init: RequestInit,
+): Promise<ApiSuccess<unknown> | ApiPageSuccess<unknown>> {
   const { headers, ...rest } = init
   const language = browserLanguage()
   const response = await fetch(path, {
@@ -36,7 +39,8 @@ export async function apiRequest<T>(
   })
 
   const body = (await response.json().catch(() => null)) as
-    | ApiSuccess<T>
+    | ApiSuccess<unknown>
+    | ApiPageSuccess<unknown>
     | ApiFailure
     | null
 
@@ -49,5 +53,21 @@ export async function apiRequest<T>(
     )
   }
 
+  return body as ApiSuccess<unknown> | ApiPageSuccess<unknown>
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const body = await apiFetch(path, init)
   return (body as ApiSuccess<T>).data
+}
+
+export async function apiRequestPage<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<ApiPage<T>> {
+  const body = (await apiFetch(path, init)) as ApiPageSuccess<T>
+  return { items: body.data, nextCursor: body.nextCursor }
 }

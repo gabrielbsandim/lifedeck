@@ -3,8 +3,17 @@ export type { UnitOfWork } from '@/ports/unit-of-work'
 export type { IdGenerator } from '@/ports/id-generator'
 export type { TaskRepository } from '@/ports/task-repository'
 export type { UserRepository } from '@/ports/user-repository'
-export type { ListRepository } from '@/ports/list-repository'
+export type { ListRepository, ListPageParams } from '@/ports/list-repository'
 export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
+export type { Page, PageParams, PageCursor } from '@/pagination'
+export {
+  DEFAULT_PAGE_LIMIT,
+  MAX_PAGE_LIMIT,
+  parsePageLimit,
+  parsePageCursor,
+  encodePageCursor,
+  buildPageFrom,
+} from '@/pagination'
 export type { ShareLinkRepository } from '@/ports/share-link-repository'
 export type { TokenGenerator } from '@/ports/token-generator'
 export type { MembershipRepository } from '@/ports/membership-repository'

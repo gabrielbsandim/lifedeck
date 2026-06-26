@@ -21,6 +21,16 @@ export function ok<T>(data: T, status = 200): NextResponse {
   return NextResponse.json({ data }, { status })
 }
 
+export function okPage<T>(
+  page: { items: T[]; nextCursor: string | null },
+  status = 200,
+): NextResponse {
+  return NextResponse.json(
+    { data: page.items, nextCursor: page.nextCursor },
+    { status },
+  )
+}
+
 export function fail(
   code: string,
   message: string,

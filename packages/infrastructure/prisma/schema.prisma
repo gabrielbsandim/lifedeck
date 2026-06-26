@@ -130,7 +130,7 @@ model List {
   members ListMember[]
   shares  ShareLink[]
 
-  @@index([ownerId])
+  @@index([ownerId, createdAt])
   @@map("lists")
 }
 
@@ -169,7 +169,7 @@ model RecurringTask {
   owner User   @relation("RecurringTaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   tasks Task[]
 
-  @@index([ownerId])
+  @@index([ownerId, createdAt])
   @@map("recurring_tasks")
 }
 

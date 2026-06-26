@@ -38,6 +38,7 @@ export const es: Messages = {
     loading: 'Cargando…',
     error: 'Algo salió mal.',
     retry: 'Intentar de nuevo',
+    loadMore: 'Cargar más',
   },
   recurring: {
     manage: 'Tareas recurrentes',

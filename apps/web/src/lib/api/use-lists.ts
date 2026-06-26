@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type {
   CreateListInput,
   CreateTaskInput,
@@ -7,16 +12,23 @@ import type {
   TaskView,
   UpdateTaskInput,
 } from '@lifedeck/application'
-import { apiRequest } from '@/lib/api/client'
+import { apiRequest, apiRequestPage } from '@/lib/api/client'
 
 export const userListsKey = ['user-lists'] as const
 export const listKey = (id: string) => ['list', id] as const
 export const listTasksKey = (id: string) => ['list-tasks', id] as const
 
 export function useUserLists() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: userListsKey,
-    queryFn: () => apiRequest<ListView[]>('/api/v1/lists'),
+    queryFn: ({ pageParam }) =>
+      apiRequestPage<ListView>(
+        `/api/v1/lists?type=standalone${
+          pageParam ? `&cursor=${encodeURIComponent(pageParam)}` : ''
+        }`,
+      ),
+    initialPageParam: null as string | null,
+    getNextPageParam: page => page.nextCursor,
   })
 }
 

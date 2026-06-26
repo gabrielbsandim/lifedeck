@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { handleError, ok } from '@/server/api/respond'
+import { handleError, ok, okPage } from '@/server/api/respond'
 import { requireScope } from '@/server/api/authenticate'
+import { parseListTypeFilter, parsePageParams } from '@/server/api/pagination'
 
 export async function POST(request: Request) {
   try {
@@ -23,8 +24,11 @@ export async function GET(request: Request) {
     if (auth instanceof NextResponse) {
       return auth
     }
-    const lists = await getContainer().listUserLists(auth.userId)
-    return ok(lists)
+    const page = await getContainer().listUserLists(auth.userId, {
+      ...parsePageParams(request),
+      type: parseListTypeFilter(request),
+    })
+    return okPage(page)
   } catch (error) {
     return handleError(error)
   }

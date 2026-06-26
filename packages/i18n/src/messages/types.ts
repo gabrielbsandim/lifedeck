@@ -49,6 +49,7 @@ export type Messages = {
     loading: string
     error: string
     retry: string
+    loadMore: string
   }
   recurring: {
     manage: string

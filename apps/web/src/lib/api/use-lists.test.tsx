@@ -49,12 +49,50 @@ describe('lists hooks', () => {
     vi.unstubAllGlobals()
   })
 
-  it('lists the user lists', async () => {
-    mockFetchOnce({ data: [LIST] })
+  it('lists the user standalone lists as a first page', async () => {
+    const fetchMock = mockFetchOnce({ data: [LIST], nextCursor: null })
     const { Wrapper } = createWrapper()
     const { result } = renderHook(() => useUserLists(), { wrapper: Wrapper })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(result.current.data).toEqual([LIST])
+    expect(result.current.data?.pages[0]?.items).toEqual([LIST])
+    expect(result.current.hasNextPage).toBe(false)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/lists?type=standalone',
+      expect.any(Object),
+    )
+  })
+
+  it('walks list pages via the cursor', async () => {
+    const second = { ...LIST, id: 'second-list' }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [LIST], nextCursor: 'cursor-1' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [second], nextCursor: null }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useUserLists(), { wrapper: Wrapper })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.hasNextPage).toBe(true)
+
+    await result.current.fetchNextPage()
+    await waitFor(() => expect(result.current.data?.pages).toHaveLength(2))
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/v1/lists?type=standalone&cursor=cursor-1',
+      expect.any(Object),
+    )
+    expect(
+      result.current.data?.pages.flatMap(page => page.items).map(l => l.id),
+    ).toEqual([LIST_ID, 'second-list'])
   })
 
   it('creates a standalone list via POST', async () => {

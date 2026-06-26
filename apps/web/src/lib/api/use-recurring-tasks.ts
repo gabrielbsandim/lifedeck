@@ -1,17 +1,28 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type {
   CreateRecurringTaskInput,
   RecurringTaskView,
   UpdateRecurringTaskInput,
 } from '@lifedeck/application'
-import { apiRequest } from '@/lib/api/client'
+import { apiRequest, apiRequestPage } from '@/lib/api/client'
 
 export const recurringTasksKey = ['recurring-tasks'] as const
 
 export function useRecurringTasks() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: recurringTasksKey,
-    queryFn: () => apiRequest<RecurringTaskView[]>('/api/v1/recurring-tasks'),
+    queryFn: ({ pageParam }) =>
+      apiRequestPage<RecurringTaskView>(
+        `/api/v1/recurring-tasks${
+          pageParam ? `?cursor=${encodeURIComponent(pageParam)}` : ''
+        }`,
+      ),
+    initialPageParam: null as string | null,
+    getNextPageParam: page => page.nextCursor,
   })
 }
 

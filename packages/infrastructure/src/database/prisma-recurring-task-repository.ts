@@ -1,5 +1,10 @@
 import type { EntityId, RecurringTask } from '@lifedeck/domain'
-import type { RecurringTaskRepository } from '@lifedeck/application'
+import {
+  buildPageFrom,
+  type Page,
+  type PageParams,
+  type RecurringTaskRepository,
+} from '@lifedeck/application'
 import type { PrismaClient, Prisma } from '@prisma/client'
 import {
   toDomainRecurringTask,
@@ -56,6 +61,35 @@ export class PrismaRecurringTaskRepository implements RecurringTaskRepository {
       orderBy: { createdAt: 'asc' },
     })
     return rows.map(fromRow)
+  }
+
+  async pageByOwner(
+    ownerId: EntityId,
+    params: PageParams,
+  ): Promise<Page<RecurringTask>> {
+    const where: Prisma.RecurringTaskWhereInput = {
+      ownerId,
+      ...(params.cursor
+        ? {
+            OR: [
+              { createdAt: { lt: params.cursor.createdAt } },
+              {
+                createdAt: params.cursor.createdAt,
+                id: { lt: params.cursor.id },
+              },
+            ],
+          }
+        : {}),
+    }
+    const rows = await this.prisma.recurringTask.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: params.limit + 1,
+    })
+    return buildPageFrom(rows.map(fromRow), params.limit, task => ({
+      createdAt: task.toJSON().createdAt,
+      id: task.id,
+    }))
   }
 
   async delete(id: EntityId): Promise<void> {

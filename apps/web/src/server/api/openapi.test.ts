@@ -35,6 +35,25 @@ describe('openApiDocument', () => {
     })
   })
 
+  it('describes lists as a cursor-paginated collection with filters', () => {
+    const lists = doc.paths['/lists'] as Record<
+      string,
+      {
+        parameters?: Array<{ name: string }>
+        responses?: Record<
+          string,
+          { content?: Record<string, { schema?: Record<string, unknown> }> }
+        >
+      }
+    >
+    const params = (lists.get?.parameters ?? []).map(param => param.name)
+    expect(params).toEqual(expect.arrayContaining(['limit', 'cursor', 'type']))
+    const schema = lists.get?.responses?.['200']?.content?.['application/json']
+      ?.schema as { properties?: Record<string, unknown> }
+    expect(schema?.properties).toHaveProperty('data')
+    expect(schema?.properties).toHaveProperty('nextCursor')
+  })
+
   it('secures resource endpoints with the API key scheme', () => {
     const tasks = doc.paths['/tasks'] as Record<
       string,

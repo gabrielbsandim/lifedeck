@@ -2,13 +2,30 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ValidationError } from '@lifedeck/domain'
 import { ForbiddenError, NotFoundError } from '@lifedeck/application'
-import { fail, handleError, ok } from '@/server/api/respond'
+import { fail, handleError, ok, okPage } from '@/server/api/respond'
 
 describe('respond helpers', () => {
   it('wraps data with the given status', async () => {
     const response = ok({ id: 1 }, 201)
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toEqual({ data: { id: 1 } })
+  })
+
+  it('wraps a page with its items and next cursor', async () => {
+    const response = okPage({ items: [{ id: 1 }], nextCursor: 'abc' })
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      data: [{ id: 1 }],
+      nextCursor: 'abc',
+    })
+  })
+
+  it('exposes a null next cursor on the final page', async () => {
+    const response = okPage({ items: [], nextCursor: null })
+    await expect(response.json()).resolves.toEqual({
+      data: [],
+      nextCursor: null,
+    })
   })
 
   it('builds an error envelope', async () => {

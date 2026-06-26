@@ -22,8 +22,8 @@ describe('recurring task hooks', () => {
     vi.unstubAllGlobals()
   })
 
-  it('lists definitions', async () => {
-    mockFetchOnce({ data: [DEFINITION] })
+  it('lists definitions as a first page', async () => {
+    const fetchMock = mockFetchOnce({ data: [DEFINITION], nextCursor: null })
     const { Wrapper } = createWrapper()
 
     const { result } = renderHook(() => useRecurringTasks(), {
@@ -31,7 +31,43 @@ describe('recurring task hooks', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(result.current.data).toEqual([DEFINITION])
+    expect(result.current.data?.pages[0]?.items).toEqual([DEFINITION])
+    expect(result.current.hasNextPage).toBe(false)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/recurring-tasks',
+      expect.any(Object),
+    )
+  })
+
+  it('walks definition pages via the cursor', async () => {
+    const second = { ...DEFINITION, id: 'second-definition' }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [DEFINITION], nextCursor: 'cursor-1' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [second], nextCursor: null }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useRecurringTasks(), {
+      wrapper: Wrapper,
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true))
+    await result.current.fetchNextPage()
+    await waitFor(() => expect(result.current.data?.pages).toHaveLength(2))
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/v1/recurring-tasks?cursor=cursor-1',
+      expect.any(Object),
+    )
   })
 
   it('creates a definition via POST', async () => {

@@ -38,6 +38,7 @@ export const en: Messages = {
     loading: 'Loading…',
     error: 'Something went wrong.',
     retry: 'Try again',
+    loadMore: 'Load more',
   },
   recurring: {
     manage: 'Recurring tasks',

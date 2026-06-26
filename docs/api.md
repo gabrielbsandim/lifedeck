@@ -20,6 +20,26 @@ to be consumed independently of the Lifedeck web UI.
 | Errors         | Stable machine-readable `code` plus a human-readable `message`.   |
 | Versioning     | The version is in the path (`/api/v1`). Breaking changes bump it. |
 
+### Pagination
+
+Collection endpoints that can grow without bound are cursor-paginated and
+return a page envelope instead of a bare array:
+
+```json
+{ "data": [ /* items, newest first */ ], "nextCursor": "b64-opaque-or-null" }
+```
+
+- `?limit=` caps the page size (1-100, default 50; values above 100 are clamped).
+- `?cursor=` continues from a previous response. Pass back the exact
+  `nextCursor` string you received; treat it as opaque.
+- A `null` `nextCursor` means the last page. Keep requesting with the returned
+  cursor until it is `null` to read the whole collection.
+- An invalid `limit` or `cursor` returns `422 VALIDATION_ERROR`.
+
+Paginated endpoints: `GET /lists` (also accepts `?type=daily|standalone`) and
+`GET /recurring-tasks`. Other collections (a list's tasks, members, share links,
+notifications) are naturally bounded and return a plain `data` array.
+
 ## Authentication
 
 The API accepts two credential types:
