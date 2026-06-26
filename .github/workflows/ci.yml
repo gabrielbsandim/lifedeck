@@ -98,8 +98,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Apply migrations
-        run: pnpm --filter @lifedeck/infrastructure run db:deploy
+      - name: Sync test database schema
+        run: pnpm --filter @lifedeck/infrastructure run db:push
 
       - name: Build workspace packages
         run: pnpm --filter @lifedeck/domain --filter @lifedeck/application run build
@@ -143,8 +143,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Apply migrations
-        run: pnpm --filter @lifedeck/infrastructure run db:deploy
+      - name: Sync test database schema
+        run: pnpm --filter @lifedeck/infrastructure run db:push
 
       - name: Build
         run: pnpm build
