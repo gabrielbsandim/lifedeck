@@ -86,6 +86,7 @@ More detail in [docs/getting-started.md](./docs/getting-started.md).
 ## Documentation
 
 - [Architecture](./docs/architecture.md)
+- [Configuration](./docs/configuration.md)
 - [API reference](./docs/api.md)
 - [Security](./docs/security.md)
 - [Testing](./docs/testing.md)
