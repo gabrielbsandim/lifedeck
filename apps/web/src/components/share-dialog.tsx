@@ -84,10 +84,10 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
         {link ? (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <div className="border-line text-ink-600 flex h-10 flex-1 items-center truncate rounded-xl border bg-white px-3 text-xs">
+              <div className="border-line text-ink-600 flex h-10 min-w-0 flex-1 items-center truncate rounded-xl border bg-white px-3 text-xs">
                 {shareUrl(link.token)}
               </div>
-              <Button className="h-10 px-4" onClick={copyLink}>
+              <Button className="h-10 shrink-0 px-4" onClick={copyLink}>
                 {copied ? messages.share.copied : messages.share.copy}
               </Button>
             </div>
@@ -116,19 +116,21 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
             {messages.share.inviteTitle}
           </span>
           <div className="flex gap-2">
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <TextField
                 type="email"
                 value={inviteEmail}
                 onChange={event => setInviteEmail(event.target.value)}
                 placeholder={messages.share.emailPlaceholder}
                 aria-label={messages.share.inviteTitle}
+                className="w-full"
               />
             </div>
             <Button
               type="submit"
               isLoading={invite.isPending}
               disabled={!inviteEmail.trim()}
+              className="shrink-0 whitespace-nowrap"
             >
               {messages.share.sendInvite}
             </Button>
