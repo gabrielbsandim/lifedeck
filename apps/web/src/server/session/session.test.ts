@@ -22,10 +22,13 @@ function requestWithCookie(cookie: string): Request {
 describe('session', () => {
   beforeEach(() => {
     process.env.AUTH_SECRET = 'test-secret-value-for-signing-tokens'
+    vi.useFakeTimers()
+    vi.setSystemTime(ISSUED_AT)
   })
 
   afterEach(() => {
     delete process.env.AUTH_SECRET
+    vi.useRealTimers()
   })
 
   it('round-trips a signed token', async () => {
