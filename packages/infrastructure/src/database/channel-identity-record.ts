@@ -9,6 +9,7 @@ export type ChannelIdentityRecord = {
   userId: string
   channel: MessageChannel
   address: string | null
+  targetAddress: string | null
   pairingCode: string | null
   pairingExpiresAt: Date | null
   verifiedAt: Date | null
@@ -24,6 +25,7 @@ export function toDomainChannelIdentity(
     userId: asEntityId(record.userId),
     channel: record.channel,
     address: record.address,
+    targetAddress: record.targetAddress,
     pairingCode: record.pairingCode,
     pairingExpiresAt: record.pairingExpiresAt,
     verifiedAt: record.verifiedAt,
@@ -41,6 +43,7 @@ export function toChannelIdentityRecord(
     userId: props.userId,
     channel: props.channel,
     address: props.address,
+    targetAddress: props.targetAddress,
     pairingCode: props.pairingCode,
     pairingExpiresAt: props.pairingExpiresAt,
     verifiedAt: props.verifiedAt,

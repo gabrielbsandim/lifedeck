@@ -9,11 +9,14 @@ const NOW = new Date('2026-06-24T10:00:00.000Z')
 
 const EXPIRES = new Date('2026-06-24T10:10:00.000Z')
 
+const TARGET = '5511999990000'
+
 function build(): ChannelIdentity {
   return ChannelIdentity.create({
     id: asEntityId(ID),
     userId: asEntityId(USER_ID),
     channel: 'whatsapp',
+    targetAddress: TARGET,
     pairingCode: '123456',
     pairingExpiresAt: EXPIRES,
     now: NOW,
@@ -28,6 +31,7 @@ describe('ChannelIdentity', () => {
     expect(identity.channel).toBe('whatsapp')
     expect(identity.isVerified()).toBe(false)
     expect(identity.address).toBeNull()
+    expect(identity.targetAddress).toBe('+5511999990000')
     expect(identity.pairingCode).toBe('123456')
   })
 
@@ -37,6 +41,7 @@ describe('ChannelIdentity', () => {
         id: asEntityId(ID),
         userId: asEntityId(USER_ID),
         channel: 'whatsapp',
+        targetAddress: TARGET,
         pairingCode: '  ',
         pairingExpiresAt: EXPIRES,
         now: NOW,
@@ -44,7 +49,28 @@ describe('ChannelIdentity', () => {
     ).toThrow(ValidationError)
   })
 
-  it('verifies against an inbound address, clearing the code', () => {
+  it('rejects an invalid target address on create', () => {
+    expect(() =>
+      ChannelIdentity.create({
+        id: asEntityId(ID),
+        userId: asEntityId(USER_ID),
+        channel: 'whatsapp',
+        targetAddress: 'not-a-phone',
+        pairingCode: '123456',
+        pairingExpiresAt: EXPIRES,
+        now: NOW,
+      }),
+    ).toThrow(ValidationError)
+  })
+
+  it('matches only the declared target number', () => {
+    const identity = build()
+    expect(identity.matchesTarget('+55 11 99999-0000')).toBe(true)
+    expect(identity.matchesTarget('5511999990000')).toBe(true)
+    expect(identity.matchesTarget('5511888880000')).toBe(false)
+  })
+
+  it('verifies against the target address, clearing the code', () => {
     const identity = build()
     const later = new Date('2026-06-24T10:05:00.000Z')
     identity.verify('5511999990000', later)
@@ -55,18 +81,25 @@ describe('ChannelIdentity', () => {
     expect(identity.verifiedAt).toEqual(later)
   })
 
+  it('refuses to verify from a number other than the target', () => {
+    const identity = build()
+    expect(() => identity.verify('5511888880000', NOW)).toThrow(ValidationError)
+    expect(identity.isVerified()).toBe(false)
+  })
+
   it('rejects an invalid address on verify', () => {
     const identity = build()
     expect(() => identity.verify('not-a-phone', NOW)).toThrow(ValidationError)
   })
 
-  it('regenerates the pairing code while pending', () => {
+  it('regenerates the pairing code and target while pending', () => {
     const identity = build()
     const later = new Date('2026-06-24T10:05:00.000Z')
     const newExpiry = new Date('2026-06-24T10:15:00.000Z')
-    identity.regenerateCode('654321', newExpiry, later)
+    identity.regenerateCode('654321', newExpiry, '5511888880000', later)
     expect(identity.pairingCode).toBe('654321')
     expect(identity.pairingExpiresAt).toEqual(newExpiry)
+    expect(identity.targetAddress).toBe('+5511888880000')
     expect(identity.toJSON().updatedAt).toEqual(later)
   })
 
@@ -81,9 +114,9 @@ describe('ChannelIdentity', () => {
   it('refuses to regenerate a code once verified', () => {
     const identity = build()
     identity.verify('5511999990000', NOW)
-    expect(() => identity.regenerateCode('654321', EXPIRES, NOW)).toThrow(
-      ValidationError,
-    )
+    expect(() =>
+      identity.regenerateCode('654321', EXPIRES, TARGET, NOW),
+    ).toThrow(ValidationError)
   })
 
   it('restores from persisted props', () => {

@@ -13,6 +13,8 @@ export const PAIR_LINKED_MESSAGE =
   'Your WhatsApp is now linked to Lifedeck. You can start sending messages.'
 export const PAIR_GUIDANCE_MESSAGE =
   'This number is not linked to a Lifedeck account yet. Open Lifedeck, start WhatsApp pairing, and send the code shown there.'
+export const PAIR_WRONG_NUMBER_MESSAGE =
+  'This code was generated for a different WhatsApp number. Open Lifedeck and start pairing from the number you are messaging with now.'
 export const ASSISTANT_LOCKED_MESSAGE =
   'The Lifedeck assistant is part of a paid plan. Upgrade in the app to chat here.'
 export const ASSISTANT_QUOTA_MESSAGE =
@@ -29,6 +31,7 @@ export type InboundWhatsappAction =
   | 'reply'
   | 'linked'
   | 'guidance'
+  | 'mismatch'
   | 'denied'
   | 'quota'
   | 'error'
@@ -99,6 +102,12 @@ export function makeHandleInboundWhatsApp({
       : null
 
     if (pending && !pending.isCodeExpired(now)) {
+      // The code is valid, but it only links the number the user declared in
+      // the app. A correct code sent from any other number is refused.
+      if (!pending.matchesTarget(message.from)) {
+        await messaging.sendText(message.from, PAIR_WRONG_NUMBER_MESSAGE)
+        return { action: 'mismatch' }
+      }
       pending.verify(message.from, now)
       await channelIdentities.save(pending)
       await messaging.sendText(message.from, PAIR_LINKED_MESSAGE)

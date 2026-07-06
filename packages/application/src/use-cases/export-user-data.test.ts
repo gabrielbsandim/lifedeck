@@ -140,6 +140,7 @@ describe('exportUserData', () => {
       id: ID.otherUser,
       userId: ID.user,
       channel: 'whatsapp',
+      targetAddress: '5511999990000',
       pairingCode: '123456',
       pairingExpiresAt: new Date('2026-06-22T10:10:00.000Z'),
       now: NOW,

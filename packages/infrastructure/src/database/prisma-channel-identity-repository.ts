@@ -16,6 +16,7 @@ function fromPrisma(record: {
   userId: string
   channel: string
   address: string | null
+  targetAddress: string | null
   pairingCode: string | null
   pairingExpiresAt: Date | null
   verifiedAt: Date | null
@@ -27,6 +28,7 @@ function fromPrisma(record: {
     userId: record.userId,
     channel: record.channel as MessageChannel,
     address: record.address,
+    targetAddress: record.targetAddress,
     pairingCode: record.pairingCode,
     pairingExpiresAt: record.pairingExpiresAt,
     verifiedAt: record.verifiedAt,
@@ -47,6 +49,7 @@ export class PrismaChannelIdentityRepository
       create: record,
       update: {
         address: record.address,
+        targetAddress: record.targetAddress,
         pairingCode: record.pairingCode,
         pairingExpiresAt: record.pairingExpiresAt,
         verifiedAt: record.verifiedAt,

@@ -47,6 +47,7 @@ async function setup(options: {
       id: asEntityId(IDENTITY_ID),
       userId: asEntityId(OWNER_ID),
       channel: 'whatsapp',
+      targetAddress: options.whatsappAddress,
       pairingCode: '123456',
       pairingExpiresAt: new Date('2026-06-24T00:10:00.000Z'),
       now: new Date('2026-06-24T00:00:00.000Z'),

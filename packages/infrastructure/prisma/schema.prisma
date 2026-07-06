@@ -324,6 +324,7 @@ model ChannelIdentity {
   userId      String    @map("user_id")
   channel          String
   address          String?
+  targetAddress    String?   @map("target_address")
   pairingCode      String?   @map("pairing_code")
   pairingExpiresAt DateTime? @map("pairing_expires_at")
   verifiedAt       DateTime? @map("verified_at")

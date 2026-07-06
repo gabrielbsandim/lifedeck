@@ -10,6 +10,7 @@ import {
   ASSISTANT_QUOTA_MESSAGE,
   PAIR_GUIDANCE_MESSAGE,
   PAIR_LINKED_MESSAGE,
+  PAIR_WRONG_NUMBER_MESSAGE,
   makeHandleInboundWhatsApp,
 } from '@/use-cases/handle-inbound-whatsapp'
 
@@ -71,11 +72,13 @@ function setup(options: Options = {}) {
 function pending(
   code: string,
   pairingExpiresAt = new Date('2026-06-24T10:10:00.000Z'),
+  targetAddress = FROM,
 ): ChannelIdentity {
   return ChannelIdentity.create({
     id: ID.verification,
     userId: asEntityId(ID.user),
     channel: 'whatsapp',
+    targetAddress,
     pairingCode: code,
     pairingExpiresAt,
     now: NOW,
@@ -207,6 +210,27 @@ describe('handleInboundWhatsApp', () => {
       '+5511999990000',
     )
     expect(linked?.isVerified()).toBe(true)
+  })
+
+  it('refuses to link when the code is sent from a number other than the target', async () => {
+    const ctx = setup()
+    await ctx.channelIdentities.save(
+      pending('123456', undefined, '5511777770000'),
+    )
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: '123456',
+    })
+
+    expect(result).toEqual({ action: 'mismatch' })
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, PAIR_WRONG_NUMBER_MESSAGE)
+    const stored = await ctx.channelIdentities.findByAddress(
+      'whatsapp',
+      '+5511999990000',
+    )
+    expect(stored).toBeNull()
   })
 
   it('guides instead of linking when the code has expired', async () => {

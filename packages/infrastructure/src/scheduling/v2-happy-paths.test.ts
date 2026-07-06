@@ -177,7 +177,7 @@ describe('V2 whatsapp assistant happy path', () => {
       clock,
     })
 
-    const pairing = await startPairing(USER_ID)
+    const pairing = await startPairing(USER_ID, PHONE)
     expect(pairing.status).toBe('pending')
     const code = pairing.status === 'pending' ? pairing.code : ''
 
