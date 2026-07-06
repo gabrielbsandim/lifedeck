@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import {
   parseInboundMessages,
   verifyWhatsAppSignature,
@@ -8,7 +8,11 @@ import { handleError } from '@/server/api/respond'
 import { isFeatureEnabled } from '@/server/api/features'
 import { log } from '@/server/api/logger'
 import { checkWhatsappRateLimit } from '@/server/api/rate-limit'
-import { markMessageProcessed } from '@/server/api/whatsapp-dedup'
+import {
+  isRedisConfigured,
+  markMessageProcessed,
+  releaseMessageClaim,
+} from '@/server/api/whatsapp-dedup'
 
 export async function GET(request: Request) {
   if (!isFeatureEnabled('whatsapp')) {
@@ -36,34 +40,55 @@ export async function POST(request: Request) {
     if (!verifyWhatsAppSignature(rawBody, signature, appSecret)) {
       return new NextResponse(null, { status: 401 })
     }
+    // Fail closed: dedup, the per-sender throttle, and the AI credit meter all
+    // ride on Upstash. Without it we cannot cap pairing-code guessing or AI
+    // spend, so ack Meta (avoid retries) but refuse to process.
+    if (!isRedisConfigured()) {
+      log('error', 'whatsapp inbound skipped: Upstash is not configured')
+      return new NextResponse(null, { status: 200 })
+    }
+
     const messages = parseInboundMessages(JSON.parse(rawBody))
     const container = getContainer()
-    // Always ack 200 to Meta. Each message is processed in isolation so a single
-    // failure never triggers a batch-wide retry. Dedup on the Meta message id
-    // makes a retry a no-op, and a per-sender rate limit throttles pairing-code
-    // guessing and spam; both gracefully no-op without Upstash.
-    for (const message of messages) {
-      try {
-        if (!(await markMessageProcessed(message.messageId))) {
-          continue
+
+    // Ack 200 first, then process off the request. A slow agent turn (media
+    // transcription + up to 5 tool steps) must never blow the function budget
+    // and return non-200, which would trigger a Meta retry storm.
+    after(async () => {
+      for (const message of messages) {
+        // Claim-then-confirm: claim the id so concurrent retries dedupe, but
+        // release the claim if handling fails so a retry can re-attempt instead
+        // of the reply being dropped forever.
+        let claimed = false
+        try {
+          if (!(await markMessageProcessed(message.messageId))) {
+            continue
+          }
+          claimed = true
+          const allowed = await checkWhatsappRateLimit(
+            `whatsapp:${message.from}`,
+          )
+          if (!allowed.ok) {
+            continue
+          }
+          await container.handleInboundWhatsApp(
+            message.kind === 'text'
+              ? { from: message.from, kind: 'text', text: message.text }
+              : {
+                  from: message.from,
+                  kind: message.kind,
+                  mediaId: message.mediaId,
+                },
+          )
+        } catch (error) {
+          if (claimed) {
+            await releaseMessageClaim(message.messageId)
+          }
+          log('error', 'whatsapp inbound failed', { error: String(error) })
         }
-        const allowed = await checkWhatsappRateLimit(`whatsapp:${message.from}`)
-        if (!allowed.ok) {
-          continue
-        }
-        await container.handleInboundWhatsApp(
-          message.kind === 'text'
-            ? { from: message.from, kind: 'text', text: message.text }
-            : {
-                from: message.from,
-                kind: message.kind,
-                mediaId: message.mediaId,
-              },
-        )
-      } catch (error) {
-        log('error', 'whatsapp inbound failed', { error: String(error) })
       }
-    }
+    })
+
     return new NextResponse(null, { status: 200 })
   } catch (error) {
     return handleError(error)
