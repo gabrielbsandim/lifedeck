@@ -7,11 +7,18 @@ rule: do step 7 (the flags) only after steps 1 to 5 are set, so no pillar goes
 live without its credentials.
 
 ## 0. Migrations
-Migrations 10 to 15 apply automatically on push to `main` (the `migrate.yml`
-workflow). Just confirm in the Neon console that these tables exist:
-`subscriptions`, `usage_events`, `calendar_events`, `calendar_connections`,
-`channel_identities`, `scheduled_jobs`. (Migration 16 applies once the
-pagination work is committed.)
+All migrations apply automatically on push to `main` (the `migrate.yml`
+workflow). The current tree runs through `19_subscription_cancel`. Confirm in the
+Neon console that these tables exist: `subscriptions`, `usage_events`,
+`calendar_events`, `calendar_connections`, `channel_identities`,
+`scheduled_jobs`, plus the later columns from `16`-`19`.
+
+Note: three migrations share the `10_` prefix (`10_checkout_intents`,
+`10_scheduled_jobs`, `10_subtasks`). This is historical and intentional, they were
+authored together; Prisma applies them in lexical order. Do not renumber applied
+migrations. Recent additions: `18_multi_calendar` (multiple calendar connections
+plus `calendar_events.connection_id`) and `19_subscription_cancel`
+(`subscriptions.cancel_at_period_end`).
 
 ## 1. Base (do first, unblocks the rest)
 - Upstash Redis: console.upstash.com, create a Redis database, copy the REST URL

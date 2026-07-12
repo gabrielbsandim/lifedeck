@@ -53,6 +53,8 @@ model User {
   timezone      String    @default("UTC")
   avatarUrl     String?   @map("avatar_url")
   carryOverMode String    @default("manual") @map("carry_over_mode")
+  reminderEmail    Boolean @default(false) @map("reminder_email")
+  reminderWhatsapp Boolean @default(true) @map("reminder_whatsapp")
   createdAt     DateTime  @default(now()) @map("created_at")
 
   ownedLists        List[]             @relation("ListOwner")
@@ -239,6 +241,7 @@ model Subscription {
   provider         String
   providerRef      String    @map("provider_ref")
   currentPeriodEnd DateTime? @map("current_period_end")
+  cancelAtPeriodEnd Boolean  @default(false) @map("cancel_at_period_end")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @default(now()) @map("updated_at")
 
@@ -284,6 +287,7 @@ model CalendarEvent {
   reminders   Int[]     @default([])
   recurrence  Json?
   source      String    @default("local")
+  connectionId String?  @map("connection_id")
   externalId  String?   @map("external_id")
   etag        String?
   syncedAt    DateTime? @map("synced_at")
@@ -294,6 +298,7 @@ model CalendarEvent {
 
   @@index([ownerId, startsAt])
   @@index([ownerId, externalId])
+  @@index([connectionId, externalId])
   @@map("calendar_events")
 }
 
@@ -301,6 +306,8 @@ model CalendarConnection {
   id               String    @id @default(uuid())
   ownerId          String    @map("owner_id")
   provider         String
+  accountEmail     String?   @map("account_email")
+  isDefault        Boolean   @default(false) @map("is_default")
   accessToken      String    @map("access_token")
   refreshToken     String    @map("refresh_token")
   tokenExpiresAt   DateTime  @map("token_expires_at")
@@ -314,7 +321,8 @@ model CalendarConnection {
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  @@unique([ownerId, provider])
+  @@unique([ownerId, provider, accountEmail])
+  @@index([ownerId, provider])
   @@index([channelId])
   @@map("calendar_connections")
 }

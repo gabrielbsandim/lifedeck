@@ -98,6 +98,15 @@ export const en: Messages = {
     atStart: 'At start',
     previous: 'Previous',
     next: 'Next',
+    connectedCalendars: 'Connected calendars',
+    addAnotherCalendar: 'Add another calendar',
+    makeDefault: 'Make default',
+    defaultCalendar: 'Default',
+    disconnectCalendar: 'Disconnect',
+    disconnectConfirm:
+      'Disconnect this calendar? Events synced from it will be removed.',
+    googleAccount: 'Google account',
+    defaultCalendarHint: 'New events you create sync to your default calendar.',
   },
   billing: {
     title: 'Plan and billing',
@@ -121,6 +130,16 @@ export const en: Messages = {
     successBanner: 'Your subscription is active. Welcome aboard!',
     cancelledBanner: 'Checkout was cancelled. No charge was made.',
     error: 'Could not start checkout. Please try again.',
+    yourPlan: 'Your plan',
+    cancelPlan: 'Cancel plan',
+    cancelConfirm: 'Cancel your plan? You keep access until the period ends.',
+    cancelScheduled: 'Your plan will not renew.',
+    renewsOn: 'Renews on',
+    accessUntil: 'Access until',
+    statusActive: 'Active',
+    statusTrialing: 'Trial',
+    statusPastDue: 'Past due',
+    statusCanceled: 'Canceled',
   },
   notifications: {
     title: 'Notifications',
@@ -137,6 +156,13 @@ export const en: Messages = {
     settingHint: 'What happens to tasks you did not finish on a past day.',
     modeManual: 'Let me bring them over',
     modeAuto: 'Bring them automatically',
+  },
+  reminders: {
+    settingLabel: 'Event reminders',
+    settingHint:
+      'In-app reminders always fire. Choose the extra channels you want.',
+    email: 'Email',
+    whatsapp: 'WhatsApp',
   },
   timezone: {
     settingLabel: 'Time zone',

@@ -828,3 +828,28 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
 - Frontier models (e.g. Opus) in consumer tiers. Deliberately dropped: Gemini
   Flash and 3.1 Pro cover the use case at a fraction of the cost.
 ```
+
+## Shipped enhancements (post dark-launch)
+
+These landed on top of the V2 baseline above:
+
+- **Assistant tool surface** expanded from create/read only to full task management
+  (complete, reopen, rename, delete, move-to-today), lists, subtasks, and calendar
+  edit/reschedule/delete. Mutations reference entities by id; the model reads first.
+  See `docs/whatsapp.md`.
+- **Multimodal fail-loud**: voice/image with no `GEMINI_API_KEY` returns a clear
+  "send it as text" reply instead of a silent placeholder.
+- **Recurrence sync** both directions via `rrule.ts` (RRULE <-> `RecurrenceRule`),
+  with a self-healing sync-token path. See `docs/calendar.md`.
+- **Multi-calendar**: connect more than one Google account (personal + work); each
+  is a `CalendarConnection` keyed by account email, with a default target for local
+  events and per-connection push/delete. New use cases: list/disconnect/set-default.
+- **Billing self-service**: `getSubscription` + `cancelSubscription` (cancel at
+  period end, both Asaas and Stripe), `subscriptions.cancel_at_period_end`, and a
+  cancel action on the billing screen. The Stripe hosted portal is intentionally
+  deferred (it needs a stored Stripe customer id).
+- **WhatsApp transport** now prefers the Abracode gateway when `ABRACODE_*` is set,
+  falling back to Meta-direct. See `docs/whatsapp.md`.
+
+Still open: email/push reminder channels with per-user preferences (only in-app and
+best-effort WhatsApp ship today); E2E coverage for the three pillars.

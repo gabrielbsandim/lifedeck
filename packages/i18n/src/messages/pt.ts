@@ -98,6 +98,16 @@ export const pt: Messages = {
     atStart: 'No início',
     previous: 'Anterior',
     next: 'Próximo',
+    connectedCalendars: 'Agendas conectadas',
+    addAnotherCalendar: 'Adicionar outra agenda',
+    makeDefault: 'Tornar padrão',
+    defaultCalendar: 'Padrão',
+    disconnectCalendar: 'Desconectar',
+    disconnectConfirm:
+      'Desconectar esta agenda? Os eventos sincronizados dela serão removidos.',
+    googleAccount: 'Conta Google',
+    defaultCalendarHint:
+      'Novos eventos que você criar sincronizam com sua agenda padrão.',
   },
   billing: {
     title: 'Plano e cobrança',
@@ -122,6 +132,17 @@ export const pt: Messages = {
     successBanner: 'Sua assinatura está ativa. Boas-vindas!',
     cancelledBanner: 'O checkout foi cancelado. Nenhuma cobrança foi feita.',
     error: 'Não foi possível iniciar o checkout. Tente novamente.',
+    yourPlan: 'Seu plano',
+    cancelPlan: 'Cancelar plano',
+    cancelConfirm:
+      'Cancelar seu plano? Você mantém o acesso até o fim do período.',
+    cancelScheduled: 'Seu plano não será renovado.',
+    renewsOn: 'Renova em',
+    accessUntil: 'Acesso até',
+    statusActive: 'Ativo',
+    statusTrialing: 'Teste',
+    statusPastDue: 'Em atraso',
+    statusCanceled: 'Cancelado',
   },
   notifications: {
     title: 'Notificações',
@@ -139,6 +160,13 @@ export const pt: Messages = {
       'O que acontece com tarefas que você não terminou num dia passado.',
     modeManual: 'Deixe eu trazer',
     modeAuto: 'Trazer automaticamente',
+  },
+  reminders: {
+    settingLabel: 'Lembretes de eventos',
+    settingHint:
+      'Lembretes no app sempre chegam. Escolha os canais extras que quiser.',
+    email: 'E-mail',
+    whatsapp: 'WhatsApp',
   },
   timezone: {
     settingLabel: 'Fuso horário',

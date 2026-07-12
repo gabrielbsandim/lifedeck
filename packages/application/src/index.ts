@@ -29,6 +29,7 @@ export type {
   DailyDigestSummary,
 } from '@/ports/email-sender'
 export { toEmailLocale } from '@/ports/email-sender'
+export { formatEventTime } from '@/shared/format-event-time'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
 export type { FileStorage, StoredFile, UploadInput } from '@/ports/file-storage'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
@@ -41,6 +42,7 @@ export {
   NotFoundError,
   ForbiddenError,
   QuotaExceededError,
+  MediaUnderstandingUnavailableError,
 } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -73,6 +75,7 @@ export {
   renameUserSchema,
   carryOverModeSchema,
   timezoneSchema,
+  reminderPreferencesSchema,
   userViewSchema,
   type GuestSignInInput,
   type RegisterInput,
@@ -145,6 +148,9 @@ export type {
 export { makeStartCheckout, gatewayForMarket } from '@/use-cases/start-checkout'
 export { makeHandleSubscriptionWebhook } from '@/use-cases/handle-subscription-webhook'
 export { makeResolvePlanFromSubscription } from '@/use-cases/resolve-plan-from-subscription'
+export { makeGetSubscription } from '@/use-cases/get-subscription'
+export { makeCancelSubscription } from '@/use-cases/cancel-subscription'
+export { toSubscriptionView } from '@/mappers/subscription-mapper'
 export type {
   UsageMeter,
   UsageCounts,
@@ -196,7 +202,18 @@ export {
   type CalendarPullResult,
 } from '@/use-cases/pull-calendar-changes'
 export { makePushCalendarEvent } from '@/use-cases/push-calendar-event'
-export { makeConnectGoogleCalendar } from '@/use-cases/connect-google-calendar'
+export {
+  makeConnectGoogleCalendar,
+  type ConnectCalendarResult,
+} from '@/use-cases/connect-google-calendar'
+export { makeListCalendarConnections } from '@/use-cases/list-calendar-connections'
+export { makeDisconnectCalendar } from '@/use-cases/disconnect-calendar'
+export { makeSetDefaultCalendar } from '@/use-cases/set-default-calendar'
+export {
+  calendarConnectionViewSchema,
+  type CalendarConnectionView,
+} from '@/dtos/calendar-connection-dto'
+export { toCalendarConnectionView } from '@/mappers/calendar-connection-mapper'
 export { makeWatchGoogleCalendar } from '@/use-cases/watch-google-calendar'
 export { makeHandleCalendarNotification } from '@/use-cases/handle-calendar-notification'
 export { makeDeleteRemoteCalendarEvent } from '@/use-cases/delete-remote-calendar-event'
@@ -250,6 +267,9 @@ export type {
   AssistantTools,
   AssistantTaskSummary,
   AssistantEventSummary,
+  AssistantListSummary,
+  AssistantEventInput,
+  AssistantEventUpdate,
 } from '@/ports/assistant-tools'
 export type { MediaPayload, MessageTemplate } from '@/ports/messaging-channel'
 export type { Transcriber } from '@/ports/transcriber'
@@ -276,7 +296,12 @@ export {
 } from '@/dtos/api-key-dto'
 export { toApiKeyView } from '@/mappers/api-key-mapper'
 export { analyticsViewSchema, type AnalyticsView } from '@/dtos/analytics-dto'
-export { checkoutRequestSchema, type CheckoutRequest } from '@/dtos/billing-dto'
+export {
+  checkoutRequestSchema,
+  type CheckoutRequest,
+  subscriptionViewSchema,
+  type SubscriptionView,
+} from '@/dtos/billing-dto'
 export type { HealthProbe, HealthProbeResult } from '@/ports/health-probe'
 export {
   healthStatusSchema,
@@ -327,6 +352,7 @@ export {
 export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
+export { makeSetReminderPreferences } from '@/use-cases/set-reminder-preferences'
 export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
 export { makeRemoveAvatar } from '@/use-cases/remove-avatar'
 export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'

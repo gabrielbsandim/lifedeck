@@ -109,6 +109,14 @@ export type Messages = {
     atStart: string
     previous: string
     next: string
+    connectedCalendars: string
+    addAnotherCalendar: string
+    makeDefault: string
+    defaultCalendar: string
+    disconnectCalendar: string
+    disconnectConfirm: string
+    googleAccount: string
+    defaultCalendarHint: string
   }
   billing: {
     title: string
@@ -131,6 +139,16 @@ export type Messages = {
     successBanner: string
     cancelledBanner: string
     error: string
+    yourPlan: string
+    cancelPlan: string
+    cancelConfirm: string
+    cancelScheduled: string
+    renewsOn: string
+    accessUntil: string
+    statusActive: string
+    statusTrialing: string
+    statusPastDue: string
+    statusCanceled: string
   }
   notifications: {
     title: string
@@ -147,6 +165,12 @@ export type Messages = {
     settingHint: string
     modeManual: string
     modeAuto: string
+  }
+  reminders: {
+    settingLabel: string
+    settingHint: string
+    email: string
+    whatsapp: string
   }
   timezone: {
     settingLabel: string

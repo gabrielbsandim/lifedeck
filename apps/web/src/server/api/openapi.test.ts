@@ -26,6 +26,18 @@ describe('openApiDocument', () => {
     expect(doc.components.schemas.TaskView).toBeDefined()
     expect(doc.components.schemas.ListView).toBeDefined()
     expect(doc.components.schemas.CreatedApiKeyView).toBeDefined()
+    expect(doc.components.schemas.CalendarConnectionView).toBeDefined()
+  })
+
+  it('documents the multi-calendar connection endpoints', () => {
+    expect(doc.paths['/calendar/connections']).toHaveProperty('get')
+    expect(doc.paths['/calendar/connections/{id}']).toHaveProperty('delete')
+    const setDefault = doc.paths[
+      '/calendar/connections/{id}/default'
+    ] as Record<string, { security?: Array<Record<string, string[]>> }>
+    expect(setDefault.post?.security?.[0]?.ApiKeyAuth).toEqual([
+      'calendar:write',
+    ])
   })
 
   it('declares the API key security scheme', () => {

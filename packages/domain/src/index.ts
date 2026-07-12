@@ -43,6 +43,7 @@ export {
   PLANS,
   DEFAULT_PLAN,
   isPlan,
+  planRank,
   entitlementsForPlan,
   planGrants,
   quotaForPlan,

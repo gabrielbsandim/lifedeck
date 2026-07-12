@@ -7,6 +7,7 @@ import { z } from 'zod'
 import {
   analyticsViewSchema,
   apiKeyViewSchema,
+  calendarConnectionViewSchema,
   calendarEventViewSchema,
   createApiKeySchema,
   createCalendarEventSchema,
@@ -133,6 +134,10 @@ const CreatedApiKeyView = registry.register(
 const CalendarEventView = registry.register(
   'CalendarEventView',
   calendarEventViewSchema,
+)
+const CalendarConnectionView = registry.register(
+  'CalendarConnectionView',
+  calendarConnectionViewSchema,
 )
 const NotificationListView = registry.register(
   'NotificationListView',
@@ -769,6 +774,58 @@ registry.registerPath({
       'Deletion acknowledged.',
       z.object({ deleted: z.boolean() }),
     ),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'get',
+  path: '/calendar/connections',
+  summary: 'List connected calendars',
+  description:
+    'Returns the Google calendar accounts the user has connected. A user can connect more than one (for example personal and work); one is flagged as the default target for events created in Lifedeck.',
+  operationId: 'listCalendarConnections',
+  security: scoped('calendar:read'),
+  responses: {
+    200: jsonResponse('Connected calendars.', z.array(CalendarConnectionView)),
+    401: errorResponse,
+    403: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'delete',
+  path: '/calendar/connections/{id}',
+  summary: 'Disconnect a calendar',
+  description:
+    'Removes a calendar connection and the events synced from it. If the default connection is removed, another connection is promoted to default.',
+  operationId: 'disconnectCalendar',
+  security: scoped('calendar:write'),
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    200: jsonResponse(
+      'Disconnection acknowledged.',
+      z.object({ disconnected: z.boolean() }),
+    ),
+    401: errorResponse,
+    403: errorResponse,
+    404: errorResponse,
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/calendar/connections/{id}/default',
+  summary: 'Set the default calendar',
+  description:
+    'Marks a connection as the default; events created in Lifedeck sync to it.',
+  operationId: 'setDefaultCalendar',
+  security: scoped('calendar:write'),
+  request: { params: z.object({ id: idParam }) },
+  responses: {
+    200: jsonResponse('Default updated.', z.object({ isDefault: z.boolean() })),
     401: errorResponse,
     403: errorResponse,
     404: errorResponse,

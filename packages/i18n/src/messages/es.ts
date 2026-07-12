@@ -98,6 +98,16 @@ export const es: Messages = {
     atStart: 'Al inicio',
     previous: 'Anterior',
     next: 'Siguiente',
+    connectedCalendars: 'Calendarios conectados',
+    addAnotherCalendar: 'Agregar otro calendario',
+    makeDefault: 'Hacer predeterminado',
+    defaultCalendar: 'Predeterminado',
+    disconnectCalendar: 'Desconectar',
+    disconnectConfirm:
+      'Desconectar este calendario? Los eventos sincronizados se eliminarán.',
+    googleAccount: 'Cuenta de Google',
+    defaultCalendarHint:
+      'Los eventos nuevos que crees se sincronizan con tu calendario predeterminado.',
   },
   billing: {
     title: 'Plan y facturación',
@@ -122,6 +132,17 @@ export const es: Messages = {
     successBanner: 'Tu suscripción está activa. ¡Bienvenido!',
     cancelledBanner: 'El pago fue cancelado. No se realizó ningún cargo.',
     error: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
+    yourPlan: 'Tu plan',
+    cancelPlan: 'Cancelar plan',
+    cancelConfirm:
+      'Cancelar tu plan? Mantienes el acceso hasta fin del periodo.',
+    cancelScheduled: 'Tu plan no se renovará.',
+    renewsOn: 'Se renueva el',
+    accessUntil: 'Acceso hasta',
+    statusActive: 'Activo',
+    statusTrialing: 'Prueba',
+    statusPastDue: 'Vencido',
+    statusCanceled: 'Cancelado',
   },
   notifications: {
     title: 'Notificaciones',
@@ -139,6 +160,13 @@ export const es: Messages = {
       'Qué ocurre con las tareas que no terminaste en un día pasado.',
     modeManual: 'Dejar que yo las traiga',
     modeAuto: 'Traerlas automáticamente',
+  },
+  reminders: {
+    settingLabel: 'Recordatorios de eventos',
+    settingHint:
+      'Los recordatorios en la app siempre llegan. Elige los canales extra.',
+    email: 'Correo',
+    whatsapp: 'WhatsApp',
   },
   timezone: {
     settingLabel: 'Zona horaria',

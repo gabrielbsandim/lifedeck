@@ -4,6 +4,9 @@ import {
   makeBringTaskToToday,
   makeChangePassword,
   makeConnectGoogleCalendar,
+  makeListCalendarConnections,
+  makeDisconnectCalendar,
+  makeSetDefaultCalendar,
   makeConsumeCredits,
   makeCreateApiKey,
   makeCreateCalendarEvent,
@@ -51,6 +54,8 @@ import {
   makeGetUsage,
   makeGetUser,
   makeHandleSubscriptionWebhook,
+  makeGetSubscription,
+  makeCancelSubscription,
   makeInviteToList,
   makeJoinListByToken,
   makeListApiKeys,
@@ -77,6 +82,7 @@ import {
   makeSendDailyDigest,
   makeStartCheckout,
   makeSetCarryOverMode,
+  makeSetReminderPreferences,
   makeSetTimezone,
   makeSetAvatar,
   makeRemoveAvatar,
@@ -204,6 +210,7 @@ type Container = {
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
   bringTaskToToday: ReturnType<typeof makeBringTaskToToday>
   setCarryOverMode: ReturnType<typeof makeSetCarryOverMode>
+  setReminderPreferences: ReturnType<typeof makeSetReminderPreferences>
   setTimezone: ReturnType<typeof makeSetTimezone>
   setAvatar: ReturnType<typeof makeSetAvatar>
   removeAvatar: ReturnType<typeof makeRemoveAvatar>
@@ -234,6 +241,8 @@ type Container = {
   dispatchDueJobs: ReturnType<typeof makeDispatchDueJobs>
   startCheckout: ReturnType<typeof makeStartCheckout>
   handleSubscriptionWebhook: ReturnType<typeof makeHandleSubscriptionWebhook>
+  getSubscription: ReturnType<typeof makeGetSubscription>
+  cancelSubscription: ReturnType<typeof makeCancelSubscription>
   consumeCredits: ReturnType<typeof makeConsumeCredits>
   getUsage: ReturnType<typeof makeGetUsage>
   createCalendarEvent: ReturnType<typeof makeCreateCalendarEvent>
@@ -242,6 +251,9 @@ type Container = {
   listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
   getCalendarEvent: ReturnType<typeof makeGetCalendarEvent>
   connectGoogleCalendar: ReturnType<typeof makeConnectGoogleCalendar>
+  listCalendarConnections: ReturnType<typeof makeListCalendarConnections>
+  disconnectCalendar: ReturnType<typeof makeDisconnectCalendar>
+  setDefaultCalendar: ReturnType<typeof makeSetDefaultCalendar>
   pullCalendarChanges: ReturnType<typeof makePullCalendarChanges>
   pushCalendarEvent: ReturnType<typeof makePushCalendarEvent>
   watchGoogleCalendar: ReturnType<typeof makeWatchGoogleCalendar>
@@ -375,6 +387,8 @@ function build(
     calendarEvents,
     notifications,
     channelIdentities,
+    users,
+    emailSender,
     messaging,
     jobQueue,
     ids,
@@ -424,6 +438,7 @@ function build(
         await deleteRemoteCalendarEvent(
           String(payload.userId),
           String(payload.externalId),
+          payload.connectionId ? String(payload.connectionId) : undefined,
         )
       },
       [CALENDAR_WATCH_JOB]: async payload => {
@@ -464,11 +479,58 @@ function build(
   })
   const entitlementService = new PlanEntitlementService(resolvePlan)
   const createTask = makeCreateTask({ tasks, lists, memberships, ids, clock })
+  const updateTask = makeUpdateTask({
+    tasks,
+    lists,
+    memberships,
+    users,
+    notifications,
+    emailSender,
+    ids,
+    clock,
+  })
+  const deleteTask = makeDeleteTask({ tasks, lists, memberships })
+  const bringTaskToToday = makeBringTaskToToday({
+    subtasks,
+    lists,
+    tasks,
+    users,
+    ids,
+    clock,
+    unitOfWork,
+  })
+  const createList = makeCreateList({ lists, ids, clock })
+  const listUserLists = makeListUserLists({ lists, memberships })
+  const createSubtask = makeCreateSubtask({
+    subtasks,
+    tasks,
+    lists,
+    memberships,
+    ids,
+    clock,
+  })
+  const updateSubtask = makeUpdateSubtask({
+    subtasks,
+    tasks,
+    lists,
+    memberships,
+    clock,
+  })
   const listCalendarEvents = makeListCalendarEvents({ calendarEvents })
   const createCalendarEvent = makeCreateCalendarEvent({
     calendarEvents,
     jobQueue,
     ids,
+    clock,
+  })
+  const updateCalendarEvent = makeUpdateCalendarEvent({
+    calendarEvents,
+    jobQueue,
+    clock,
+  })
+  const deleteCalendarEvent = makeDeleteCalendarEvent({
+    calendarEvents,
+    jobQueue,
     clock,
   })
   const assistantTools: AssistantTools = {
@@ -478,17 +540,21 @@ function build(
       const board = await getDailyBoard(userId, date)
       return {
         tasks: board.tasks.map(task => ({
+          id: task.id,
           title: task.title,
           status: task.status,
         })),
       }
     },
-    async addTask(userId, title) {
-      const user = await users.findById(asEntityId(userId))
-      const date = civilDate(clock.now(), user?.timezone ?? DEFAULT_TIME_ZONE)
-      const board = await getDailyBoard(userId, date)
-      await createTask(userId, { listId: board.list.id, title })
-      return { added: true }
+    async getLists(userId) {
+      const page = await listUserLists(userId, {
+        type: null,
+        limit: 100,
+        cursor: null,
+      })
+      return {
+        lists: page.items.map(list => ({ id: list.id, title: list.title })),
+      }
     },
     async getAgenda(userId) {
       const now = clock.now()
@@ -499,51 +565,86 @@ function build(
       })
       return {
         events: events.map(event => ({
+          id: event.id,
           title: event.title,
           startsAt: event.startsAt,
+          endsAt: event.endsAt,
         })),
       }
     },
+    async addTask(userId, input) {
+      let listId = input.listId
+      if (!listId) {
+        const user = await users.findById(asEntityId(userId))
+        const date = civilDate(clock.now(), user?.timezone ?? DEFAULT_TIME_ZONE)
+        const board = await getDailyBoard(userId, date)
+        listId = board.list.id
+      }
+      const task = await createTask(userId, { listId, title: input.title })
+      return { id: task.id, added: true }
+    },
+    async completeTask(userId, taskId) {
+      await updateTask(userId, taskId, { status: 'completed' })
+      return { ok: true }
+    },
+    async reopenTask(userId, taskId) {
+      await updateTask(userId, taskId, { status: 'pending' })
+      return { ok: true }
+    },
+    async renameTask(userId, taskId, title) {
+      await updateTask(userId, taskId, { title })
+      return { ok: true }
+    },
+    async deleteTask(userId, taskId) {
+      await deleteTask(userId, taskId)
+      return { ok: true }
+    },
+    async moveTaskToToday(userId, taskId) {
+      await bringTaskToToday(userId, taskId)
+      return { ok: true }
+    },
+    async createList(userId, title) {
+      const list = await createList(userId, { title })
+      return { id: list.id }
+    },
+    async addSubtask(userId, taskId, title) {
+      const subtask = await createSubtask(userId, taskId, { title })
+      return { id: subtask.id }
+    },
+    async completeSubtask(userId, subtaskId) {
+      await updateSubtask(userId, subtaskId, { status: 'completed' })
+      return { ok: true }
+    },
     async addEvent(userId, input) {
-      await createCalendarEvent(userId, {
+      const event = await createCalendarEvent(userId, {
         title: input.title,
         startsAt: input.startsAt,
         endsAt: input.endsAt,
+        description: input.description ?? null,
+        location: input.location ?? null,
+        allDay: input.allDay,
+        reminders: input.reminders,
       })
-      return { added: true }
+      return { id: event.id, added: true }
+    },
+    async updateEvent(userId, eventId, input) {
+      await updateCalendarEvent(userId, eventId, input)
+      return { ok: true }
+    },
+    async deleteEvent(userId, eventId) {
+      await deleteCalendarEvent(userId, eventId)
+      return { ok: true }
     },
   }
   const agent = createAgentRunner(assistantTools)
   return {
     createTask,
-    updateTask: makeUpdateTask({
-      tasks,
-      lists,
-      memberships,
-      users,
-      notifications,
-      emailSender,
-      ids,
-      clock,
-    }),
-    deleteTask: makeDeleteTask({ tasks, lists, memberships }),
+    updateTask,
+    deleteTask,
     listListTasks: makeListListTasks({ tasks, subtasks, lists, memberships }),
-    createSubtask: makeCreateSubtask({
-      subtasks,
-      tasks,
-      lists,
-      memberships,
-      ids,
-      clock,
-    }),
+    createSubtask,
     listSubtasks: makeListSubtasks({ subtasks, tasks, lists, memberships }),
-    updateSubtask: makeUpdateSubtask({
-      subtasks,
-      tasks,
-      lists,
-      memberships,
-      clock,
-    }),
+    updateSubtask,
     deleteSubtask: makeDeleteSubtask({ subtasks, tasks, lists, memberships }),
     reorderSubtasks: makeReorderSubtasks({
       subtasks,
@@ -593,23 +694,16 @@ function build(
       calendarEvents,
       channelIdentities,
     }),
-    createList: makeCreateList({ lists, ids, clock }),
+    createList,
     renameList: makeRenameList({ lists, clock }),
     deleteList: makeDeleteList({ lists }),
     reorderTasks: makeReorderTasks({ tasks, lists, memberships, unitOfWork }),
     getList: makeGetList({ lists, memberships }),
-    listUserLists: makeListUserLists({ lists, memberships }),
+    listUserLists,
     getDailyBoard,
-    bringTaskToToday: makeBringTaskToToday({
-      subtasks,
-      lists,
-      tasks,
-      users,
-      ids,
-      clock,
-      unitOfWork,
-    }),
+    bringTaskToToday,
     setCarryOverMode: makeSetCarryOverMode({ users }),
+    setReminderPreferences: makeSetReminderPreferences({ users }),
     setTimezone: makeSetTimezone({ users }),
     setAvatar: makeSetAvatar({ users, fileStorage }),
     removeAvatar: makeRemoveAvatar({ users, fileStorage }),
@@ -700,25 +794,35 @@ function build(
       ids,
       clock,
     }),
+    getSubscription: makeGetSubscription({ subscriptions }),
+    cancelSubscription: makeCancelSubscription({
+      gateways,
+      subscriptions,
+      clock,
+    }),
     consumeCredits,
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
     createCalendarEvent,
-    updateCalendarEvent: makeUpdateCalendarEvent({
-      calendarEvents,
-      jobQueue,
-      clock,
-    }),
-    deleteCalendarEvent: makeDeleteCalendarEvent({
-      calendarEvents,
-      jobQueue,
-      clock,
-    }),
+    updateCalendarEvent,
+    deleteCalendarEvent,
     listCalendarEvents,
     getCalendarEvent: makeGetCalendarEvent({ calendarEvents }),
     connectGoogleCalendar: makeConnectGoogleCalendar({
       calendarConnections,
       provider: googleCalendar,
       ids,
+      clock,
+    }),
+    listCalendarConnections: makeListCalendarConnections({
+      calendarConnections,
+    }),
+    disconnectCalendar: makeDisconnectCalendar({
+      calendarConnections,
+      calendarEvents,
+      clock,
+    }),
+    setDefaultCalendar: makeSetDefaultCalendar({
+      calendarConnections,
       clock,
     }),
     pullCalendarChanges,
