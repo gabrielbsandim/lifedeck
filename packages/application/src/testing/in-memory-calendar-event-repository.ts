@@ -17,10 +17,14 @@ export class InMemoryCalendarEventRepository
   async findByExternalId(
     ownerId: EntityId,
     externalId: string,
+    connectionId?: EntityId,
   ): Promise<CalendarEvent | null> {
     return (
       [...this.items.values()].find(
-        event => event.isOwnedBy(ownerId) && event.externalId === externalId,
+        event =>
+          event.isOwnedBy(ownerId) &&
+          event.externalId === externalId &&
+          (connectionId === undefined || event.connectionId === connectionId),
       ) ?? null
     )
   }
@@ -48,5 +52,16 @@ export class InMemoryCalendarEventRepository
 
   async delete(id: EntityId): Promise<void> {
     this.items.delete(id as string)
+  }
+
+  async deleteByConnection(
+    ownerId: EntityId,
+    connectionId: EntityId,
+  ): Promise<void> {
+    for (const [id, event] of this.items) {
+      if (event.isOwnedBy(ownerId) && event.connectionId === connectionId) {
+        this.items.delete(id)
+      }
+    }
   }
 }

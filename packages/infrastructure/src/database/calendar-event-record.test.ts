@@ -18,6 +18,7 @@ const RECORD: CalendarEventRecord = {
   reminders: [10, 30],
   recurrence: null,
   source: 'local',
+  connectionId: null,
   externalId: null,
   etag: null,
   syncedAt: null,
@@ -45,6 +46,9 @@ describe('calendar-event-record', () => {
       reminders: RECORD.reminders,
       recurrence: RECORD.recurrence,
       source: RECORD.source,
+      connectionId: RECORD.connectionId
+        ? asEntityId(RECORD.connectionId)
+        : null,
       externalId: RECORD.externalId,
       etag: RECORD.etag,
       syncedAt: RECORD.syncedAt,

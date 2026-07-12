@@ -17,7 +17,7 @@ import { useCalendarEvents } from '@/lib/api/use-calendar-events'
 import { CalendarMonthView } from '@/components/calendar/calendar-month-view'
 import { CalendarAgenda } from '@/components/calendar/calendar-agenda'
 import { EventEditorDialog } from '@/components/calendar/event-editor-dialog'
-import { GoogleCalendarConnect } from '@/components/calendar/google-calendar-connect'
+import { GoogleCalendarsManager } from '@/components/calendar/google-calendars-manager'
 
 const VIEWS: CalendarView[] = ['month', 'week', 'day']
 
@@ -69,8 +69,9 @@ export function CalendarScreen() {
           <h1 className="text-ink-900 text-xl font-bold tracking-tight">
             {t.title}
           </h1>
-          <GoogleCalendarConnect />
         </div>
+
+        <GoogleCalendarsManager enabled={available} />
 
         {notice && (
           <button

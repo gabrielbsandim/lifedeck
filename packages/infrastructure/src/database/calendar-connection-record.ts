@@ -8,6 +8,8 @@ export type CalendarConnectionRecord = {
   id: string
   ownerId: string
   provider: CalendarProviderName
+  accountEmail: string | null
+  isDefault: boolean
   accessToken: string
   refreshToken: string
   tokenExpiresAt: Date
@@ -27,6 +29,8 @@ export function toDomainCalendarConnection(
     id: asEntityId(record.id),
     ownerId: asEntityId(record.ownerId),
     provider: record.provider,
+    accountEmail: record.accountEmail,
+    isDefault: record.isDefault,
     accessToken: record.accessToken,
     refreshToken: record.refreshToken,
     tokenExpiresAt: record.tokenExpiresAt,
@@ -48,6 +52,8 @@ export function toCalendarConnectionRecord(
     id: props.id,
     ownerId: props.ownerId,
     provider: props.provider,
+    accountEmail: props.accountEmail,
+    isDefault: props.isDefault,
     accessToken: props.accessToken,
     refreshToken: props.refreshToken,
     tokenExpiresAt: props.tokenExpiresAt,

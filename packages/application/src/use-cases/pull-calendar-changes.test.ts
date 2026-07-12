@@ -102,7 +102,7 @@ describe('pullCalendarChanges', () => {
       'g-1',
     )
     expect(stored?.source).toBe('google')
-    const connection = await calendarConnections.findByOwner(
+    const connection = await calendarConnections.findDefaultByOwner(
       asEntityId(OWNER_ID),
     )
     expect(connection?.syncToken).toBe('sync-2')
@@ -259,10 +259,151 @@ describe('pullCalendarChanges', () => {
     await pull(OWNER_ID)
 
     expect(refresh).toHaveBeenCalledWith('refresh-1')
-    const connection = await calendarConnections.findByOwner(
+    const connection = await calendarConnections.findDefaultByOwner(
       asEntityId(OWNER_ID),
     )
     expect(connection?.accessToken).toBe('fresh')
+  })
+
+  it('pulls every connection and tags events with their connection', async () => {
+    const calendarConnections = new InMemoryCalendarConnectionRepository()
+    await calendarConnections.save(
+      CalendarConnection.create({
+        id: asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        ownerId: asEntityId(OWNER_ID),
+        provider: 'google',
+        accountEmail: 'personal@example.com',
+        accessToken: 'a',
+        refreshToken: 'r',
+        tokenExpiresAt: new Date('2026-06-24T11:00:00.000Z'),
+        now: NOW,
+      }),
+    )
+    await calendarConnections.save(
+      CalendarConnection.create({
+        id: asEntityId('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'),
+        ownerId: asEntityId(OWNER_ID),
+        provider: 'google',
+        accountEmail: 'work@example.com',
+        accessToken: 'a2',
+        refreshToken: 'r2',
+        tokenExpiresAt: new Date('2026-06-24T11:00:00.000Z'),
+        now: NOW,
+      }),
+    )
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const provider = providerWith({
+      events: [external()],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      provider,
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    const result = await pull(OWNER_ID)
+
+    // The same remote id from two calendars stays distinct because the lookup
+    // is scoped by connection, so each calendar keeps its own local copy.
+    expect(result.applied).toBe(2)
+    expect(provider.listChanges).toHaveBeenCalledTimes(2)
+    const events = await calendarEvents.listByOwner(asEntityId(OWNER_ID))
+    expect(new Set(events.map(event => event.connectionId))).toEqual(
+      new Set([
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      ]),
+    )
+  })
+
+  it('updates the copy already tagged to the connection', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId('dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'Old title',
+        startsAt: new Date('2026-06-25T09:00:00.000Z'),
+        endsAt: new Date('2026-06-25T10:00:00.000Z'),
+        source: 'google',
+        connectionId: asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        externalId: 'g-1',
+        now: new Date('2026-06-23T00:00:00.000Z'),
+      }),
+    )
+    const provider = providerWith({
+      events: [external({ title: 'New title', updatedAt: NOW })],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      provider,
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    expect((await pull(OWNER_ID)).applied).toBe(1)
+    const stored = await calendarEvents.findByExternalId(
+      asEntityId(OWNER_ID),
+      'g-1',
+    )
+    expect(stored?.toJSON().title).toBe('New title')
+    // No duplicate was created.
+    expect(await calendarEvents.listByOwner(asEntityId(OWNER_ID))).toHaveLength(
+      1,
+    )
+  })
+
+  it('keeps syncing other connections when one fails', async () => {
+    const calendarConnections = new InMemoryCalendarConnectionRepository()
+    await calendarConnections.save(
+      CalendarConnection.create({
+        id: asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        ownerId: asEntityId(OWNER_ID),
+        provider: 'google',
+        accountEmail: 'personal@example.com',
+        accessToken: 'a',
+        refreshToken: 'r',
+        tokenExpiresAt: new Date('2026-06-24T11:00:00.000Z'),
+        now: NOW,
+      }),
+    )
+    await calendarConnections.save(
+      CalendarConnection.create({
+        id: asEntityId('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'),
+        ownerId: asEntityId(OWNER_ID),
+        provider: 'google',
+        accountEmail: 'work@example.com',
+        accessToken: 'a2',
+        refreshToken: 'r2',
+        tokenExpiresAt: new Date('2026-06-24T11:00:00.000Z'),
+        now: NOW,
+      }),
+    )
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const provider = providerWith({
+      events: [external()],
+      nextSyncToken: 'sync-2',
+    })
+    // The first connection's sync throws; the second must still sync.
+    provider.listChanges = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('revoked'))
+      .mockResolvedValue({ events: [external()], nextSyncToken: 'sync-2' })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      provider,
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    expect((await pull(OWNER_ID)).applied).toBe(1)
   })
 
   it('rejects when the user has no calendar connection', async () => {

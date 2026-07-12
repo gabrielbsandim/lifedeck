@@ -25,12 +25,17 @@ export function makeDeleteCalendarEvent({
       throw new NotFoundError('Calendar event')
     }
     const externalId = event.externalId
+    const connectionId = event.connectionId
     await calendarEvents.delete(asEntityId(id))
 
     if (externalId) {
       await jobQueue.enqueue({
         type: CALENDAR_DELETE_JOB,
-        payload: { userId: ownerId, externalId },
+        payload: {
+          userId: ownerId,
+          externalId,
+          ...(connectionId ? { connectionId: connectionId as string } : {}),
+        },
         runAt: clock.now(),
       })
     }

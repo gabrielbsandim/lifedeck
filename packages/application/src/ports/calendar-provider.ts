@@ -28,6 +28,7 @@ export type OAuthTokens = {
   accessToken: string
   refreshToken: string
   expiresAt: Date
+  accountEmail: string | null
 }
 
 export type RefreshedToken = {

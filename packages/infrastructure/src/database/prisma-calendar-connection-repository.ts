@@ -16,6 +16,8 @@ function fromPrisma(record: {
   id: string
   ownerId: string
   provider: string
+  accountEmail: string | null
+  isDefault: boolean
   accessToken: string
   refreshToken: string
   tokenExpiresAt: Date
@@ -31,6 +33,8 @@ function fromPrisma(record: {
     id: record.id,
     ownerId: record.ownerId,
     provider: record.provider as CalendarProviderName,
+    accountEmail: record.accountEmail,
+    isDefault: record.isDefault,
     accessToken: decryptToken(record.accessToken),
     refreshToken: decryptToken(record.refreshToken),
     tokenExpiresAt: record.tokenExpiresAt,
@@ -57,6 +61,8 @@ export class PrismaCalendarConnectionRepository
       where: { id: record.id },
       create: { ...record, accessToken, refreshToken },
       update: {
+        accountEmail: record.accountEmail,
+        isDefault: record.isDefault,
         accessToken,
         refreshToken,
         tokenExpiresAt: record.tokenExpiresAt,
@@ -70,9 +76,9 @@ export class PrismaCalendarConnectionRepository
     })
   }
 
-  async findByOwner(ownerId: EntityId): Promise<CalendarConnection | null> {
-    const row = await this.prisma.calendarConnection.findFirst({
-      where: { ownerId: ownerId as string },
+  async findById(id: EntityId): Promise<CalendarConnection | null> {
+    const row = await this.prisma.calendarConnection.findUnique({
+      where: { id: id as string },
     })
     return row ? toDomainCalendarConnection(fromPrisma(row)) : null
   }
@@ -84,8 +90,34 @@ export class PrismaCalendarConnectionRepository
     return row ? toDomainCalendarConnection(fromPrisma(row)) : null
   }
 
+  async findDefaultByOwner(
+    ownerId: EntityId,
+  ): Promise<CalendarConnection | null> {
+    // Prefer the connection the user marked as default; fall back to the oldest
+    // so locally-created events always have a calendar to push to.
+    const row = await this.prisma.calendarConnection.findFirst({
+      where: { ownerId: ownerId as string },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    })
+    return row ? toDomainCalendarConnection(fromPrisma(row)) : null
+  }
+
+  async listByOwner(ownerId: EntityId): Promise<CalendarConnection[]> {
+    const rows = await this.prisma.calendarConnection.findMany({
+      where: { ownerId: ownerId as string },
+      orderBy: { createdAt: 'asc' },
+    })
+    return rows.map(row => toDomainCalendarConnection(fromPrisma(row)))
+  }
+
   async listAll(): Promise<CalendarConnection[]> {
     const rows = await this.prisma.calendarConnection.findMany()
     return rows.map(row => toDomainCalendarConnection(fromPrisma(row)))
+  }
+
+  async delete(id: EntityId): Promise<void> {
+    await this.prisma.calendarConnection.deleteMany({
+      where: { id: id as string },
+    })
   }
 }

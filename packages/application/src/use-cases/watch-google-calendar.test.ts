@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CalendarConnection, asEntityId } from '@lifedeck/domain'
-import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
 import { makeWatchGoogleCalendar } from '@/use-cases/watch-google-calendar'
 import type { CalendarProvider } from '@/ports/calendar-provider'
@@ -44,20 +43,21 @@ describe('watchGoogleCalendar', () => {
       clock: { now: () => NOW },
     })
 
-    await watch(OWNER_ID, 'https://cb/webhooks/google')
+    const result = await watch(OWNER_ID, 'https://cb/webhooks/google')
 
+    expect(result).toEqual({ watched: 1 })
     const stored = await calendarConnections.findByChannelId('chan-1')
     expect(stored?.ownerId).toBe(OWNER_ID)
   })
 
-  it('rejects when the user has no connection', async () => {
+  it('is a no-op when the user has no connection', async () => {
     const watch = makeWatchGoogleCalendar({
       calendarConnections: new InMemoryCalendarConnectionRepository(),
       provider: provider(),
       clock: { now: () => NOW },
     })
-    await expect(watch(OWNER_ID, 'https://cb')).rejects.toBeInstanceOf(
-      NotFoundError,
-    )
+    await expect(watch(OWNER_ID, 'https://cb')).resolves.toEqual({
+      watched: 0,
+    })
   })
 })

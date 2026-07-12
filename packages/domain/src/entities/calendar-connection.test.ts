@@ -25,7 +25,42 @@ describe('CalendarConnection', () => {
     expect(connection.id).toBe(ID)
     expect(connection.calendarId).toBe('primary')
     expect(connection.syncToken).toBeNull()
+    expect(connection.provider).toBe('google')
+    expect(connection.accountEmail).toBeNull()
+    expect(connection.isDefault).toBe(false)
     expect(connection.isOwnedBy(asEntityId(OWNER_ID))).toBe(true)
+  })
+
+  it('captures the account email and default flag when provided', () => {
+    const connection = CalendarConnection.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      provider: 'google',
+      accessToken: 'access-1',
+      refreshToken: 'refresh-1',
+      tokenExpiresAt: NOW,
+      accountEmail: 'work@example.com',
+      isDefault: true,
+      now: NOW,
+    })
+    expect(connection.accountEmail).toBe('work@example.com')
+    expect(connection.isDefault).toBe(true)
+  })
+
+  it('toggles the default flag', () => {
+    const connection = build()
+    const later = new Date('2026-06-24T12:00:00.000Z')
+    connection.markDefault(true, later)
+    expect(connection.isDefault).toBe(true)
+    expect(connection.toJSON().updatedAt).toEqual(later)
+  })
+
+  it('backfills the account email', () => {
+    const connection = build()
+    const later = new Date('2026-06-24T12:00:00.000Z')
+    connection.setAccountEmail('work@example.com', later)
+    expect(connection.accountEmail).toBe('work@example.com')
+    expect(connection.toJSON().updatedAt).toEqual(later)
   })
 
   it('rejects an empty refresh token', () => {

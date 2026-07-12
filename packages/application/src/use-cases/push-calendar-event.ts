@@ -23,19 +23,23 @@ export function makePushCalendarEvent({
     eventId: string,
   ): Promise<{ pushed: boolean }> {
     const owner = asEntityId(ownerId)
-    const connection = await calendarConnections.findByOwner(owner)
-    if (!connection) {
-      // No calendar connected: nothing to push, not an error.
-      return { pushed: false }
-    }
-
     const event = await calendarEvents.findById(asEntityId(eventId))
     if (!event || !event.isOwnedBy(owner)) {
       throw new NotFoundError('Calendar event')
     }
 
+    // A synced event pushes back to its own calendar; a brand-new local event
+    // goes to the user's default calendar.
+    const connection = event.connectionId
+      ? await calendarConnections.findById(event.connectionId)
+      : await calendarConnections.findDefaultByOwner(owner)
+    if (!connection || !connection.isOwnedBy(owner)) {
+      // No calendar connected (or the target was removed): nothing to push.
+      return { pushed: false }
+    }
+
     const { externalId, etag } = await provider.pushEvent(connection, event)
-    event.linkToExternal(externalId, etag, clock.now())
+    event.linkToExternal(externalId, etag, clock.now(), connection.id)
     await calendarEvents.save(event)
     return { pushed: true }
   }

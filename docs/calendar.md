@@ -11,12 +11,15 @@ jobs that keep it all moving.
 - `CalendarEvent` (`packages/domain/src/entities/calendar-event.ts`): `ownerId`,
   `title`, `description`, `location`, `startsAt`, `endsAt`, `allDay`, `reminders`
   (an array of offset minutes), an optional `recurrence` (reuses the V1
-  `RecurrenceRule`), plus the sync columns `source` (`local` | `google`),
+  `RecurrenceRule`, synced both directions), plus the sync columns `source`
+  (`local` | `google`), `connectionId` (which calendar it belongs to),
   `externalId`, `etag`, `syncedAt`. Invariant: `endsAt >= startsAt`.
 - `CalendarConnection` (`packages/domain/src/entities/calendar-connection.ts`):
-  `ownerId`, `provider`, `accessToken`, `refreshToken`, `tokenExpiresAt`,
-  `calendarId`, `syncToken`, `channelId`, `resourceId`, `channelExpiresAt`. Tokens
-  are encrypted at rest in infrastructure, never in the domain object.
+  `ownerId`, `provider`, `accountEmail`, `isDefault`, `accessToken`, `refreshToken`,
+  `tokenExpiresAt`, `calendarId`, `syncToken`, `channelId`, `resourceId`,
+  `channelExpiresAt`. A user may hold several (unique per `ownerId + provider +
+  accountEmail`). Tokens are encrypted at rest in infrastructure, never in the
+  domain object.
 
 Reminders are not a separate entity; the offsets live on the event and are
 materialized as scheduled jobs (see below).
@@ -43,18 +46,39 @@ abstraction: `exchangeCode`, `refreshAccessToken`, `listChanges`, `pushEvent`,
 `CalendarProvider` over the Calendar REST v3 API.
 
 - **Connect (OAuth):** a separate consent step from sign-in. `authUrl(state)` starts
-  consent (offline access for a refresh token); the callback runs
-  `connectGoogleCalendar` (token exchange plus connection upsert), then best-effort
-  `watchGoogleCalendar` and an initial `pullCalendarChanges`.
+  consent (offline access plus `openid email` so we can label the account, with
+  `prompt=consent select_account` so a second account is picked deliberately); the
+  callback runs `connectGoogleCalendar`, then best-effort `watchGoogleCalendar` and
+  an initial `pullCalendarChanges`.
+- **Multiple calendars:** a user can connect more than one Google account (for
+  example personal and work). Each account is one `CalendarConnection`, keyed by
+  `accountEmail`, with its own token, `syncToken`, and watch channel. One connection
+  is the **default** (`isDefault`), which is where events created in Lifedeck sync;
+  events pulled from Google carry the `connectionId` they came from, so edits and
+  deletes push back to the right calendar. Managed via `listCalendarConnections`,
+  `disconnectCalendar` (removes the connection and its events, promoting a new
+  default if needed), and `setDefaultCalendar`. Per-owner use cases
+  (`pullCalendarChanges`, `watchGoogleCalendar`) fan out over all of the owner's
+  connections.
 - **Inbound:** Google push notifications hit the watch webhook, which enqueues a
-  `calendar-pull` job. The job pulls changes via the stored `syncToken` (a `410`
-  triggers a full resync), reconciling create/update/delete deduped by
-  `externalId`. Pull writes through the repository directly, so inbound changes
-  never echo back out.
-- **Outbound:** a local create or update enqueues a `calendar-push` job; a delete on
-  a synced event enqueues a `calendar-delete` job. Conflict resolution is
+  `calendar-pull` job. The job pulls changes per connection via the stored
+  `syncToken`; any failure with a stored token (a `410`, or a `400` after the
+  query parameters changed) triggers one clean full resync. Create/update/delete
+  reconcile deduped by `externalId`, adopting untagged legacy events into the
+  connection that pulls them.
+- **Outbound:** a local create or update enqueues a `calendar-push` job (targeting
+  the event's connection, or the default for new events); a delete on a synced event
+  enqueues a `calendar-delete` job carrying the connection id. Conflict resolution is
   last-writer-wins by `updatedAt`, deduped by `externalId` plus `etag` to avoid echo
   loops.
+- **Recurrence:** recurring events sync both directions. The provider requests
+  non-expanded events (`singleEvents=false`) so a series master carries its
+  `RRULE`, and `packages/infrastructure/src/calendar/rrule.ts` maps between the
+  local `RecurrenceRule` and Google's `recurrence` array. Modified/cancelled single
+  instances (which carry a `recurringEventId`) are skipped; the series master is the
+  source of truth. Rules Google expresses that the local shape cannot model
+  (`FREQ=YEARLY`, ordinal `BYDAY`, `COUNT`, `RDATE`) degrade to a plain,
+  non-recurring event rather than failing the sync.
 - **Token security:** Google tokens are encrypted at rest with AES-256-GCM
   (`packages/infrastructure/src/crypto/token-cipher.ts`, key from
   `CALENDAR_TOKEN_KEY`). The cipher fails closed in production: with `NODE_ENV`
@@ -104,6 +128,9 @@ Under `apps/web/src/app/api/v1/`, all `calendar`-flag gated:
   endpoint, plus the OAuth connect/callback, also enforces the `calendarSync`
   per-user entitlement (`requireEntitlement`), so flipping the feature flag does not
   by itself open calendar to non-entitled users.
+- `calendar/connections` (GET list), `calendar/connections/[id]` (DELETE
+  disconnect), `calendar/connections/[id]/default` (POST set default). Scopes:
+  `calendar:read` / `calendar:write`. Documented in the public OpenAPI.
 - `calendar/google/connect` (start OAuth) and `calendar/google/callback`.
 - `webhooks/google` (watch notifications, keyed by the `X-Goog-Channel-ID` header).
   When `GOOGLE_CALENDAR_WEBHOOK_TOKEN` is set, the route verifies the

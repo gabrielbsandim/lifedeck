@@ -24,6 +24,7 @@ export type CalendarEventProps = {
   reminders: number[]
   recurrence: RecurrenceRule | null
   source: CalendarEventSource
+  connectionId: EntityId | null
   externalId: string | null
   etag: string | null
   syncedAt: Date | null
@@ -77,6 +78,7 @@ export class CalendarEvent {
     reminders?: number[]
     recurrence?: RecurrenceRule | null
     source?: CalendarEventSource
+    connectionId?: EntityId | null
     externalId?: string | null
     etag?: string | null
     now: Date
@@ -111,6 +113,7 @@ export class CalendarEvent {
         ? validateRecurrenceRule(input.recurrence)
         : null,
       source: input.source ?? 'local',
+      connectionId: input.connectionId ?? null,
       externalId: input.externalId ?? null,
       etag: input.etag ?? null,
       syncedAt: null,
@@ -147,6 +150,10 @@ export class CalendarEvent {
     return this.props.source
   }
 
+  get connectionId(): EntityId | null {
+    return this.props.connectionId
+  }
+
   get externalId(): string | null {
     return this.props.externalId
   }
@@ -167,10 +174,12 @@ export class CalendarEvent {
     externalId: string,
     etag: string | null,
     syncedAt: Date,
+    connectionId: EntityId | null = null,
   ): void {
     this.props.externalId = externalId
     this.props.etag = etag
     this.props.syncedAt = syncedAt
+    this.props.connectionId = connectionId
   }
 
   markSynced(etag: string | null, syncedAt: Date): void {

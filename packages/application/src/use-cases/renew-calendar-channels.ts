@@ -22,7 +22,9 @@ export function makeRenewCalendarChannels({
     const now = clock.now()
     const threshold = now.getTime() + renewWithinMs
     const connections = await calendarConnections.listAll()
-    let enqueued = 0
+    // Renewing runs per owner (watch re-registers all of the owner's channels),
+    // so collapse owners with any soon-to-expire channel to a single job.
+    const dueOwners = new Set<string>()
     for (const connection of connections) {
       const expiresAt = connection.channelExpiresAt
       if (!connection.channelId || !expiresAt) {
@@ -31,13 +33,15 @@ export function makeRenewCalendarChannels({
       if (expiresAt.getTime() > threshold) {
         continue
       }
+      dueOwners.add(connection.ownerId as string)
+    }
+    for (const userId of dueOwners) {
       await jobQueue.enqueue({
         type: CALENDAR_WATCH_JOB,
-        payload: { userId: connection.ownerId as string },
+        payload: { userId },
         runAt: now,
       })
-      enqueued += 1
     }
-    return { enqueued }
+    return { enqueued: dueOwners.size }
   }
 }

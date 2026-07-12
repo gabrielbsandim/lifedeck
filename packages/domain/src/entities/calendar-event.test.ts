@@ -112,14 +112,21 @@ describe('CalendarEvent', () => {
     expect(event.source).toBe('local')
     expect(event.externalId).toBeNull()
     expect(event.etag).toBeNull()
+    expect(event.connectionId).toBeNull()
   })
 
   it('links to and re-syncs an external event', () => {
     const event = build()
     const syncedAt = new Date('2026-06-24T11:00:00.000Z')
-    event.linkToExternal('google-evt-1', 'etag-1', syncedAt)
+    event.linkToExternal(
+      'google-evt-1',
+      'etag-1',
+      syncedAt,
+      asEntityId('cccccccc-cccc-4ccc-8ccc-cccccccccccc'),
+    )
     expect(event.externalId).toBe('google-evt-1')
     expect(event.etag).toBe('etag-1')
+    expect(event.connectionId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
     expect(event.toJSON().syncedAt).toEqual(syncedAt)
 
     const later = new Date('2026-06-24T12:00:00.000Z')

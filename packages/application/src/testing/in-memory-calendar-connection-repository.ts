@@ -10,10 +10,8 @@ export class InMemoryCalendarConnectionRepository
     this.items.set(connection.id as string, connection)
   }
 
-  async findByOwner(ownerId: EntityId): Promise<CalendarConnection | null> {
-    return (
-      [...this.items.values()].find(item => item.isOwnedBy(ownerId)) ?? null
-    )
+  async findById(id: EntityId): Promise<CalendarConnection | null> {
+    return this.items.get(id as string) ?? null
   }
 
   async findByChannelId(channelId: string): Promise<CalendarConnection | null> {
@@ -24,7 +22,36 @@ export class InMemoryCalendarConnectionRepository
     )
   }
 
+  async findDefaultByOwner(
+    ownerId: EntityId,
+  ): Promise<CalendarConnection | null> {
+    const owned = [...this.items.values()].filter(item =>
+      item.isOwnedBy(ownerId),
+    )
+    return (
+      owned.find(item => item.isDefault) ??
+      owned.sort(
+        (a, b) =>
+          a.toJSON().createdAt.getTime() - b.toJSON().createdAt.getTime(),
+      )[0] ??
+      null
+    )
+  }
+
+  async listByOwner(ownerId: EntityId): Promise<CalendarConnection[]> {
+    return [...this.items.values()]
+      .filter(item => item.isOwnedBy(ownerId))
+      .sort(
+        (a, b) =>
+          a.toJSON().createdAt.getTime() - b.toJSON().createdAt.getTime(),
+      )
+  }
+
   async listAll(): Promise<CalendarConnection[]> {
     return [...this.items.values()]
+  }
+
+  async delete(id: EntityId): Promise<void> {
+    this.items.delete(id as string)
   }
 }

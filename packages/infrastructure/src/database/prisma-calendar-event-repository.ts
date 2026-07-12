@@ -24,6 +24,7 @@ function fromPrisma(record: {
   reminders: number[]
   recurrence: unknown
   source: string
+  connectionId: string | null
   externalId: string | null
   etag: string | null
   syncedAt: Date | null
@@ -42,6 +43,7 @@ function fromPrisma(record: {
     reminders: record.reminders,
     recurrence: (record.recurrence as RecurrenceRule | null) ?? null,
     source: record.source as CalendarEventSource,
+    connectionId: record.connectionId,
     externalId: record.externalId,
     etag: record.etag,
     syncedAt: record.syncedAt,
@@ -73,6 +75,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         reminders: record.reminders,
         recurrence,
         source: record.source,
+        connectionId: record.connectionId,
         externalId: record.externalId,
         etag: record.etag,
         syncedAt: record.syncedAt,
@@ -89,6 +92,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         reminders: { set: record.reminders },
         recurrence,
         source: record.source,
+        connectionId: record.connectionId,
         externalId: record.externalId,
         etag: record.etag,
         syncedAt: record.syncedAt,
@@ -107,9 +111,14 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
   async findByExternalId(
     ownerId: EntityId,
     externalId: string,
+    connectionId?: EntityId,
   ): Promise<CalendarEvent | null> {
     const row = await this.prisma.calendarEvent.findFirst({
-      where: { ownerId: ownerId as string, externalId },
+      where: {
+        ownerId: ownerId as string,
+        externalId,
+        ...(connectionId ? { connectionId: connectionId as string } : {}),
+      },
     })
     return row ? toDomainCalendarEvent(fromPrisma(row)) : null
   }
@@ -140,5 +149,17 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
 
   async delete(id: EntityId): Promise<void> {
     await this.prisma.calendarEvent.deleteMany({ where: { id: id as string } })
+  }
+
+  async deleteByConnection(
+    ownerId: EntityId,
+    connectionId: EntityId,
+  ): Promise<void> {
+    await this.prisma.calendarEvent.deleteMany({
+      where: {
+        ownerId: ownerId as string,
+        connectionId: connectionId as string,
+      },
+    })
   }
 }

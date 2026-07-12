@@ -6,6 +6,7 @@ export interface CalendarEventRepository {
   findByExternalId(
     ownerId: EntityId,
     externalId: string,
+    connectionId?: EntityId,
   ): Promise<CalendarEvent | null>
   listByOwnerInRange(
     ownerId: EntityId,
@@ -14,4 +15,5 @@ export interface CalendarEventRepository {
   ): Promise<CalendarEvent[]>
   listByOwner(ownerId: EntityId): Promise<CalendarEvent[]>
   delete(id: EntityId): Promise<void>
+  deleteByConnection(ownerId: EntityId, connectionId: EntityId): Promise<void>
 }

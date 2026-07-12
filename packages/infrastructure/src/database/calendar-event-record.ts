@@ -17,6 +17,7 @@ export type CalendarEventRecord = {
   reminders: number[]
   recurrence: RecurrenceRule | null
   source: CalendarEventSource
+  connectionId: string | null
   externalId: string | null
   etag: string | null
   syncedAt: Date | null
@@ -39,6 +40,8 @@ export function toDomainCalendarEvent(
     reminders: record.reminders,
     recurrence: record.recurrence,
     source: record.source,
+    connectionId:
+      record.connectionId === null ? null : asEntityId(record.connectionId),
     externalId: record.externalId,
     etag: record.etag,
     syncedAt: record.syncedAt,
@@ -63,6 +66,7 @@ export function toCalendarEventRecord(
     reminders: props.reminders,
     recurrence: props.recurrence,
     source: props.source,
+    connectionId: props.connectionId,
     externalId: props.externalId,
     etag: props.etag,
     syncedAt: props.syncedAt,

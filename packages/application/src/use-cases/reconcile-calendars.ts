@@ -17,13 +17,16 @@ export function makeReconcileCalendars({
   return async function reconcileCalendars(): Promise<{ enqueued: number }> {
     const now = clock.now()
     const connections = await calendarConnections.listAll()
-    for (const connection of connections) {
+    // One pull per owner; the pull use case fans out over all of the owner's
+    // connections, so enqueuing per-connection would just duplicate work.
+    const owners = [...new Set(connections.map(c => c.ownerId as string))]
+    for (const userId of owners) {
       await jobQueue.enqueue({
         type: CALENDAR_PULL_JOB,
-        payload: { userId: connection.ownerId as string },
+        payload: { userId },
         runAt: now,
       })
     }
-    return { enqueued: connections.length }
+    return { enqueued: owners.length }
   }
 }

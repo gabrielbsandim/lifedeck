@@ -6,6 +6,8 @@ export type CalendarConnectionProps = {
   id: EntityId
   ownerId: EntityId
   provider: CalendarProviderName
+  accountEmail: string | null
+  isDefault: boolean
   accessToken: string
   refreshToken: string
   tokenExpiresAt: Date
@@ -29,12 +31,16 @@ export class CalendarConnection {
     refreshToken: string
     tokenExpiresAt: Date
     calendarId?: string
+    accountEmail?: string | null
+    isDefault?: boolean
     now: Date
   }): CalendarConnection {
     return new CalendarConnection({
       id: input.id,
       ownerId: input.ownerId,
       provider: input.provider,
+      accountEmail: input.accountEmail ?? null,
+      isDefault: input.isDefault ?? false,
       accessToken: guard.notEmpty(input.accessToken, 'Access token'),
       refreshToken: guard.notEmpty(input.refreshToken, 'Refresh token'),
       tokenExpiresAt: input.tokenExpiresAt,
@@ -66,6 +72,18 @@ export class CalendarConnection {
 
   get refreshToken(): string {
     return this.props.refreshToken
+  }
+
+  get provider(): CalendarProviderName {
+    return this.props.provider
+  }
+
+  get accountEmail(): string | null {
+    return this.props.accountEmail
+  }
+
+  get isDefault(): boolean {
+    return this.props.isDefault
   }
 
   get calendarId(): string {
@@ -100,6 +118,18 @@ export class CalendarConnection {
 
   setSyncToken(syncToken: string | null, now: Date): void {
     this.props.syncToken = syncToken
+    this.props.updatedAt = now
+  }
+
+  markDefault(isDefault: boolean, now: Date): void {
+    this.props.isDefault = isDefault
+    this.props.updatedAt = now
+  }
+
+  // Backfills the connected account email on a legacy connection created before
+  // it was captured, so it can be de-duplicated by account thereafter.
+  setAccountEmail(accountEmail: string | null, now: Date): void {
+    this.props.accountEmail = accountEmail
     this.props.updatedAt = now
   }
 

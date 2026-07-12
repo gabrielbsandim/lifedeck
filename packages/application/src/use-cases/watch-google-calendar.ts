@@ -1,5 +1,4 @@
 import { asEntityId } from '@lifedeck/domain'
-import { NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
 import type { CalendarProvider } from '@/ports/calendar-provider'
@@ -18,20 +17,27 @@ export function makeWatchGoogleCalendar({
   return async function watchGoogleCalendar(
     ownerId: string,
     callbackUrl: string,
-  ): Promise<void> {
-    const connection = await calendarConnections.findByOwner(
+  ): Promise<{ watched: number }> {
+    const connections = await calendarConnections.listByOwner(
       asEntityId(ownerId),
     )
-    if (!connection) {
-      throw new NotFoundError('Calendar connection')
+    let watched = 0
+    for (const connection of connections) {
+      try {
+        const channel = await provider.watch(connection, callbackUrl)
+        connection.setChannel(
+          channel.channelId,
+          channel.resourceId,
+          channel.expiresAt,
+          clock.now(),
+        )
+        await calendarConnections.save(connection)
+        watched += 1
+      } catch {
+        // A single connection failing to open a channel must not stop the
+        // others; the periodic channel renewal retries this one.
+      }
     }
-    const channel = await provider.watch(connection, callbackUrl)
-    connection.setChannel(
-      channel.channelId,
-      channel.resourceId,
-      channel.expiresAt,
-      clock.now(),
-    )
-    await calendarConnections.save(connection)
+    return { watched }
   }
 }

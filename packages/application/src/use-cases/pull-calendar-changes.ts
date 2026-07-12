@@ -1,4 +1,8 @@
-import { CalendarEvent, asEntityId } from '@lifedeck/domain'
+import {
+  CalendarEvent,
+  asEntityId,
+  type CalendarConnection,
+} from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
@@ -32,49 +36,77 @@ export function makePullCalendarChanges({
     ownerId: string,
   ): Promise<CalendarPullResult> {
     const owner = asEntityId(ownerId)
-    const connection = await calendarConnections.findByOwner(owner)
-    if (!connection) {
+    const connections = await calendarConnections.listByOwner(owner)
+    if (connections.length === 0) {
       throw new NotFoundError('Calendar connection')
     }
 
-    if (connection.needsRefresh(clock.now())) {
-      const refreshed = await provider.refreshAccessToken(
-        connection.refreshToken,
-      )
-      connection.refreshAccess(
-        refreshed.accessToken,
-        refreshed.expiresAt,
-        clock.now(),
-      )
-      await calendarConnections.save(connection)
-    }
-
-    const page = await provider.listChanges(connection)
     let applied = 0
-    for (const external of page.events) {
-      if (await applyExternal(external)) {
-        applied += 1
+    for (const connection of connections) {
+      try {
+        applied += await pullConnection(connection)
+      } catch {
+        // One connection failing (e.g. a revoked grant) must not block the
+        // user's other calendars. The periodic reconcile retries this one.
       }
     }
-
-    connection.setSyncToken(page.nextSyncToken, clock.now())
-    await calendarConnections.save(connection)
     return { applied }
 
+    async function pullConnection(
+      connection: CalendarConnection,
+    ): Promise<number> {
+      if (connection.needsRefresh(clock.now())) {
+        const refreshed = await provider.refreshAccessToken(
+          connection.refreshToken,
+        )
+        connection.refreshAccess(
+          refreshed.accessToken,
+          refreshed.expiresAt,
+          clock.now(),
+        )
+        await calendarConnections.save(connection)
+      }
+
+      const page = await provider.listChanges(connection)
+      let count = 0
+      for (const external of page.events) {
+        if (await applyExternal(connection, external)) {
+          count += 1
+        }
+      }
+
+      connection.setSyncToken(page.nextSyncToken, clock.now())
+      await calendarConnections.save(connection)
+      return count
+    }
+
     async function applyExternal(
+      connection: CalendarConnection,
       external: ExternalCalendarEvent,
     ): Promise<boolean> {
-      const existing = await calendarEvents.findByExternalId(
+      // Prefer the copy already tagged to THIS connection. Google reuses the
+      // same event id across a user's calendars, so an owner-wide lookup could
+      // return another calendar's copy; scope by connection to avoid that.
+      const tagged = await calendarEvents.findByExternalId(
         owner,
         external.externalId,
+        connection.id,
       )
+      // Otherwise adopt a legacy copy synced before connections were tagged
+      // (connectionId still null); a copy tagged to a different connection is a
+      // separate event and left alone.
+      const legacy = tagged
+        ? null
+        : await calendarEvents.findByExternalId(owner, external.externalId)
+      const existing =
+        tagged ?? (legacy && legacy.connectionId === null ? legacy : null)
 
       if (external.deleted) {
-        if (!existing) {
-          return false
+        if (existing) {
+          await calendarEvents.delete(existing.id)
+          return true
         }
-        await calendarEvents.delete(existing.id)
-        return true
+        return false
       }
 
       if (existing) {
@@ -95,7 +127,13 @@ export function makePullCalendarChanges({
           },
           clock.now(),
         )
-        existing.markSynced(external.etag, clock.now())
+        // Re-tag legacy events with their connection while re-syncing.
+        existing.linkToExternal(
+          external.externalId,
+          external.etag,
+          clock.now(),
+          connection.id,
+        )
         await calendarEvents.save(existing)
         return true
       }
@@ -111,6 +149,7 @@ export function makePullCalendarChanges({
         allDay: external.allDay,
         recurrence: external.recurrence,
         source: 'google',
+        connectionId: connection.id,
         externalId: external.externalId,
         etag: external.etag,
         now: clock.now(),
