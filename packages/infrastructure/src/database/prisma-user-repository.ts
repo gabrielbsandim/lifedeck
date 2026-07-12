@@ -21,6 +21,8 @@ export class PrismaUserRepository implements UserRepository {
         timezone: record.timezone,
         avatarUrl: record.avatarUrl,
         carryOverMode: record.carryOverMode,
+        reminderEmail: record.reminderEmail,
+        reminderWhatsapp: record.reminderWhatsapp,
       },
     })
   }

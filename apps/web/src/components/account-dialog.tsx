@@ -23,6 +23,7 @@ import {
   useRemoveAvatar,
   useRenameUser,
   useSetCarryOverMode,
+  useSetReminderPreferences,
   useSetTimezone,
   useSignOut,
   useUploadAvatar,
@@ -64,6 +65,7 @@ export function AccountDialog({
 
   const rename = useRenameUser()
   const setCarryOverMode = useSetCarryOverMode()
+  const setReminders = useSetReminderPreferences()
   const setTimezone = useSetTimezone()
   const uploadAvatar = useUploadAvatar()
   const removeAvatar = useRemoveAvatar()
@@ -297,6 +299,54 @@ export function AccountDialog({
                     ? messages.carryOver.modeManual
                     : messages.carryOver.modeAuto}
                 </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="border-line flex flex-col gap-2 border-t pt-4">
+          <span className="text-ink-700 text-sm font-medium">
+            {messages.reminders.settingLabel}
+          </span>
+          <p className="text-ink-500 text-xs">
+            {messages.reminders.settingHint}
+          </p>
+          <div className="flex flex-col gap-2">
+            {(
+              [
+                { key: 'email', label: messages.reminders.email },
+                { key: 'whatsapp', label: messages.reminders.whatsapp },
+              ] as const
+            ).map(({ key, label }) => {
+              const enabled =
+                key === 'email' ? user.reminderEmail : user.reminderWhatsapp
+              return (
+                <label
+                  key={key}
+                  className="flex items-center justify-between gap-3 text-sm"
+                >
+                  <span className="text-ink-700">{label}</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={enabled}
+                    onClick={() => setReminders.mutate({ [key]: !enabled })}
+                    disabled={setReminders.isPending}
+                    className={
+                      enabled
+                        ? 'bg-brand-600 relative h-6 w-10 rounded-full transition-colors'
+                        : 'bg-line relative h-6 w-10 rounded-full transition-colors'
+                    }
+                  >
+                    <span
+                      className={
+                        enabled
+                          ? 'absolute left-[18px] top-0.5 h-5 w-5 rounded-full bg-white transition-all'
+                          : 'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-all'
+                      }
+                    />
+                  </button>
+                </label>
               )
             })}
           </div>

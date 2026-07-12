@@ -41,6 +41,8 @@ export type UserProps = {
   timezone: string
   avatarUrl: string | null
   carryOverMode: CarryOverMode
+  reminderEmail: boolean
+  reminderWhatsapp: boolean
   createdAt: Date
 }
 
@@ -70,6 +72,10 @@ export class User {
       timezone: normalizeTimeZone(input.timezone),
       avatarUrl: input.avatarUrl ? normalizeAvatarUrl(input.avatarUrl) : null,
       carryOverMode: 'manual',
+      // In-app reminders always fire; WhatsApp is on by default (still gated by a
+      // linked, verified number), email is opt-in.
+      reminderEmail: false,
+      reminderWhatsapp: true,
       createdAt: input.createdAt,
     })
   }
@@ -136,6 +142,23 @@ export class User {
       CARRY_OVER_MODES,
       'Carry-over mode',
     )
+  }
+
+  get reminderEmail(): boolean {
+    return this.props.reminderEmail
+  }
+
+  get reminderWhatsapp(): boolean {
+    return this.props.reminderWhatsapp
+  }
+
+  setReminderChannels(input: { email?: boolean; whatsapp?: boolean }): void {
+    if (input.email !== undefined) {
+      this.props.reminderEmail = input.email
+    }
+    if (input.whatsapp !== undefined) {
+      this.props.reminderWhatsapp = input.whatsapp
+    }
   }
 
   setTimezone(timezone: string): void {

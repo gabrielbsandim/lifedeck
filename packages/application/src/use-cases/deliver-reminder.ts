@@ -3,8 +3,11 @@ import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
+import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
+import { formatEventTime } from '@/shared/format-event-time'
 import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { NotificationRepository } from '@/ports/notification-repository'
+import type { UserRepository } from '@/ports/user-repository'
 import type { JobQueue } from '@/ports/job-queue'
 import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
@@ -17,6 +20,8 @@ type Dependencies = {
   calendarEvents: CalendarEventRepository
   notifications: NotificationRepository
   channelIdentities: ChannelIdentityRepository
+  users: UserRepository
+  emailSender: EmailSender
   messaging: MessagingChannel
   jobQueue: JobQueue
   ids: IdGenerator
@@ -33,6 +38,8 @@ export function makeDeliverReminder({
   calendarEvents,
   notifications,
   channelIdentities,
+  users,
+  emailSender,
   messaging,
   jobQueue,
   ids,
@@ -79,6 +86,7 @@ export function makeDeliverReminder({
       return { delivered: false }
     }
 
+    // In-app notification always fires; it is the reliable channel.
     await notifications.save(
       Notification.create({
         id: ids.generate(),
@@ -94,20 +102,47 @@ export function makeDeliverReminder({
       }),
     )
 
-    // Best-effort proactive WhatsApp alert when the user linked a number and a
-    // utility template is configured. A failure here must not undo the in-app
-    // notification, so it is swallowed.
-    if (reminderTemplate?.name) {
+    const user = await users.findById(asEntityId(userId))
+    const startsAtIso = props.startsAt.toISOString()
+
+    // Best-effort email reminder, opt-in per user and only to a verified address.
+    // A failure must not undo the in-app notification, so it is swallowed.
+    if (user?.reminderEmail && user.email && user.isEmailVerified) {
+      try {
+        await emailSender.sendEventReminder(
+          user.email,
+          props.title,
+          startsAtIso,
+          toEmailLocale(user.locale),
+          user.timezone,
+        )
+      } catch {
+        // Ignore; the in-app notification already landed.
+      }
+    }
+
+    // Best-effort proactive WhatsApp alert when the user opted in, linked a
+    // number, and a utility template is configured.
+    if (reminderTemplate?.name && user?.reminderWhatsapp !== false) {
       const identity = await channelIdentities.findByUser(
         asEntityId(userId),
         'whatsapp',
       )
       if (identity?.isVerified() && identity.address) {
+        // A WhatsApp utility template renders the params as-is, so send a
+        // localized, timezone-aware time rather than a raw ISO timestamp.
+        const when = user
+          ? formatEventTime(
+              startsAtIso,
+              toEmailLocale(user.locale),
+              user.timezone,
+            )
+          : startsAtIso
         try {
           await messaging.sendTemplate(identity.address, {
             name: reminderTemplate.name,
             language: reminderTemplate.language,
-            params: [props.title, props.startsAt.toISOString()],
+            params: [props.title, when],
           })
         } catch {
           // Ignore; the in-app notification already landed.

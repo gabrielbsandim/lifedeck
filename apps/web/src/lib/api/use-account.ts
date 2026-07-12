@@ -34,6 +34,20 @@ export function useSetCarryOverMode() {
   })
 }
 
+export function useSetReminderPreferences() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (prefs: { email?: boolean; whatsapp?: boolean }) =>
+      apiRequest<UserView>('/api/v1/account/reminders', {
+        method: 'PATCH',
+        body: JSON.stringify(prefs),
+      }),
+    onSuccess: user => {
+      queryClient.setQueryData(sessionKey, user)
+    },
+  })
+}
+
 function timezonePinKey(userId: string): string {
   return `lifedeck.tz.pinned.${userId}`
 }

@@ -3,11 +3,14 @@ import {
   ChannelIdentity,
   CalendarEvent,
   Notification,
+  User,
   asEntityId,
 } from '@lifedeck/domain'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+import { FakeEmailSender } from '@/testing/fake-email-sender'
 import {
   makeDeliverReminder,
   type ReminderTemplate,
@@ -25,6 +28,12 @@ async function setup(options: {
   withEvent?: boolean
   reminderTemplate?: ReminderTemplate
   whatsappAddress?: string
+  user?: {
+    email?: string
+    verified?: boolean
+    reminderEmail?: boolean
+    reminderWhatsapp?: boolean
+  }
 }) {
   const calendarEvents = new InMemoryCalendarEventRepository()
   if (options.withEvent !== false) {
@@ -58,12 +67,38 @@ async function setup(options: {
     )
     await channelIdentities.save(identity)
   }
+  const users = new InMemoryUserRepository()
+  if (options.user) {
+    const user = User.createGuest({
+      id: asEntityId(OWNER_ID),
+      displayName: 'Gabriel',
+      locale: 'en',
+      createdAt: new Date('2026-06-24T00:00:00.000Z'),
+    })
+    if (options.user.email) {
+      user.register({
+        email: options.user.email,
+        passwordHash: 'hash',
+        emailVerifiedAt: options.user.verified
+          ? new Date('2026-06-24T00:00:00.000Z')
+          : null,
+      })
+    }
+    user.setReminderChannels({
+      email: options.user.reminderEmail,
+      whatsapp: options.user.reminderWhatsapp,
+    })
+    await users.save(user)
+  }
+  const emailSender = new FakeEmailSender()
   const enqueue = vi.fn().mockResolvedValue(undefined)
   const sendTemplate = vi.fn().mockResolvedValue(undefined)
   const deliver = makeDeliverReminder({
     calendarEvents,
     notifications,
     channelIdentities,
+    users,
+    emailSender,
     messaging: {
       sendText: vi.fn(),
       sendTemplate,
@@ -74,7 +109,7 @@ async function setup(options: {
     clock: { now: () => options.now },
     reminderTemplate: options.reminderTemplate,
   })
-  return { notifications, deliver, enqueue, sendTemplate }
+  return { notifications, deliver, enqueue, sendTemplate, emailSender }
 }
 
 describe('deliverReminder', () => {
@@ -103,10 +138,71 @@ describe('deliverReminder', () => {
     })
   })
 
+  it('formats the whatsapp reminder time in the user locale and timezone', async () => {
+    const { deliver, sendTemplate } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      reminderTemplate: { name: 'event_reminder', language: 'pt_BR' },
+      user: { email: 'gab@example.com', verified: true },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    const params = sendTemplate.mock.calls[0]?.[1]?.params as string[]
+    expect(params[0]).toBe('Dentist')
+    // A localized, timezone-aware string, not a raw ISO timestamp.
+    expect(params[1]).not.toBe(STARTS.toISOString())
+    expect(params[1]).toContain('9:00')
+  })
+
   it('skips the whatsapp template when no template is configured', async () => {
     const { deliver, sendTemplate } = await setup({
       now: new Date('2026-06-25T08:30:00.000Z'),
       whatsappAddress: '5511999990000',
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(sendTemplate).not.toHaveBeenCalled()
+  })
+
+  it('emails a verified user who opted into email reminders', async () => {
+    const { deliver, emailSender } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      user: { email: 'gab@example.com', verified: true, reminderEmail: true },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(emailSender.reminders).toEqual([
+      {
+        to: 'gab@example.com',
+        eventTitle: 'Dentist',
+        startsAt: STARTS.toISOString(),
+        locale: 'en',
+        timeZone: 'UTC',
+      },
+    ])
+  })
+
+  it('does not email when the user has not opted in', async () => {
+    const { deliver, emailSender } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      user: { email: 'gab@example.com', verified: true, reminderEmail: false },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(emailSender.reminders).toHaveLength(0)
+  })
+
+  it('does not email an unverified address even if opted in', async () => {
+    const { deliver, emailSender } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      user: { email: 'gab@example.com', verified: false, reminderEmail: true },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(emailSender.reminders).toHaveLength(0)
+  })
+
+  it('suppresses the whatsapp template when the user opted out', async () => {
+    const { deliver, sendTemplate } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      reminderTemplate: { name: 'event_reminder', language: 'pt_BR' },
+      user: { reminderWhatsapp: false },
     })
     await deliver(EVENT_ID, OWNER_ID, 30)
     expect(sendTemplate).not.toHaveBeenCalled()

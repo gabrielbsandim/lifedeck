@@ -59,4 +59,22 @@ export class FakeEmailSender implements EmailSender {
   ): Promise<void> {
     this.digests.push({ to, summary, locale })
   }
+
+  readonly reminders: Array<{
+    to: string
+    eventTitle: string
+    startsAt: string
+    locale: EmailLocale
+    timeZone?: string
+  }> = []
+
+  async sendEventReminder(
+    to: string,
+    eventTitle: string,
+    startsAt: string,
+    locale: EmailLocale = 'en',
+    timeZone?: string,
+  ): Promise<void> {
+    this.reminders.push({ to, eventTitle, startsAt, locale, timeZone })
+  }
 }

@@ -56,6 +56,13 @@ export const timezoneSchema = z.object({
 
 export type TimezoneInput = z.infer<typeof timezoneSchema>
 
+export const reminderPreferencesSchema = z.object({
+  email: z.boolean().optional(),
+  whatsapp: z.boolean().optional(),
+})
+
+export type ReminderPreferencesInput = z.infer<typeof reminderPreferencesSchema>
+
 export const userViewSchema = z.object({
   id: z.string().uuid(),
   displayName: z.string(),
@@ -67,6 +74,8 @@ export const userViewSchema = z.object({
   timezone: z.string(),
   avatarUrl: z.string().nullable(),
   carryOverMode: z.enum(['manual', 'auto']),
+  reminderEmail: z.boolean(),
+  reminderWhatsapp: z.boolean(),
   plan: z.enum(['free', 'pro', 'premium']).optional(),
   entitlements: z
     .array(z.enum(['calendarSync', 'whatsappAssistant', 'premiumModel']))

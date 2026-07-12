@@ -44,4 +44,16 @@ export class ConsoleEmailSender implements EmailSender {
       `[lifedeck] digest for ${to} (${locale}): ${summary.completed}/${summary.total} done on ${summary.date}`,
     )
   }
+
+  async sendEventReminder(
+    to: string,
+    eventTitle: string,
+    startsAt: string,
+    locale: EmailLocale = 'en',
+    timeZone?: string,
+  ): Promise<void> {
+    console.info(
+      `[lifedeck] reminder for ${to} (${locale}, ${timeZone ?? 'UTC'}): ${eventTitle} at ${startsAt}`,
+    )
+  }
 }

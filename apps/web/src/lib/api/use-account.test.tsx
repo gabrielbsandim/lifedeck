@@ -6,6 +6,7 @@ import {
   useRenameUser,
   useRemoveAvatar,
   useSetCarryOverMode,
+  useSetReminderPreferences,
   useSetTimezone,
   useSignOut,
   useSyncTimezone,
@@ -30,6 +31,8 @@ const USER = {
   timezone: 'UTC',
   avatarUrl: null,
   carryOverMode: 'manual' as const,
+  reminderEmail: false,
+  reminderWhatsapp: true,
   createdAt: '2026-06-22T10:00:00.000Z',
 }
 
@@ -61,6 +64,21 @@ describe('account hooks', () => {
     await result.current.mutateAsync('auto')
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/account/carry-over',
+      expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('sets reminder preferences via PATCH', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ...USER, reminderEmail: true },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetReminderPreferences(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync({ email: true })
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/account/reminders',
       expect.objectContaining({ method: 'PATCH' }),
     )
   })

@@ -106,6 +106,24 @@ describe('User', () => {
     expect(() => user.setCarryOverMode('weekly')).toThrow(ValidationError)
   })
 
+  it('defaults reminder channels and updates only the ones given', () => {
+    const user = createGuest()
+    expect(user.reminderEmail).toBe(false)
+    expect(user.reminderWhatsapp).toBe(true)
+
+    user.setReminderChannels({ email: true })
+    expect(user.reminderEmail).toBe(true)
+    expect(user.reminderWhatsapp).toBe(true)
+
+    user.setReminderChannels({ whatsapp: false })
+    expect(user.reminderEmail).toBe(true)
+    expect(user.reminderWhatsapp).toBe(false)
+
+    user.setReminderChannels({})
+    expect(user.reminderEmail).toBe(true)
+    expect(user.reminderWhatsapp).toBe(false)
+  })
+
   it('registers a guest with email and password, normalizing the address', () => {
     const user = createGuest()
     user.register({

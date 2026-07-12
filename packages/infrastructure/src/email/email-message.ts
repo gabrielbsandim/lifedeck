@@ -14,6 +14,10 @@ export type EmailTemplate =
         pendingTitles: string[]
       }
     }
+  | {
+      type: 'event-reminder'
+      data: { eventTitle: string; startsAt: string; timeZone?: string }
+    }
 
 export type RenderedEmail = {
   subject: string

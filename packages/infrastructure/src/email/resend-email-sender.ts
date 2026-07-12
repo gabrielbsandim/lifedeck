@@ -78,4 +78,18 @@ export class ResendEmailSender implements EmailSender {
     )
     await this.send(to, subject, html)
   }
+
+  async sendEventReminder(
+    to: string,
+    eventTitle: string,
+    startsAt: string,
+    locale: EmailLocale = 'en',
+    timeZone?: string,
+  ): Promise<void> {
+    const { subject, html } = renderEmail(
+      { type: 'event-reminder', data: { eventTitle, startsAt, timeZone } },
+      locale,
+    )
+    await this.send(to, subject, html)
+  }
 }

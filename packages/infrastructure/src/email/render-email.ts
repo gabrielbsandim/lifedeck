@@ -1,4 +1,4 @@
-import type { EmailLocale } from '@lifedeck/application'
+import { formatEventTime, type EmailLocale } from '@lifedeck/application'
 import type { EmailTemplate, RenderedEmail } from '@/email/email-message'
 
 const BRAND = {
@@ -209,6 +209,30 @@ const DIGEST_COPY: Record<EmailLocale, DigestCopy> = {
   },
 }
 
+type ReminderCopy = {
+  subject: (title: string) => string
+  title: string
+  body: (title: string, when: string) => string
+}
+
+const REMINDER_COPY: Record<EmailLocale, ReminderCopy> = {
+  en: {
+    subject: title => `Reminder: ${title}`,
+    title: 'Upcoming event',
+    body: (title, when) => `<strong>${title}</strong> starts at ${when}.`,
+  },
+  pt: {
+    subject: title => `Lembrete: ${title}`,
+    title: 'Evento em breve',
+    body: (title, when) => `<strong>${title}</strong> começa às ${when}.`,
+  },
+  es: {
+    subject: title => `Recordatorio: ${title}`,
+    title: 'Evento próximo',
+    body: (title, when) => `<strong>${title}</strong> comienza a las ${when}.`,
+  },
+}
+
 function digestBody(
   copy: DigestCopy,
   data: { total: number; completed: number; pendingTitles: string[] },
@@ -282,6 +306,24 @@ export function renderEmail(
       return {
         subject: copy.subject,
         html: layout(copy.title, digestBody(copy, template.data), locale),
+      }
+    }
+    case 'event-reminder': {
+      const copy = REMINDER_COPY[locale]
+      const when = formatEventTime(
+        template.data.startsAt,
+        locale,
+        template.data.timeZone ?? 'UTC',
+      )
+      return {
+        subject: copy.subject(template.data.eventTitle),
+        html: layout(
+          copy.title,
+          paragraph(
+            copy.body(escapeHtml(template.data.eventTitle), escapeHtml(when)),
+          ),
+          locale,
+        ),
       }
     }
   }

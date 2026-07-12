@@ -40,4 +40,11 @@ export interface EmailSender {
     summary: DailyDigestSummary,
     locale?: EmailLocale,
   ): Promise<void>
+  sendEventReminder(
+    to: string,
+    eventTitle: string,
+    startsAt: string,
+    locale?: EmailLocale,
+    timeZone?: string,
+  ): Promise<void>
 }

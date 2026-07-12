@@ -16,6 +16,8 @@ const RECORD: UserRecord = {
   timezone: 'America/Sao_Paulo',
   avatarUrl: 'https://blob.example.com/avatars/x.webp',
   carryOverMode: 'manual',
+  reminderEmail: false,
+  reminderWhatsapp: true,
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
 }
 

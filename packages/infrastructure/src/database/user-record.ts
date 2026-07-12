@@ -11,6 +11,8 @@ export type UserRecord = {
   timezone: string
   avatarUrl: string | null
   carryOverMode: string
+  reminderEmail: boolean
+  reminderWhatsapp: boolean
   createdAt: Date
 }
 
@@ -28,6 +30,8 @@ export function toDomainUser(record: UserRecord): User {
     carryOverMode: isCarryOverMode(record.carryOverMode)
       ? record.carryOverMode
       : 'manual',
+    reminderEmail: record.reminderEmail,
+    reminderWhatsapp: record.reminderWhatsapp,
     createdAt: record.createdAt,
   })
 }
@@ -45,6 +49,8 @@ export function toUserRecord(user: User): UserRecord {
     timezone: props.timezone,
     avatarUrl: props.avatarUrl,
     carryOverMode: props.carryOverMode,
+    reminderEmail: props.reminderEmail,
+    reminderWhatsapp: props.reminderWhatsapp,
     createdAt: props.createdAt,
   }
 }

@@ -14,6 +14,8 @@ export function toUserView(user: User): UserView {
     timezone: props.timezone,
     avatarUrl: props.avatarUrl,
     carryOverMode: props.carryOverMode,
+    reminderEmail: props.reminderEmail,
+    reminderWhatsapp: props.reminderWhatsapp,
     createdAt: props.createdAt.toISOString(),
   }
 }

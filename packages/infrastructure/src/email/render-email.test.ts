@@ -72,6 +72,54 @@ describe('renderEmail', () => {
     expect(email.html).toContain('Still pending:')
   })
 
+  it('renders an event reminder with a formatted time', () => {
+    const email = renderEmail({
+      type: 'event-reminder',
+      data: { eventTitle: 'Dentist', startsAt: '2026-06-25T09:00:00.000Z' },
+    })
+    expect(email.subject).toBe('Reminder: Dentist')
+    expect(email.html).toContain('Dentist')
+    expect(email.html).toContain('Upcoming event')
+  })
+
+  it('renders an event reminder in the user timezone', () => {
+    const email = renderEmail({
+      type: 'event-reminder',
+      data: {
+        eventTitle: 'Dentist',
+        startsAt: '2026-06-25T12:00:00.000Z',
+        timeZone: 'America/Sao_Paulo',
+      },
+    })
+    // 12:00 UTC is 09:00 in Sao Paulo (UTC-3, no DST).
+    expect(email.html).toContain('9:00')
+  })
+
+  it('falls back to UTC for an invalid timezone', () => {
+    const email = renderEmail({
+      type: 'event-reminder',
+      data: {
+        eventTitle: 'Dentist',
+        startsAt: '2026-06-25T12:00:00.000Z',
+        timeZone: 'Not/AZone',
+      },
+    })
+    expect(email.subject).toBe('Reminder: Dentist')
+    expect(email.html).toContain('12:00')
+  })
+
+  it('falls back to the raw value for an unparseable reminder time', () => {
+    const email = renderEmail(
+      {
+        type: 'event-reminder',
+        data: { eventTitle: 'Reunião', startsAt: 'not-a-date' },
+      },
+      'pt',
+    )
+    expect(email.subject).toBe('Lembrete: Reunião')
+    expect(email.html).toContain('not-a-date')
+  })
+
   it('renders a daily digest celebrating an empty pending list in pt', () => {
     const email = renderEmail(
       {
