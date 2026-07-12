@@ -35,6 +35,7 @@ export default mergeConfig(
         'src/billing/stripe-payment-gateway.ts',
         'src/calendar/google-calendar-provider.ts',
         'src/messaging/whatsapp-cloud-channel.ts',
+        'src/messaging/abracode-channel.ts',
         'src/messaging/ai-sdk-agent-runner.ts',
         'src/messaging/redis-conversation-store.ts',
         'src/messaging/gemini-multimodal.ts',

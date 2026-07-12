@@ -3,6 +3,7 @@ import type {
   MessageTemplate,
   MessagingChannel,
 } from '@lifedeck/application'
+import { AbracodeChannel } from '@/messaging/abracode-channel'
 
 const GRAPH_VERSION = 'v21.0'
 
@@ -107,6 +108,16 @@ export class WhatsAppCloudChannel implements MessagingChannel {
 }
 
 export function createMessagingChannel(): MessagingChannel {
+  const abracodeApiKey = process.env.ABRACODE_API_KEY
+  const abracodeFrom = process.env.ABRACODE_FROM
+  if (abracodeApiKey && abracodeFrom) {
+    return new AbracodeChannel({
+      apiKey: abracodeApiKey,
+      from: abracodeFrom,
+      baseUrl: process.env.ABRACODE_BASE_URL,
+      phoneNumberId: process.env.ABRACODE_PHONE_NUMBER_ID,
+    })
+  }
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN
   if (!phoneNumberId || !accessToken) {

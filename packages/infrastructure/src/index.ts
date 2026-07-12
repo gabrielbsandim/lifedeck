@@ -133,10 +133,15 @@ export {
   createMessagingChannel,
 } from '@/messaging/whatsapp-cloud-channel'
 export {
+  AbracodeChannel,
+  type AbracodeChannelConfig,
+} from '@/messaging/abracode-channel'
+export {
   verifyWhatsAppSignature,
   parseInboundMessages,
   type ParsedWhatsappMessage,
 } from '@/messaging/whatsapp-webhook'
+export { parseAbracodeInbound } from '@/messaging/abracode-webhook'
 export {
   AiSdkAgentRunner,
   createAgentRunner,
