@@ -39,11 +39,27 @@ export function makeHandleSubscriptionWebhook({
       event.providerRef,
     )
     if (existing) {
+      // A still-active event that does not carry a period end (Stripe's
+      // checkout.session.completed) must not wipe a real renewal date that a
+      // subscription.* event already recorded, since providers do not
+      // guarantee event ordering.
+      const keepsAccess =
+        event.status === 'active' || event.status === 'trialing'
+      // A user-scheduled cancellation keeps the paid-through date so access
+      // survives to the period end, even when the provider (Asaas) deletes the
+      // subscription immediately and reports no period end. An involuntary
+      // cancellation (refund, chargeback) has no such flag and revokes at once.
+      const scheduledCancel =
+        event.status === 'canceled' && existing.cancelAtPeriodEnd
+      const nextPeriodEnd =
+        event.currentPeriodEnd ??
+        (keepsAccess || scheduledCancel ? existing.currentPeriodEnd : null)
       existing.update(
         {
           plan: event.plan ?? undefined,
           status: event.status,
-          currentPeriodEnd: event.currentPeriodEnd,
+          currentPeriodEnd: nextPeriodEnd,
+          cancelAtPeriodEnd: event.cancelAtPeriodEnd,
         },
         clock.now(),
       )
@@ -73,6 +89,7 @@ export function makeHandleSubscriptionWebhook({
       provider,
       providerRef: event.providerRef,
       currentPeriodEnd: event.currentPeriodEnd,
+      cancelAtPeriodEnd: event.cancelAtPeriodEnd,
       now: clock.now(),
     })
     await subscriptions.save(created)

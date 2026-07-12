@@ -10,6 +10,12 @@ export function isPlan(value: string): value is Plan {
   return (PLANS as readonly string[]).includes(value)
 }
 
+// Ordinal weight of a plan (free < pro < premium), so callers can pick the
+// highest-value plan when a user somehow holds more than one subscription.
+export function planRank(plan: Plan): number {
+  return PLANS.indexOf(plan)
+}
+
 export type PlanQuota = {
   fiveHourCredits: number
   weeklyCredits: number

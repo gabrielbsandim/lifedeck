@@ -5,6 +5,7 @@ import {
   entitlementsForPlan,
   isPlan,
   planGrants,
+  planRank,
   quotaForPlan,
 } from '@/value-objects/plan'
 
@@ -59,5 +60,17 @@ describe('plan', () => {
       fiveHourCredits: 80,
       weeklyCredits: 500,
     })
+  })
+
+  it('grants the whatsapp assistant taster on every plan, including free', () => {
+    for (const plan of PLANS) {
+      expect(planGrants(plan, 'whatsappAssistant')).toBe(true)
+    }
+  })
+
+  it('ranks plans from free up to premium', () => {
+    expect(planRank('free')).toBe(0)
+    expect(planRank('pro')).toBeGreaterThan(planRank('free'))
+    expect(planRank('premium')).toBeGreaterThan(planRank('pro'))
   })
 })

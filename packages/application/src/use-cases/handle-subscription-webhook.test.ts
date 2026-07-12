@@ -17,6 +17,7 @@ function gatewayWith(event: SubscriptionEvent | null): PaymentGateway {
     provider: 'asaas',
     startCheckout: vi.fn(),
     parseWebhook: vi.fn().mockResolvedValue(event),
+    cancelSubscription: vi.fn(),
   }
 }
 
@@ -78,6 +79,91 @@ describe('handleSubscriptionWebhook', () => {
     const sub = await subscriptions.findByUser(asEntityId(USER_ID))
     expect(sub?.status).toBe('canceled')
     expect(sub?.plan).toBe('pro')
+  })
+
+  it('keeps a known period end when a later active event omits it', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const periodEnd = new Date('2026-07-24T10:00:00.000Z')
+    // A subscription.* event recorded the real renewal date.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    // A later, out-of-order active event (checkout.session.completed) has no
+    // period end and must not wipe the one already stored.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: null,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.currentPeriodEnd).toEqual(periodEnd)
+  })
+
+  it('clears the period end when the subscription is canceled', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: null,
+      plan: null,
+      status: 'canceled',
+      currentPeriodEnd: null,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.status).toBe('canceled')
+    expect(sub?.currentPeriodEnd).toBeNull()
+  })
+
+  it('keeps paid-through access when a scheduled cancel is deleted immediately', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const periodEnd = new Date('2026-07-24T10:00:00.000Z')
+    // The user scheduled a cancellation: active, but flagged cancelAtPeriodEnd.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: true,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    // Asaas deletes the subscription right away and reports no period end.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: null,
+      plan: null,
+      status: 'canceled',
+      currentPeriodEnd: null,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.status).toBe('canceled')
+    // The paid-through date is preserved, so the user keeps access until then.
+    expect(sub?.currentPeriodEnd).toEqual(periodEnd)
+    expect(sub?.isActive(new Date('2026-07-01T10:00:00.000Z'))).toBe(true)
+    expect(sub?.isActive(new Date('2026-07-25T10:00:00.000Z'))).toBe(false)
   })
 
   it('ignores an event the gateway cannot parse', async () => {

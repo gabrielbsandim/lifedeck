@@ -193,4 +193,19 @@ export class AsaasPaymentGateway implements PaymentGateway {
       reference: rawReference,
     }
   }
+
+  async cancelSubscription(providerRef: string): Promise<void> {
+    const config = readConfig()
+    const response = await fetch(
+      `${config.baseUrl}/v3/subscriptions/${encodeURIComponent(providerRef)}`,
+      {
+        method: 'DELETE',
+        headers: { access_token: config.apiKey },
+      },
+    )
+    // A 404 means the subscription is already gone on Asaas; treat as success.
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Asaas cancel failed with status ${response.status}`)
+    }
+  }
 }

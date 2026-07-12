@@ -14,6 +14,7 @@ export type SubscriptionRecord = {
   provider: PaymentProvider
   providerRef: string
   currentPeriodEnd: Date | null
+  cancelAtPeriodEnd: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -27,6 +28,7 @@ export function toDomainSubscription(record: SubscriptionRecord): Subscription {
     provider: record.provider,
     providerRef: record.providerRef,
     currentPeriodEnd: record.currentPeriodEnd,
+    cancelAtPeriodEnd: record.cancelAtPeriodEnd,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   })
@@ -44,6 +46,7 @@ export function toSubscriptionRecord(
     provider: props.provider,
     providerRef: props.providerRef,
     currentPeriodEnd: props.currentPeriodEnd,
+    cancelAtPeriodEnd: props.cancelAtPeriodEnd,
     createdAt: props.createdAt,
     updatedAt: props.updatedAt,
   }

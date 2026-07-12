@@ -172,11 +172,32 @@ export class StripePaymentGateway implements PaymentGateway {
         plan: asPlan(metadata.plan),
         status,
         currentPeriodEnd: periodEnd(object),
+        cancelAtPeriodEnd: object.cancel_at_period_end === true,
         reference: null,
       }
     }
 
     return null
+  }
+
+  async cancelSubscription(providerRef: string): Promise<void> {
+    const config = readConfig()
+    const form = new URLSearchParams()
+    form.set('cancel_at_period_end', 'true')
+    const response = await fetch(
+      `https://api.stripe.com/v1/subscriptions/${encodeURIComponent(providerRef)}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.secretKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: form.toString(),
+      },
+    )
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Stripe cancel failed with status ${response.status}`)
+    }
   }
 }
 

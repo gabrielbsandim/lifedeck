@@ -47,11 +47,33 @@ Use cases (`packages/application/src/use-cases/`):
   reference matches a `CheckoutIntent` persisted at checkout time, so a forged event
   cannot grant a plan to an arbitrary user. Stripe events carry no reference and stay
   trusted by their signature.
-- `resolvePlanFromSubscription` returns the active subscription's plan, falling back
-  to the default `free` plan.
+- `resolvePlanFromSubscription` returns the highest-value active plan across the
+  user's subscriptions (via `listByUser`), falling back to the default `free` plan.
+  Looking across all rows, not just the latest, keeps a user correctly served if an
+  upgrade opened a second subscription before the first was canceled.
+- `getSubscription` returns the user's current subscription view (plan, status,
+  provider, `currentPeriodEnd`, `cancelAtPeriodEnd`) for the billing screen,
+  preferring a still-live subscription over a stale canceled one.
+- `cancelSubscription` cancels every live subscription at its provider and flips the
+  local `cancelAtPeriodEnd` flag; access stays until `currentPeriodEnd`. A `past_due`
+  subscription can be canceled too (to stop dunning); when the only rows are already
+  `canceled` it throws `NotFoundError`.
 
-(There is no separate `changePlan` or `cancelSubscription` use case; plan changes go
-through a new checkout, and cancellations arrive via the webhook.)
+Cancellation keeps the period already paid for. Stripe honors `cancel_at_period_end`
+natively; Asaas has no such concept and its `DELETE /v3/subscriptions` removes the
+subscription at once, so a `SUBSCRIPTION_DELETED` webhook could otherwise revoke a
+paid period immediately. To prevent that, `Subscription.isActive` grants access to a
+`canceled` subscription while `cancelAtPeriodEnd` is set and `currentPeriodEnd` is in
+the future, and the webhook handler preserves the paid-through date on a scheduled
+cancel. An involuntary cancellation (refund, chargeback) carries no such flag and
+revokes access immediately.
+
+Plan upgrades and downgrades still go through a new checkout rather than a mutate
+call. The normalized `SubscriptionEvent` also carries an optional
+`cancelAtPeriodEnd`, so Stripe's `cancel_at_period_end` flows back into local state.
+A still-active event without a period end (Stripe's `checkout.session.completed`)
+never overwrites a renewal date a `subscription.*` event already stored, since
+providers do not guarantee event ordering.
 
 ## Gateways
 
@@ -94,7 +116,10 @@ neither window would exceed its limit. This closes the check-then-add race, so t
 concurrent requests near the cap cannot both pass. When a window is full the use
 case throws `QuotaExceededError`, which the API maps to HTTP `429`; the WhatsApp
 assistant turns it into a friendly "limit reached" reply. Without Upstash the meter
-is a no-op (everything allowed), which is the local-dev default.
+is a no-op (everything allowed) in development and tests, the local-dev default. In
+production a missing Upstash config instead returns a fail-closed meter that throws
+on every call, so a misconfigured deploy surfaces loudly rather than silently
+granting unlimited (and uncharged) AI.
 
 ## Plans and prices
 

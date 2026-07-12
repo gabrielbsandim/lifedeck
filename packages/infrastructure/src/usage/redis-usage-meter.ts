@@ -66,6 +66,29 @@ class NoopUsageMeter implements UsageMeter {
   }
 }
 
+// In production a missing quota backend is a misconfiguration, not a free pass:
+// silently granting unlimited AI is a real cost leak. This meter fails loud on
+// every call so the deployment surfaces the problem instead of leaking spend.
+class UnconfiguredUsageMeter implements UsageMeter {
+  private fail(): never {
+    throw new Error(
+      'Usage meter is not configured: set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN. Refusing to meter AI usage without a quota backend.',
+    )
+  }
+
+  async current(): Promise<UsageCounts> {
+    return this.fail()
+  }
+
+  async add(): Promise<UsageCounts> {
+    return this.fail()
+  }
+
+  async consume(): Promise<ConsumeResult> {
+    return this.fail()
+  }
+}
+
 type PipelineResult = { result: unknown }[]
 
 class RedisUsageMeter implements UsageMeter {
@@ -185,7 +208,10 @@ export function createUsageMeter(): UsageMeter {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) {
-    return new NoopUsageMeter()
+    // Fail loud in production, stay frictionless (no-op) in local dev and tests.
+    return process.env.NODE_ENV === 'production'
+      ? new UnconfiguredUsageMeter()
+      : new NoopUsageMeter()
   }
   return new RedisUsageMeter(url.replace(/\/$/, ''), token)
 }

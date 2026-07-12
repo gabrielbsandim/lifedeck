@@ -21,6 +21,7 @@ function fromPrisma(record: {
   provider: string
   providerRef: string
   currentPeriodEnd: Date | null
+  cancelAtPeriodEnd: boolean
   createdAt: Date
   updatedAt: Date
 }): SubscriptionRecord {
@@ -32,6 +33,7 @@ function fromPrisma(record: {
     provider: record.provider as PaymentProvider,
     providerRef: record.providerRef,
     currentPeriodEnd: record.currentPeriodEnd,
+    cancelAtPeriodEnd: record.cancelAtPeriodEnd,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   }
@@ -52,6 +54,7 @@ export class PrismaSubscriptionRepository implements SubscriptionRepository {
         provider: record.provider,
         providerRef: record.providerRef,
         currentPeriodEnd: record.currentPeriodEnd,
+        cancelAtPeriodEnd: record.cancelAtPeriodEnd,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt,
       },
@@ -59,6 +62,7 @@ export class PrismaSubscriptionRepository implements SubscriptionRepository {
         plan: record.plan,
         status: record.status,
         currentPeriodEnd: record.currentPeriodEnd,
+        cancelAtPeriodEnd: record.cancelAtPeriodEnd,
         updatedAt: record.updatedAt,
       },
     })
@@ -70,6 +74,14 @@ export class PrismaSubscriptionRepository implements SubscriptionRepository {
       orderBy: { createdAt: 'desc' },
     })
     return row ? toDomainSubscription(fromPrisma(row)) : null
+  }
+
+  async listByUser(userId: EntityId): Promise<Subscription[]> {
+    const rows = await this.prisma.subscription.findMany({
+      where: { userId: userId as string },
+      orderBy: { createdAt: 'desc' },
+    })
+    return rows.map(row => toDomainSubscription(fromPrisma(row)))
   }
 
   async findByProviderRef(

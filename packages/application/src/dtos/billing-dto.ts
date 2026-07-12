@@ -7,3 +7,13 @@ export const checkoutRequestSchema = z.object({
 })
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>
+
+export const subscriptionViewSchema = z.object({
+  plan: z.enum(['free', 'pro', 'premium']),
+  status: z.enum(['trialing', 'active', 'past_due', 'canceled']),
+  provider: z.enum(['asaas', 'stripe']),
+  currentPeriodEnd: z.string().datetime().nullable(),
+  cancelAtPeriodEnd: z.boolean(),
+})
+
+export type SubscriptionView = z.infer<typeof subscriptionViewSchema>

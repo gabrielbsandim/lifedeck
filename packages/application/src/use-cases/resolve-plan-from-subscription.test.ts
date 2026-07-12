@@ -55,4 +55,37 @@ describe('resolvePlanFromSubscription', () => {
     })
     expect(await resolve(USER_ID)).toBe('free')
   })
+
+  it('returns the highest-value plan when more than one is active', async () => {
+    const repo = new InMemorySubscriptionRepository()
+    await repo.save(
+      Subscription.create({
+        id: asEntityId('dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+        userId: asEntityId(USER_ID),
+        plan: 'pro',
+        status: 'active',
+        provider: 'asaas',
+        providerRef: 'sub_pro',
+        currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+        now: NOW,
+      }),
+    )
+    await repo.save(
+      Subscription.create({
+        id: asEntityId('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'),
+        userId: asEntityId(USER_ID),
+        plan: 'premium',
+        status: 'active',
+        provider: 'stripe',
+        providerRef: 'sub_premium',
+        currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+        now: new Date('2026-06-25T10:00:00.000Z'),
+      }),
+    )
+    const resolve = makeResolvePlanFromSubscription({
+      subscriptions: repo,
+      clock,
+    })
+    expect(await resolve(USER_ID)).toBe('premium')
+  })
 })

@@ -28,6 +28,7 @@ export type SubscriptionEvent = {
   plan: Plan | null
   status: SubscriptionStatus
   currentPeriodEnd: Date | null
+  cancelAtPeriodEnd?: boolean
   reference: string | null
 }
 
@@ -38,4 +39,7 @@ export interface PaymentGateway {
     rawBody: string,
     signature: string | null,
   ): Promise<SubscriptionEvent | null>
+  // Cancel at period end; the provider keeps access until currentPeriodEnd and
+  // then emits a webhook that flips the local status to canceled.
+  cancelSubscription(providerRef: string): Promise<void>
 }

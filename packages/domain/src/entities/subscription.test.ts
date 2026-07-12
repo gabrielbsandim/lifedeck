@@ -78,6 +78,30 @@ describe('Subscription', () => {
     expect(sub.plan).toBe('pro')
   })
 
+  it('exposes the current period end and default cancel flag', () => {
+    const sub = build()
+    expect(sub.currentPeriodEnd).toEqual(new Date('2026-07-24T10:00:00.000Z'))
+    expect(sub.cancelAtPeriodEnd).toBe(false)
+  })
+
+  it('adopts a cancel-at-period-end flag from an update', () => {
+    const sub = build()
+    sub.update(
+      { status: 'active', currentPeriodEnd: null, cancelAtPeriodEnd: true },
+      NOW,
+    )
+    expect(sub.cancelAtPeriodEnd).toBe(true)
+  })
+
+  it('requests cancellation while staying active until the period ends', () => {
+    const sub = build()
+    const later = new Date('2026-06-25T10:00:00.000Z')
+    sub.requestCancellation(later)
+    expect(sub.cancelAtPeriodEnd).toBe(true)
+    expect(sub.isActive(later)).toBe(true)
+    expect(sub.toJSON().updatedAt).toEqual(later)
+  })
+
   it('is active when active within the current period', () => {
     expect(build({ status: 'active' }).isActive(NOW)).toBe(true)
   })
@@ -102,6 +126,52 @@ describe('Subscription', () => {
 
   it('is inactive when canceled', () => {
     expect(build({ status: 'canceled' }).isActive(NOW)).toBe(false)
+  })
+
+  it('keeps access after a scheduled cancellation until the paid period ends', () => {
+    const graced = Subscription.create({
+      id: asEntityId(ID),
+      userId: asEntityId(USER_ID),
+      plan: 'pro',
+      status: 'canceled',
+      provider: 'asaas',
+      providerRef: 'sub_123',
+      currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+      cancelAtPeriodEnd: true,
+      now: NOW,
+    })
+    expect(graced.isActive(NOW)).toBe(true)
+    expect(graced.isActive(new Date('2026-07-25T10:00:00.000Z'))).toBe(false)
+  })
+
+  it('does not grant grace to an involuntary cancellation', () => {
+    const refunded = Subscription.create({
+      id: asEntityId(ID),
+      userId: asEntityId(USER_ID),
+      plan: 'pro',
+      status: 'canceled',
+      provider: 'asaas',
+      providerRef: 'sub_123',
+      currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+      cancelAtPeriodEnd: false,
+      now: NOW,
+    })
+    expect(refunded.isActive(NOW)).toBe(false)
+  })
+
+  it('grants no grace when a scheduled cancellation has no period end', () => {
+    const graced = Subscription.create({
+      id: asEntityId(ID),
+      userId: asEntityId(USER_ID),
+      plan: 'pro',
+      status: 'canceled',
+      provider: 'asaas',
+      providerRef: 'sub_123',
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: true,
+      now: NOW,
+    })
+    expect(graced.isActive(NOW)).toBe(false)
   })
 
   it('restores from persisted props', () => {

@@ -12,6 +12,7 @@ export type SubscriptionProps = {
   provider: PaymentProvider
   providerRef: string
   currentPeriodEnd: Date | null
+  cancelAtPeriodEnd: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -27,6 +28,7 @@ export class Subscription {
     provider: PaymentProvider
     providerRef: string
     currentPeriodEnd: Date | null
+    cancelAtPeriodEnd?: boolean
     now: Date
   }): Subscription {
     return new Subscription({
@@ -40,6 +42,7 @@ export class Subscription {
         'Subscription provider reference',
       ),
       currentPeriodEnd: input.currentPeriodEnd,
+      cancelAtPeriodEnd: input.cancelAtPeriodEnd ?? false,
       createdAt: input.now,
       updatedAt: input.now,
     })
@@ -73,11 +76,20 @@ export class Subscription {
     return this.props.providerRef
   }
 
+  get currentPeriodEnd(): Date | null {
+    return this.props.currentPeriodEnd
+  }
+
+  get cancelAtPeriodEnd(): boolean {
+    return this.props.cancelAtPeriodEnd
+  }
+
   update(
     input: {
       plan?: Plan
       status: SubscriptionStatus
       currentPeriodEnd: Date | null
+      cancelAtPeriodEnd?: boolean
     },
     now: Date,
   ): void {
@@ -86,16 +98,37 @@ export class Subscription {
     }
     this.props.status = input.status
     this.props.currentPeriodEnd = input.currentPeriodEnd
+    if (input.cancelAtPeriodEnd !== undefined) {
+      this.props.cancelAtPeriodEnd = input.cancelAtPeriodEnd
+    }
+    this.props.updatedAt = now
+  }
+
+  // The user asked to cancel; the plan stays active until the period ends, when
+  // the provider webhook flips the status to canceled.
+  requestCancellation(now: Date): void {
+    this.props.cancelAtPeriodEnd = true
     this.props.updatedAt = now
   }
 
   isActive(now: Date): boolean {
-    if (this.props.status !== 'active' && this.props.status !== 'trialing') {
-      return false
+    if (this.props.status === 'active' || this.props.status === 'trialing') {
+      return (
+        this.props.currentPeriodEnd === null ||
+        this.props.currentPeriodEnd > now
+      )
     }
-    return (
-      this.props.currentPeriodEnd === null || this.props.currentPeriodEnd > now
-    )
+    // A user-scheduled cancellation keeps access through the period already paid
+    // for, even after the provider flips the status to canceled. Asaas deletes
+    // the subscription immediately, so without this the customer would lose a
+    // period they already paid for; Stripe waits, but both are honored here.
+    if (this.props.status === 'canceled' && this.props.cancelAtPeriodEnd) {
+      return (
+        this.props.currentPeriodEnd !== null &&
+        this.props.currentPeriodEnd > now
+      )
+    }
+    return false
   }
 
   toJSON(): SubscriptionProps {

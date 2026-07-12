@@ -173,4 +173,21 @@ describe('createUsageMeter (redis)', () => {
     expect(await meter.add('user-1', 9)).toEqual({ fiveHour: 0, weekly: 0 })
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it('fails loud in production when redis is not configured', async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    const previousEnv = process.env.NODE_ENV
+    vi.stubEnv('NODE_ENV', 'production')
+    const meter = await loadMeter()
+
+    const notConfigured = /Usage meter is not configured/
+    await expect(
+      meter.consume('user-1', 1, { fiveHour: 1, weekly: 1 }),
+    ).rejects.toThrow(notConfigured)
+    await expect(meter.current('user-1')).rejects.toThrow(notConfigured)
+    await expect(meter.add('user-1', 1)).rejects.toThrow(notConfigured)
+
+    vi.stubEnv('NODE_ENV', previousEnv ?? 'test')
+  })
 })

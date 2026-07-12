@@ -3,25 +3,19 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button, Card } from '@lifedeck/ui'
-import type { CheckoutRequest } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { useStartCheckout } from '@/lib/api/use-checkout'
-
-type PaidPlan = 'pro' | 'premium'
-type Interval = CheckoutRequest['interval']
-type Market = CheckoutRequest['market']
-
-const PRICES: Record<Market, Record<PaidPlan, Record<Interval, string>>> = {
-  BR: {
-    pro: { monthly: 'R$14,90', annual: 'R$149' },
-    premium: { monthly: 'R$29,90', annual: 'R$299' },
-  },
-  INTL: {
-    pro: { monthly: 'US$4.99', annual: 'US$49' },
-    premium: { monthly: 'US$9.99', annual: 'US$99' },
-  },
-}
+import {
+  useCancelSubscription,
+  useSubscription,
+} from '@/lib/api/use-subscription'
+import {
+  PRICES,
+  type Interval,
+  type Market,
+  type PaidPlan,
+} from '@/lib/billing/prices'
 
 const PLAN_ORDER = ['free', 'pro', 'premium'] as const
 
@@ -32,10 +26,26 @@ export function BillingScreen() {
   const params = useSearchParams()
   const checkout = useStartCheckout()
   const [interval, setInterval] = useState<Interval>('annual')
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
 
   const currentPlan = session.data?.plan ?? 'free'
   const market: Market = session.data?.locale === 'pt' ? 'BR' : 'INTL'
   const status = params.get('status')
+
+  const subscription = useSubscription(currentPlan !== 'free')
+  const cancel = useCancelSubscription()
+  const sub = subscription.data?.subscription ?? null
+  const statusLabel: Record<string, string> = {
+    active: t.statusActive,
+    trialing: t.statusTrialing,
+    past_due: t.statusPastDue,
+    canceled: t.statusCanceled,
+  }
+  const periodDate = sub?.currentPeriodEnd
+    ? new Intl.DateTimeFormat(session.data?.locale === 'pt' ? 'pt-BR' : 'en', {
+        dateStyle: 'medium',
+      }).format(new Date(sub.currentPeriodEnd))
+    : null
 
   function start(plan: PaidPlan) {
     checkout.mutate(
@@ -80,6 +90,43 @@ export function BillingScreen() {
         <div className="text-danger rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm">
           {t.error}
         </div>
+      )}
+
+      {sub && sub.plan !== 'free' && (
+        <Card className="flex flex-col gap-2 p-5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-ink-900 text-lg font-semibold">{t.yourPlan}</h2>
+            <span className="text-ink-600 text-sm">
+              {statusLabel[sub.status] ?? sub.status}
+            </span>
+          </div>
+          {periodDate && (
+            <p className="text-ink-600 text-sm">
+              {sub.cancelAtPeriodEnd
+                ? `${t.cancelScheduled} ${t.accessUntil} ${periodDate}`
+                : `${t.renewsOn} ${periodDate}`}
+            </p>
+          )}
+          {!sub.cancelAtPeriodEnd && sub.status !== 'canceled' && (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (confirmingCancel) {
+                    cancel.mutate()
+                    setConfirmingCancel(false)
+                  } else {
+                    setConfirmingCancel(true)
+                  }
+                }}
+                isLoading={cancel.isPending}
+                disabled={cancel.isPending}
+              >
+                {confirmingCancel ? t.cancelConfirm : t.cancelPlan}
+              </Button>
+            </div>
+          )}
+        </Card>
       )}
 
       <div className="bg-bg text-ink-700 inline-flex w-fit gap-1 rounded-full p-1 text-sm font-medium">

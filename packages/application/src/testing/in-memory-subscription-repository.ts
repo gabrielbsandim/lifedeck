@@ -9,7 +9,16 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
   }
 
   async findByUser(userId: EntityId): Promise<Subscription | null> {
-    return [...this.items.values()].find(item => item.userId === userId) ?? null
+    return (await this.listByUser(userId))[0] ?? null
+  }
+
+  async listByUser(userId: EntityId): Promise<Subscription[]> {
+    return [...this.items.values()]
+      .filter(item => item.userId === userId)
+      .sort(
+        (a, b) =>
+          b.toJSON().createdAt.getTime() - a.toJSON().createdAt.getTime(),
+      )
   }
 
   async findByProviderRef(

@@ -14,6 +14,7 @@ const RECORD: SubscriptionRecord = {
   provider: 'asaas',
   providerRef: 'sub_123',
   currentPeriodEnd: new Date('2026-07-24T10:00:00.000Z'),
+  cancelAtPeriodEnd: false,
   createdAt: new Date('2026-06-24T10:00:00.000Z'),
   updatedAt: new Date('2026-06-24T10:00:00.000Z'),
 }
@@ -36,6 +37,7 @@ describe('subscription-record', () => {
       provider: RECORD.provider,
       providerRef: RECORD.providerRef,
       currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
       createdAt: RECORD.createdAt,
       updatedAt: RECORD.updatedAt,
     })

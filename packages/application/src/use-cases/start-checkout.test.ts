@@ -17,6 +17,7 @@ function fakeGateway(
     provider,
     startCheckout: vi.fn().mockResolvedValue({ url, reference }),
     parseWebhook: vi.fn().mockResolvedValue(null),
+    cancelSubscription: vi.fn(),
   }
 }
 
