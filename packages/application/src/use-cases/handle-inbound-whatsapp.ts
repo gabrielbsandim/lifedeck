@@ -1,5 +1,8 @@
 import { normalizePhone, type AiOperation } from '@lifedeck/domain'
-import { QuotaExceededError } from '@/errors/use-case-error'
+import {
+  MediaUnderstandingUnavailableError,
+  QuotaExceededError,
+} from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { AgentRunner } from '@/ports/agent-runner'
 import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
@@ -21,6 +24,8 @@ export const ASSISTANT_QUOTA_MESSAGE =
   'You have reached your usage limit for now. It will free up again soon.'
 export const ASSISTANT_ERROR_MESSAGE =
   'Something went wrong on my side. Please try again in a moment.'
+export const ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE =
+  'I cannot understand voice or image messages yet. Please send your request as text.'
 
 export type InboundWhatsappMessage =
   | { from: string; kind: 'text'; text: string }
@@ -34,6 +39,7 @@ export type InboundWhatsappAction =
   | 'mismatch'
   | 'denied'
   | 'quota'
+  | 'unconfigured'
   | 'error'
 
 export type InboundWhatsappResult = {
@@ -128,6 +134,20 @@ export function makeHandleInboundWhatsApp({
       return { action: 'denied' }
     }
 
+    // Refuse media we cannot read before metering, so an unconfigured
+    // deployment never charges a credit for a transcription or vision read
+    // that would fail loudly anyway.
+    if (
+      (message.kind === 'audio' && !transcriber.isAvailable()) ||
+      (message.kind === 'image' && !visionReader.isAvailable())
+    ) {
+      await messaging.sendText(
+        message.from,
+        ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
+      )
+      return { action: 'unconfigured' }
+    }
+
     const pro = message.kind === 'text' && wantsProModel(granted, message.text)
     const operation: AiOperation = pro
       ? 'assistantPro'
@@ -156,7 +176,14 @@ export function makeHandleInboundWhatsApp({
         history,
         model: pro ? 'pro' : 'flash',
       })
-    } catch {
+    } catch (error) {
+      if (error instanceof MediaUnderstandingUnavailableError) {
+        await messaging.sendText(
+          message.from,
+          ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
+        )
+        return { action: 'unconfigured' }
+      }
       await messaging.sendText(message.from, ASSISTANT_ERROR_MESSAGE)
       return { action: 'error' }
     }

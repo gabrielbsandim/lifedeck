@@ -9,12 +9,24 @@ inbound orchestration, multimodal handling, and the env vars.
 
 ## Transport
 
-Meta WhatsApp Cloud API (official), via `MessagingChannel`
+WhatsApp is reached through the `MessagingChannel` port
 (`packages/application/src/ports/messaging-channel.ts`: `sendText`, `sendTemplate`,
-`fetchMedia`). The adapter `WhatsAppCloudChannel`
-(`packages/infrastructure/src/messaging/whatsapp-cloud-channel.ts`) talks to Meta
-Graph `v21.0` and no-ops when credentials are unset; `createMessagingChannel`
-selects it or a noop fallback.
+`fetchMedia`). `createMessagingChannel`
+(`packages/infrastructure/src/messaging/whatsapp-cloud-channel.ts`) selects an
+adapter by precedence:
+
+1. **Abracode gateway** (`AbracodeChannel`) when `ABRACODE_API_KEY` and
+   `ABRACODE_FROM` are set. Abracode manages the Meta token, so only an API key is
+   needed. It calls `POST /api/v1/messages` and `GET /api/v1/media/{id}` at
+   `ABRACODE_BASE_URL` (default `https://api.abracode.com.br`);
+   `ABRACODE_PHONE_NUMBER_ID` (the Meta `phone_number_id`) is only needed to
+   resolve inbound media.
+2. **Meta Cloud API direct** (`WhatsAppCloudChannel`) when `WHATSAPP_PHONE_NUMBER_ID`
+   and `WHATSAPP_ACCESS_TOKEN` are set. Talks to Meta Graph `v21.0`.
+3. **No-op** otherwise (dev/preview): sends are dropped.
+
+Inbound over Abracode uses a separate webhook (see below); everything downstream
+of parsing is identical regardless of transport.
 
 ## Webhook
 
@@ -28,6 +40,21 @@ selects it or a noop fallback.
 The helpers `verifyWhatsAppSignature` and `parseInboundMessages` live in
 `packages/infrastructure/src/messaging/whatsapp-webhook.ts`. Inbound messages parse
 into text, audio, or image variants (each carrying `from` and `messageId`).
+
+**Abracode inbound.** When routing through the Abracode gateway, inbound arrives at
+`apps/web/src/app/api/v1/webhooks/abracode/route.ts` instead. There is no
+`hub.challenge` handshake; Abracode POSTs a normalized `{ type, data }` body signed
+with `X-Abracode-Signature` (HMAC-SHA256 over the raw body with
+`ABRACODE_WEBHOOK_SECRET`). `parseAbracodeInbound` maps it into the same
+text/audio/image variants, and the same dedup, throttle, and assistant handling
+apply.
+
+**Multimodal configuration.** Audio transcription and image reading need
+`GEMINI_API_KEY`. When it is unset, the assistant does not silently degrade: a
+voice or image message gets a clear "I cannot understand voice or image messages
+yet, please send text" reply (`MediaUnderstandingUnavailableError` →
+`ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE`), rather than feeding a placeholder to the
+model.
 
 **Hardening.** After the signature check, each message is processed at most once:
 `markMessageProcessed(messageId)` (`apps/web/src/server/api/whatsapp-dedup.ts`) does
@@ -77,9 +104,20 @@ direct, else the `AI_MODEL` gateway, else a stub. Default model is Gemini Flash
 
 Tools are thin adapters over existing use cases, exposed through the `AssistantTools`
 port (`packages/application/src/ports/assistant-tools.ts`) and wired in the
-container as the linked user: `getToday`, `addTask` (on the provisioned daily
-list), `getAgenda`, and `addEvent` (on the calendar). Each call inherits the same
-authorization and validation the REST API enforces.
+container as the linked user. The surface covers reading and acting, not just
+creating:
+
+- **Read** (return ids the model threads into mutations): `getToday`, `getLists`,
+  `getAgenda`.
+- **Tasks**: `addTask` (defaults to today's list, or a given `listId`),
+  `completeTask`, `reopenTask`, `renameTask`, `deleteTask`, `moveTaskToToday`.
+- **Lists / subtasks**: `createList`, `addSubtask`, `completeSubtask`.
+- **Calendar**: `addEvent` (with description/location/all-day/reminders),
+  `updateEvent` (also reschedule), `deleteEvent`.
+
+Mutations reference an entity by id, so the model reads first (`getToday` /
+`getAgenda` / `getLists`) then acts. Each call inherits the same authorization and
+validation the REST API enforces.
 
 Short-term context lives in `ConversationStore` (port) via
 `RedisConversationStore` (`packages/infrastructure/src/messaging/redis-conversation-store.ts`):

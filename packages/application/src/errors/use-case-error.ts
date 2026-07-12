@@ -16,6 +16,18 @@ export class ForbiddenError extends Error {
   }
 }
 
+// Raised when the user sends voice/image but no multimodal model is configured
+// (no GEMINI_API_KEY). We surface this loudly instead of feeding a placeholder
+// like "[voice message received]" to the assistant, which read as a silent bug.
+export class MediaUnderstandingUnavailableError extends Error {
+  readonly code = 'MEDIA_UNAVAILABLE'
+
+  constructor(readonly kind: 'audio' | 'image') {
+    super(`No model is configured to understand ${kind} messages.`)
+    this.name = 'MediaUnderstandingUnavailableError'
+  }
+}
+
 export class QuotaExceededError extends Error {
   readonly code = 'QUOTA_EXCEEDED'
 

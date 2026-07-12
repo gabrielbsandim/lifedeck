@@ -2,11 +2,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { ChannelIdentity, asEntityId, type Entitlement } from '@lifedeck/domain'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
-import { QuotaExceededError } from '@/errors/use-case-error'
+import {
+  MediaUnderstandingUnavailableError,
+  QuotaExceededError,
+} from '@/errors/use-case-error'
 import { FixedClock, ID } from '@/testing/fakes'
 import {
   ASSISTANT_ERROR_MESSAGE,
   ASSISTANT_LOCKED_MESSAGE,
+  ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
   ASSISTANT_QUOTA_MESSAGE,
   PAIR_GUIDANCE_MESSAGE,
   PAIR_LINKED_MESSAGE,
@@ -22,6 +26,7 @@ type Options = {
   grants?: Entitlement[]
   consumeCredits?: (userId: string, operation: string) => Promise<unknown>
   agentRun?: () => Promise<{ text: string }>
+  mediaAvailable?: boolean
 }
 
 function setup(options: Options = {}) {
@@ -36,6 +41,7 @@ function setup(options: Options = {}) {
   const run = vi.fn(options.agentRun ?? (async () => ({ text: 'Done.' })))
   const transcribe = vi.fn().mockResolvedValue('remind me to call mom')
   const describe = vi.fn().mockResolvedValue('a photo of a receipt')
+  const mediaAvailable = options.mediaAvailable ?? true
   const handleInboundWhatsApp = makeHandleInboundWhatsApp({
     channelIdentities,
     messaging: { sendText, sendTemplate, fetchMedia },
@@ -52,8 +58,8 @@ function setup(options: Options = {}) {
     consumeCredits: consume,
     agent: { run },
     conversations,
-    transcriber: { transcribe },
-    visionReader: { describe },
+    transcriber: { transcribe, isAvailable: () => mediaAvailable },
+    visionReader: { describe, isAvailable: () => mediaAvailable },
     clock: new FixedClock(NOW),
   })
   return {
@@ -330,5 +336,63 @@ describe('handleInboundWhatsApp', () => {
       role: 'user',
       content: 'a photo of a receipt',
     })
+  })
+
+  it('refuses audio without metering when transcription is unconfigured', async () => {
+    const ctx = setup({ mediaAvailable: false })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-3',
+    })
+
+    expect(result).toEqual({ action: 'unconfigured' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
+    )
+    // No credit is spent and the media is never fetched or transcribed.
+    expect(ctx.consume).not.toHaveBeenCalled()
+    expect(ctx.fetchMedia).not.toHaveBeenCalled()
+    expect(ctx.transcribe).not.toHaveBeenCalled()
+    expect(ctx.run).not.toHaveBeenCalled()
+  })
+
+  it('refuses images without metering when vision is unconfigured', async () => {
+    const ctx = setup({ mediaAvailable: false })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'image',
+      mediaId: 'media-4',
+    })
+
+    expect(result).toEqual({ action: 'unconfigured' })
+    expect(ctx.consume).not.toHaveBeenCalled()
+    expect(ctx.describe).not.toHaveBeenCalled()
+  })
+
+  it('replies clearly when media understanding fails at runtime', async () => {
+    const ctx = setup()
+    await verified(ctx.channelIdentities)
+    ctx.transcribe.mockRejectedValueOnce(
+      new MediaUnderstandingUnavailableError('audio'),
+    )
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-3',
+    })
+
+    expect(result).toEqual({ action: 'unconfigured' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
+    )
+    expect(ctx.run).not.toHaveBeenCalled()
   })
 })

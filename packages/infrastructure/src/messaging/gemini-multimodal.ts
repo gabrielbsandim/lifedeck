@@ -1,9 +1,10 @@
 import { generateText, type LanguageModel, type ModelMessage } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import type {
-  MediaPayload,
-  Transcriber,
-  VisionReader,
+import {
+  MediaUnderstandingUnavailableError,
+  type MediaPayload,
+  type Transcriber,
+  type VisionReader,
 } from '@lifedeck/application'
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
@@ -20,20 +21,35 @@ function filePart(media: MediaPayload): ModelMessage {
   }
 }
 
+// Without a configured model we refuse loudly rather than feed a placeholder
+// transcription to the assistant. The inbound handler turns this into a clear
+// "send it as text" reply, so a missing GEMINI_API_KEY never ships silently.
 class StubTranscriber implements Transcriber {
+  isAvailable(): boolean {
+    return false
+  }
+
   async transcribe(): Promise<string> {
-    return '[voice message received]'
+    throw new MediaUnderstandingUnavailableError('audio')
   }
 }
 
 class StubVisionReader implements VisionReader {
+  isAvailable(): boolean {
+    return false
+  }
+
   async describe(): Promise<string> {
-    return '[image received]'
+    throw new MediaUnderstandingUnavailableError('image')
   }
 }
 
 export class GeminiTranscriber implements Transcriber {
   constructor(private readonly model: LanguageModel) {}
+
+  isAvailable(): boolean {
+    return true
+  }
 
   async transcribe(audio: MediaPayload): Promise<string> {
     const { text } = await generateText({
@@ -47,6 +63,10 @@ export class GeminiTranscriber implements Transcriber {
 
 export class GeminiVisionReader implements VisionReader {
   constructor(private readonly model: LanguageModel) {}
+
+  isAvailable(): boolean {
+    return true
+  }
 
   async describe(image: MediaPayload): Promise<string> {
     const { text } = await generateText({

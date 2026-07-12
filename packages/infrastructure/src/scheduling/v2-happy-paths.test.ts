@@ -9,6 +9,8 @@ import {
   InMemoryScheduledJobRepository,
   InMemoryUsageEventLedger,
   InMemoryUsageMeter,
+  InMemoryUserRepository,
+  FakeEmailSender,
   REMINDER_JOB,
   makeConsumeCredits,
   makeCreateCalendarEvent,
@@ -69,6 +71,8 @@ describe('V2 calendar reminder happy path', () => {
       calendarEvents,
       notifications,
       channelIdentities,
+      users: new InMemoryUserRepository(),
+      emailSender: new FakeEmailSender(),
       messaging,
       jobQueue,
       ids,
@@ -172,8 +176,8 @@ describe('V2 whatsapp assistant happy path', () => {
       consumeCredits,
       agent,
       conversations,
-      transcriber: { transcribe: vi.fn() },
-      visionReader: { describe: vi.fn() },
+      transcriber: { transcribe: vi.fn(), isAvailable: () => true },
+      visionReader: { describe: vi.fn(), isAvailable: () => true },
       clock,
     })
 
