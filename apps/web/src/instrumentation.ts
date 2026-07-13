@@ -1,6 +1,8 @@
 import * as Sentry from '@sentry/nextjs'
+import { assertProductionEnv } from '@/server/env'
 
 export async function register() {
+  assertProductionEnv()
   const dsn = process.env.SENTRY_DSN
   if (!dsn) {
     return
