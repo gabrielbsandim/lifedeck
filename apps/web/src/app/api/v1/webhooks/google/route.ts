@@ -10,11 +10,15 @@ export async function POST(request: Request) {
     }
     // When a channel token is configured we set it on every watch channel, so
     // a notification missing it did not originate from a channel we created.
+    // Fail closed in production: without a configured token, anyone who learns a
+    // channel id could trigger sync jobs, so refuse rather than accept blindly.
+    // In dev/preview the token stays optional.
     const expectedToken = process.env.GOOGLE_CALENDAR_WEBHOOK_TOKEN?.trim()
-    if (
-      expectedToken &&
-      request.headers.get('x-goog-channel-token') !== expectedToken
-    ) {
+    if (!expectedToken) {
+      if (process.env.NODE_ENV === 'production') {
+        return new NextResponse(null, { status: 401 })
+      }
+    } else if (request.headers.get('x-goog-channel-token') !== expectedToken) {
       return new NextResponse(null, { status: 401 })
     }
     const channelId = request.headers.get('x-goog-channel-id')

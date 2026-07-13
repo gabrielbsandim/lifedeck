@@ -14,6 +14,11 @@ import {
   releaseMessageClaim,
 } from '@/server/api/whatsapp-dedup'
 
+// The inbound handler runs the assistant (media transcription + tool steps) in
+// after() once the 200 is acked, so give it room; a truncated turn would drop
+// the user's reply silently (Meta already got its 200 and will not retry).
+export const maxDuration = 60
+
 export async function GET(request: Request) {
   if (!isFeatureEnabled('whatsapp')) {
     return new NextResponse(null, { status: 404 })

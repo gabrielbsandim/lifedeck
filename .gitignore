@@ -29,8 +29,8 @@ coverage
 
 # Environment
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Prisma
 packages/infrastructure/prisma/*.db

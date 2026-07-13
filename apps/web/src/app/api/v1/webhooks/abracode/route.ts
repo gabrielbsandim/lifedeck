@@ -20,6 +20,10 @@ import {
 // (HMAC-SHA256 over the raw body with the endpoint secret). Downstream handling
 // is identical to the Meta-direct route: dedup, per-sender throttle, then hand
 // the message to the provider-agnostic assistant.
+// The inbound handler runs the assistant in after() once the 200 is acked, so
+// give it room; a truncated turn would drop the user's reply silently.
+export const maxDuration = 60
+
 export async function POST(request: Request) {
   try {
     if (!isFeatureEnabled('whatsapp')) {

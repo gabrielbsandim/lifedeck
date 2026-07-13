@@ -153,6 +153,18 @@ describe('deliverReminder', () => {
     expect(params[1]).toContain('9:00')
   })
 
+  it('sends the whatsapp template in the user locale, not the default', async () => {
+    const { deliver, sendTemplate } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      // Template default is pt_BR but the user's locale is 'en'.
+      reminderTemplate: { name: 'event_reminder', language: 'pt_BR' },
+      user: { email: 'gab@example.com', verified: true },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(sendTemplate.mock.calls[0]?.[1]?.language).toBe('en')
+  })
+
   it('skips the whatsapp template when no template is configured', async () => {
     const { deliver, sendTemplate } = await setup({
       now: new Date('2026-06-25T08:30:00.000Z'),

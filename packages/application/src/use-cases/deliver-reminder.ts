@@ -5,6 +5,7 @@ import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
 import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import { formatEventTime } from '@/shared/format-event-time'
+import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
@@ -141,7 +142,11 @@ export function makeDeliverReminder({
         try {
           await messaging.sendTemplate(identity.address, {
             name: reminderTemplate.name,
-            language: reminderTemplate.language,
+            // Render in the recipient's language, not one global default.
+            language: whatsappLanguageForLocale(
+              user?.locale,
+              reminderTemplate.language,
+            ),
             params: [props.title, when],
           })
         } catch {
