@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { httpFetch } from '@/http/http-fetch'
 import { isPlan, type Plan, type SubscriptionStatus } from '@lifedeck/domain'
 import type {
   CheckoutInput,
@@ -95,7 +96,7 @@ export class StripePaymentGateway implements PaymentGateway {
       form.set('customer_email', input.email)
     }
 
-    const response = await fetch(
+    const response = await httpFetch(
       'https://api.stripe.com/v1/checkout/sessions',
       {
         method: 'POST',
@@ -184,7 +185,7 @@ export class StripePaymentGateway implements PaymentGateway {
     const config = readConfig()
     const form = new URLSearchParams()
     form.set('cancel_at_period_end', 'true')
-    const response = await fetch(
+    const response = await httpFetch(
       `https://api.stripe.com/v1/subscriptions/${encodeURIComponent(providerRef)}`,
       {
         method: 'POST',

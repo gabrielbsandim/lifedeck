@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { httpFetch } from '@/http/http-fetch'
 import type {
   ConsumeResult,
   UsageCounts,
@@ -102,7 +103,7 @@ class RedisUsageMeter implements UsageMeter {
   }
 
   private async pipeline(commands: unknown[][]): Promise<unknown[]> {
-    const response = await fetch(`${this.url}/pipeline`, {
+    const response = await httpFetch(`${this.url}/pipeline`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.token}`,

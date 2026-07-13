@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { httpFetch } from '@/http/http-fetch'
 import type { CalendarConnection, CalendarEvent } from '@lifedeck/domain'
 import type {
   CalendarProvider,
@@ -293,7 +294,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     expires_in?: number
     id_token?: string
   }> {
-    const response = await fetch(TOKEN_ENDPOINT, {
+    const response = await httpFetch(TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(body),
@@ -315,7 +316,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     accessToken: string,
     body?: unknown,
   ): Promise<T> {
-    const response = await fetch(`${CALENDAR_API}${path}`, {
+    const response = await httpFetch(`${CALENDAR_API}${path}`, {
       method,
       headers: {
         authorization: `Bearer ${accessToken}`,

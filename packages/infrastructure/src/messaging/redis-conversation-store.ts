@@ -3,6 +3,7 @@ import {
   type ConversationStore,
   type ConversationTurn,
 } from '@lifedeck/application'
+import { httpFetch } from '@/http/http-fetch'
 
 const MAX_TURNS = 20
 const TTL_SECONDS = 24 * 60 * 60
@@ -20,7 +21,7 @@ class RedisConversationStore implements ConversationStore {
   }
 
   private async pipeline(commands: unknown[][]): Promise<unknown[]> {
-    const response = await fetch(`${this.url}/pipeline`, {
+    const response = await httpFetch(`${this.url}/pipeline`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.token}`,

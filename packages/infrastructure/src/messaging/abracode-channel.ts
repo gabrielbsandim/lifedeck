@@ -3,6 +3,7 @@ import type {
   MessageTemplate,
   MessagingChannel,
 } from '@lifedeck/application'
+import { httpFetch } from '@/http/http-fetch'
 
 const DEFAULT_BASE_URL = 'https://api.abracode.com.br'
 
@@ -37,7 +38,7 @@ export class AbracodeChannel implements MessagingChannel {
   }
 
   private async postMessage(body: unknown, label: string): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/api/v1/messages`, {
+    const response = await httpFetch(`${this.baseUrl}/api/v1/messages`, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${this.apiKey}`,
@@ -86,7 +87,7 @@ export class AbracodeChannel implements MessagingChannel {
       )
     }
     const query = new URLSearchParams({ phoneNumberId: this.phoneNumberId })
-    const response = await fetch(
+    const response = await httpFetch(
       `${this.baseUrl}/api/v1/media/${mediaId}?${query}`,
       { headers: { authorization: `Bearer ${this.apiKey}` } },
     )

@@ -1,4 +1,5 @@
 import type { OAuthProfile, OAuthProvider } from '@lifedeck/application'
+import { httpFetch } from '@/http/http-fetch'
 
 const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
@@ -27,7 +28,7 @@ export class GoogleOAuthProvider implements OAuthProvider {
   }
 
   async exchangeCode(code: string): Promise<OAuthProfile> {
-    const tokenResponse = await fetch(TOKEN_ENDPOINT, {
+    const tokenResponse = await httpFetch(TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -43,7 +44,7 @@ export class GoogleOAuthProvider implements OAuthProvider {
     }
     const token = (await tokenResponse.json()) as { access_token: string }
 
-    const profileResponse = await fetch(USERINFO_ENDPOINT, {
+    const profileResponse = await httpFetch(USERINFO_ENDPOINT, {
       headers: { authorization: `Bearer ${token.access_token}` },
     })
     if (!profileResponse.ok) {

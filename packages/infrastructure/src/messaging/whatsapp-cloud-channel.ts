@@ -3,6 +3,7 @@ import type {
   MessageTemplate,
   MessagingChannel,
 } from '@lifedeck/application'
+import { httpFetch } from '@/http/http-fetch'
 import { AbracodeChannel } from '@/messaging/abracode-channel'
 
 const GRAPH_VERSION = 'v21.0'
@@ -29,7 +30,7 @@ export class WhatsAppCloudChannel implements MessagingChannel {
 
   async sendText(to: string, text: string): Promise<void> {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${this.phoneNumberId}/messages`
-    const response = await fetch(url, {
+    const response = await httpFetch(url, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${this.accessToken}`,
@@ -51,7 +52,7 @@ export class WhatsAppCloudChannel implements MessagingChannel {
 
   async sendTemplate(to: string, template: MessageTemplate): Promise<void> {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${this.phoneNumberId}/messages`
-    const response = await fetch(url, {
+    const response = await httpFetch(url, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${this.accessToken}`,
@@ -83,7 +84,7 @@ export class WhatsAppCloudChannel implements MessagingChannel {
   }
 
   async fetchMedia(mediaId: string): Promise<MediaPayload> {
-    const lookup = await fetch(
+    const lookup = await httpFetch(
       `https://graph.facebook.com/${GRAPH_VERSION}/${mediaId}`,
       { headers: { authorization: `Bearer ${this.accessToken}` } },
     )
@@ -94,7 +95,7 @@ export class WhatsAppCloudChannel implements MessagingChannel {
     if (!meta.url) {
       throw new Error('WhatsApp media response had no URL.')
     }
-    const download = await fetch(meta.url, {
+    const download = await httpFetch(meta.url, {
       headers: { authorization: `Bearer ${this.accessToken}` },
     })
     if (!download.ok) {
