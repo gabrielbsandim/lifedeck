@@ -76,7 +76,20 @@ describe('rate limit', () => {
     expect(result.limit).toBe(5)
   })
 
-  it('reads the client IP from x-forwarded-for then x-real-ip', () => {
+  it('prefers the platform x-real-ip over a spoofable x-forwarded-for', () => {
+    // Both present: the trusted x-real-ip wins so a forged XFF cannot evade the
+    // per-IP bucket.
+    expect(
+      clientIp(
+        new Request('https://lifedeck.app', {
+          headers: {
+            'x-forwarded-for': '9.9.9.9, 10.0.0.1',
+            'x-real-ip': '8.8.8.8',
+          },
+        }),
+      ),
+    ).toBe('8.8.8.8')
+    // Falls back to the first XFF hop when x-real-ip is absent.
     expect(
       clientIp(
         new Request('https://lifedeck.app', {
@@ -84,13 +97,6 @@ describe('rate limit', () => {
         }),
       ),
     ).toBe('9.9.9.9')
-    expect(
-      clientIp(
-        new Request('https://lifedeck.app', {
-          headers: { 'x-real-ip': '8.8.8.8' },
-        }),
-      ),
-    ).toBe('8.8.8.8')
     expect(clientIp(new Request('https://lifedeck.app'))).toBe('unknown')
   })
 
@@ -132,5 +138,21 @@ describe('rate limit', () => {
     const result = await mod.checkRateLimit('apikey:abc')
     expect(limit).toHaveBeenCalledWith('apikey:abc')
     expect(result).toEqual({ ok: false, limit: 60, remaining: 0, reset: 2000 })
+  })
+
+  it('fails open and logs when Upstash errors mid-request', async () => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://upstash.test'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'token'
+    limit.mockRejectedValue(new Error('redis unreachable'))
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.resetModules()
+    const mod = await import('@/server/api/rate-limit')
+
+    const result = await mod.checkAuthRateLimit('sign-in:gab@example.com')
+
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(8)
+    expect(errorSpy).toHaveBeenCalledOnce()
+    errorSpy.mockRestore()
   })
 })

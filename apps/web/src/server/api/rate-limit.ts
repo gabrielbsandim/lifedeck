@@ -1,5 +1,6 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { log } from '@/server/api/logger'
 
 type WindowSpec = `${number} s`
 
@@ -80,20 +81,32 @@ async function check(
   identifier: string,
 ): Promise<RateLimitResult> {
   const active = getLimiter(config)
-  if (!active) {
-    return {
-      ok: true,
-      limit: config.requests,
-      remaining: config.requests,
-      reset: 0,
-    }
+  const open: RateLimitResult = {
+    ok: true,
+    limit: config.requests,
+    remaining: config.requests,
+    reset: 0,
   }
-  const result = await active.limit(identifier)
-  return {
-    ok: result.success,
-    limit: result.limit,
-    remaining: result.remaining,
-    reset: result.reset,
+  if (!active) {
+    return open
+  }
+  try {
+    const result = await active.limit(identifier)
+    return {
+      ok: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+    }
+  } catch (error) {
+    // A transient Redis outage must not take down sign-in, registration and AI
+    // generation for every user. Fail open (allow the request) and record the
+    // incident so the outage is visible.
+    log('error', 'rate limit check failed; failing open', {
+      prefix: config.prefix,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return open
   }
 }
 
@@ -132,6 +145,13 @@ export function checkGuestSessionRateLimit(
 }
 
 export function clientIp(request: Request): string {
+  // Prefer x-real-ip: on Vercel it is set by the platform proxy and cannot be
+  // spoofed by the client, whereas the leftmost x-forwarded-for entry is
+  // attacker-controlled and would let a single caller evade the per-IP bucket.
+  const realIp = request.headers.get('x-real-ip')?.trim()
+  if (realIp) {
+    return realIp
+  }
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded) {
     const first = forwarded.split(',')[0]?.trim()
@@ -139,7 +159,7 @@ export function clientIp(request: Request): string {
       return first
     }
   }
-  return request.headers.get('x-real-ip') ?? 'unknown'
+  return 'unknown'
 }
 
 export function rateLimitHeaders(result: RateLimitResult): HeadersInit {
