@@ -162,6 +162,7 @@ export {
   makeConsumeCredits,
   type UsageSummary,
 } from '@/use-cases/consume-credits'
+export { makeRefundCredits } from '@/use-cases/refund-credits'
 export { makeGetUsage } from '@/use-cases/get-usage'
 export {
   usageViewSchema,

@@ -13,6 +13,7 @@ import {
   FakeEmailSender,
   REMINDER_JOB,
   makeConsumeCredits,
+  makeRefundCredits,
   makeCreateCalendarEvent,
   makeDeliverReminder,
   makeDispatchDueJobs,
@@ -164,6 +165,7 @@ describe('V2 whatsapp assistant happy path', () => {
       ids,
       clock,
     })
+    const refundCredits = makeRefundCredits({ usageMeter })
     const handleInbound = makeHandleInboundWhatsApp({
       channelIdentities,
       messaging,
@@ -174,6 +176,7 @@ describe('V2 whatsapp assistant happy path', () => {
         }),
       },
       consumeCredits,
+      refundCredits,
       agent,
       conversations,
       transcriber: { transcribe: vi.fn(), isAvailable: () => true },

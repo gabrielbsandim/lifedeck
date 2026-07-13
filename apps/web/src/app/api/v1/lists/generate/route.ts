@@ -20,12 +20,22 @@ export async function POST(request: Request) {
       })
     }
     const container = getContainer()
-    if (isFeatureEnabled('v2')) {
+    const metered = isFeatureEnabled('v2')
+    if (metered) {
       await container.consumeCredits(userId, 'listGeneration')
     }
-    const body = await request.json()
-    const draft = await container.generateList(body)
-    return ok(draft)
+    try {
+      const body = await request.json()
+      const draft = await container.generateList(body)
+      return ok(draft)
+    } catch (error) {
+      // The credit was charged before generation; a runtime failure (bad body
+      // or model error) must not leave the user billed for nothing.
+      if (metered) {
+        await container.refundCredits(userId, 'listGeneration').catch(() => {})
+      }
+      throw error
+    }
   } catch (error) {
     return handleError(error)
   }

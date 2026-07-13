@@ -38,6 +38,7 @@ function setup(options: Options = {}) {
     .fn()
     .mockResolvedValue({ data: new ArrayBuffer(8), mimeType: 'audio/ogg' })
   const consume = vi.fn(options.consumeCredits ?? (async () => ({})))
+  const refund = vi.fn(async () => ({}))
   const run = vi.fn(options.agentRun ?? (async () => ({ text: 'Done.' })))
   const transcribe = vi.fn().mockResolvedValue('remind me to call mom')
   const describe = vi.fn().mockResolvedValue('a photo of a receipt')
@@ -56,6 +57,7 @@ function setup(options: Options = {}) {
       }),
     },
     consumeCredits: consume,
+    refundCredits: refund,
     agent: { run },
     conversations,
     transcriber: { transcribe, isAvailable: () => mediaAvailable },
@@ -68,6 +70,7 @@ function setup(options: Options = {}) {
     sendText,
     fetchMedia,
     consume,
+    refund,
     run,
     transcribe,
     describe,
@@ -197,6 +200,12 @@ describe('handleInboundWhatsApp', () => {
 
     expect(result).toEqual({ action: 'error' })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, ASSISTANT_ERROR_MESSAGE)
+    // The metered credit is refunded since the reply never happened, using the
+    // same user and operation it was charged with.
+    expect(ctx.consume).toHaveBeenCalledOnce()
+    expect(ctx.refund).toHaveBeenCalledWith(
+      ...(ctx.consume.mock.calls[0] ?? []),
+    )
   })
 
   it('links a number when the text matches a pending code', async () => {

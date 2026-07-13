@@ -8,6 +8,7 @@ import {
   makeDisconnectCalendar,
   makeSetDefaultCalendar,
   makeConsumeCredits,
+  makeRefundCredits,
   makeCreateApiKey,
   makeCreateCalendarEvent,
   makeCreateGuestUser,
@@ -244,6 +245,7 @@ type Container = {
   getSubscription: ReturnType<typeof makeGetSubscription>
   cancelSubscription: ReturnType<typeof makeCancelSubscription>
   consumeCredits: ReturnType<typeof makeConsumeCredits>
+  refundCredits: ReturnType<typeof makeRefundCredits>
   getUsage: ReturnType<typeof makeGetUsage>
   createCalendarEvent: ReturnType<typeof makeCreateCalendarEvent>
   updateCalendarEvent: ReturnType<typeof makeUpdateCalendarEvent>
@@ -477,6 +479,7 @@ function build(
     ids,
     clock,
   })
+  const refundCredits = makeRefundCredits({ usageMeter })
   const entitlementService = new PlanEntitlementService(resolvePlan)
   const createTask = makeCreateTask({ tasks, lists, memberships, ids, clock })
   const updateTask = makeUpdateTask({
@@ -801,6 +804,7 @@ function build(
       clock,
     }),
     consumeCredits,
+    refundCredits,
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
     createCalendarEvent,
     updateCalendarEvent,
@@ -846,6 +850,7 @@ function build(
       messaging,
       entitlements: entitlementService,
       consumeCredits,
+      refundCredits,
       agent,
       conversations,
       transcriber,

@@ -51,6 +51,11 @@ type ConsumeCredits = (
   operation: AiOperation,
 ) => Promise<unknown>
 
+type RefundCredits = (
+  userId: string,
+  operation: AiOperation,
+) => Promise<unknown>
+
 const OPERATION: Record<InboundWhatsappMessage['kind'], AiOperation> = {
   text: 'assistantText',
   audio: 'audioTranscription',
@@ -73,6 +78,7 @@ type Dependencies = {
   messaging: MessagingChannel
   entitlements: EntitlementService
   consumeCredits: ConsumeCredits
+  refundCredits: RefundCredits
   agent: AgentRunner
   conversations: ConversationStore
   transcriber: Transcriber
@@ -85,6 +91,7 @@ export function makeHandleInboundWhatsApp({
   messaging,
   entitlements,
   consumeCredits,
+  refundCredits,
   agent,
   conversations,
   transcriber,
@@ -177,6 +184,9 @@ export function makeHandleInboundWhatsApp({
         model: pro ? 'pro' : 'flash',
       })
     } catch (error) {
+      // The credit was metered before the model call; the call failed, so give
+      // it back rather than charge for a reply the user never got.
+      await refundCredits(userId, operation)
       if (error instanceof MediaUnderstandingUnavailableError) {
         await messaging.sendText(
           message.from,
