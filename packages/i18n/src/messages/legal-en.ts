@@ -18,12 +18,41 @@ const terms: LegalDocument = {
         },
         {
           kind: 'p',
-          text: 'Lifedeck offers optional paid plans (Pro and Premium) with recurring billing. Paid features include Google Calendar sync, reminders and the WhatsApp assistant. You can cancel your subscription at any time, and it remains active until the end of the paid period.',
+          text: 'Lifedeck offers optional paid plans (Pro and Premium). Paid features include Google Calendar sync, reminders and the WhatsApp assistant. The terms that govern these subscriptions are described in section 2.',
         },
       ],
     },
     {
-      title: '2. Account and Sign-up',
+      title: '2. Payments and Subscriptions',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Lifedeck offers optional paid plans (Pro and Premium), billed monthly or annually. Current prices are shown in the app before you confirm a purchase and may include applicable taxes.',
+        },
+        {
+          kind: 'p',
+          text: 'Subscriptions renew automatically at the end of each billing cycle, for the same period, until you cancel. Payments are processed by our payment providers, Stripe (international) and Asaas (Brazil); we do not store your card number.',
+        },
+        {
+          kind: 'p',
+          text: 'You can cancel at any time under **Account → Billing**. Cancellation stops the next charge; your paid access continues until the end of the period already paid for and is not renewed after that.',
+        },
+        {
+          kind: 'p',
+          text: '**Right of withdrawal (art. 49 of the Brazilian Consumer Protection Code):** if you are a consumer in Brazil, you may withdraw from a purchase within 7 days of the contracting date and receive a full refund of that charge. To exercise this right, contact us at {email}.',
+        },
+        {
+          kind: 'p',
+          text: 'Outside the 7-day withdrawal period, charges already made are non-refundable and cancellation does not generate a proportional refund of the current period. If a renewal payment fails, paid features may be suspended and the account may return to the free plan.',
+        },
+        {
+          kind: 'p',
+          text: 'We may change plan prices or features. We will announce relevant changes in advance, and they apply only from the next renewal; you may cancel beforehand if you do not agree.',
+        },
+      ],
+    },
+    {
+      title: '3. Account and Sign-up',
       blocks: [
         {
           kind: 'p',
@@ -41,7 +70,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '3. Acceptable Use',
+      title: '4. Acceptable Use',
       blocks: [
         {
           kind: 'p',
@@ -60,7 +89,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '4. Your Content',
+      title: '5. Your Content',
       blocks: [
         {
           kind: 'p',
@@ -73,7 +102,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '5. AI Generation',
+      title: '6. AI Generation',
       blocks: [
         {
           kind: 'p',
@@ -90,7 +119,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '6. Intellectual Property',
+      title: '7. Intellectual Property',
       blocks: [
         {
           kind: 'p',
@@ -103,7 +132,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '7. Data and Privacy',
+      title: '8. Data and Privacy',
       blocks: [
         {
           kind: 'p',
@@ -112,7 +141,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '8. Service Availability',
+      title: '9. Service Availability',
       blocks: [
         {
           kind: 'p',
@@ -125,7 +154,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '9. Limitation of Liability',
+      title: '10. Limitation of Liability',
       blocks: [
         {
           kind: 'p',
@@ -134,7 +163,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '10. Account Termination',
+      title: '11. Account Termination',
       blocks: [
         {
           kind: 'p',
@@ -147,7 +176,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '11. Changes to the Terms',
+      title: '12. Changes to the Terms',
       blocks: [
         {
           kind: 'p',
@@ -156,7 +185,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '12. Governing Law and Venue',
+      title: '13. Governing Law and Venue',
       blocks: [
         {
           kind: 'p',
@@ -165,7 +194,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '13. Contact',
+      title: '14. Contact',
       blocks: [
         {
           kind: 'p',
@@ -207,11 +236,11 @@ const privacy: LegalDocument = {
             '**Account data:** display name and, when you create an account, email address;',
             '**Google sign-in data:** if you choose to sign in with Google, we receive your email, name and email verification status. We never access your Google password;',
             '**User content:** the lists, tasks, notes and shares you create on the Platform;',
+            '**WhatsApp data:** your WhatsApp phone number and the content of the messages you send to the assistant (text, audio, images), when you link WhatsApp;',
+            '**Calendar data:** your calendar events and connection data, when you connect Google Calendar;',
+            '**Subscription data:** your plan and subscription and payment status (we never store card numbers);',
             '**Usage data:** access records, features used and activity logs;',
             '**Technical data:** IP address, browser type, operating system and session cookies.',
-            'WhatsApp phone number and the content of messages you send to the assistant (text, audio, images), when you link WhatsApp;',
-            'Calendar events and connection data, when you connect Google Calendar;',
-            'Subscription and payment status (we never store card numbers).',
           ],
         },
         {
@@ -229,6 +258,7 @@ const privacy: LegalDocument = {
           items: [
             'Provide, operate and continuously improve the Service;',
             'Authenticate, control access to, and secure accounts;',
+            'Process subscriptions and payments for the paid plans;',
             'Send essential Service communications, such as the email verification code, invitations and list notifications;',
             'Comply with legal and regulatory obligations;',
             'Prevent fraud and ensure the integrity of the Platform.',
@@ -246,7 +276,7 @@ const privacy: LegalDocument = {
         {
           kind: 'list',
           items: [
-            '**Performance of a contract (art. 7, V):** to provide the Service;',
+            '**Performance of a contract (art. 7, V):** to provide the Service and manage subscriptions;',
             '**Legitimate interest (art. 7, IX):** for security, fraud prevention and improvement of the Service;',
             '**Consent (art. 7, I):** for specific processing, where applicable;',
             '**Compliance with a legal obligation (art. 7, II):** when required by law or a competent authority.',
@@ -266,22 +296,30 @@ const privacy: LegalDocument = {
           items: [
             '**Vercel:** application hosting and web infrastructure;',
             '**Neon:** managed database where your content is stored;',
+            '**Upstash:** request rate limiting and short-lived assistant conversation context;',
             '**Resend:** sending transactional emails (verification, invitations and notifications);',
-            '**Google (Gemini, via Vercel AI Gateway):** the language model provider used in the AI list generation feature;',
-            '**Google (OAuth):** optional authentication via a Google account;',
-            '**Upstash:** request rate limiting for API security;',
+            '**Google (OAuth):** optional sign-in with a Google account;',
+            '**Google (Calendar API):** calendar synchronization, when you enable it;',
+            '**Meta (WhatsApp Cloud API):** delivering the assistant’s messages, when you link WhatsApp;',
+            '**AI providers (Google Gemini, via Vercel AI Gateway):** generating AI list drafts and processing assistant messages (text, audio, images);',
+            '**Stripe and Asaas:** processing subscription payments;',
             '**Sentry:** error monitoring for diagnostics and Platform stability;',
             '**Public authorities:** when required by law, court order or request from a competent body.',
-            '**Meta (WhatsApp Cloud API):** message delivery for the assistant;',
-            '**Google (Calendar API):** calendar synchronization;',
-            '**Stripe and Asaas:** subscription billing;',
-            '**AI providers (e.g. Google Gemini):** processing assistant messages.',
           ],
         },
       ],
     },
     {
-      title: '6. AI generation',
+      title: '6. International data transfer',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Some of the providers listed above process data on servers located outside Brazil, including in the United States. When we transfer personal data internationally, we do so under the safeguards required by the LGPD (art. 33), relying on providers that offer an adequate level of data protection and contractual guarantees.',
+        },
+      ],
+    },
+    {
+      title: '7. AI generation',
       blocks: [
         {
           kind: 'p',
@@ -298,7 +336,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '7. Storage and security',
+      title: '8. Storage and security',
       blocks: [
         {
           kind: 'p',
@@ -309,6 +347,7 @@ const privacy: LegalDocument = {
           items: [
             'Encryption in transit (TLS);',
             'Passwords stored with a strong hashing algorithm (Argon2id), never in plain text;',
+            'Encryption at rest of sensitive credentials, such as calendar access tokens;',
             'Role-based access control and the principle of least privilege;',
             'Security headers and a Content Security Policy (CSP).',
           ],
@@ -320,7 +359,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '8. Your rights (LGPD)',
+      title: '9. Your rights (LGPD)',
       blocks: [
         {
           kind: 'p',
@@ -337,16 +376,16 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '9. Data retention',
+      title: '10. Data retention',
       blocks: [
         {
           kind: 'p',
-          text: 'We keep your personal data while your account is active or for the period needed to fulfill the purposes described in this Policy. After your account is closed, your data is deleted, except for any minimum period required by applicable law.',
+          text: 'We keep your personal data while your account is active or for the period needed to fulfill the purposes described in this Policy. After your account is closed, your data is deleted, except for any minimum period required by applicable law, such as billing records kept to meet tax and accounting obligations.',
         },
       ],
     },
     {
-      title: '10. Cookies',
+      title: '11. Cookies',
       blocks: [
         {
           kind: 'p',
@@ -355,7 +394,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '11. Minors',
+      title: '12. Minors',
       blocks: [
         {
           kind: 'p',
@@ -364,7 +403,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '12. Updates to this Policy',
+      title: '13. Updates to this Policy',
       blocks: [
         {
           kind: 'p',
@@ -373,7 +412,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '13. Contact / DPO',
+      title: '14. Contact / DPO',
       blocks: [
         {
           kind: 'p',

@@ -24,7 +24,7 @@ export const pt: Messages = {
   },
   legal: {
     backToApp: 'Voltar ao app',
-    updatedAt: 'Última atualização: junho de 2026',
+    updatedAt: 'Última atualização: julho de 2026',
     terms: ptLegal.terms,
     privacy: ptLegal.privacy,
   },

@@ -24,7 +24,7 @@ export const en: Messages = {
   },
   legal: {
     backToApp: 'Back to app',
-    updatedAt: 'Last updated: June 2026',
+    updatedAt: 'Last updated: July 2026',
     terms: enLegal.terms,
     privacy: enLegal.privacy,
   },

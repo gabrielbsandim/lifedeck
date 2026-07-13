@@ -18,12 +18,41 @@ const terms: LegalDocument = {
         },
         {
           kind: 'p',
-          text: 'O Lifedeck oferece planos pagos opcionais (Pro e Premium) com cobrança recorrente. Os recursos pagos incluem a sincronização com o Google Agenda, lembretes e o assistente no WhatsApp. Você pode cancelar sua assinatura a qualquer momento, e ela permanece ativa até o fim do período pago.',
+          text: 'O Lifedeck oferece planos pagos opcionais (Pro e Premium). Os recursos pagos incluem a sincronização com o Google Agenda, lembretes e o assistente no WhatsApp. As condições que regem essas assinaturas estão descritas na seção 2.',
         },
       ],
     },
     {
-      title: '2. Cadastro e Conta',
+      title: '2. Pagamentos e Assinaturas',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'O Lifedeck oferece planos pagos opcionais (Pro e Premium), cobrados mensal ou anualmente. Os preços vigentes são exibidos no aplicativo antes de você confirmar a compra e podem incluir os tributos aplicáveis.',
+        },
+        {
+          kind: 'p',
+          text: 'As assinaturas são renovadas automaticamente ao fim de cada ciclo de cobrança, pelo mesmo período, até que você cancele. Os pagamentos são processados pelos nossos provedores de pagamento, Stripe (internacional) e Asaas (Brasil); não armazenamos o número do seu cartão.',
+        },
+        {
+          kind: 'p',
+          text: 'Você pode cancelar a qualquer momento em **Conta → Assinatura**. O cancelamento interrompe a próxima cobrança; seu acesso pago continua até o fim do período já pago e não é renovado depois disso.',
+        },
+        {
+          kind: 'p',
+          text: '**Direito de arrependimento (art. 49 do Código de Defesa do Consumidor):** se você é consumidor no Brasil, pode desistir da compra em até 7 dias contados da data de contratação e receber o reembolso integral daquela cobrança. Para exercer esse direito, entre em contato pelo e-mail {email}.',
+        },
+        {
+          kind: 'p',
+          text: 'Fora do prazo de arrependimento de 7 dias, as cobranças já realizadas não são reembolsáveis e o cancelamento não gera reembolso proporcional do período em curso. Se um pagamento de renovação falhar, os recursos pagos podem ser suspensos e a conta pode voltar ao plano gratuito.',
+        },
+        {
+          kind: 'p',
+          text: 'Podemos alterar preços ou recursos dos planos. Anunciaremos as alterações relevantes com antecedência, e elas passam a valer apenas a partir da próxima renovação; você pode cancelar antes disso caso não concorde.',
+        },
+      ],
+    },
+    {
+      title: '3. Cadastro e Conta',
       blocks: [
         {
           kind: 'p',
@@ -41,7 +70,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '3. Uso Aceitável',
+      title: '4. Uso Aceitável',
       blocks: [
         {
           kind: 'p',
@@ -60,7 +89,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '4. Seu Conteúdo',
+      title: '5. Seu Conteúdo',
       blocks: [
         {
           kind: 'p',
@@ -73,7 +102,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '5. Geração com Inteligência Artificial',
+      title: '6. Geração com Inteligência Artificial',
       blocks: [
         {
           kind: 'p',
@@ -90,7 +119,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '6. Propriedade Intelectual',
+      title: '7. Propriedade Intelectual',
       blocks: [
         {
           kind: 'p',
@@ -103,7 +132,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '7. Dados e Privacidade',
+      title: '8. Dados e Privacidade',
       blocks: [
         {
           kind: 'p',
@@ -112,7 +141,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '8. Disponibilidade do Serviço',
+      title: '9. Disponibilidade do Serviço',
       blocks: [
         {
           kind: 'p',
@@ -125,7 +154,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '9. Limitação de Responsabilidade',
+      title: '10. Limitação de Responsabilidade',
       blocks: [
         {
           kind: 'p',
@@ -134,7 +163,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '10. Encerramento da Conta',
+      title: '11. Encerramento da Conta',
       blocks: [
         {
           kind: 'p',
@@ -147,7 +176,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '11. Modificações dos Termos',
+      title: '12. Modificações dos Termos',
       blocks: [
         {
           kind: 'p',
@@ -156,7 +185,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '12. Legislação e Foro',
+      title: '13. Legislação e Foro',
       blocks: [
         {
           kind: 'p',
@@ -165,7 +194,7 @@ const terms: LegalDocument = {
       ],
     },
     {
-      title: '13. Contato',
+      title: '14. Contato',
       blocks: [
         {
           kind: 'p',
@@ -207,11 +236,11 @@ const privacy: LegalDocument = {
             '**Dados de cadastro:** nome de exibição e, quando você cria uma conta, endereço de e-mail;',
             '**Dados de login com Google:** ao optar por entrar com o Google, recebemos seu e-mail, nome e o status de verificação do e-mail. Não acessamos sua senha do Google;',
             '**Conteúdo do usuário:** as listas, tarefas, notas e compartilhamentos que você cria na Plataforma;',
+            '**Dados do WhatsApp:** seu número de telefone do WhatsApp e o conteúdo das mensagens que você envia ao assistente (texto, áudio, imagens), quando você vincula o WhatsApp;',
+            '**Dados de agenda:** seus eventos de agenda e dados de conexão, quando você conecta o Google Agenda;',
+            '**Dados de assinatura:** seu plano e o status de assinatura e pagamento (nunca armazenamos números de cartão);',
             '**Dados de uso:** registros de acesso, funcionalidades utilizadas e logs de atividade;',
             '**Dados técnicos:** endereço IP, tipo de navegador, sistema operacional e cookies de sessão.',
-            'Número de telefone do WhatsApp e o conteúdo das mensagens que você envia ao assistente (texto, áudio, imagens), quando você vincula o WhatsApp;',
-            'Eventos da agenda e dados de conexão, quando você conecta o Google Agenda;',
-            'Status de assinatura e pagamento (nunca armazenamos números de cartão).',
           ],
         },
         {
@@ -229,6 +258,7 @@ const privacy: LegalDocument = {
           items: [
             'Prover, operar e melhorar continuamente o Serviço;',
             'Autenticação, controle de acesso e segurança de contas;',
+            'Processar assinaturas e pagamentos dos planos pagos;',
             'Enviar comunicações essenciais do Serviço, como o código de verificação de e-mail, convites e notificações de listas;',
             'Cumprir obrigações legais e regulatórias;',
             'Prevenir fraudes e garantir a integridade da Plataforma.',
@@ -246,7 +276,7 @@ const privacy: LegalDocument = {
         {
           kind: 'list',
           items: [
-            '**Execução de contrato (art. 7º, V):** para prestar o Serviço;',
+            '**Execução de contrato (art. 7º, V):** para prestar o Serviço e gerenciar assinaturas;',
             '**Legítimo interesse (art. 7º, IX):** para segurança, prevenção a fraudes e melhoria do Serviço;',
             '**Consentimento (art. 7º, I):** para tratamentos específicos, quando aplicável;',
             '**Cumprimento de obrigação legal (art. 7º, II):** quando exigido por lei ou autoridade competente.',
@@ -266,22 +296,30 @@ const privacy: LegalDocument = {
           items: [
             '**Vercel:** hospedagem da aplicação e infraestrutura web;',
             '**Neon:** banco de dados gerenciado onde seu conteúdo é armazenado;',
+            '**Upstash:** limitação de requisições (rate limiting) e contexto de curta duração das conversas com o assistente;',
             '**Resend:** envio de e-mails transacionais (verificação, convites e notificações);',
-            '**Google (Gemini, via Vercel AI Gateway):** provedor do modelo de linguagem utilizado no recurso de geração de listas com IA;',
-            '**Google (OAuth):** autenticação opcional via conta Google;',
-            '**Upstash:** limitação de requisições (rate limiting) para segurança da API;',
+            '**Google (OAuth):** login opcional com conta Google;',
+            '**Google (Calendar API):** sincronização da agenda, quando você a habilita;',
+            '**Meta (WhatsApp Cloud API):** entrega das mensagens do assistente, quando você vincula o WhatsApp;',
+            '**Provedores de IA (Google Gemini, via Vercel AI Gateway):** geração dos rascunhos de listas com IA e processamento das mensagens do assistente (texto, áudio, imagens);',
+            '**Stripe e Asaas:** processamento dos pagamentos de assinatura;',
             '**Sentry:** monitoramento de erros para diagnóstico e estabilidade da Plataforma;',
             '**Autoridades públicas:** quando exigido por lei, decisão judicial ou solicitação de órgão competente.',
-            '**Meta (WhatsApp Cloud API):** entrega de mensagens do assistente;',
-            '**Google (Calendar API):** sincronização da agenda;',
-            '**Stripe e Asaas:** cobrança de assinaturas;',
-            '**Provedores de IA (ex.: Google Gemini):** processamento das mensagens do assistente.',
           ],
         },
       ],
     },
     {
-      title: '6. Geração com IA',
+      title: '6. Transferência internacional de dados',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Alguns dos prestadores listados acima tratam dados em servidores localizados fora do Brasil, inclusive nos Estados Unidos. Quando transferimos dados pessoais internacionalmente, o fazemos com as salvaguardas exigidas pela LGPD (art. 33), contando com prestadores que oferecem grau adequado de proteção de dados e garantias contratuais.',
+        },
+      ],
+    },
+    {
+      title: '7. Geração com IA',
       blocks: [
         {
           kind: 'p',
@@ -298,7 +336,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '7. Armazenamento e segurança',
+      title: '8. Armazenamento e segurança',
       blocks: [
         {
           kind: 'p',
@@ -309,6 +347,7 @@ const privacy: LegalDocument = {
           items: [
             'Criptografia em trânsito (TLS);',
             'Senhas armazenadas com algoritmo de hashing forte (Argon2id), nunca em texto puro;',
+            'Criptografia em repouso de credenciais sensíveis, como os tokens de acesso à agenda;',
             'Controle de acesso por papel e princípio do menor privilégio;',
             'Cabeçalhos de segurança e política de segurança de conteúdo (CSP).',
           ],
@@ -320,7 +359,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '8. Seus direitos (LGPD)',
+      title: '9. Seus direitos (LGPD)',
       blocks: [
         {
           kind: 'p',
@@ -337,16 +376,16 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '9. Retenção de dados',
+      title: '10. Retenção de dados',
       blocks: [
         {
           kind: 'p',
-          text: 'Mantemos seus dados pessoais enquanto sua conta estiver ativa ou pelo período necessário para cumprir as finalidades descritas nesta Política. Após o encerramento da conta, seus dados são eliminados, ressalvado o prazo mínimo eventualmente exigido pela legislação aplicável.',
+          text: 'Mantemos seus dados pessoais enquanto sua conta estiver ativa ou pelo período necessário para cumprir as finalidades descritas nesta Política. Após o encerramento da conta, seus dados são eliminados, ressalvado o prazo mínimo eventualmente exigido pela legislação aplicável, como registros de cobrança mantidos para cumprir obrigações fiscais e contábeis.',
         },
       ],
     },
     {
-      title: '10. Cookies',
+      title: '11. Cookies',
       blocks: [
         {
           kind: 'p',
@@ -355,7 +394,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '11. Menores de idade',
+      title: '12. Menores de idade',
       blocks: [
         {
           kind: 'p',
@@ -364,7 +403,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '12. Atualizações desta Política',
+      title: '13. Atualizações desta Política',
       blocks: [
         {
           kind: 'p',
@@ -373,7 +412,7 @@ const privacy: LegalDocument = {
       ],
     },
     {
-      title: '13. Contato / Encarregado (DPO)',
+      title: '14. Contato / Encarregado (DPO)',
       blocks: [
         {
           kind: 'p',
