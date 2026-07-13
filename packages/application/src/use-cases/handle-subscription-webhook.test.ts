@@ -166,6 +166,104 @@ describe('handleSubscriptionWebhook', () => {
     expect(sub?.isActive(new Date('2026-07-25T10:00:00.000Z'))).toBe(false)
   })
 
+  it('does not shorten a period end when a stale active event arrives out of order', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const later = new Date('2026-08-24T10:00:00.000Z')
+    const earlier = new Date('2026-07-24T10:00:00.000Z')
+    // The newer event, applied first, records the later renewal date.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: later,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    // A retried, older active event carries the earlier date and must not win.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: earlier,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.currentPeriodEnd).toEqual(later)
+  })
+
+  it('keeps a scheduled cancel when a stale reactivation replays the same period', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const periodEnd = new Date('2026-07-24T10:00:00.000Z')
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: false,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    // The user schedules a cancellation.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: true,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    // A stale pre-cancel event (same period, cancelAtPeriodEnd false) is retried
+    // and must not re-enable billing.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: false,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.cancelAtPeriodEnd).toBe(true)
+  })
+
+  it('clears a scheduled cancel when a genuine renewal extends the period', async () => {
+    const subscriptions = new InMemorySubscriptionRepository()
+    const periodEnd = new Date('2026-07-24T10:00:00.000Z')
+    const renewed = new Date('2026-08-24T10:00:00.000Z')
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: true,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    // A real reactivation carries a strictly later period end.
+    await handlerFor(subscriptions, {
+      providerRef: 'sub_1',
+      userId: USER_ID,
+      plan: 'pro',
+      status: 'active',
+      currentPeriodEnd: renewed,
+      cancelAtPeriodEnd: false,
+      reference: null,
+    })('asaas', 'raw', 'sig')
+
+    const sub = await subscriptions.findByUser(asEntityId(USER_ID))
+    expect(sub?.cancelAtPeriodEnd).toBe(false)
+    expect(sub?.currentPeriodEnd).toEqual(renewed)
+  })
+
   it('ignores an event the gateway cannot parse', async () => {
     const subscriptions = new InMemorySubscriptionRepository()
     const handle = handlerFor(subscriptions, null)

@@ -128,6 +128,16 @@ export class Subscription {
         this.props.currentPeriodEnd > now
       )
     }
+    // A failed renewal charge does not immediately revoke access. Providers
+    // (Stripe Smart Retries, Asaas overdue) keep retrying the card for days
+    // while reporting past_due, so the customer keeps their plan through the
+    // period they already paid for and is only downgraded once it lapses.
+    if (this.props.status === 'past_due') {
+      return (
+        this.props.currentPeriodEnd !== null &&
+        this.props.currentPeriodEnd > now
+      )
+    }
     return false
   }
 

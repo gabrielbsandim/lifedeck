@@ -116,6 +116,32 @@ describe('Subscription', () => {
     expect(build({ status: 'trialing' }).isActive(NOW)).toBe(true)
   })
 
+  it('keeps access while past_due within the paid period', () => {
+    expect(build({ status: 'past_due' }).isActive(NOW)).toBe(true)
+  })
+
+  it('revokes access once a past_due period has lapsed', () => {
+    const lapsed = build({
+      status: 'past_due',
+      currentPeriodEnd: new Date('2026-06-01T10:00:00.000Z'),
+    })
+    expect(lapsed.isActive(NOW)).toBe(false)
+  })
+
+  it('grants no past_due grace without a period end', () => {
+    const noPeriod = Subscription.create({
+      id: asEntityId(ID),
+      userId: asEntityId(USER_ID),
+      plan: 'pro',
+      status: 'past_due',
+      provider: 'asaas',
+      providerRef: 'sub_123',
+      currentPeriodEnd: null,
+      now: NOW,
+    })
+    expect(noPeriod.isActive(NOW)).toBe(false)
+  })
+
   it('is inactive once the period has ended', () => {
     const expired = build({
       status: 'active',

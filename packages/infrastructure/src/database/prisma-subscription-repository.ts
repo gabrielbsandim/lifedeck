@@ -44,8 +44,20 @@ export class PrismaSubscriptionRepository implements SubscriptionRepository {
 
   async save(subscription: Subscription): Promise<void> {
     const record = toSubscriptionRecord(subscription)
+    // Upsert on the natural key (provider, providerRef) rather than the row id.
+    // Two "first" webhook events for a brand-new subscription (Stripe's
+    // checkout.session.completed and customer.subscription.created share the
+    // same providerRef) can race: both miss findByProviderRef and both save
+    // with different generated ids. Keying the upsert on the unique
+    // (provider, providerRef) makes the loser fall through to update instead of
+    // violating the constraint and 500ing.
     await this.prisma.subscription.upsert({
-      where: { id: record.id },
+      where: {
+        provider_providerRef: {
+          provider: record.provider,
+          providerRef: record.providerRef,
+        },
+      },
       create: {
         id: record.id,
         userId: record.userId,

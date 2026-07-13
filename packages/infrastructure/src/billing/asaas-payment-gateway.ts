@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
+import { httpFetch } from '@/http/http-fetch'
 import { isPlan, type Plan, type SubscriptionStatus } from '@lifedeck/domain'
 import type {
   CheckoutInput,
@@ -102,6 +103,31 @@ function paidThrough(dueDate: unknown, interval: PaymentInterval): Date | null {
   return end
 }
 
+// The exact paid-through date Asaas will next charge on. Used instead of
+// guessing the interval, so an annual subscription is not treated as monthly.
+async function fetchNextDueDate(
+  config: AsaasConfig,
+  subscriptionId: string,
+): Promise<Date | null> {
+  try {
+    const response = await httpFetch(
+      `${config.baseUrl}/v3/subscriptions/${encodeURIComponent(subscriptionId)}`,
+      { headers: { access_token: config.apiKey } },
+    )
+    if (!response.ok) {
+      return null
+    }
+    const data = (await response.json()) as { nextDueDate?: unknown }
+    if (typeof data.nextDueDate !== 'string') {
+      return null
+    }
+    const date = new Date(data.nextDueDate)
+    return Number.isNaN(date.getTime()) ? null : date
+  } catch {
+    return null
+  }
+}
+
 export class AsaasPaymentGateway implements PaymentGateway {
   readonly provider = 'asaas' as const
 
@@ -117,8 +143,18 @@ export class AsaasPaymentGateway implements PaymentGateway {
         `No Asaas value configured for ${input.plan} ${input.interval}`,
       )
     }
+    // Asaas charges the raw `value` in reais (decimal). A locale-formatted env
+    // ("29,90") parses to NaN and a cents value ("2990") would overcharge 100x,
+    // so refuse anything that is not a sane positive amount rather than sending
+    // a broken or wrong charge.
+    const amount = Number(value)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error(
+        `Invalid Asaas amount "${value}" for ${input.plan} ${input.interval}; expected reais with a dot decimal`,
+      )
+    }
 
-    const response = await fetch(`${config.baseUrl}/v3/paymentLinks`, {
+    const response = await httpFetch(`${config.baseUrl}/v3/paymentLinks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -130,7 +166,7 @@ export class AsaasPaymentGateway implements PaymentGateway {
         billingType: 'UNDEFINED',
         chargeType: 'RECURRENT',
         subscriptionCycle: input.interval === 'annual' ? 'YEARLY' : 'MONTHLY',
-        value: Number(value),
+        value: amount,
         externalReference: reference,
         callback: { successUrl: input.successUrl, autoRedirect: true },
       }),
@@ -181,22 +217,31 @@ export class AsaasPaymentGateway implements PaymentGateway {
       null
     const reference = decodeReference(rawReference)
 
+    // The billing interval is only carried on externalReference, which Asaas may
+    // not propagate onto auto-generated renewal charges; defaulting to monthly
+    // would cut an annual subscriber's access ~11 months short. Read the exact
+    // paid-through date from the subscription itself, falling back to the
+    // interval-based estimate only if the lookup fails.
+    let currentPeriodEnd: Date | null = null
+    if (status === 'active') {
+      currentPeriodEnd =
+        (await fetchNextDueDate(config, providerRef)) ??
+        paidThrough(payload.payment?.dueDate, reference.interval)
+    }
+
     return {
       providerRef,
       userId: reference.userId,
       plan: reference.plan,
       status,
-      currentPeriodEnd:
-        status === 'active'
-          ? paidThrough(payload.payment?.dueDate, reference.interval)
-          : null,
+      currentPeriodEnd,
       reference: rawReference,
     }
   }
 
   async cancelSubscription(providerRef: string): Promise<void> {
     const config = readConfig()
-    const response = await fetch(
+    const response = await httpFetch(
       `${config.baseUrl}/v3/subscriptions/${encodeURIComponent(providerRef)}`,
       {
         method: 'DELETE',

@@ -51,15 +51,46 @@ export function makeHandleSubscriptionWebhook({
       // cancellation (refund, chargeback) has no such flag and revokes at once.
       const scheduledCancel =
         event.status === 'canceled' && existing.cancelAtPeriodEnd
-      const nextPeriodEnd =
+      let nextPeriodEnd =
         event.currentPeriodEnd ??
         (keepsAccess || scheduledCancel ? existing.currentPeriodEnd : null)
+
+      // Providers do not guarantee ordering and retry failed deliveries, so a
+      // stale (older) event can arrive after a newer one. A still-active event
+      // must never SHORTEN a period end already recorded, which would cut paid
+      // access short. Only let the renewal date move forward.
+      if (
+        keepsAccess &&
+        nextPeriodEnd &&
+        existing.currentPeriodEnd &&
+        nextPeriodEnd < existing.currentPeriodEnd
+      ) {
+        nextPeriodEnd = existing.currentPeriodEnd
+      }
+
+      // Once a cancellation is scheduled, only a genuine reactivation (an event
+      // whose period end is strictly later than what we already stored) may
+      // clear the flag. A replayed pre-cancel event carrying the same period
+      // end must not silently re-enable billing on a customer who asked to stop.
+      let nextCancelAtPeriodEnd = event.cancelAtPeriodEnd
+      if (
+        existing.cancelAtPeriodEnd &&
+        event.cancelAtPeriodEnd === false &&
+        !(
+          event.currentPeriodEnd &&
+          existing.currentPeriodEnd &&
+          event.currentPeriodEnd > existing.currentPeriodEnd
+        )
+      ) {
+        nextCancelAtPeriodEnd = undefined
+      }
+
       existing.update(
         {
           plan: event.plan ?? undefined,
           status: event.status,
           currentPeriodEnd: nextPeriodEnd,
-          cancelAtPeriodEnd: event.cancelAtPeriodEnd,
+          cancelAtPeriodEnd: nextCancelAtPeriodEnd,
         },
         clock.now(),
       )
