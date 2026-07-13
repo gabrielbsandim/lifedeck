@@ -127,6 +127,8 @@ jobs:
       DATABASE_URL: postgresql://lifedeck:lifedeck@localhost:5432/lifedeck_e2e
       DATABASE_URL_UNPOOLED: postgresql://lifedeck:lifedeck@localhost:5432/lifedeck_e2e
       AUTH_SECRET: e2e-ci-secret-value-for-tests-only
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      CRON_SECRET: e2e-ci-cron-secret
       CI: 'true'
     steps:
       - uses: actions/checkout@v4
