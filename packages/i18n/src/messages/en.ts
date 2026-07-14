@@ -189,6 +189,18 @@ export const en: Messages = {
     whatsappHint:
       'Tap the button, send the pre-filled code, and your number is linked.',
     whatsappErr: 'Could not start pairing. Check the number and try again.',
+    later: 'Set up later',
+    settingsHint: 'You can set this up anytime in Settings.',
+    calendarUpgrade: 'Upgrade to connect',
+    waStep1: 'Tap Connect WhatsApp to get your code.',
+    waStep2: 'WhatsApp opens with the code ready — just send it.',
+    waStep3: "You're linked. Chat and get reminders here.",
+    waConnect: 'Connect WhatsApp',
+    waCodeLabel: 'Or send this code:',
+    waConnectedTitle: 'WhatsApp connected',
+    waConnectedBody: 'Your number is linked. Chat with the assistant anytime.',
+    connectionsTitle: 'Connections',
+    connectionsHint: 'Connect Google Calendar and WhatsApp.',
   },
   developers: {
     title: 'API keys',

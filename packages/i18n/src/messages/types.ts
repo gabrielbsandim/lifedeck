@@ -193,6 +193,18 @@ export type Messages = {
     whatsappOpen: string
     whatsappHint: string
     whatsappErr: string
+    later: string
+    settingsHint: string
+    calendarUpgrade: string
+    waStep1: string
+    waStep2: string
+    waStep3: string
+    waConnect: string
+    waCodeLabel: string
+    waConnectedTitle: string
+    waConnectedBody: string
+    connectionsTitle: string
+    connectionsHint: string
   }
   developers: {
     title: string

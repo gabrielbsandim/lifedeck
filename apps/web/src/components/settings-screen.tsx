@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { Avatar, Badge, Button, PasswordField, TextField } from '@lifedeck/ui'
 import type { SessionUser } from '@/lib/api/use-session'
 import { useSession } from '@/lib/api/use-session'
+import { ConnectionsSection } from '@/components/connections/connections-panel'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useChangePassword,
@@ -149,6 +150,7 @@ function SettingsForm({ user }: { user: SessionUser }) {
 
   return (
     <div className="flex flex-col gap-5">
+      <ConnectionsSection />
       <div className="flex items-center gap-4">
         <Avatar name={user.displayName} src={user.avatarUrl} size="md" />
         <div className="flex flex-col gap-1.5">

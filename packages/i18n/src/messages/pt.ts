@@ -195,6 +195,19 @@ export const pt: Messages = {
       'Toque no botão, envie o código já preenchido, e seu número fica vinculado.',
     whatsappErr:
       'Não foi possível iniciar o pareamento. Confira o número e tente de novo.',
+    later: 'Configurar depois',
+    settingsHint: 'Você pode configurar isso quando quiser em Ajustes.',
+    calendarUpgrade: 'Fazer upgrade para conectar',
+    waStep1: 'Toque em Conectar WhatsApp para gerar seu código.',
+    waStep2: 'O WhatsApp abre com o código pronto — é só enviar.',
+    waStep3: 'Pronto, vinculado. Converse e receba lembretes aqui.',
+    waConnect: 'Conectar WhatsApp',
+    waCodeLabel: 'Ou envie este código:',
+    waConnectedTitle: 'WhatsApp conectado',
+    waConnectedBody:
+      'Seu número está vinculado. Fale com o assistente quando quiser.',
+    connectionsTitle: 'Conexões',
+    connectionsHint: 'Conecte o Google Calendar e o WhatsApp.',
   },
   developers: {
     title: 'Chaves de API',

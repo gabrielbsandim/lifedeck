@@ -7,7 +7,7 @@ import { useSyncTimezone } from '@/lib/api/use-account'
 import { todayIso } from '@/lib/api/dates'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { DailyBoard } from '@/components/daily-board'
-import { GetStartedPanel } from '@/components/get-started-panel'
+import { OnboardingModal } from '@/components/onboarding-modal'
 import { AppShell } from '@/components/app-shell'
 import { SiteFooter } from '@/components/site-footer'
 
@@ -40,9 +40,7 @@ export function AppHome() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-2xl px-5 pt-6">
-        <GetStartedPanel />
-      </div>
+      <OnboardingModal />
       <DailyBoard date={date} onDateChange={setDate} />
     </AppShell>
   )
