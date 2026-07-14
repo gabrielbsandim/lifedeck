@@ -847,6 +847,7 @@ function build(
     }),
     handleInboundWhatsApp: makeHandleInboundWhatsApp({
       channelIdentities,
+      users,
       messaging,
       entitlements: entitlementService,
       consumeCredits,

@@ -168,6 +168,7 @@ describe('V2 whatsapp assistant happy path', () => {
     const refundCredits = makeRefundCredits({ usageMeter })
     const handleInbound = makeHandleInboundWhatsApp({
       channelIdentities,
+      users: new InMemoryUserRepository(),
       messaging,
       entitlements: {
         for: async () => ({

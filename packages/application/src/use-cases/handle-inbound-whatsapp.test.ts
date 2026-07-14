@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ChannelIdentity, asEntityId, type Entitlement } from '@lifedeck/domain'
+import {
+  ChannelIdentity,
+  User,
+  asEntityId,
+  type Entitlement,
+} from '@lifedeck/domain'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
+import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import {
   MediaUnderstandingUnavailableError,
   QuotaExceededError,
@@ -15,6 +21,7 @@ import {
   PAIR_GUIDANCE_MESSAGE,
   PAIR_LINKED_MESSAGE,
   PAIR_WRONG_NUMBER_MESSAGE,
+  WHATSAPP_COPY,
   makeHandleInboundWhatsApp,
 } from '@/use-cases/handle-inbound-whatsapp'
 
@@ -27,10 +34,21 @@ type Options = {
   consumeCredits?: (userId: string, operation: string) => Promise<unknown>
   agentRun?: () => Promise<{ text: string }>
   mediaAvailable?: boolean
+  userLocale?: string
 }
 
 function setup(options: Options = {}) {
   const channelIdentities = new InMemoryChannelIdentityRepository()
+  const users = new InMemoryUserRepository()
+  if (options.userLocale) {
+    const user = User.createGuest({
+      id: ID.user,
+      displayName: 'Tester',
+      locale: options.userLocale,
+      createdAt: NOW,
+    })
+    void users.save(user)
+  }
   const conversations = new InMemoryConversationStore()
   const sendText = vi.fn().mockResolvedValue(undefined)
   const sendTemplate = vi.fn().mockResolvedValue(undefined)
@@ -45,6 +63,7 @@ function setup(options: Options = {}) {
   const mediaAvailable = options.mediaAvailable ?? true
   const handleInboundWhatsApp = makeHandleInboundWhatsApp({
     channelIdentities,
+    users,
     messaging: { sendText, sendTemplate, fetchMedia },
     entitlements: {
       for: async () => ({
@@ -270,11 +289,44 @@ describe('handleInboundWhatsApp', () => {
     const result = await ctx.handleInboundWhatsApp({
       from: FROM,
       kind: 'text',
-      text: 'oi',
+      text: 'hello',
     })
 
     expect(result).toEqual({ action: 'guidance' })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, PAIR_GUIDANCE_MESSAGE)
+  })
+
+  it('guides an unknown number in the language it wrote in', async () => {
+    const ctx = setup()
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'oi',
+    })
+
+    expect(result).toEqual({ action: 'guidance' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      WHATSAPP_COPY.pt.pairGuidance,
+    )
+  })
+
+  it('replies to a paired number in the account language', async () => {
+    const ctx = setup({ entitled: false, userLocale: 'es' })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'hello there',
+    })
+
+    expect(result).toEqual({ action: 'denied' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      WHATSAPP_COPY.es.assistantLocked,
+    )
   })
 
   it('routes a long text from a premium user to the pro model', async () => {

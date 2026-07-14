@@ -1,4 +1,10 @@
-import { normalizePhone, type AiOperation } from '@lifedeck/domain'
+import {
+  detectMessageLanguage,
+  normalizePhone,
+  toMessageLanguage,
+  type AiOperation,
+  type MessageLanguage,
+} from '@lifedeck/domain'
 import {
   MediaUnderstandingUnavailableError,
   QuotaExceededError,
@@ -10,22 +16,86 @@ import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { Transcriber } from '@/ports/transcriber'
+import type { UserRepository } from '@/ports/user-repository'
 import type { VisionReader } from '@/ports/vision-reader'
 
-export const PAIR_LINKED_MESSAGE =
-  'Your WhatsApp is now linked to Lifedeck. You can start sending messages.'
-export const PAIR_GUIDANCE_MESSAGE =
-  'This number is not linked to a Lifedeck account yet. Open Lifedeck, start WhatsApp pairing, and send the code shown there.'
-export const PAIR_WRONG_NUMBER_MESSAGE =
-  'This code was generated for a different WhatsApp number. Open Lifedeck and start pairing from the number you are messaging with now.'
-export const ASSISTANT_LOCKED_MESSAGE =
-  'The Lifedeck assistant is part of a paid plan. Upgrade in the app to chat here.'
-export const ASSISTANT_QUOTA_MESSAGE =
-  'You have reached your usage limit for now. It will free up again soon.'
-export const ASSISTANT_ERROR_MESSAGE =
-  'Something went wrong on my side. Please try again in a moment.'
+export type WhatsappCopy = {
+  pairLinked: string
+  pairGuidance: string
+  pairWrongNumber: string
+  assistantLocked: string
+  assistantQuota: string
+  assistantError: string
+  assistantMediaUnavailable: string
+}
+
+/**
+ * System replies sent over WhatsApp, in the three languages Lifedeck speaks.
+ * These live here (not in the i18n presentation package) so the use case can
+ * pick a language without the application layer depending on i18n. The reply
+ * language is the paired user's saved locale, or the detected language of the
+ * incoming message for an unknown number, falling back to English.
+ */
+export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
+  en: {
+    pairLinked:
+      'Your WhatsApp is now linked to Lifedeck. You can start sending messages.',
+    pairGuidance:
+      'This number is not linked to a Lifedeck account yet. Open Lifedeck, start WhatsApp pairing, and send the code shown there.',
+    pairWrongNumber:
+      'This code was generated for a different WhatsApp number. Open Lifedeck and start pairing from the number you are messaging with now.',
+    assistantLocked:
+      'The Lifedeck assistant is part of a paid plan. Upgrade in the app to chat here.',
+    assistantQuota:
+      'You have reached your usage limit for now. It will free up again soon.',
+    assistantError:
+      'Something went wrong on my side. Please try again in a moment.',
+    assistantMediaUnavailable:
+      'I cannot understand voice or image messages yet. Please send your request as text.',
+  },
+  pt: {
+    pairLinked:
+      'Seu WhatsApp agora está vinculado ao Lifedeck. Você já pode enviar mensagens.',
+    pairGuidance:
+      'Este número ainda não está vinculado a uma conta Lifedeck. Abra o Lifedeck, inicie o pareamento do WhatsApp e envie o código exibido lá.',
+    pairWrongNumber:
+      'Este código foi gerado para outro número de WhatsApp. Abra o Lifedeck e inicie o pareamento a partir do número que você está usando agora.',
+    assistantLocked:
+      'O assistente do Lifedeck faz parte de um plano pago. Faça upgrade no app para conversar aqui.',
+    assistantQuota:
+      'Você atingiu seu limite de uso por enquanto. Ele será liberado novamente em breve.',
+    assistantError:
+      'Algo deu errado do meu lado. Tente novamente em instantes.',
+    assistantMediaUnavailable:
+      'Ainda não consigo entender mensagens de voz ou imagem. Por favor, envie seu pedido como texto.',
+  },
+  es: {
+    pairLinked:
+      'Tu WhatsApp ya está vinculado a Lifedeck. Puedes empezar a enviar mensajes.',
+    pairGuidance:
+      'Este número aún no está vinculado a una cuenta de Lifedeck. Abre Lifedeck, inicia el emparejamiento de WhatsApp y envía el código que aparece allí.',
+    pairWrongNumber:
+      'Este código se generó para otro número de WhatsApp. Abre Lifedeck e inicia el emparejamiento desde el número con el que estás escribiendo ahora.',
+    assistantLocked:
+      'El asistente de Lifedeck es parte de un plan de pago. Mejora tu plan en la app para chatear aquí.',
+    assistantQuota:
+      'Has alcanzado tu límite de uso por ahora. Se liberará de nuevo pronto.',
+    assistantError:
+      'Algo salió mal de mi lado. Inténtalo de nuevo en un momento.',
+    assistantMediaUnavailable:
+      'Todavía no puedo entender mensajes de voz o imagen. Por favor, envía tu solicitud como texto.',
+  },
+}
+
+// Back-compat English aliases, still imported by callers and tests.
+export const PAIR_LINKED_MESSAGE = WHATSAPP_COPY.en.pairLinked
+export const PAIR_GUIDANCE_MESSAGE = WHATSAPP_COPY.en.pairGuidance
+export const PAIR_WRONG_NUMBER_MESSAGE = WHATSAPP_COPY.en.pairWrongNumber
+export const ASSISTANT_LOCKED_MESSAGE = WHATSAPP_COPY.en.assistantLocked
+export const ASSISTANT_QUOTA_MESSAGE = WHATSAPP_COPY.en.assistantQuota
+export const ASSISTANT_ERROR_MESSAGE = WHATSAPP_COPY.en.assistantError
 export const ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE =
-  'I cannot understand voice or image messages yet. Please send your request as text.'
+  WHATSAPP_COPY.en.assistantMediaUnavailable
 
 export type InboundWhatsappMessage =
   | { from: string; kind: 'text'; text: string }
@@ -75,6 +145,7 @@ function wantsProModel(granted: readonly string[], text: string): boolean {
 
 type Dependencies = {
   channelIdentities: ChannelIdentityRepository
+  users: UserRepository
   messaging: MessagingChannel
   entitlements: EntitlementService
   consumeCredits: ConsumeCredits
@@ -88,6 +159,7 @@ type Dependencies = {
 
 export function makeHandleInboundWhatsApp({
   channelIdentities,
+  users,
   messaging,
   entitlements,
   consumeCredits,
@@ -105,8 +177,16 @@ export function makeHandleInboundWhatsApp({
     const identity = await channelIdentities.findByAddress('whatsapp', address)
 
     if (identity?.isVerified()) {
-      return assist(identity.userId as string, message)
+      // A paired number replies in the account's saved language.
+      const user = await users.findById(identity.userId)
+      const locale = toMessageLanguage(user?.locale)
+      return assist(identity.userId as string, message, locale)
     }
+
+    // An unknown number gets the reply in the language it wrote in.
+    const locale =
+      message.kind === 'text' ? detectMessageLanguage(message.text) : 'en'
+    const copy = WHATSAPP_COPY[locale]
 
     const now = clock.now()
     const code = message.kind === 'text' ? message.text.trim() : ''
@@ -118,26 +198,28 @@ export function makeHandleInboundWhatsApp({
       // The code is valid, but it only links the number the user declared in
       // the app. A correct code sent from any other number is refused.
       if (!pending.matchesTarget(message.from)) {
-        await messaging.sendText(message.from, PAIR_WRONG_NUMBER_MESSAGE)
+        await messaging.sendText(message.from, copy.pairWrongNumber)
         return { action: 'mismatch' }
       }
       pending.verify(message.from, now)
       await channelIdentities.save(pending)
-      await messaging.sendText(message.from, PAIR_LINKED_MESSAGE)
+      await messaging.sendText(message.from, copy.pairLinked)
       return { action: 'linked' }
     }
 
-    await messaging.sendText(message.from, PAIR_GUIDANCE_MESSAGE)
+    await messaging.sendText(message.from, copy.pairGuidance)
     return { action: 'guidance' }
   }
 
   async function assist(
     userId: string,
     message: InboundWhatsappMessage,
+    locale: MessageLanguage,
   ): Promise<InboundWhatsappResult> {
+    const copy = WHATSAPP_COPY[locale]
     const { entitlements: granted } = await entitlements.for(userId)
     if (!granted.includes('whatsappAssistant')) {
-      await messaging.sendText(message.from, ASSISTANT_LOCKED_MESSAGE)
+      await messaging.sendText(message.from, copy.assistantLocked)
       return { action: 'denied' }
     }
 
@@ -148,10 +230,7 @@ export function makeHandleInboundWhatsApp({
       (message.kind === 'audio' && !transcriber.isAvailable()) ||
       (message.kind === 'image' && !visionReader.isAvailable())
     ) {
-      await messaging.sendText(
-        message.from,
-        ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
-      )
+      await messaging.sendText(message.from, copy.assistantMediaUnavailable)
       return { action: 'unconfigured' }
     }
 
@@ -166,7 +245,7 @@ export function makeHandleInboundWhatsApp({
       await consumeCredits(userId, operation)
     } catch (error) {
       if (error instanceof QuotaExceededError) {
-        await messaging.sendText(message.from, ASSISTANT_QUOTA_MESSAGE)
+        await messaging.sendText(message.from, copy.assistantQuota)
         return { action: 'quota' }
       }
       throw error
@@ -188,13 +267,10 @@ export function makeHandleInboundWhatsApp({
       // it back rather than charge for a reply the user never got.
       await refundCredits(userId, operation)
       if (error instanceof MediaUnderstandingUnavailableError) {
-        await messaging.sendText(
-          message.from,
-          ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
-        )
+        await messaging.sendText(message.from, copy.assistantMediaUnavailable)
         return { action: 'unconfigured' }
       }
-      await messaging.sendText(message.from, ASSISTANT_ERROR_MESSAGE)
+      await messaging.sendText(message.from, copy.assistantError)
       return { action: 'error' }
     }
 

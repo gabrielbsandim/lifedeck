@@ -3,6 +3,12 @@ export { guard } from '@/shared/guard'
 export { asEntityId, type EntityId } from '@/shared/id'
 export { Email } from '@/value-objects/email'
 export {
+  MESSAGE_LANGUAGES,
+  detectMessageLanguage,
+  toMessageLanguage,
+  type MessageLanguage,
+} from '@/value-objects/message-language'
+export {
   TASK_STATUSES,
   isTaskStatus,
   type TaskStatus,
