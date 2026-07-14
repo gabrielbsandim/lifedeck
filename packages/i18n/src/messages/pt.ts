@@ -174,6 +174,27 @@ export const pt: Messages = {
       'Detectado pelo seu dispositivo. Suas listas diárias, resumo e sequências usam este fuso.',
     useDetected: 'Usar o fuso do dispositivo',
   },
+  getStarted: {
+    title: 'Comece por aqui',
+    subtitle:
+      'Dois passos rápidos para liberar os lembretes e o assistente no WhatsApp.',
+    dismiss: 'Dispensar',
+    calendarTitle: 'Conectar o Google Calendar',
+    calendarBody:
+      'Veja seus eventos junto das tarefas e receba lembretes antes de começarem.',
+    calendarConnected: 'Conectado',
+    calendarAction: 'Conectar',
+    whatsappTitle: 'Vincular seu WhatsApp',
+    whatsappBody:
+      'Converse com o assistente e receba lembretes no WhatsApp. Informe seu número para vincular.',
+    whatsappPhone: 'Seu número de WhatsApp',
+    whatsappLink: 'Vincular WhatsApp',
+    whatsappOpen: 'Abrir o WhatsApp para confirmar',
+    whatsappHint:
+      'Toque no botão, envie o código já preenchido, e seu número fica vinculado.',
+    whatsappErr:
+      'Não foi possível iniciar o pareamento. Confira o número e tente de novo.',
+  },
   developers: {
     title: 'Chaves de API',
     subtitle: 'Acesso programático aos seus dados do Lifedeck pela API REST.',

@@ -170,6 +170,25 @@ export const en: Messages = {
       'Detected from your device. Your daily lists, digest and streaks use this zone.',
     useDetected: 'Use device time zone',
   },
+  getStarted: {
+    title: 'Get started',
+    subtitle: 'Two quick steps to unlock reminders and the WhatsApp assistant.',
+    dismiss: 'Dismiss',
+    calendarTitle: 'Connect Google Calendar',
+    calendarBody:
+      'See your events next to your tasks and get reminders before they start.',
+    calendarConnected: 'Connected',
+    calendarAction: 'Connect',
+    whatsappTitle: 'Link your WhatsApp',
+    whatsappBody:
+      'Chat with the assistant and get reminders on WhatsApp. Enter your number to link it.',
+    whatsappPhone: 'Your WhatsApp number',
+    whatsappLink: 'Link WhatsApp',
+    whatsappOpen: 'Open WhatsApp to confirm',
+    whatsappHint:
+      'Tap the button, send the pre-filled code, and your number is linked.',
+    whatsappErr: 'Could not start pairing. Check the number and try again.',
+  },
   developers: {
     title: 'API keys',
     subtitle: 'Programmatic access to your Lifedeck data over the REST API.',

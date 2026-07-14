@@ -174,6 +174,27 @@ export const es: Messages = {
       'Detectada desde tu dispositivo. Tus listas diarias, resumen y rachas usan esta zona.',
     useDetected: 'Usar la zona del dispositivo',
   },
+  getStarted: {
+    title: 'Empieza aquí',
+    subtitle:
+      'Dos pasos rápidos para activar los recordatorios y el asistente de WhatsApp.',
+    dismiss: 'Descartar',
+    calendarTitle: 'Conectar Google Calendar',
+    calendarBody:
+      'Ve tus eventos junto a tus tareas y recibe recordatorios antes de que empiecen.',
+    calendarConnected: 'Conectado',
+    calendarAction: 'Conectar',
+    whatsappTitle: 'Vincular tu WhatsApp',
+    whatsappBody:
+      'Chatea con el asistente y recibe recordatorios en WhatsApp. Ingresa tu número para vincularlo.',
+    whatsappPhone: 'Tu número de WhatsApp',
+    whatsappLink: 'Vincular WhatsApp',
+    whatsappOpen: 'Abrir WhatsApp para confirmar',
+    whatsappHint:
+      'Toca el botón, envía el código ya escrito, y tu número queda vinculado.',
+    whatsappErr:
+      'No se pudo iniciar el emparejamiento. Revisa el número e inténtalo de nuevo.',
+  },
   developers: {
     title: 'Claves de API',
     subtitle:

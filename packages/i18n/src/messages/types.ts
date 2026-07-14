@@ -177,6 +177,22 @@ export type Messages = {
     settingHint: string
     useDetected: string
   }
+  getStarted: {
+    title: string
+    subtitle: string
+    dismiss: string
+    calendarTitle: string
+    calendarBody: string
+    calendarConnected: string
+    calendarAction: string
+    whatsappTitle: string
+    whatsappBody: string
+    whatsappPhone: string
+    whatsappLink: string
+    whatsappOpen: string
+    whatsappHint: string
+    whatsappErr: string
+  }
   developers: {
     title: string
     subtitle: string
