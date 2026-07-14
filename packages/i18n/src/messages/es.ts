@@ -114,6 +114,7 @@ export const es: Messages = {
     subtitle: 'Gestiona tu suscripción de Lifedeck.',
     monthly: 'Mensual',
     annual: 'Anual',
+    currency: 'Moneda',
     annualHint: '2 meses gratis',
     free: 'Gratis',
     pro: 'Pro',

@@ -114,6 +114,7 @@ export const pt: Messages = {
     subtitle: 'Gerencie sua assinatura do Lifedeck.',
     monthly: 'Mensal',
     annual: 'Anual',
+    currency: 'Moeda',
     annualHint: '2 meses grátis',
     free: 'Gratuito',
     pro: 'Pro',

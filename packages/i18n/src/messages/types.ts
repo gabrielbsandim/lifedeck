@@ -121,6 +121,7 @@ export type Messages = {
   billing: {
     title: string
     subtitle: string
+    currency: string
     monthly: string
     annual: string
     annualHint: string

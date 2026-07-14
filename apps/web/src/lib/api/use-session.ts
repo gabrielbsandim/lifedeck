@@ -10,7 +10,10 @@ export type ClientFeatures = {
   billing: boolean
 }
 
-export type SessionUser = UserView & { features?: ClientFeatures }
+export type SessionUser = UserView & {
+  features?: ClientFeatures
+  country?: string | null
+}
 
 export function useSession() {
   return useQuery<SessionUser | null>({

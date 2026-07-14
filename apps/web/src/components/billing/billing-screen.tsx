@@ -11,7 +11,11 @@ import {
   useSubscription,
 } from '@/lib/api/use-subscription'
 import {
-  PRICES,
+  CURRENCY_BY_MARKET,
+  MARKET_BY_CURRENCY,
+  defaultMarket,
+  priceLabel,
+  type Currency,
   type Interval,
   type Market,
   type PaidPlan,
@@ -27,9 +31,21 @@ export function BillingScreen() {
   const checkout = useStartCheckout()
   const [interval, setInterval] = useState<Interval>('annual')
   const [confirmingCancel, setConfirmingCancel] = useState(false)
+  const [currencyOverride, setCurrencyOverride] = useState<Currency | null>(
+    null,
+  )
 
   const currentPlan = session.data?.plan ?? 'free'
-  const market: Market = session.data?.locale === 'pt' ? 'BR' : 'INTL'
+  // Currency follows the customer's country (from the request IP), never the UI
+  // language, and the user can override it below.
+  const detectedMarket = defaultMarket(
+    session.data?.country,
+    session.data?.locale,
+  )
+  const market: Market = currencyOverride
+    ? MARKET_BY_CURRENCY[currencyOverride]
+    : detectedMarket
+  const currency = CURRENCY_BY_MARKET[market]
   const status = params.get('status')
 
   const subscription = useSubscription(currentPlan !== 'free')
@@ -129,6 +145,27 @@ export function BillingScreen() {
         </Card>
       )}
 
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-ink-600 text-sm">{t.currency}</span>
+        <div className="bg-bg text-ink-700 inline-flex w-fit gap-1 rounded-full p-1 text-sm font-medium">
+          {(['BRL', 'USD'] as Currency[]).map(value => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={currency === value}
+              onClick={() => setCurrencyOverride(value)}
+              className={
+                currency === value
+                  ? 'bg-brand-600 rounded-full px-4 py-1.5 text-white'
+                  : 'rounded-full px-4 py-1.5'
+              }
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-bg text-ink-700 inline-flex w-fit gap-1 rounded-full p-1 text-sm font-medium">
         {(['monthly', 'annual'] as Interval[]).map(value => (
           <button
@@ -153,7 +190,8 @@ export function BillingScreen() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {PLAN_ORDER.map(plan => {
           const isCurrent = currentPlan === plan
-          const price = plan === 'free' ? '—' : PRICES[market][plan][interval]
+          const price =
+            plan === 'free' ? '—' : priceLabel(market, plan, interval)
           const suffix =
             plan === 'free'
               ? ''

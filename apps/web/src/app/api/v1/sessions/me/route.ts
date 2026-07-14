@@ -17,7 +17,10 @@ export async function GET(request: Request) {
       whatsapp: isFeatureEnabled('whatsapp'),
       billing: isFeatureEnabled('billing'),
     }
-    return ok({ ...user, plan, entitlements, features })
+    // Country from the edge, used to pick the billing currency (never the UI
+    // language). Absent in local dev; the client falls back to the locale.
+    const country = request.headers.get('x-vercel-ip-country')
+    return ok({ ...user, plan, entitlements, features, country })
   } catch (error) {
     return handleError(error)
   }

@@ -113,6 +113,7 @@ export const en: Messages = {
     subtitle: 'Manage your Lifedeck subscription.',
     monthly: 'Monthly',
     annual: 'Annual',
+    currency: 'Currency',
     annualHint: '2 months free',
     free: 'Free',
     pro: 'Pro',
