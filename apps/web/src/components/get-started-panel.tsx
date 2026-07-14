@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Button, TextField } from '@lifedeck/ui'
+import { Button } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { useCalendarConnections } from '@/lib/api/use-calendar-connections'
 import { useStartWhatsappPairing } from '@/lib/api/use-pairing'
+import { PhoneField } from '@/components/phone-field'
 import { CalendarIcon, CheckSquareIcon, CloseIcon } from '@/components/icons'
 
 const DISMISS_KEY = 'ld:get-started-dismissed'
@@ -44,91 +44,76 @@ export function GetStartedPanel() {
   if (!visible) return null
 
   return (
-    <section className="border-line bg-brand-50/40 flex flex-col gap-4 rounded-2xl border p-5">
+    <section className="border-line bg-brand-50/50 rounded-2xl border p-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-ink-900 text-base font-semibold">{t.title}</h2>
-          <p className="text-ink-500 mt-0.5 text-sm">{t.subtitle}</p>
+        <div className="min-w-0">
+          <h2 className="text-ink-900 text-sm font-semibold">{t.title}</h2>
+          <p className="text-ink-500 mt-0.5 text-xs">{t.subtitle}</p>
         </div>
         <button
           type="button"
           onClick={dismiss}
           aria-label={t.dismiss}
-          className="text-ink-400 hover:bg-bg -mr-1 -mt-1 flex h-8 w-8 items-center justify-center rounded-full"
+          className="text-ink-400 hover:bg-bg -mr-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
         >
-          <CloseIcon size={16} />
+          <CloseIcon size={15} />
         </button>
       </div>
 
-      {calendarEnabled && (
-        <StepCard
-          icon={<CalendarIcon size={20} />}
-          title={t.calendarTitle}
-          body={t.calendarBody}
-          done={calendarConnected}
-          doneLabel={t.calendarConnected}
-        >
-          {!calendarConnected && (
-            <Link
-              href="/calendar"
-              className="bg-brand-600 hover:bg-brand-700 inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold text-white"
-            >
-              {t.calendarAction}
-            </Link>
-          )}
-        </StepCard>
-      )}
+      <div className="border-line divide-line mt-3 divide-y overflow-hidden rounded-xl border bg-white">
+        {calendarEnabled && (
+          <div className="flex items-center gap-3 p-3">
+            <StepIcon done={calendarConnected}>
+              <CalendarIcon size={16} />
+            </StepIcon>
+            <div className="min-w-0 flex-1">
+              <p className="text-ink-800 text-sm font-medium">
+                {t.calendarTitle}
+              </p>
+              <p className="text-ink-500 text-xs">{t.calendarBody}</p>
+            </div>
+            {calendarConnected ? (
+              <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                {t.calendarConnected}
+              </span>
+            ) : (
+              <a
+                href="/api/v1/calendar/google/connect"
+                className="bg-brand-600 hover:bg-brand-700 inline-flex h-8 shrink-0 items-center rounded-lg px-3 text-sm font-semibold text-white"
+              >
+                {t.calendarAction}
+              </a>
+            )}
+          </div>
+        )}
 
-      {whatsappEnabled && <WhatsappStep />}
+        {whatsappEnabled && <WhatsappRow country={user?.country} />}
+      </div>
     </section>
   )
 }
 
-function StepCard({
-  icon,
-  title,
-  body,
+function StepIcon({
   done,
-  doneLabel,
   children,
 }: {
-  icon: React.ReactNode
-  title: string
-  body: string
   done?: boolean
-  doneLabel?: string
-  children?: React.ReactNode
+  children: React.ReactNode
 }) {
   return (
-    <div className="border-line flex flex-col gap-3 rounded-xl border bg-white p-4">
-      <div className="flex items-start gap-3">
-        <span
-          className={
-            done
-              ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600'
-              : 'bg-brand-100 text-brand-600 flex h-9 w-9 shrink-0 items-center justify-center rounded-full'
-          }
-        >
-          {done ? <CheckSquareIcon size={20} /> : icon}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-ink-800 text-sm font-semibold">{title}</p>
-            {done && doneLabel && (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                {doneLabel}
-              </span>
-            )}
-          </div>
-          <p className="text-ink-500 mt-0.5 text-sm">{body}</p>
-        </div>
-      </div>
-      {children && <div className="pl-12">{children}</div>}
-    </div>
+    <span
+      className={
+        done
+          ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600'
+          : 'bg-brand-100 text-brand-600 flex h-8 w-8 shrink-0 items-center justify-center rounded-full'
+      }
+    >
+      {done ? <CheckSquareIcon size={16} /> : children}
+    </span>
   )
 }
 
-function WhatsappStep() {
+function WhatsappRow({ country }: { country?: string | null }) {
   const { messages } = useI18n()
   const t = messages.getStarted
   const pairing = useStartWhatsappPairing()
@@ -136,18 +121,24 @@ function WhatsappStep() {
   const result = pairing.data
 
   return (
-    <StepCard
-      icon={<WhatsappGlyph />}
-      title={t.whatsappTitle}
-      body={t.whatsappBody}
-    >
+    <div className="flex flex-col gap-2.5 p-3">
+      <div className="flex items-start gap-3">
+        <StepIcon>
+          <WhatsappGlyph />
+        </StepIcon>
+        <div className="min-w-0 flex-1">
+          <p className="text-ink-800 text-sm font-medium">{t.whatsappTitle}</p>
+          <p className="text-ink-500 text-xs">{t.whatsappBody}</p>
+        </div>
+      </div>
+
       {result?.deepLink ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           <a
             href={result.deepLink}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-9 w-fit items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
           >
             <WhatsappGlyph />
             {t.whatsappOpen}
@@ -160,20 +151,17 @@ function WhatsappStep() {
             event.preventDefault()
             if (phone.trim()) pairing.mutate(phone.trim())
           }}
-          className="flex flex-col gap-2 sm:flex-row sm:items-end"
+          className="flex flex-col gap-2"
         >
-          <div className="flex-1">
-            <TextField
-              value={phone}
-              onChange={event => setPhone(event.target.value)}
-              label={t.whatsappPhone}
-              inputMode="tel"
-              placeholder="+55 11 90000-0000"
-            />
-          </div>
+          <PhoneField
+            defaultCountry={country}
+            onChange={setPhone}
+            placeholder="11 90000-0000"
+            disabled={pairing.isPending}
+          />
           <Button
             type="submit"
-            className="h-9"
+            className="h-9 w-full"
             isLoading={pairing.isPending}
             disabled={!phone.trim()}
           >
@@ -182,17 +170,17 @@ function WhatsappStep() {
         </form>
       )}
       {pairing.isError && (
-        <p className="text-danger mt-2 text-xs">{t.whatsappErr}</p>
+        <p className="text-danger text-xs">{t.whatsappErr}</p>
       )}
-    </StepCard>
+    </div>
   )
 }
 
 function WhatsappGlyph() {
   return (
     <svg
-      width={18}
-      height={18}
+      width={16}
+      height={16}
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden
