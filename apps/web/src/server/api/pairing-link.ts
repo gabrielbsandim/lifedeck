@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
 export const pairingRequestSchema = z.object({
-  phone: z.string().trim().min(1),
+  // Optional: the same-device flow pairs by code alone, with no phone entry.
+  phone: z.string().trim().optional(),
 })
 
 /**

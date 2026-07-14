@@ -15,10 +15,10 @@ export interface PairingResult {
  */
 export function useStartWhatsappPairing() {
   return useMutation({
-    mutationFn: (phone: string) =>
+    mutationFn: (phone?: string) =>
       apiRequest<PairingResult>('/api/v1/messaging/whatsapp/pairing', {
         method: 'POST',
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify(phone ? { phone } : {}),
       }),
   })
 }

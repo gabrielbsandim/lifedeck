@@ -13,7 +13,7 @@ import type { ChannelIdentityRepository } from '@/ports/channel-identity-reposit
 export const PAIRING_CODE_TTL_MS = 10 * 60_000
 
 export type WhatsappPairingResult =
-  | { status: 'pending'; code: string; expiresAt: Date; target: string }
+  | { status: 'pending'; code: string; expiresAt: Date; target: string | null }
   | { status: 'linked'; address: string }
 
 type Dependencies = {
@@ -31,15 +31,20 @@ export function makeStartWhatsappPairing({
 }: Dependencies) {
   return async function startWhatsappPairing(
     userId: string,
-    targetPhone: string,
+    targetPhone?: string | null,
   ): Promise<WhatsappPairingResult> {
-    // The user declares which WhatsApp number they will message from. Only that
-    // number can later redeem the code, so a leaked code cannot bind a stranger.
-    const target = normalizePhone(targetPhone)
-    if (!isE164(target)) {
-      throw new ValidationError(
-        'Enter a valid WhatsApp number with country code.',
-      )
+    // The user may declare the number they will message from. When they do, only
+    // that number can redeem the code, so a leaked code cannot bind a stranger.
+    // When they do not (same-device flow), we pair by code alone and bind the
+    // number that redeems it.
+    let target: string | null = null
+    if (targetPhone && targetPhone.trim()) {
+      target = normalizePhone(targetPhone)
+      if (!isE164(target)) {
+        throw new ValidationError(
+          'Enter a valid WhatsApp number with country code.',
+        )
+      }
     }
 
     const now = clock.now()

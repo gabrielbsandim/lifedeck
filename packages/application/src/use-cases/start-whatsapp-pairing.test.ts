@@ -40,6 +40,23 @@ describe('startWhatsappPairing', () => {
     )
   })
 
+  it('pairs without a declared number (same-device flow)', async () => {
+    const { channelIdentities, startWhatsappPairing } = setup('123456')
+    const result = await startWhatsappPairing(ID.user)
+    expect(result).toEqual({
+      status: 'pending',
+      code: '123456',
+      expiresAt: new Date('2026-06-24T10:10:00.000Z'),
+      target: null,
+    })
+    const stored = await channelIdentities.findByUser(
+      asEntityId(ID.user),
+      'whatsapp',
+    )
+    expect(stored?.targetAddress).toBeNull()
+    expect(stored?.matchesTarget('5511888880000')).toBe(true)
+  })
+
   it('rejects an invalid target number', async () => {
     const { startWhatsappPairing } = setup()
     await expect(startWhatsappPairing(ID.user, 'not-a-phone')).rejects.toThrow(

@@ -24,7 +24,12 @@ export class ChannelIdentity {
     id: EntityId
     userId: EntityId
     channel: MessageChannel
-    targetAddress: string
+    /**
+     * The number the user declares they will message from. Optional: when the
+     * app cannot know it (same-device flow, no phone input), we pair by code
+     * alone and bind whichever number redeems it.
+     */
+    targetAddress?: string | null
     pairingCode: string
     pairingExpiresAt: Date
     now: Date
@@ -34,7 +39,9 @@ export class ChannelIdentity {
       userId: input.userId,
       channel: input.channel,
       address: null,
-      targetAddress: ChannelIdentity.requirePhone(input.targetAddress),
+      targetAddress: input.targetAddress
+        ? ChannelIdentity.requirePhone(input.targetAddress)
+        : null,
       pairingCode: guard.notEmpty(input.pairingCode, 'Pairing code'),
       pairingExpiresAt: input.pairingExpiresAt,
       verifiedAt: null,
@@ -97,20 +104,21 @@ export class ChannelIdentity {
     )
   }
 
-  // The pairing code alone is not enough to link a number: the inbound sender
-  // must be the number the user declared in the app. This blocks binding a
-  // stranger's WhatsApp with a leaked or guessed code.
+  // Whether a given sender may redeem the pairing code. When the user declared a
+  // number, only that number qualifies (blocks binding a stranger with a leaked
+  // code). When no number was declared (same-device flow), any sender qualifies:
+  // the code is short-lived and only ever shown inside the authenticated app.
   matchesTarget(address: string): boolean {
-    return (
-      this.props.targetAddress !== null &&
-      this.props.targetAddress === normalizePhone(address)
-    )
+    if (this.props.targetAddress === null) {
+      return true
+    }
+    return this.props.targetAddress === normalizePhone(address)
   }
 
   regenerateCode(
     pairingCode: string,
     pairingExpiresAt: Date,
-    targetAddress: string,
+    targetAddress: string | null,
     now: Date,
   ): void {
     if (this.isVerified()) {
@@ -118,7 +126,9 @@ export class ChannelIdentity {
     }
     this.props.pairingCode = guard.notEmpty(pairingCode, 'Pairing code')
     this.props.pairingExpiresAt = pairingExpiresAt
-    this.props.targetAddress = ChannelIdentity.requirePhone(targetAddress)
+    this.props.targetAddress = targetAddress
+      ? ChannelIdentity.requirePhone(targetAddress)
+      : null
     this.props.updatedAt = now
   }
 

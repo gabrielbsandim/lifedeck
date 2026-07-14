@@ -12,9 +12,9 @@ describe('pairingRequestSchema', () => {
     ).toEqual({ phone: '+55 11 99999-0000' })
   })
 
-  it('rejects a missing or empty phone', () => {
-    expect(() => pairingRequestSchema.parse({})).toThrow()
-    expect(() => pairingRequestSchema.parse({ phone: '   ' })).toThrow()
+  it('makes phone optional (same-device flow pairs by code alone)', () => {
+    expect(pairingRequestSchema.parse({})).toEqual({})
+    expect(pairingRequestSchema.parse({ phone: '   ' })).toEqual({ phone: '' })
   })
 })
 

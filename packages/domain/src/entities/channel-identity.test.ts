@@ -23,6 +23,45 @@ function build(): ChannelIdentity {
   })
 }
 
+function buildTargetless(): ChannelIdentity {
+  return ChannelIdentity.create({
+    id: asEntityId(ID),
+    userId: asEntityId(USER_ID),
+    channel: 'whatsapp',
+    pairingCode: '123456',
+    pairingExpiresAt: EXPIRES,
+    now: NOW,
+  })
+}
+
+describe('ChannelIdentity (targetless pairing)', () => {
+  it('creates a pending identity without a declared number', () => {
+    const identity = buildTargetless()
+    expect(identity.targetAddress).toBeNull()
+    expect(identity.pairingCode).toBe('123456')
+  })
+
+  it('accepts any sender when no number was declared', () => {
+    const identity = buildTargetless()
+    expect(identity.matchesTarget('+5511999990000')).toBe(true)
+    expect(identity.matchesTarget('5511888880000')).toBe(true)
+  })
+
+  it('verifies with whichever number redeems the code', () => {
+    const identity = buildTargetless()
+    identity.verify('5511888880000', NOW)
+    expect(identity.isVerified()).toBe(true)
+    expect(identity.address).toBe('+5511888880000')
+  })
+
+  it('regenerates without a target', () => {
+    const identity = buildTargetless()
+    identity.regenerateCode('654321', EXPIRES, null, NOW)
+    expect(identity.pairingCode).toBe('654321')
+    expect(identity.targetAddress).toBeNull()
+  })
+})
+
 describe('ChannelIdentity', () => {
   it('creates a pending identity with a pairing code', () => {
     const identity = build()
