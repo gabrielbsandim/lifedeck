@@ -1,17 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Avatar } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { AuthDialog } from '@/components/auth-dialog'
-import { AccountDialog } from '@/components/account-dialog'
 
 export function AccountMenu() {
   const { messages } = useI18n()
   const session = useSession()
   const [authOpen, setAuthOpen] = useState(false)
-  const [accountOpen, setAccountOpen] = useState(false)
 
   const user = session.data
   if (!user) {
@@ -23,9 +22,8 @@ export function AccountMenu() {
   return (
     <>
       {registered ? (
-        <button
-          type="button"
-          onClick={() => setAccountOpen(true)}
+        <Link
+          href="/settings"
           className="border-line text-ink-700 hover:bg-bg flex items-center gap-2 rounded-full border bg-white py-1 pl-1 pr-3 text-sm font-medium transition"
         >
           <span className="relative">
@@ -40,7 +38,7 @@ export function AccountMenu() {
             />
           </span>
           {user.displayName}
-        </button>
+        </Link>
       ) : (
         <button
           type="button"
@@ -52,13 +50,6 @@ export function AccountMenu() {
       )}
 
       <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
-      {registered && (
-        <AccountDialog
-          open={accountOpen}
-          onClose={() => setAccountOpen(false)}
-          user={user}
-        />
-      )}
     </>
   )
 }

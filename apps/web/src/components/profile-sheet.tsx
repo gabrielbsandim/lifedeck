@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Avatar } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
-import { AccountDialog } from '@/components/account-dialog'
 import { AuthDialog } from '@/components/auth-dialog'
 import {
   ChartIcon,
@@ -30,7 +29,6 @@ export function ProfileSheet({
 }) {
   const { messages } = useI18n()
   const session = useSession()
-  const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
 
   useEffect(() => {
@@ -129,12 +127,9 @@ export function ProfileSheet({
 
               <div className="border-line mt-3 border-t pt-3">
                 {registered ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose()
-                      setAccountOpen(true)
-                    }}
+                  <Link
+                    href="/settings"
+                    onClick={onClose}
                     className="text-ink-700 hover:bg-bg flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium"
                   >
                     <Avatar
@@ -146,7 +141,7 @@ export function ProfileSheet({
                       {messages.auth.account}
                     </span>
                     <ChevronRightIcon size={16} className="text-ink-300" />
-                  </button>
+                  </Link>
                 ) : (
                   <button
                     type="button"
@@ -166,13 +161,6 @@ export function ProfileSheet({
       </AnimatePresence>
 
       <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
-      {registered && user && (
-        <AccountDialog
-          open={accountOpen}
-          onClose={() => setAccountOpen(false)}
-          user={user}
-        />
-      )}
     </>
   )
 }
