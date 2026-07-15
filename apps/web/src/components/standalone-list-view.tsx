@@ -11,7 +11,6 @@ import {
   Celebration,
   Dialog,
   EmptyState,
-  ProgressBar,
   Skeleton,
   TextField,
 } from '@lifedeck/ui'
@@ -36,6 +35,7 @@ import { TaskDragList } from '@/components/task-drag-list'
 import {
   CheckSquareIcon,
   ChevronLeftIcon,
+  PlusIcon,
   ShareIcon,
   TrashIcon,
 } from '@/components/icons'
@@ -145,8 +145,8 @@ export function StandaloneListView({ listId }: { listId: string }) {
     : null
 
   return (
-    <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
+    <section className="flex flex-col gap-3">
+      <header className="mb-1 flex flex-col gap-2">
         <Link
           href="/lists"
           className="text-brand-600 hover:text-brand-700 flex w-fit items-center gap-1 text-sm font-medium"
@@ -285,40 +285,55 @@ export function StandaloneListView({ listId }: { listId: string }) {
         </div>
       </Dialog>
 
-      <Card className="p-4 sm:p-8">
-        <div className="border-line bg-bg relative mb-6 rounded-2xl border p-4">
-          <Celebration active={allDone} />
-          <div className="mb-2 flex items-baseline justify-between">
-            <span className="text-ink-700 text-sm font-medium">
-              {progressLabel}
-            </span>
-            <span className="text-brand-600 text-xl font-bold">{pct}%</span>
-          </div>
-          <ProgressBar value={pct} label={progressLabel} />
+      <div className="border-line relative flex flex-col gap-2 rounded-2xl border bg-white p-4 shadow-sm">
+        <Celebration active={allDone} />
+        <div className="flex items-baseline justify-between">
+          <span className="text-ink-700 text-sm font-semibold">
+            {progressLabel}
+          </span>
+          <span className="text-brand-700 text-[19px] font-extrabold">
+            {pct}%
+          </span>
         </div>
-
-        <form onSubmit={addTask} className="mb-4">
-          <TextField
-            value={title}
-            onChange={event => setTitle(event.target.value)}
-            placeholder={messages.task.add}
-            aria-label={messages.task.add}
-            maxLength={280}
+        <div className="h-[7px] overflow-hidden rounded-full bg-[oklch(0.955_0.005_265)]">
+          <div
+            className="from-brand-600 h-full rounded-full bg-gradient-to-r to-violet-500 transition-[width] duration-500"
+            style={{ width: `${pct}%` }}
           />
-        </form>
+        </div>
+      </div>
 
-        {rows.length === 0 ? (
-          <EmptyState
-            icon={<CheckSquareIcon size={22} />}
-            title={messages.task.empty}
-            description={messages.task.emptyHint}
-          />
-        ) : (
+      <form onSubmit={addTask} className="flex gap-2">
+        <input
+          value={title}
+          onChange={event => setTitle(event.target.value)}
+          placeholder={messages.task.add}
+          aria-label={messages.task.add}
+          maxLength={280}
+          className="border-line text-ink-800 focus:border-brand-600 h-12 min-w-0 flex-1 rounded-[14px] border-[1.5px] bg-white px-4 text-base outline-none sm:text-sm"
+        />
+        <button
+          type="submit"
+          aria-label={messages.task.add}
+          className="bg-brand-600 active:bg-brand-700 flex h-12 w-12 flex-none items-center justify-center rounded-[14px] text-white shadow-[0_4px_12px_oklch(0.52_0.22_280/0.35)]"
+        >
+          <PlusIcon size={20} strokeWidth={2.4} />
+        </button>
+      </form>
+
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={<CheckSquareIcon size={22} />}
+          title={messages.task.empty}
+          description={messages.task.emptyHint}
+        />
+      ) : (
+        <div className="border-line overflow-hidden rounded-[18px] border bg-white shadow-sm">
           <TaskDragList
             items={rows}
             getId={task => task.id}
             onReorder={ids => reorderTasks.mutate(ids)}
-            className="flex flex-col gap-2"
+            activationConstraint={{ delay: 200, tolerance: 8 }}
             renderItem={(task, { overlay }) => {
               const rowProps = {
                 task,
@@ -336,8 +351,8 @@ export function StandaloneListView({ listId }: { listId: string }) {
               )
             }}
           />
-        )}
-      </Card>
+        </div>
+      )}
     </section>
   )
 }

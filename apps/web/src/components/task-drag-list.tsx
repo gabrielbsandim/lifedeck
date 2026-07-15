@@ -13,6 +13,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
   type DropAnimation,
+  type PointerActivationConstraint,
 } from '@dnd-kit/core'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import {
@@ -28,6 +29,9 @@ type TaskDragListProps<T> = {
   onReorder: (ids: string[]) => void
   renderItem: (item: T, opts: { overlay: boolean }) => ReactNode
   className?: string
+  // When the whole item is the drag handle (no separate grip), a short press
+  // delay lets taps through to interactive children and only reorders on hold.
+  activationConstraint?: PointerActivationConstraint
 }
 
 // A calm settle: the dragged overlay eases into the opened slot instead of
@@ -46,12 +50,13 @@ export function TaskDragList<T>({
   onReorder,
   renderItem,
   className,
+  activationConstraint = { distance: 6 },
 }: TaskDragListProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
-    // A small activation distance lets taps/clicks through to the checkbox
-    // and only starts a drag once the pointer actually moves.
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    // A small activation distance (or press delay) lets taps/clicks through to
+    // interactive children and only starts a drag once the constraint is met.
+    useSensor(PointerSensor, { activationConstraint }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),

@@ -174,7 +174,7 @@ export function ListsManager() {
   return (
     <section className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-[28px] font-bold tracking-[-0.02em]">
           {messages.lists.title}
         </h1>
         <p className="text-ink-500 text-sm">{messages.lists.subtitle}</p>

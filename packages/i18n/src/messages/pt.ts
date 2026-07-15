@@ -14,6 +14,7 @@ export const pt: Messages = {
     nextDay: 'Próximo dia',
     goToToday: 'Hoje',
     pickDate: 'Escolher data',
+    keepGoing: 'Continue no seu ritmo.',
   },
   footer: {
     description:
@@ -340,6 +341,8 @@ export const pt: Messages = {
     notePlaceholder: 'Adicionar uma nota',
     edit: 'Editar tarefa',
     editTitle: 'Editar título',
+    noteSection: 'Nota',
+    privacyHint: 'Tarefas privadas não aparecem para quem colabora com você.',
     delete: 'Excluir tarefa',
     save: 'Salvar',
     cancel: 'Cancelar',

@@ -57,8 +57,8 @@ export function MobileTabBar() {
           className="flex flex-1 flex-col items-center justify-center gap-1 py-1.5 text-[11px] font-medium"
         >
           <span
-            className={`flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md transition-transform active:scale-95 ${
-              pathname.startsWith('/generate') ? 'bg-brand-700' : 'bg-brand-600'
+            className={`from-brand-600 flex h-[38px] w-[38px] items-center justify-center rounded-full bg-gradient-to-br to-violet-500 text-white shadow-[0_4px_12px_oklch(0.52_0.22_280/0.4)] transition-transform active:scale-95 ${
+              pathname.startsWith('/generate') ? 'brightness-95' : ''
             }`}
           >
             <SparkleIcon size={20} />

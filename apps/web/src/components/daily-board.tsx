@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useState, type FormEvent, type TouchEvent } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
   Button,
@@ -9,9 +8,7 @@ import {
   Celebration,
   EmptyState,
   LogoMark,
-  ProgressBar,
   Skeleton,
-  TextField,
 } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
@@ -34,8 +31,8 @@ import {
   CheckSquareIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  PlusIcon,
   ShareIcon,
-  UndoIcon,
 } from '@/components/icons'
 import { addDays, todayIso } from '@/lib/api/dates'
 
@@ -182,7 +179,7 @@ export function DailyBoard({
 
   return (
     <section
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-3"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -199,7 +196,7 @@ export function DailyBoard({
         <div className="flex flex-col gap-1.5">
           <h1
             suppressHydrationWarning
-            className="text-2xl font-bold tracking-tight sm:text-3xl"
+            className="text-[28px] font-bold tracking-[-0.02em] sm:text-3xl"
           >
             {firstName ? `${greeting}, ${firstName}` : greeting}
           </h1>
@@ -269,102 +266,136 @@ export function DailyBoard({
         onClose={() => setShareOpen(false)}
       />
 
-      <Card className="flex flex-col gap-5 p-5 sm:p-6">
-        <div className="relative">
-          <Celebration active={allDone} />
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-brand-600 text-3xl font-extrabold leading-none tracking-tight">
-                {pct}%
-              </span>
-              <span className="text-ink-500 text-sm">{progressLabel}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShareOpen(true)}
-              className="bg-brand-600 hover:bg-brand-700 flex h-9 flex-none items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-white"
-            >
-              <ShareIcon size={15} />
-              {messages.list.share}
-            </button>
-          </div>
-          <ProgressBar value={pct} label={progressLabel} className="mt-3" />
-          <AnimatePresence>
-            {allDone && (
-              <motion.p
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                className="overflow-hidden text-sm font-semibold text-violet-500"
-              >
-                {messages.task.allDone}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
+      <div className="border-line relative flex items-center gap-3.5 overflow-hidden rounded-[18px] border bg-white p-4 shadow-sm sm:gap-[18px] sm:p-5">
+        <Celebration active={allDone} />
+        <span className="relative flex h-[66px] w-[66px] flex-none items-center justify-center sm:h-[74px] sm:w-[74px]">
+          <svg viewBox="0 0 72 72" className="h-full w-full">
+            <circle
+              cx="36"
+              cy="36"
+              r="30"
+              fill="none"
+              stroke="oklch(0.94 0.02 280)"
+              strokeWidth="7"
+            />
+            <circle
+              cx="36"
+              cy="36"
+              r="30"
+              fill="none"
+              stroke="oklch(0.52 0.22 280)"
+              strokeWidth="7"
+              strokeLinecap="round"
+              strokeDasharray="188.5"
+              strokeDashoffset={188.5 * (1 - pct / 100)}
+              transform="rotate(-90 36 36)"
+              style={{
+                transition: 'stroke-dashoffset 0.45s cubic-bezier(0.2,0,0,1)',
+              }}
+            />
+          </svg>
+          <span className="text-brand-700 absolute text-[15px] font-extrabold tracking-tight sm:text-base">
+            {pct}%
+          </span>
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-ink-900 text-[15px] font-semibold sm:text-base">
+            {progressLabel}
+          </span>
+          <span
+            className={
+              allDone
+                ? 'text-sm font-semibold text-violet-500'
+                : 'text-ink-500 text-sm'
+            }
+          >
+            {allDone ? messages.task.allDone : messages.home.keepGoing}
+          </span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          aria-label={messages.list.share}
+          className="bg-brand-50 text-brand-700 flex h-10 w-10 flex-none items-center justify-center rounded-full transition-transform active:scale-95 lg:hidden"
+        >
+          <ShareIcon size={17} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          className="bg-brand-600 hover:bg-brand-700 hidden h-[38px] flex-none items-center gap-1.5 rounded-xl px-4 text-sm font-semibold text-white lg:flex"
+        >
+          <ShareIcon size={14} />
+          {messages.list.share}
+        </button>
+      </div>
 
-        <form onSubmit={addTask}>
-          <TextField
-            value={title}
-            onChange={event => setTitle(event.target.value)}
-            placeholder={messages.task.add}
-            aria-label={messages.task.add}
-            maxLength={280}
-          />
-        </form>
-
-        {carryOver.length > 0 && (
-          <div className="border-line bg-bg rounded-2xl border p-4">
-            <p className="text-ink-700 mb-3 text-sm font-semibold">
-              {messages.carryOver.pendingTitle}
-            </p>
-            <ul className="flex flex-col gap-2">
-              {carryOver.map(item => (
-                <li
-                  key={item.task.id}
-                  className="flex items-center justify-between gap-3"
+      {carryOver.length > 0 && (
+        <div className="bg-brand-50 border-brand-100 rounded-2xl border p-4 sm:px-[18px]">
+          <p className="text-brand-700 mb-2 text-[13px] font-bold">
+            {messages.carryOver.pendingTitle}
+          </p>
+          <ul className="flex flex-col">
+            {carryOver.map(item => (
+              <li key={item.task.id} className="flex items-center gap-2.5 py-1">
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-ink-800 truncate text-sm">
+                    {item.task.title}
+                  </span>
+                  <span className="text-ink-400 text-xs">
+                    {messages.carryOver.broughtFrom.replace(
+                      '{date}',
+                      formatShortDate(item.fromDate, locale),
+                    )}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="text-brand-700 flex h-8 flex-none items-center rounded-full bg-white px-3 text-[12.5px] font-semibold shadow-sm transition-transform active:scale-95 disabled:opacity-60"
+                  disabled={
+                    bringTask.isPending && bringTask.variables === item.task.id
+                  }
+                  onClick={() => bringTask.mutate(item.task.id)}
                 >
-                  <div className="flex min-w-0 flex-col">
-                    <span className="text-ink-800 truncate text-sm">
-                      {item.task.title}
-                    </span>
-                    <span className="text-ink-400 text-xs">
-                      {messages.carryOver.broughtFrom.replace(
-                        '{date}',
-                        formatShortDate(item.fromDate, locale),
-                      )}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="flex h-8 flex-none items-center gap-1.5 px-2 text-xs"
-                    isLoading={
-                      bringTask.isPending &&
-                      bringTask.variables === item.task.id
-                    }
-                    onClick={() => bringTask.mutate(item.task.id)}
-                  >
-                    <UndoIcon size={14} />
-                    {messages.carryOver.bring}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+                  {messages.carryOver.bring}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-        {tasks.length === 0 ? (
-          <EmptyState
-            icon={<CheckSquareIcon size={22} />}
-            title={messages.task.empty}
-            description={messages.task.emptyHint}
-          />
-        ) : (
+      <form onSubmit={addTask} className="flex gap-2">
+        <input
+          value={title}
+          onChange={event => setTitle(event.target.value)}
+          placeholder={messages.task.add}
+          aria-label={messages.task.add}
+          maxLength={280}
+          className="border-line text-ink-800 focus:border-brand-600 h-12 min-w-0 flex-1 rounded-[14px] border-[1.5px] bg-white px-4 text-base outline-none sm:text-sm"
+        />
+        <button
+          type="submit"
+          aria-label={messages.task.add}
+          className="bg-brand-600 active:bg-brand-700 flex h-12 w-12 flex-none items-center justify-center rounded-[14px] text-white shadow-[0_4px_12px_oklch(0.52_0.22_280/0.35)]"
+        >
+          <PlusIcon size={20} strokeWidth={2.4} />
+        </button>
+      </form>
+
+      {tasks.length === 0 ? (
+        <EmptyState
+          icon={<CheckSquareIcon size={22} />}
+          title={messages.task.empty}
+          description={messages.task.emptyHint}
+        />
+      ) : (
+        <div className="border-line overflow-hidden rounded-[18px] border bg-white shadow-sm">
           <TaskDragList
             items={rows}
             getId={task => task.id}
             onReorder={ids => reorderTasks.mutate(ids)}
-            className="flex flex-col gap-2"
+            activationConstraint={{ delay: 200, tolerance: 8 }}
             renderItem={(task, { overlay }) => {
               const rowProps = {
                 task,
@@ -382,8 +413,8 @@ export function DailyBoard({
               )
             }}
           />
-        )}
-      </Card>
+        </div>
+      )}
     </section>
   )
 }

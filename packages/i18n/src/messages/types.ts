@@ -26,6 +26,7 @@ export type Messages = {
     nextDay: string
     goToToday: string
     pickDate: string
+    keepGoing: string
   }
   footer: {
     description: string
@@ -322,6 +323,8 @@ export type Messages = {
     notePlaceholder: string
     edit: string
     editTitle: string
+    noteSection: string
+    privacyHint: string
     delete: string
     save: string
     cancel: string

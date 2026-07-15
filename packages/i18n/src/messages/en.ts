@@ -14,6 +14,7 @@ export const en: Messages = {
     nextDay: 'Next day',
     goToToday: 'Today',
     pickDate: 'Pick a date',
+    keepGoing: 'Keep going at your own pace.',
   },
   footer: {
     description:
@@ -333,6 +334,8 @@ export const en: Messages = {
     notePlaceholder: 'Add a note',
     edit: 'Edit task',
     editTitle: 'Edit title',
+    noteSection: 'Note',
+    privacyHint: 'Private tasks are hidden from people you collaborate with.',
     delete: 'Delete task',
     save: 'Save',
     cancel: 'Cancel',
@@ -441,7 +444,7 @@ export const en: Messages = {
     categoryMoving: 'Moving',
     categoryEvent: 'Event',
     categoryProject: 'Project',
-    categoryOther: 'Something else',
+    categoryOther: 'Other',
     listTitleLabel: 'Title (optional)',
     listTitlePlaceholder: 'e.g. Our summer wedding',
     targetDate: 'Target date (optional)',

@@ -114,7 +114,7 @@ function CompletionChart({
           >
             <div
               title={`${bucket.label}: ${pct}%`}
-              className={`w-full max-w-[34px] rounded-t-lg transition-[height] duration-500 ${
+              className={`w-full max-w-[32px] rounded-[8px_8px_3px_3px] transition-[height] duration-500 ${
                 last
                   ? 'to-brand-600 bg-gradient-to-b from-violet-500'
                   : 'bg-brand-200'
@@ -143,15 +143,15 @@ function StatCard({
   accent?: boolean
 }) {
   return (
-    <Card className="flex flex-col gap-1 p-5">
+    <Card className="flex flex-col gap-0.5 p-4">
       <span
-        className={`text-3xl font-extrabold tracking-tight ${
+        className={`text-[28px] font-extrabold tracking-[-0.02em] ${
           accent ? 'text-violet-500' : 'text-ink-900'
         }`}
       >
         {value}
       </span>
-      <span className="text-ink-500 text-xs">{label}</span>
+      <span className="text-ink-500 text-[12.5px]">{label}</span>
     </Card>
   )
 }
@@ -165,13 +165,13 @@ export function AnalyticsScreen() {
   return (
     <section className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-[28px] font-bold tracking-[-0.02em]">
           {messages.analytics.title}
         </h1>
         <p className="text-ink-500 text-sm">{messages.analytics.subtitle}</p>
       </header>
 
-      <div className="bg-bg flex gap-1 rounded-xl p-1">
+      <div className="border-line flex gap-[3px] rounded-[14px] border bg-white p-[3px]">
         {TABS.map(tab => {
           const active = tab === range
           return (
@@ -180,10 +180,10 @@ export function AnalyticsScreen() {
               type="button"
               onClick={() => setRange(tab)}
               aria-pressed={active}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition ${
+              className={`h-[38px] flex-1 rounded-[11px] text-[13.5px] font-semibold transition ${
                 active
-                  ? 'text-brand-700 bg-white shadow-sm'
-                  : 'text-ink-500 hover:text-ink-700'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-ink-600 hover:text-ink-800'
               }`}
             >
               {messages.analytics[tab]}
@@ -214,7 +214,7 @@ export function AnalyticsScreen() {
                     {messages.analytics.completionRate}
                   </span>
                   <div className="flex items-end gap-3">
-                    <span className="text-brand-600 text-5xl font-extrabold leading-none tracking-tight">
+                    <span className="text-brand-700 text-[40px] font-extrabold leading-none tracking-[-0.03em]">
                       {Math.round(rate * 100)}%
                     </span>
                     {(() => {
