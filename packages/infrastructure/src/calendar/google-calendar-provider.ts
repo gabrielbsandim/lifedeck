@@ -14,9 +14,14 @@ import { fromGoogleRecurrence, toGoogleRecurrence } from '@/calendar/rrule'
 const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3'
-// Calendar access plus the account identity, so we can label and de-duplicate
-// connections by the Google account (personal vs work) the user picked.
-const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar openid email'
+// Minimal Calendar access: read and write events on the calendars the user can
+// reach (we only ever sync events on their `primary` calendar; we never create,
+// delete, or reshare calendars, nor list their other calendars). Requesting the
+// narrow `calendar.events` scope instead of full `calendar` keeps us in Google's
+// "sensitive" tier and makes OAuth verification easier to justify. `openid email`
+// identifies the Google account so we can label and de-duplicate connections.
+const CALENDAR_SCOPE =
+  'https://www.googleapis.com/auth/calendar.events openid email'
 const INITIAL_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
 export type GoogleCalendarConfig = {

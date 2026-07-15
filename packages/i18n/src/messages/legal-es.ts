@@ -307,6 +307,10 @@ const privacy: LegalDocument = {
             '**Autoridades públicas:** cuando lo exija la ley, una orden judicial o la solicitud de un órgano competente.',
           ],
         },
+        {
+          kind: 'p',
+          text: 'El uso y la transferencia por parte de Lifedeck de la información recibida de las APIs de Google se ajustan a la Política de Datos de Usuario de los Servicios de API de Google, incluidos sus requisitos de Uso Limitado. La información obtenida de Google Calendar se utiliza únicamente para ofrecer las funciones de sincronización de calendario que actives, nunca se vende y nunca se usa para publicidad ni para entrenar modelos de IA generalizados.',
+        },
       ],
     },
     {

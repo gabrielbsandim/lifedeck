@@ -307,6 +307,10 @@ const privacy: LegalDocument = {
             '**Autoridades públicas:** quando exigido por lei, decisão judicial ou solicitação de órgão competente.',
           ],
         },
+        {
+          kind: 'p',
+          text: 'O uso e a transferência, pelo Lifedeck, de informações recebidas das APIs do Google seguem a Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de Uso Limitado. As informações obtidas do Google Agenda são usadas apenas para oferecer os recursos de sincronização de agenda que você habilitar, nunca são vendidas e nunca são usadas para publicidade ou para treinar modelos de IA generalizados.',
+        },
       ],
     },
     {
