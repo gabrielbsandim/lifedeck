@@ -192,6 +192,8 @@ export const pt: Messages = {
     waStepB: 'É só enviar. Esta tela confirma sozinha.',
     waConnect: 'Conectar WhatsApp',
     waOpen: 'Abrir o WhatsApp',
+    waOr: 'ou',
+    waScan: 'Está em outro aparelho? Escaneie com a câmera do celular.',
     waWaiting: 'Aguardando sua mensagem…',
     waWaitingHint:
       'No WhatsApp, é só enviar a mensagem que já vem escrita. Assim que enviar, esta tela confirma sozinha.',

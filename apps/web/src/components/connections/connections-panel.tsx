@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
@@ -131,15 +132,30 @@ function WhatsappConnect() {
       {linked ? null : waiting ? (
         <div className="flex flex-col gap-3">
           {deepLink && (
-            <a
-              href={deepLink}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              <WhatsappGlyph />
-              {t.waOpen}
-            </a>
+            <>
+              <a
+                href={deepLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                <WhatsappGlyph />
+                {t.waOpen}
+              </a>
+              <div className="flex items-center gap-3">
+                <span className="bg-line h-px flex-1" />
+                <span className="text-ink-400 text-xs">{t.waOr}</span>
+                <span className="bg-line h-px flex-1" />
+              </div>
+              <div className="flex flex-col items-center gap-2 py-1">
+                <div className="border-line rounded-xl border bg-white p-3">
+                  <QRCodeSVG value={deepLink} size={148} marginSize={0} />
+                </div>
+                <p className="text-ink-500 max-w-56 text-center text-xs">
+                  {t.waScan}
+                </p>
+              </div>
+            </>
           )}
           <div className="bg-brand-50/60 flex items-start gap-2.5 rounded-lg p-3">
             <Spinner />

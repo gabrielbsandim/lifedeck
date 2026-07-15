@@ -187,6 +187,8 @@ export const en: Messages = {
     waStepB: 'Just send it. This screen confirms on its own.',
     waConnect: 'Connect WhatsApp',
     waOpen: 'Open WhatsApp',
+    waOr: 'or',
+    waScan: 'On another device? Scan with your phone camera.',
     waWaiting: 'Waiting for your message…',
     waWaitingHint:
       'In WhatsApp, just send the message that is already written. The moment you send it, this screen confirms on its own.',

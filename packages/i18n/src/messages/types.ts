@@ -192,6 +192,8 @@ export type Messages = {
     waStepB: string
     waConnect: string
     waOpen: string
+    waOr: string
+    waScan: string
     waWaiting: string
     waWaitingHint: string
     waManual: string
