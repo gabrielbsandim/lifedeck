@@ -69,26 +69,24 @@ function TaskRowBody({
       style={style}
       {...dragHandle}
       className={cn(
-        'relative flex touch-none items-start gap-3 bg-white py-2 pl-4 pr-1.5',
+        'relative flex touch-none items-center gap-3 bg-white py-2.5 pl-4 pr-1.5',
         overlay
           ? 'ring-brand-200/70 rounded-2xl shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
           : 'min-h-[56px]',
         dragging && 'opacity-40',
       )}
     >
-      <div className="mt-2">
-        <TaskCheckbox
-          checked={completed}
-          label={task.title}
-          onChange={() => onToggle(task)}
-        />
-      </div>
+      <TaskCheckbox
+        checked={completed}
+        label={task.title}
+        onChange={() => onToggle(task)}
+      />
 
       <button
         type="button"
         onClick={() => setSheetOpen(true)}
         aria-label={t.edit}
-        className="flex min-w-0 flex-1 flex-col gap-[3px] pt-[7px] text-left"
+        className="flex min-w-0 flex-1 flex-col gap-[3px] text-left"
       >
         <span
           className={cn(
@@ -124,7 +122,7 @@ function TaskRowBody({
         )}
       </button>
 
-      <span className="flex flex-none items-center pt-2">
+      <span className="flex flex-none items-center">
         {task.isPrivate && (
           <span className="text-brand-500 flex px-0.5" title={t.private}>
             <LockIcon size={13} strokeWidth={2.2} />

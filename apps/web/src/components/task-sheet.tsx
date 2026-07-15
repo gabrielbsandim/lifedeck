@@ -19,6 +19,7 @@ import {
 import {
   CloseIcon,
   LockIcon,
+  PencilIcon,
   PlusIcon,
   RecurringIcon,
   TrashIcon,
@@ -163,6 +164,7 @@ export function TaskSheet({
   const t = messages.task
   const completed = task.status === 'completed'
   const panelRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLInputElement>(null)
   const [titleDraft, setTitleDraft] = useState(task.title)
   const [noteDraft, setNoteDraft] = useState(task.observation ?? '')
   const [prevTaskId, setPrevTaskId] = useState(task.id)
@@ -246,15 +248,14 @@ export function TaskSheet({
               className="bg-line mx-auto mb-3.5 h-1 w-10 rounded-full"
             />
 
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <TaskCheckbox
-                  checked={completed}
-                  label={task.title}
-                  onChange={() => onToggle(task)}
-                />
-              </div>
+            <div className="flex items-center gap-3">
+              <TaskCheckbox
+                checked={completed}
+                label={task.title}
+                onChange={() => onToggle(task)}
+              />
               <input
+                ref={titleRef}
                 value={titleDraft}
                 onChange={event => setTitleDraft(event.target.value)}
                 onBlur={saveTitle}
@@ -271,6 +272,14 @@ export function TaskSheet({
                   completed ? 'text-ink-500 line-through' : 'text-ink-900',
                 )}
               />
+              <button
+                type="button"
+                aria-label={t.editTitle}
+                onClick={() => titleRef.current?.focus()}
+                className="text-ink-300 hover:text-brand-600 flex h-8 w-8 flex-none items-center justify-center transition-colors"
+              >
+                <PencilIcon size={15} />
+              </button>
             </div>
 
             {task.recurringTaskId && (

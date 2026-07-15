@@ -113,25 +113,25 @@ export function PlansScreen() {
         {t.back}
       </Link>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
         <div>
           <h1 className="text-ink-900 text-2xl font-extrabold tracking-tight sm:text-[26px]">
             {t.plansTitle}
           </h1>
           <p className="text-ink-500 mt-1 text-sm">{t.tagline}</p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex w-full items-center gap-2.5 lg:w-auto">
           <button
             type="button"
             onClick={() =>
               setCurrencyOverride(currency === 'BRL' ? 'USD' : 'BRL')
             }
-            className="border-line text-ink-600 h-8 rounded-full border bg-white px-3 text-xs font-bold"
+            className="border-line text-ink-600 h-9 flex-none rounded-full border bg-white px-3.5 text-xs font-bold"
           >
             {currency}
           </button>
           <SegmentedControl
-            className="w-auto"
+            className="flex-1 lg:w-auto lg:flex-none"
             value={interval}
             onChange={setInterval}
             options={[
@@ -140,7 +140,7 @@ export function PlansScreen() {
                 value: 'annual',
                 label: t.annual,
                 badge: (
-                  <span className="bg-success/15 text-success ml-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-bold">
+                  <span className="bg-success/15 text-success whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10.5px] font-bold">
                     {t.annualHint}
                   </span>
                 ),
