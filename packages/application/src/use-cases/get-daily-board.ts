@@ -24,6 +24,14 @@ import { summarizeSubtasks } from '@/mappers/subtask-summary'
 
 const dateSchema = z.string().date()
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+// The "yesterday's leftovers" nudge only looks one day back, so it surfaces
+// genuinely-recent unfinished tasks and never a pile from days you skipped.
+// Older pending tasks stay on their own day (reachable by navigating back, or
+// carried automatically when carry-over mode is 'auto').
+const CARRY_OVER_LOOKBACK_DAYS = 1
+
 function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
@@ -108,12 +116,15 @@ export function makeGetDailyBoard({
       Array<{ task: Task; fromDate: string }>
     > {
       const owned = await lists.listByOwner(owner)
+      const earliest =
+        referenceDate.getTime() - CARRY_OVER_LOOKBACK_DAYS * MS_PER_DAY
       const priorDailyLists = owned.filter(candidate => {
         const props = candidate.toJSON()
         return (
           props.type === 'daily' &&
           props.referenceDate !== null &&
-          props.referenceDate.getTime() < referenceDate.getTime()
+          props.referenceDate.getTime() < referenceDate.getTime() &&
+          props.referenceDate.getTime() >= earliest
         )
       })
 

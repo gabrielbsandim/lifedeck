@@ -89,11 +89,9 @@ export function DailyBoard({
   const today = todayIso()
   const isToday = date === today
   const goToPreviousDay = () => onDateChange(addDays(date, -1))
-  const goToNextDay = () => {
-    if (!isToday) {
-      onDateChange(addDays(date, 1))
-    }
-  }
+  // Forward navigation is open so the user can plan future days (add tasks,
+  // preview recurring ones). Leftovers only ever show on today.
+  const goToNextDay = () => onDateChange(addDays(date, 1))
 
   function onTouchStart(event: TouchEvent) {
     const point = event.touches[0]
@@ -234,7 +232,6 @@ export function DailyBoard({
                 ref={dateInput}
                 type="date"
                 value={date}
-                max={today}
                 onChange={event => {
                   if (event.target.value) {
                     onDateChange(event.target.value)
@@ -248,9 +245,8 @@ export function DailyBoard({
             <button
               type="button"
               onClick={goToNextDay}
-              disabled={isToday}
               aria-label={messages.home.nextDay}
-              className="text-ink-400 hover:text-ink-700 hover:bg-bg flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-colors disabled:pointer-events-none disabled:opacity-30"
+              className="text-ink-400 hover:text-ink-700 hover:bg-bg flex h-7 w-7 flex-none items-center justify-center rounded-lg transition-colors"
             >
               <ChevronRightIcon size={18} />
             </button>

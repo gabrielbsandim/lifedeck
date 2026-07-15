@@ -208,6 +208,49 @@ describe('getDailyBoard', () => {
     expect(await tasks.listByList(TODAY_LIST)).toHaveLength(0)
   })
 
+  it('ignores unfinished tasks older than one day', async () => {
+    const lists = new InMemoryListRepository()
+    const tasks = new InMemoryTaskRepository()
+    const subtasks = new InMemorySubtaskRepository()
+    const recurringTasks = new InMemoryRecurringTaskRepository()
+    const users = await makeUserRepo('manual')
+    // Three days before "today" (2026-06-21), so it must not be surfaced.
+    await lists.save(
+      List.create({
+        id: asEntityId('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1'),
+        ownerId: ID.user,
+        title: '2026-06-18',
+        type: 'daily',
+        visibility: 'private',
+        referenceDate: new Date('2026-06-18T00:00:00.000Z'),
+        createdAt: new Date('2026-06-18T10:00:00.000Z'),
+      }),
+    )
+    await tasks.save(
+      Task.create({
+        id: asEntityId('b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2'),
+        listId: asEntityId('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1'),
+        title: 'Old todo',
+        createdAt: NOW,
+      }),
+    )
+
+    const getDailyBoard = makeGetDailyBoard({
+      lists,
+      tasks,
+      subtasks,
+      recurringTasks,
+      users,
+      ids: new SequentialIdGenerator([TODAY_LIST]),
+      clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
+    })
+
+    const board = await getDailyBoard(ID.user, '2026-06-21')
+
+    expect(board.carryOver).toEqual([])
+  })
+
   it('auto-copies prior unfinished tasks and freezes the originals in auto mode', async () => {
     const COPY = asEntityId('ffffffff-ffff-4fff-8fff-ffffffffffff')
     const lists = new InMemoryListRepository()
