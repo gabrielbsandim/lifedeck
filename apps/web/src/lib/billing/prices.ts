@@ -1,6 +1,7 @@
 import type { CheckoutRequest } from '@lifedeck/application'
 
 export type PaidPlan = 'pro' | 'premium'
+export type Plan = 'free' | PaidPlan
 export type Interval = CheckoutRequest['interval']
 export type Market = CheckoutRequest['market']
 export type Currency = 'BRL' | 'USD'
@@ -66,6 +67,23 @@ export function priceLabel(
   return formatPrice(
     priceAmount(market, plan, interval),
     CURRENCY_BY_MARKET[market],
+  )
+}
+
+// What one month of the annual plan effectively costs, shown as the "≈ R$ 12,42/mo"
+// hint on annual pricing so the saving over monthly is legible at a glance.
+export function annualEquivalentMonthly(
+  market: Market,
+  plan: PaidPlan,
+): number {
+  return priceAmount(market, plan, 'annual') / 12
+}
+
+// How much a year on the annual plan saves versus paying monthly for 12 months.
+export function annualSavings(market: Market, plan: PaidPlan): number {
+  return (
+    priceAmount(market, plan, 'monthly') * 12 -
+    priceAmount(market, plan, 'annual')
   )
 }
 

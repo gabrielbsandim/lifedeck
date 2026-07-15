@@ -42,12 +42,49 @@ export function GripIcon({ size = 16, ...props }: IconProps) {
   )
 }
 
+/** The Lifedeck stacked-cards mark, in a single color (inherits currentColor). */
+export function DeckGlyph({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      aria-hidden
+      {...props}
+    >
+      <rect x="13" y="4" width="15" height="20" rx="4.5" opacity="0.4" />
+      <rect x="10" y="6.5" width="15" height="20" rx="4.5" opacity="0.65" />
+      <rect x="7" y="9" width="15" height="20" rx="4.5" />
+    </svg>
+  )
+}
+
 export function CalendarIcon(props: IconProps) {
   return (
     <Stroke {...props}>
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
     </Stroke>
+  )
+}
+
+export function CheckIcon({ size = 15, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
   )
 }
 
@@ -105,6 +142,31 @@ export function UserIcon(props: IconProps) {
     <Stroke {...props}>
       <path d="M20 21a8 8 0 0 0-16 0" />
       <circle cx="12" cy="7" r="4" />
+    </Stroke>
+  )
+}
+
+export function LinkIcon(props: IconProps) {
+  return (
+    <Stroke {...props}>
+      <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+      <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+    </Stroke>
+  )
+}
+
+export function SlidersIcon(props: IconProps) {
+  return (
+    <Stroke {...props}>
+      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
+    </Stroke>
+  )
+}
+
+export function DownloadIcon(props: IconProps) {
+  return (
+    <Stroke {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
     </Stroke>
   )
 }

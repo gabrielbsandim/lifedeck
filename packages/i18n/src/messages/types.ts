@@ -150,6 +150,46 @@ export type Messages = {
     statusTrialing: string
     statusPastDue: string
     statusCanceled: string
+    notRenewing: string
+    tagline: string
+    plansTitle: string
+    recommended: string
+    yourPlanBadge: string
+    back: string
+    seePlans: string
+    changePlan: string
+    subscribePlan: string
+    compare: string
+    sample: string
+    freeFeatures: string[]
+    proFeatures: string[]
+    premiumFeatures: string[]
+    compareDailyLists: string
+    compareSharing: string
+    compareAnalytics: string
+    compareAi: string
+    compareAssistant: string
+    compareCalendar: string
+    compareReminders: string
+    compareStrongerAi: string
+    compareHigherLimits: string
+    eqApprox: string
+    savePerYear: string
+    checkoutPlan: string
+    checkoutCharge: string
+    checkoutTotal: string
+    checkoutSavings: string
+    goToPayment: string
+    checkoutNote: string
+    successToastPlan: string
+    close: string
+    footerCancel: string
+    pricesIn: string
+    currencyLongBRL: string
+    currencyLongUSD: string
+    noCharge: string
+    perMonthLong: string
+    perYearLong: string
   }
   notifications: {
     title: string
@@ -208,10 +248,19 @@ export type Messages = {
     connectionsHint: string
   }
   settings: {
+    title: string
     profile: string
+    connections: string
     preferences: string
     security: string
+    plan: string
     account: string
+    hubConfig: string
+    hubTools: string
+    hubAccount: string
+    planWord: string
+    teaserFree: string
+    teaserPaid: string
   }
   developers: {
     title: string

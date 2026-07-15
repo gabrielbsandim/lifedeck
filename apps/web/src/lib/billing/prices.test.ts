@@ -3,6 +3,8 @@ import {
   CURRENCY_BY_MARKET,
   MARKET_BY_CURRENCY,
   PRICE_AMOUNTS,
+  annualEquivalentMonthly,
+  annualSavings,
   defaultMarket,
   formatPrice,
   priceAmount,
@@ -55,6 +57,33 @@ describe('billing prices', () => {
     }
     expect(PRICE_AMOUNTS.BR.pro.monthly).toBe(14.9)
     expect(formatPrice(4.99, 'USD')).toContain('4.99')
+  })
+
+  it('derives the annual monthly-equivalent as a twelfth of the annual price', () => {
+    for (const market of MARKETS) {
+      for (const plan of PLANS) {
+        expect(annualEquivalentMonthly(market, plan)).toBeCloseTo(
+          priceAmount(market, plan, 'annual') / 12,
+          6,
+        )
+      }
+    }
+    // The R$149 annual Pro plan works out to about R$12.42 a month.
+    expect(annualEquivalentMonthly('BR', 'pro')).toBeCloseTo(12.4166, 3)
+  })
+
+  it('reports the yearly saving of annual over twelve monthly payments', () => {
+    for (const market of MARKETS) {
+      for (const plan of PLANS) {
+        const expected =
+          priceAmount(market, plan, 'monthly') * 12 -
+          priceAmount(market, plan, 'annual')
+        expect(annualSavings(market, plan)).toBeCloseTo(expected, 6)
+        expect(annualSavings(market, plan)).toBeGreaterThan(0)
+      }
+    }
+    // 12 × R$14.90 − R$149 = R$29.80 (the "2 months free" promise).
+    expect(annualSavings('BR', 'pro')).toBeCloseTo(29.8, 2)
   })
 })
 
