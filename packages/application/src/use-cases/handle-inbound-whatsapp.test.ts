@@ -330,20 +330,37 @@ describe('handleInboundWhatsApp', () => {
     )
   })
 
-  it('replies to a paired number in the account language', async () => {
+  it('replies to a paired number in the language of the message', async () => {
     const ctx = setup({ entitled: false, userLocale: 'es' })
     await verified(ctx.channelIdentities)
 
     const result = await ctx.handleInboundWhatsApp({
       from: FROM,
       kind: 'text',
-      text: 'hello there',
+      text: 'hello there, can you help me?',
     })
 
     expect(result).toEqual({ action: 'denied' })
     expect(ctx.sendText).toHaveBeenCalledWith(
       FROM,
-      WHATSAPP_COPY.es.assistantLocked,
+      WHATSAPP_COPY.en.assistantLocked,
+    )
+  })
+
+  it('answers a Portuguese message in Portuguese even with an English account', async () => {
+    const ctx = setup({ entitled: false, userLocale: 'en' })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'o que tenho de tarefas para amanhã?',
+    })
+
+    expect(result).toEqual({ action: 'denied' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      WHATSAPP_COPY.pt.assistantLocked,
     )
   })
 

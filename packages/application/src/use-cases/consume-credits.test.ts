@@ -26,8 +26,8 @@ describe('consumeCredits', () => {
   it('debits the operation cost and records a ledger event', async () => {
     const { ledger, consume } = setup('free')
     const summary = await consume(USER_ID, 'listGeneration')
-    expect(summary.fiveHour).toEqual({ used: 1, limit: 5 })
-    expect(summary.weekly).toEqual({ used: 1, limit: 15 })
+    expect(summary.fiveHour).toEqual({ used: 1, limit: 15 })
+    expect(summary.weekly).toEqual({ used: 1, limit: 50 })
     expect(ledger.events).toHaveLength(1)
     expect(ledger.events[0]?.operation).toBe('listGeneration')
     expect(ledger.events[0]?.credits).toBe(1)
@@ -41,7 +41,7 @@ describe('consumeCredits', () => {
 
   it('rejects when the five-hour window would be exceeded', async () => {
     const { usageMeter, ledger, consume } = setup('free')
-    await usageMeter.add(USER_ID, 5)
+    await usageMeter.add(USER_ID, 15)
     await expect(consume(USER_ID, 'listGeneration')).rejects.toBeInstanceOf(
       QuotaExceededError,
     )
@@ -50,11 +50,11 @@ describe('consumeCredits', () => {
 
   it('reports the offending window on the error', async () => {
     const { usageMeter, consume } = setup('free')
-    await usageMeter.add(USER_ID, 5)
+    await usageMeter.add(USER_ID, 15)
     await expect(consume(USER_ID, 'listGeneration')).rejects.toMatchObject({
       window: 'fiveHour',
-      limit: 5,
-      used: 5,
+      limit: 15,
+      used: 15,
     })
   })
 

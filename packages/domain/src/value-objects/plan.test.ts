@@ -49,8 +49,8 @@ describe('plan', () => {
 
   it('exposes a rising credit quota per plan', () => {
     expect(quotaForPlan('free')).toEqual({
-      fiveHourCredits: 5,
-      weeklyCredits: 15,
+      fiveHourCredits: 15,
+      weeklyCredits: 50,
     })
     expect(quotaForPlan('pro')).toEqual({
       fiveHourCredits: 40,

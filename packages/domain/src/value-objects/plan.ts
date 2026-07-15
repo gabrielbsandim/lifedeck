@@ -29,7 +29,7 @@ type PlanDefinition = {
 const PLAN_CATALOG: Record<Plan, PlanDefinition> = {
   free: {
     entitlements: ['whatsappAssistant'],
-    quota: { fiveHourCredits: 5, weeklyCredits: 15 },
+    quota: { fiveHourCredits: 15, weeklyCredits: 50 },
   },
   pro: {
     entitlements: ['calendarSync', 'whatsappAssistant'],

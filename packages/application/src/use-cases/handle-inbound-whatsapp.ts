@@ -185,9 +185,13 @@ export function makeHandleInboundWhatsApp({
     const identity = await channelIdentities.findByAddress('whatsapp', address)
 
     if (identity?.isVerified()) {
-      // A paired number replies in the account's saved language.
-      const user = await users.findById(identity.userId)
-      const locale = toMessageLanguage(user?.locale)
+      // System replies mirror the language the user wrote in, the same way the
+      // assistant itself answers. For a non-text message (no words to detect)
+      // we fall back to the account's saved language.
+      const locale =
+        message.kind === 'text'
+          ? detectMessageLanguage(message.text)
+          : toMessageLanguage((await users.findById(identity.userId))?.locale)
       return assist(identity.userId as string, message, locale)
     }
 
