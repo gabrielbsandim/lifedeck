@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   pairingDeepLink,
   pairingRequestSchema,
+  whatsappBotNumber,
 } from '@/server/api/pairing-link'
 
 describe('pairingRequestSchema', () => {
@@ -15,6 +16,24 @@ describe('pairingRequestSchema', () => {
   it('makes phone optional (same-device flow pairs by code alone)', () => {
     expect(pairingRequestSchema.parse({})).toEqual({})
     expect(pairingRequestSchema.parse({ phone: '   ' })).toEqual({ phone: '' })
+  })
+})
+
+describe('whatsappBotNumber', () => {
+  beforeEach(() => {
+    delete process.env.WHATSAPP_BOT_NUMBER
+  })
+  afterEach(() => {
+    delete process.env.WHATSAPP_BOT_NUMBER
+  })
+
+  it('is null without a configured bot number', () => {
+    expect(whatsappBotNumber()).toBeNull()
+  })
+
+  it('returns the bare digits of the configured number', () => {
+    process.env.WHATSAPP_BOT_NUMBER = '+55 11 5555-0000'
+    expect(whatsappBotNumber()).toBe('551155550000')
   })
 })
 

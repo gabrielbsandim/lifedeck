@@ -18,6 +18,7 @@ import {
   makeReconcileCalendars,
   makeRenewCalendarChannels,
   makeStartWhatsappPairing,
+  makeGetWhatsappChannel,
   makeHandleInboundWhatsApp,
   makeHandleCalendarNotification,
   makePullCalendarChanges,
@@ -267,6 +268,7 @@ type Container = {
     renewed: number
   }>
   startWhatsappPairing: ReturnType<typeof makeStartWhatsappPairing>
+  getWhatsappChannel: ReturnType<typeof makeGetWhatsappChannel>
   handleInboundWhatsApp: ReturnType<typeof makeHandleInboundWhatsApp>
   entitlements: EntitlementService
 }
@@ -845,6 +847,7 @@ function build(
       ids,
       clock,
     }),
+    getWhatsappChannel: makeGetWhatsappChannel({ channelIdentities }),
     handleInboundWhatsApp: makeHandleInboundWhatsApp({
       channelIdentities,
       users,

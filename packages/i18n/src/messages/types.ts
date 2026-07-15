@@ -181,30 +181,35 @@ export type Messages = {
   getStarted: {
     title: string
     subtitle: string
-    dismiss: string
     calendarTitle: string
     calendarBody: string
     calendarConnected: string
     calendarAction: string
+    calendarUpgrade: string
     whatsappTitle: string
     whatsappBody: string
-    whatsappPhone: string
-    whatsappLink: string
-    whatsappOpen: string
-    whatsappHint: string
+    waStepA: string
+    waStepB: string
+    waConnect: string
+    waOpen: string
+    waWaiting: string
+    waWaitingHint: string
+    waManual: string
+    waCodeLabel: string
+    waMessage: string
+    waConnectedTitle: string
+    waConnectedBody: string
     whatsappErr: string
     later: string
     settingsHint: string
-    calendarUpgrade: string
-    waStep1: string
-    waStep2: string
-    waStep3: string
-    waConnect: string
-    waCodeLabel: string
-    waConnectedTitle: string
-    waConnectedBody: string
     connectionsTitle: string
     connectionsHint: string
+  }
+  settings: {
+    profile: string
+    preferences: string
+    security: string
+    account: string
   }
   developers: {
     title: string

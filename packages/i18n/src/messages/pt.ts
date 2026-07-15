@@ -179,35 +179,40 @@ export const pt: Messages = {
     title: 'Comece por aqui',
     subtitle:
       'Dois passos rápidos para liberar os lembretes e o assistente no WhatsApp.',
-    dismiss: 'Dispensar',
     calendarTitle: 'Conectar o Google Calendar',
     calendarBody:
       'Veja seus eventos junto das tarefas e receba lembretes antes de começarem.',
     calendarConnected: 'Conectado',
     calendarAction: 'Conectar',
-    whatsappTitle: 'Vincular seu WhatsApp',
-    whatsappBody:
-      'Converse com o assistente e receba lembretes no WhatsApp. Informe seu número para vincular.',
-    whatsappPhone: 'Seu número de WhatsApp',
-    whatsappLink: 'Vincular WhatsApp',
-    whatsappOpen: 'Abrir o WhatsApp para confirmar',
-    whatsappHint:
-      'Toque no botão, envie o código já preenchido, e seu número fica vinculado.',
-    whatsappErr:
-      'Não foi possível iniciar o pareamento. Confira o número e tente de novo.',
-    later: 'Configurar depois',
-    settingsHint: 'Você pode configurar isso quando quiser em Ajustes.',
     calendarUpgrade: 'Fazer upgrade para conectar',
-    waStep1: 'Toque em Conectar WhatsApp para gerar seu código.',
-    waStep2: 'O WhatsApp abre com o código pronto — é só enviar.',
-    waStep3: 'Pronto, vinculado. Converse e receba lembretes aqui.',
+    whatsappTitle: 'Ativar o assistente no WhatsApp',
+    whatsappBody:
+      'Converse com o assistente e receba seus lembretes direto no WhatsApp.',
+    waStepA: 'Toque em Conectar. O WhatsApp abre com uma mensagem pronta.',
+    waStepB: 'É só enviar. Esta tela confirma sozinha.',
     waConnect: 'Conectar WhatsApp',
-    waCodeLabel: 'Ou envie este código:',
+    waOpen: 'Abrir o WhatsApp',
+    waWaiting: 'Aguardando sua mensagem…',
+    waWaitingHint:
+      'No WhatsApp, é só enviar a mensagem que já vem escrita. Assim que enviar, esta tela confirma sozinha.',
+    waManual: 'Não abriu sozinho? Envie este código para o nosso WhatsApp:',
+    waCodeLabel: 'Seu código',
+    waMessage:
+      'Olá! Quero ativar meu assistente do Life Deck. Meu código: {code}',
     waConnectedTitle: 'WhatsApp conectado',
     waConnectedBody:
       'Seu número está vinculado. Fale com o assistente quando quiser.',
+    whatsappErr: 'Não foi possível iniciar o pareamento. Tente de novo.',
+    later: 'Configurar depois',
+    settingsHint: 'Você pode configurar isso quando quiser em Ajustes.',
     connectionsTitle: 'Conexões',
     connectionsHint: 'Conecte o Google Calendar e o WhatsApp.',
+  },
+  settings: {
+    profile: 'Perfil',
+    preferences: 'Preferências',
+    security: 'Segurança',
+    account: 'Conta',
   },
   developers: {
     title: 'Chaves de API',

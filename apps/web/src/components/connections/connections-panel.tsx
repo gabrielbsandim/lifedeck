@@ -5,7 +5,10 @@ import { Button } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { useCalendarConnections } from '@/lib/api/use-calendar-connections'
-import { useStartWhatsappPairing } from '@/lib/api/use-pairing'
+import {
+  useStartWhatsappPairing,
+  useWhatsappChannel,
+} from '@/lib/api/use-pairing'
 import { CalendarIcon, CheckSquareIcon } from '@/components/icons'
 
 /** Calendar + WhatsApp connection cards, shared by the onboarding modal and Settings. */
@@ -16,26 +19,6 @@ export function ConnectionsPanel() {
     <div className="flex flex-col gap-3">
       {features?.calendar && <CalendarConnect />}
       {features?.whatsapp && <WhatsappConnect />}
-    </div>
-  )
-}
-
-/** Titled Connections block for the Settings page; hidden if no channel is enabled. */
-export function ConnectionsSection() {
-  const { messages } = useI18n()
-  const t = messages.getStarted
-  const session = useSession()
-  const features = session.data?.features
-  if (!features?.calendar && !features?.whatsapp) return null
-  return (
-    <div className="flex flex-col gap-2.5">
-      <div>
-        <h2 className="text-ink-900 text-sm font-semibold">
-          {t.connectionsTitle}
-        </h2>
-        <p className="text-ink-500 text-xs">{t.connectionsHint}</p>
-      </div>
-      <ConnectionsPanel />
     </div>
   )
 }
@@ -114,12 +97,29 @@ function CalendarConnect() {
   )
 }
 
+/**
+ * WhatsApp connect: one tap opens WhatsApp with a ready-to-send, human-readable
+ * message (not a bare code), and this card polls the link status so it confirms
+ * on its own the moment the user sends it. Three states: idle, waiting, linked.
+ */
 function WhatsappConnect() {
   const { messages } = useI18n()
   const t = messages.getStarted
   const pairing = useStartWhatsappPairing()
-  const result = pairing.data
-  const linked = result?.status === 'linked'
+  const channel = useWhatsappChannel(true)
+
+  const linked =
+    channel.data?.status === 'linked' || pairing.data?.status === 'linked'
+  const code = pairing.data?.code
+  const waNumber = pairing.data?.waNumber ?? channel.data?.waNumber ?? null
+  const waiting = !linked && Boolean(code)
+
+  const deepLink =
+    waNumber && code
+      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(
+          t.waMessage.replace('{code}', code),
+        )}`
+      : (pairing.data?.deepLink ?? null)
 
   return (
     <Row
@@ -128,38 +128,48 @@ function WhatsappConnect() {
       title={linked ? t.waConnectedTitle : t.whatsappTitle}
       body={linked ? t.waConnectedBody : t.whatsappBody}
     >
-      {linked ? null : result?.deepLink ? (
-        <div className="flex flex-col gap-2">
-          <a
-            href={result.deepLink}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-          >
-            <WhatsappGlyph />
-            {t.whatsappOpen}
-          </a>
-          {result.code && (
-            <p className="text-ink-500 text-xs">
-              {t.waCodeLabel}{' '}
-              <span className="text-ink-800 font-mono font-semibold tracking-wider">
-                {result.code}
-              </span>
-            </p>
+      {linked ? null : waiting ? (
+        <div className="flex flex-col gap-3">
+          {deepLink && (
+            <a
+              href={deepLink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              <WhatsappGlyph />
+              {t.waOpen}
+            </a>
           )}
-          <p className="text-ink-500 text-xs">{t.whatsappHint}</p>
+          <div className="bg-brand-50/60 flex items-start gap-2.5 rounded-lg p-3">
+            <Spinner />
+            <div className="min-w-0 flex-1">
+              <p className="text-ink-800 text-sm font-medium">{t.waWaiting}</p>
+              <p className="text-ink-500 mt-0.5 text-xs">{t.waWaitingHint}</p>
+            </div>
+          </div>
+          {code && (
+            <div className="border-line flex flex-col gap-1 border-t pt-2.5">
+              <p className="text-ink-400 text-xs">{t.waManual}</p>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-ink-500 text-xs">{t.waCodeLabel}</span>
+                <span className="text-ink-900 font-mono text-lg font-bold tracking-[0.3em]">
+                  {code}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5">
-          <ol className="text-ink-600 flex flex-col gap-1.5 text-xs">
-            <Step n={1}>{t.waStep1}</Step>
-            <Step n={2}>{t.waStep2}</Step>
-            <Step n={3}>{t.waStep3}</Step>
+        <div className="flex flex-col gap-3">
+          <ol className="text-ink-600 flex flex-col gap-2 text-sm">
+            <Step n={1}>{t.waStepA}</Step>
+            <Step n={2}>{t.waStepB}</Step>
           </ol>
           <Button
             onClick={() => pairing.mutate(undefined)}
             isLoading={pairing.isPending}
-            className="h-10 w-full"
+            className="h-11 w-full"
           >
             {t.waConnect}
           </Button>
@@ -174,12 +184,21 @@ function WhatsappConnect() {
 
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-2">
-      <span className="bg-brand-100 text-brand-700 mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
+    <li className="flex items-start gap-2.5">
+      <span className="bg-brand-100 text-brand-700 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold">
         {n}
       </span>
       <span>{children}</span>
     </li>
+  )
+}
+
+function Spinner() {
+  return (
+    <span
+      aria-hidden
+      className="border-brand-200 border-t-brand-600 mt-0.5 h-4 w-4 shrink-0 animate-spin rounded-full border-2"
+    />
   )
 }
 

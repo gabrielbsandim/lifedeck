@@ -136,6 +136,14 @@ const OPERATION: Record<InboundWhatsappMessage['kind'], AiOperation> = {
 // messages stay on Flash so a quick "ok" never burns a Pro-weight credit.
 const PRO_WORD_THRESHOLD = 8
 
+// Pull the 6-digit pairing code out of an inbound message. The app sends a
+// friendly sentence ("...My code: 123456") instead of a bare code, so the user
+// understands what they are sending; we still pair as long as the code is in
+// there. A bare "123456" (older links, manual send) matches too.
+export function extractPairingCode(text: string): string {
+  return text.match(/\d{6}/)?.[0] ?? ''
+}
+
 function wantsProModel(granted: readonly string[], text: string): boolean {
   if (!granted.includes('premiumModel')) {
     return false
@@ -189,7 +197,7 @@ export function makeHandleInboundWhatsApp({
     const copy = WHATSAPP_COPY[locale]
 
     const now = clock.now()
-    const code = message.kind === 'text' ? message.text.trim() : ''
+    const code = message.kind === 'text' ? extractPairingCode(message.text) : ''
     const pending = code
       ? await channelIdentities.findPendingByCode('whatsapp', code)
       : null

@@ -6,13 +6,14 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type ReactNode,
 } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Avatar, Badge, Button, PasswordField, TextField } from '@lifedeck/ui'
 import type { SessionUser } from '@/lib/api/use-session'
 import { useSession } from '@/lib/api/use-session'
-import { ConnectionsSection } from '@/components/connections/connections-panel'
+import { ConnectionsPanel } from '@/components/connections/connections-panel'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useChangePassword,
@@ -42,6 +43,56 @@ function listTimeZones(current: string): string[] {
   const zones = new Set<string>(['UTC', ...supported])
   zones.add(current)
   return Array.from(zones).sort()
+}
+
+/** A titled group of related settings, rendered as one card. */
+function Section({
+  title,
+  description,
+  card = true,
+  children,
+}: {
+  title: string
+  description?: string
+  card?: boolean
+  children: ReactNode
+}) {
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-ink-900 text-sm font-semibold">{title}</h2>
+        {description && <p className="text-ink-500 text-xs">{description}</p>}
+      </div>
+      {card ? (
+        <div className="border-line flex flex-col gap-5 rounded-xl border bg-white p-4">
+          {children}
+        </div>
+      ) : (
+        children
+      )}
+    </section>
+  )
+}
+
+/** A labelled sub-block inside a Section card. */
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-ink-700 text-sm font-medium">{label}</span>
+        {hint && <p className="text-ink-500 text-xs">{hint}</p>}
+      </div>
+      {children}
+    </div>
+  )
 }
 
 export function SettingsScreen() {
@@ -114,6 +165,9 @@ function SettingsForm({ user }: { user: SessionUser }) {
 
   const timeZones = useMemo(() => listTimeZones(user.timezone), [user.timezone])
   const detectedZone = browserTimeZone()
+  const hasConnections = Boolean(
+    user.features?.calendar || user.features?.whatsapp,
+  )
 
   function submitRename(event: FormEvent) {
     event.preventDefault()
@@ -149,274 +203,291 @@ function SettingsForm({ user }: { user: SessionUser }) {
   const goHome = () => router.push('/')
 
   return (
-    <div className="flex flex-col gap-5">
-      <ConnectionsSection />
-      <div className="flex items-center gap-4">
-        <Avatar name={user.displayName} src={user.avatarUrl} size="md" />
-        <div className="flex flex-col gap-1.5">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.auth.photo}
-          </span>
-          <div className="flex items-center gap-2">
-            <input
-              ref={photoInput}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={onPickPhoto}
-            />
-            <Button
-              variant="ghost"
-              className="h-8 px-3 text-xs"
-              isLoading={uploadAvatar.isPending}
-              onClick={() => photoInput.current?.click()}
-            >
-              {messages.auth.changePhoto}
-            </Button>
-            {user.avatarUrl && (
-              <button
-                type="button"
-                onClick={() => removeAvatar.mutate()}
-                disabled={removeAvatar.isPending}
-                className="text-ink-500 hover:text-danger text-xs font-medium"
+    <div className="flex flex-col gap-8">
+      <Section title={messages.settings.profile}>
+        <div className="flex items-center gap-4">
+          <Avatar name={user.displayName} src={user.avatarUrl} size="md" />
+          <div className="flex flex-col gap-1.5">
+            <span className="text-ink-700 text-sm font-medium">
+              {messages.auth.photo}
+            </span>
+            <div className="flex items-center gap-2">
+              <input
+                ref={photoInput}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={onPickPhoto}
+              />
+              <Button
+                variant="ghost"
+                className="h-8 px-3 text-xs"
+                isLoading={uploadAvatar.isPending}
+                onClick={() => photoInput.current?.click()}
               >
-                {messages.auth.removePhoto}
-              </button>
+                {messages.auth.changePhoto}
+              </Button>
+              {user.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => removeAvatar.mutate()}
+                  disabled={removeAvatar.isPending}
+                  className="text-ink-500 hover:text-danger text-xs font-medium"
+                >
+                  {messages.auth.removePhoto}
+                </button>
+              )}
+            </div>
+            {photoError || uploadAvatar.isError ? (
+              <span className="text-danger text-xs">
+                {messages.common.error}
+              </span>
+            ) : (
+              <span className="text-ink-400 text-xs">
+                {messages.auth.photoHint}
+              </span>
             )}
           </div>
-          {photoError || uploadAvatar.isError ? (
-            <span className="text-danger text-xs">{messages.common.error}</span>
-          ) : (
-            <span className="text-ink-400 text-xs">
-              {messages.auth.photoHint}
-            </span>
-          )}
         </div>
-      </div>
 
-      <div className="border-line flex flex-col gap-2 rounded-xl border bg-white p-3">
-        <span className="text-ink-700 text-sm">{user.email}</span>
-        {user.isEmailVerified ? (
-          <Badge tone="shared">{messages.auth.verified}</Badge>
-        ) : verifying ? (
-          <form onSubmit={submitCode} className="flex flex-col gap-2">
-            <TextField
-              value={code}
-              onChange={event => setCode(event.target.value)}
-              label={messages.auth.code}
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="123456"
-            />
-            {verify.isError && (
-              <p className="text-danger text-xs">
-                {errorText(verify.error, messages.common.error)}
-              </p>
-            )}
-            <Button
-              type="submit"
-              className="h-9"
-              disabled={code.trim().length !== 6}
-              isLoading={verify.isPending}
-            >
-              {messages.auth.verify}
-            </Button>
-          </form>
-        ) : (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-ink-500 text-xs">
-              {messages.auth.unverified}
-            </span>
-            <Button
-              variant="ghost"
-              className="h-8 px-2 text-xs"
-              onClick={startVerify}
-            >
-              {messages.auth.verifyEmail}
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <form onSubmit={submitRename} className="flex flex-col gap-2">
-        <TextField
-          value={name}
-          onChange={event => setName(event.target.value)}
-          label={messages.auth.displayName}
-          maxLength={80}
-        />
-        <Button
-          type="submit"
-          variant="ghost"
-          className="self-start text-xs"
-          isLoading={rename.isPending}
-          disabled={!name.trim() || name.trim() === user.displayName}
-        >
-          {rename.isSuccess ? messages.auth.saved : messages.auth.rename}
-        </Button>
-      </form>
-
-      {user.hasPassword && (
-        <form onSubmit={submitPassword} className="flex flex-col gap-2">
-          <PasswordField
-            value={currentPassword}
-            onChange={event => setCurrentPassword(event.target.value)}
-            label={messages.auth.currentPassword}
-            showLabel={messages.auth.showPassword}
-            hideLabel={messages.auth.hidePassword}
-            autoComplete="current-password"
+        <form onSubmit={submitRename} className="flex flex-col gap-2">
+          <TextField
+            value={name}
+            onChange={event => setName(event.target.value)}
+            label={messages.auth.displayName}
+            maxLength={80}
           />
-          <PasswordField
-            value={newPassword}
-            onChange={event => setNewPassword(event.target.value)}
-            label={messages.auth.newPassword}
-            showLabel={messages.auth.showPassword}
-            hideLabel={messages.auth.hidePassword}
-            autoComplete="new-password"
-          />
-          {changePassword.isError && (
-            <p className="text-danger text-xs">
-              {errorText(changePassword.error, messages.common.error)}
-            </p>
-          )}
           <Button
             type="submit"
             variant="ghost"
             className="self-start text-xs"
-            isLoading={changePassword.isPending}
-            disabled={!currentPassword || newPassword.length < 8}
+            isLoading={rename.isPending}
+            disabled={!name.trim() || name.trim() === user.displayName}
           >
-            {changePassword.isSuccess
-              ? messages.auth.saved
-              : messages.auth.changePassword}
+            {rename.isSuccess ? messages.auth.saved : messages.auth.rename}
           </Button>
         </form>
+
+        <Field label={messages.auth.email}>
+          <div className="border-line flex flex-col gap-2 rounded-lg border p-3">
+            <span className="text-ink-700 text-sm">{user.email}</span>
+            {user.isEmailVerified ? (
+              <Badge tone="shared">{messages.auth.verified}</Badge>
+            ) : verifying ? (
+              <form onSubmit={submitCode} className="flex flex-col gap-2">
+                <TextField
+                  value={code}
+                  onChange={event => setCode(event.target.value)}
+                  label={messages.auth.code}
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="123456"
+                />
+                {verify.isError && (
+                  <p className="text-danger text-xs">
+                    {errorText(verify.error, messages.common.error)}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  className="h-9"
+                  disabled={code.trim().length !== 6}
+                  isLoading={verify.isPending}
+                >
+                  {messages.auth.verify}
+                </Button>
+              </form>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-ink-500 text-xs">
+                  {messages.auth.unverified}
+                </span>
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  onClick={startVerify}
+                >
+                  {messages.auth.verifyEmail}
+                </Button>
+              </div>
+            )}
+          </div>
+        </Field>
+      </Section>
+
+      {hasConnections && (
+        <Section
+          title={messages.getStarted.connectionsTitle}
+          description={messages.getStarted.connectionsHint}
+          card={false}
+        >
+          <ConnectionsPanel />
+        </Section>
       )}
 
-      <div className="border-line flex flex-col gap-2 border-t pt-4">
-        <span className="text-ink-700 text-sm font-medium">
-          {messages.carryOver.settingLabel}
-        </span>
-        <p className="text-ink-500 text-xs">{messages.carryOver.settingHint}</p>
-        <div className="flex flex-col gap-1.5 sm:flex-row">
-          {(['manual', 'auto'] as const).map(mode => {
-            const active = user.carryOverMode === mode
-            return (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setCarryOverMode.mutate(mode)}
-                disabled={setCarryOverMode.isPending}
-                className={
-                  active
-                    ? 'border-brand-300 bg-brand-50 text-brand-700 flex-1 rounded-lg border px-3 py-2 text-xs font-medium'
-                    : 'border-line text-ink-600 flex-1 rounded-lg border px-3 py-2 text-xs font-medium'
-                }
-              >
-                {mode === 'manual'
-                  ? messages.carryOver.modeManual
-                  : messages.carryOver.modeAuto}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="border-line flex flex-col gap-2 border-t pt-4">
-        <span className="text-ink-700 text-sm font-medium">
-          {messages.reminders.settingLabel}
-        </span>
-        <p className="text-ink-500 text-xs">{messages.reminders.settingHint}</p>
-        <div className="flex flex-col gap-2">
-          {(
-            [
-              { key: 'email', label: messages.reminders.email },
-              { key: 'whatsapp', label: messages.reminders.whatsapp },
-            ] as const
-          ).map(({ key, label }) => {
-            const enabled =
-              key === 'email' ? user.reminderEmail : user.reminderWhatsapp
-            return (
-              <label
-                key={key}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="text-ink-700">{label}</span>
+      <Section title={messages.settings.preferences}>
+        <Field
+          label={messages.carryOver.settingLabel}
+          hint={messages.carryOver.settingHint}
+        >
+          <div className="flex flex-col gap-1.5 sm:flex-row">
+            {(['manual', 'auto'] as const).map(mode => {
+              const active = user.carryOverMode === mode
+              return (
                 <button
+                  key={mode}
                   type="button"
-                  role="switch"
-                  aria-checked={enabled}
-                  onClick={() => setReminders.mutate({ [key]: !enabled })}
-                  disabled={setReminders.isPending}
+                  onClick={() => setCarryOverMode.mutate(mode)}
+                  disabled={setCarryOverMode.isPending}
                   className={
-                    enabled
-                      ? 'bg-brand-600 relative h-6 w-10 rounded-full transition-colors'
-                      : 'bg-line relative h-6 w-10 rounded-full transition-colors'
+                    active
+                      ? 'border-brand-300 bg-brand-50 text-brand-700 flex-1 rounded-lg border px-3 py-2 text-xs font-medium'
+                      : 'border-line text-ink-600 flex-1 rounded-lg border px-3 py-2 text-xs font-medium'
                   }
                 >
-                  <span
-                    className={
-                      enabled
-                        ? 'absolute left-[18px] top-0.5 h-5 w-5 rounded-full bg-white transition-all'
-                        : 'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-all'
-                    }
-                  />
+                  {mode === 'manual'
+                    ? messages.carryOver.modeManual
+                    : messages.carryOver.modeAuto}
                 </button>
-              </label>
-            )
-          })}
-        </div>
-      </div>
+              )
+            })}
+          </div>
+        </Field>
 
-      <div className="border-line flex flex-col gap-2 border-t pt-4">
-        <span className="text-ink-700 text-sm font-medium">
-          {messages.timezone.settingLabel}
-        </span>
-        <p className="text-ink-500 text-xs">{messages.timezone.settingHint}</p>
-        <select
-          value={user.timezone}
-          onChange={event => setTimezone.mutate(event.target.value)}
-          disabled={setTimezone.isPending}
-          aria-label={messages.timezone.settingLabel}
-          className="border-line text-ink-700 focus:border-brand-300 w-full rounded-lg border bg-white px-3 py-2 text-xs outline-none"
-        >
-          {timeZones.map(zone => (
-            <option key={zone} value={zone}>
-              {zone.replace(/_/g, ' ')}
-            </option>
-          ))}
-        </select>
-        {user.timezone !== detectedZone && (
-          <button
-            type="button"
-            onClick={() => setTimezone.mutate(detectedZone)}
-            disabled={setTimezone.isPending}
-            className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+        <div className="border-line border-t pt-4">
+          <Field
+            label={messages.reminders.settingLabel}
+            hint={messages.reminders.settingHint}
           >
-            {messages.timezone.useDetected}
-          </button>
-        )}
-      </div>
+            <div className="flex flex-col gap-2">
+              {(
+                [
+                  { key: 'email', label: messages.reminders.email },
+                  { key: 'whatsapp', label: messages.reminders.whatsapp },
+                ] as const
+              ).map(({ key, label }) => {
+                const enabled =
+                  key === 'email' ? user.reminderEmail : user.reminderWhatsapp
+                return (
+                  <label
+                    key={key}
+                    className="flex items-center justify-between gap-3 text-sm"
+                  >
+                    <span className="text-ink-700">{label}</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={enabled}
+                      onClick={() => setReminders.mutate({ [key]: !enabled })}
+                      disabled={setReminders.isPending}
+                      className={
+                        enabled
+                          ? 'bg-brand-600 relative h-6 w-10 rounded-full transition-colors'
+                          : 'bg-line relative h-6 w-10 rounded-full transition-colors'
+                      }
+                    >
+                      <span
+                        className={
+                          enabled
+                            ? 'absolute left-[18px] top-0.5 h-5 w-5 rounded-full bg-white transition-all'
+                            : 'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-all'
+                        }
+                      />
+                    </button>
+                  </label>
+                )
+              })}
+            </div>
+          </Field>
+        </div>
+
+        <div className="border-line border-t pt-4">
+          <Field
+            label={messages.timezone.settingLabel}
+            hint={messages.timezone.settingHint}
+          >
+            <select
+              value={user.timezone}
+              onChange={event => setTimezone.mutate(event.target.value)}
+              disabled={setTimezone.isPending}
+              aria-label={messages.timezone.settingLabel}
+              className="border-line text-ink-700 focus:border-brand-300 w-full rounded-lg border bg-white px-3 py-2 text-xs outline-none"
+            >
+              {timeZones.map(zone => (
+                <option key={zone} value={zone}>
+                  {zone.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+            {user.timezone !== detectedZone && (
+              <button
+                type="button"
+                onClick={() => setTimezone.mutate(detectedZone)}
+                disabled={setTimezone.isPending}
+                className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+              >
+                {messages.timezone.useDetected}
+              </button>
+            )}
+          </Field>
+        </div>
+      </Section>
 
       {user.features?.billing && (
-        <div className="border-line flex flex-col gap-2 border-t pt-4">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.billing.title}
-          </span>
+        <Section title={messages.billing.title}>
           <Link
             href="/settings/billing"
-            className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+            className="text-brand-600 hover:text-brand-700 self-start text-sm font-medium"
           >
             {messages.billing.manage}
           </Link>
-        </div>
+        </Section>
       )}
 
-      <div className="border-line flex flex-col gap-3 border-t pt-4">
+      {user.hasPassword && (
+        <Section title={messages.settings.security}>
+          <form onSubmit={submitPassword} className="flex flex-col gap-2">
+            <PasswordField
+              value={currentPassword}
+              onChange={event => setCurrentPassword(event.target.value)}
+              label={messages.auth.currentPassword}
+              showLabel={messages.auth.showPassword}
+              hideLabel={messages.auth.hidePassword}
+              autoComplete="current-password"
+            />
+            <PasswordField
+              value={newPassword}
+              onChange={event => setNewPassword(event.target.value)}
+              label={messages.auth.newPassword}
+              showLabel={messages.auth.showPassword}
+              hideLabel={messages.auth.hidePassword}
+              autoComplete="new-password"
+            />
+            {changePassword.isError && (
+              <p className="text-danger text-xs">
+                {errorText(changePassword.error, messages.common.error)}
+              </p>
+            )}
+            <Button
+              type="submit"
+              variant="ghost"
+              className="self-start text-xs"
+              isLoading={changePassword.isPending}
+              disabled={!currentPassword || newPassword.length < 8}
+            >
+              {changePassword.isSuccess
+                ? messages.auth.saved
+                : messages.auth.changePassword}
+            </Button>
+          </form>
+        </Section>
+      )}
+
+      <Section title={messages.settings.account}>
         <a
           href="/api/v1/account/export"
           download="lifedeck-export.json"
-          className="text-brand-600 hover:text-brand-700 self-start text-xs font-medium"
+          className="text-brand-600 hover:text-brand-700 self-start text-sm font-medium"
           title={messages.auth.exportDataHint}
         >
           {messages.auth.exportData}
@@ -430,7 +501,7 @@ function SettingsForm({ user }: { user: SessionUser }) {
         </Button>
 
         {confirmingDelete ? (
-          <div className="flex flex-col gap-2">
+          <div className="border-line flex flex-col gap-2 border-t pt-4">
             <p className="text-danger text-xs">{messages.auth.deleteConfirm}</p>
             <div className="flex gap-2">
               <Button
@@ -455,12 +526,12 @@ function SettingsForm({ user }: { user: SessionUser }) {
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="text-danger self-start text-xs font-medium"
+            className="text-danger self-start border-t border-transparent pt-4 text-xs font-medium"
           >
             {messages.auth.deleteAccount}
           </button>
         )}
-      </div>
+      </Section>
     </div>
   )
 }

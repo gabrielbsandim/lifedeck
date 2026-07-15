@@ -244,6 +244,10 @@ export {
   type WhatsappPairingResult,
 } from '@/use-cases/start-whatsapp-pairing'
 export {
+  makeGetWhatsappChannel,
+  type WhatsappChannelStatus,
+} from '@/use-cases/get-whatsapp-channel'
+export {
   makeHandleInboundWhatsApp,
   PAIR_LINKED_MESSAGE,
   PAIR_GUIDANCE_MESSAGE,

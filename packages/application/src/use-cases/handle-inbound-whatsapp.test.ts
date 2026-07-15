@@ -246,6 +246,24 @@ describe('handleInboundWhatsApp', () => {
     expect(linked?.isVerified()).toBe(true)
   })
 
+  it('links when the code arrives inside the friendly pairing sentence', async () => {
+    const ctx = setup()
+    await ctx.channelIdentities.save(pending('123456'))
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'Olá! Quero ativar meu assistente do Life Deck. Meu código: 123456',
+    })
+
+    expect(result).toEqual({ action: 'linked' })
+    const linked = await ctx.channelIdentities.findByAddress(
+      'whatsapp',
+      '+5511999990000',
+    )
+    expect(linked?.isVerified()).toBe(true)
+  })
+
   it('refuses to link when the code is sent from a number other than the target', async () => {
     const ctx = setup()
     await ctx.channelIdentities.save(
