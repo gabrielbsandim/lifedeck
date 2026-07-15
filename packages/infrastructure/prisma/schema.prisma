@@ -262,6 +262,20 @@ model CheckoutIntent {
   @@map("checkout_intents")
 }
 
+// Maps a user to the payment-provider customer created for their in-app (Pix /
+// card) charges, so we reuse it instead of creating a duplicate each checkout.
+// Stores only the opaque provider customer id, never the CPF.
+model BillingCustomer {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  provider   String
+  customerId String   @map("customer_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([provider, userId])
+  @@map("billing_customers")
+}
+
 model UsageEvent {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")

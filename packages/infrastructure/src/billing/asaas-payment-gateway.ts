@@ -2,10 +2,16 @@ import { timingSafeEqual } from 'node:crypto'
 import { httpFetch } from '@/http/http-fetch'
 import { isPlan, type Plan, type SubscriptionStatus } from '@lifedeck/domain'
 import type {
+  CardHolderInfo,
+  CardInput,
+  CardSubscriptionResult,
   CheckoutInput,
   CheckoutSession,
-  PaymentGateway,
+  LocalCustomerInput,
+  LocalPaymentGateway,
+  LocalSubscriptionInput,
   PaymentInterval,
+  PixCharge,
   SubscriptionEvent,
 } from '@lifedeck/application'
 
@@ -50,8 +56,59 @@ function tokensMatch(provided: string, expected: string): boolean {
 
 const REFERENCE_SEPARATOR = '|'
 
+function encodeRefParts(
+  userId: string,
+  plan: Plan,
+  interval: PaymentInterval,
+): string {
+  return [userId, plan, interval].join(REFERENCE_SEPARATOR)
+}
+
 function encodeReference(input: CheckoutInput): string {
-  return [input.userId, input.plan, input.interval].join(REFERENCE_SEPARATOR)
+  return encodeRefParts(input.userId, input.plan, input.interval)
+}
+
+// The raw reais amount configured for a plan/interval. A locale-formatted env
+// ("29,90") parses to NaN and a cents value ("2990") would overcharge 100x, so
+// refuse anything that is not a sane positive amount rather than sending a wrong
+// charge.
+function resolveAmount(
+  config: AsaasConfig,
+  plan: Plan,
+  interval: PaymentInterval,
+): number {
+  const value =
+    config.values[
+      `${plan.toUpperCase()}_${interval === 'annual' ? 'ANNUAL' : 'MONTHLY'}`
+    ]
+  if (!value) {
+    throw new Error(`No Asaas value configured for ${plan} ${interval}`)
+  }
+  const amount = Number(value)
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error(
+      `Invalid Asaas amount "${value}" for ${plan} ${interval}; expected reais with a dot decimal`,
+    )
+  }
+  return amount
+}
+
+function cycleFor(interval: PaymentInterval): 'YEARLY' | 'MONTHLY' {
+  return interval === 'annual' ? 'YEARLY' : 'MONTHLY'
+}
+
+function subscriptionDescription(interval: PaymentInterval): string {
+  return `Lifedeck: assinatura ${interval === 'annual' ? 'anual' : 'mensal'}`
+}
+
+// nextDueDate the first charge anchors on: today, as the provider's date-only
+// (YYYY-MM-DD) value.
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function authHeaders(config: AsaasConfig): Record<string, string> {
+  return { 'Content-Type': 'application/json', access_token: config.apiKey }
 }
 
 function decodeReference(reference: unknown): {
@@ -128,31 +185,13 @@ async function fetchNextDueDate(
   }
 }
 
-export class AsaasPaymentGateway implements PaymentGateway {
+export class AsaasPaymentGateway implements LocalPaymentGateway {
   readonly provider = 'asaas' as const
 
   async startCheckout(input: CheckoutInput): Promise<CheckoutSession> {
     const config = readConfig()
     const reference = encodeReference(input)
-    const value =
-      config.values[
-        `${input.plan.toUpperCase()}_${input.interval === 'annual' ? 'ANNUAL' : 'MONTHLY'}`
-      ]
-    if (!value) {
-      throw new Error(
-        `No Asaas value configured for ${input.plan} ${input.interval}`,
-      )
-    }
-    // Asaas charges the raw `value` in reais (decimal). A locale-formatted env
-    // ("29,90") parses to NaN and a cents value ("2990") would overcharge 100x,
-    // so refuse anything that is not a sane positive amount rather than sending
-    // a broken or wrong charge.
-    const amount = Number(value)
-    if (!Number.isFinite(amount) || amount <= 0) {
-      throw new Error(
-        `Invalid Asaas amount "${value}" for ${input.plan} ${input.interval}; expected reais with a dot decimal`,
-      )
-    }
+    const amount = resolveAmount(config, input.plan, input.interval)
 
     const response = await httpFetch(`${config.baseUrl}/v3/paymentLinks`, {
       method: 'POST',
@@ -236,6 +275,183 @@ export class AsaasPaymentGateway implements PaymentGateway {
       status,
       currentPeriodEnd,
       reference: rawReference,
+    }
+  }
+
+  // Create the Asaas customer. CPF is mandatory for Pix and card; the caller
+  // never persists it, only the returned customer id.
+  async createCustomer(input: LocalCustomerInput): Promise<string> {
+    const config = readConfig()
+    const response = await httpFetch(`${config.baseUrl}/v3/customers`, {
+      method: 'POST',
+      headers: authHeaders(config),
+      body: JSON.stringify({
+        name: input.name,
+        email: input.email ?? undefined,
+        cpfCnpj: input.cpfCnpj,
+        mobilePhone: input.phone ?? undefined,
+        postalCode: input.postalCode ?? undefined,
+        addressNumber: input.addressNumber ?? undefined,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(
+        `Asaas customer creation failed with status ${response.status}`,
+      )
+    }
+    const data = (await response.json()) as { id?: string }
+    if (!data.id) {
+      throw new Error('Asaas customer has no id')
+    }
+    return data.id
+  }
+
+  async createPixSubscription(
+    input: LocalSubscriptionInput,
+  ): Promise<PixCharge> {
+    const config = readConfig()
+    const amount = resolveAmount(config, input.plan, input.interval)
+    const reference = encodeRefParts(input.userId, input.plan, input.interval)
+
+    const created = await httpFetch(`${config.baseUrl}/v3/subscriptions`, {
+      method: 'POST',
+      headers: authHeaders(config),
+      body: JSON.stringify({
+        customer: input.customerId,
+        billingType: 'PIX',
+        value: amount,
+        cycle: cycleFor(input.interval),
+        nextDueDate: todayIso(),
+        externalReference: reference,
+        description: subscriptionDescription(input.interval),
+      }),
+    })
+    if (!created.ok) {
+      throw new Error(
+        `Asaas Pix subscription failed with status ${created.status}`,
+      )
+    }
+    const subscription = (await created.json()) as { id?: string }
+    if (!subscription.id) {
+      throw new Error('Asaas subscription has no id')
+    }
+
+    const paymentId = await this.firstPaymentId(config, subscription.id)
+    const qr = await this.fetchPixQrCode(config, paymentId)
+    return {
+      subscriptionRef: subscription.id,
+      paymentId,
+      encodedImage: qr.encodedImage,
+      payload: qr.payload,
+      expiresAt: qr.expiresAt,
+      reference,
+    }
+  }
+
+  async createCardSubscription(
+    input: LocalSubscriptionInput & {
+      card: CardInput
+      holder: CardHolderInfo
+      remoteIp: string
+    },
+  ): Promise<CardSubscriptionResult> {
+    const config = readConfig()
+    const amount = resolveAmount(config, input.plan, input.interval)
+    const reference = encodeRefParts(input.userId, input.plan, input.interval)
+
+    const response = await httpFetch(`${config.baseUrl}/v3/subscriptions`, {
+      method: 'POST',
+      headers: authHeaders(config),
+      body: JSON.stringify({
+        customer: input.customerId,
+        billingType: 'CREDIT_CARD',
+        value: amount,
+        cycle: cycleFor(input.interval),
+        nextDueDate: todayIso(),
+        externalReference: reference,
+        description: subscriptionDescription(input.interval),
+        creditCard: {
+          holderName: input.card.holderName,
+          number: input.card.number,
+          expiryMonth: input.card.expiryMonth,
+          expiryYear: input.card.expiryYear,
+          ccv: input.card.ccv,
+        },
+        creditCardHolderInfo: {
+          name: input.holder.name,
+          email: input.holder.email ?? undefined,
+          cpfCnpj: input.holder.cpfCnpj,
+          postalCode: input.holder.postalCode,
+          addressNumber: input.holder.addressNumber,
+          phone: input.holder.phone ?? undefined,
+        },
+        remoteIp: input.remoteIp,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(
+        `Asaas card subscription failed with status ${response.status}`,
+      )
+    }
+    const subscription = (await response.json()) as { id?: string }
+    if (!subscription.id) {
+      throw new Error('Asaas subscription has no id')
+    }
+    return { subscriptionRef: subscription.id, reference }
+  }
+
+  // The first (immediately due) payment Asaas generated for a subscription; its
+  // Pix QR is what we show the customer.
+  private async firstPaymentId(
+    config: AsaasConfig,
+    subscriptionId: string,
+  ): Promise<string> {
+    const response = await httpFetch(
+      `${config.baseUrl}/v3/subscriptions/${encodeURIComponent(subscriptionId)}/payments`,
+      { headers: { access_token: config.apiKey } },
+    )
+    if (!response.ok) {
+      throw new Error(
+        `Asaas subscription payments lookup failed with status ${response.status}`,
+      )
+    }
+    const data = (await response.json()) as { data?: Array<{ id?: string }> }
+    const paymentId = data.data?.[0]?.id
+    if (!paymentId) {
+      throw new Error('Asaas subscription has no first payment yet')
+    }
+    return paymentId
+  }
+
+  private async fetchPixQrCode(
+    config: AsaasConfig,
+    paymentId: string,
+  ): Promise<{
+    encodedImage: string
+    payload: string
+    expiresAt: string | null
+  }> {
+    const response = await httpFetch(
+      `${config.baseUrl}/v3/payments/${encodeURIComponent(paymentId)}/pixQrCode`,
+      { headers: { access_token: config.apiKey } },
+    )
+    if (!response.ok) {
+      throw new Error(
+        `Asaas Pix QR code lookup failed with status ${response.status}`,
+      )
+    }
+    const data = (await response.json()) as {
+      encodedImage?: string
+      payload?: string
+      expirationDate?: string
+    }
+    if (!data.encodedImage || !data.payload) {
+      throw new Error('Asaas Pix QR code is incomplete')
+    }
+    return {
+      encodedImage: data.encodedImage,
+      payload: data.payload,
+      expiresAt: data.expirationDate ?? null,
     }
   }
 

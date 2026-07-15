@@ -58,6 +58,7 @@ import {
   makeHandleSubscriptionWebhook,
   makeGetSubscription,
   makeCancelSubscription,
+  makeStartLocalCheckout,
   makeInviteToList,
   makeJoinListByToken,
   makeListApiKeys,
@@ -111,6 +112,7 @@ import {
   type ShareLinkRepository,
   type SubscriptionRepository,
   type CheckoutIntentRepository,
+  type BillingCustomerRepository,
   type UsageEventLedger,
   type UsageMeter,
   type CalendarEventRepository,
@@ -147,6 +149,7 @@ import {
   PrismaShareLinkRepository,
   PrismaSubscriptionRepository,
   PrismaCheckoutIntentRepository,
+  PrismaBillingCustomerRepository,
   PrismaUsageEventRepository,
   PrismaCalendarEventRepository,
   PrismaCalendarConnectionRepository,
@@ -243,6 +246,7 @@ type Container = {
   dispatchDueJobs: ReturnType<typeof makeDispatchDueJobs>
   startCheckout: ReturnType<typeof makeStartCheckout>
   handleSubscriptionWebhook: ReturnType<typeof makeHandleSubscriptionWebhook>
+  startLocalCheckout: ReturnType<typeof makeStartLocalCheckout>
   getSubscription: ReturnType<typeof makeGetSubscription>
   cancelSubscription: ReturnType<typeof makeCancelSubscription>
   consumeCredits: ReturnType<typeof makeConsumeCredits>
@@ -288,6 +292,7 @@ type Repositories = {
   scheduledJobs: ScheduledJobRepository
   subscriptions: SubscriptionRepository
   checkoutIntents: CheckoutIntentRepository
+  billingCustomers: BillingCustomerRepository
   usageEvents: UsageEventLedger
   calendarEvents: CalendarEventRepository
   calendarConnections: CalendarConnectionRepository
@@ -326,6 +331,7 @@ function build(
     scheduledJobs,
     subscriptions,
     checkoutIntents,
+    billingCustomers,
     usageEvents,
     calendarEvents,
     calendarConnections,
@@ -469,8 +475,9 @@ function build(
       renewed: renewed.enqueued,
     }
   }
+  const asaasGateway = new AsaasPaymentGateway()
   const gateways = {
-    asaas: new AsaasPaymentGateway(),
+    asaas: asaasGateway,
     stripe: new StripePaymentGateway(),
   }
   const resolvePlan = makeResolvePlanFromSubscription({ subscriptions, clock })
@@ -799,6 +806,14 @@ function build(
       ids,
       clock,
     }),
+    startLocalCheckout: makeStartLocalCheckout({
+      gateway: asaasGateway,
+      users,
+      billingCustomers,
+      checkoutIntents,
+      ids,
+      clock,
+    }),
     getSubscription: makeGetSubscription({ subscriptions }),
     cancelSubscription: makeCancelSubscription({
       gateways,
@@ -947,6 +962,7 @@ export function getContainer(): Container {
         scheduledJobs: new PrismaScheduledJobRepository(db),
         subscriptions: new PrismaSubscriptionRepository(db),
         checkoutIntents: new PrismaCheckoutIntentRepository(db),
+        billingCustomers: new PrismaBillingCustomerRepository(db),
         usageEvents: new PrismaUsageEventRepository(db),
         calendarEvents: new PrismaCalendarEventRepository(db),
         calendarConnections: new PrismaCalendarConnectionRepository(db),

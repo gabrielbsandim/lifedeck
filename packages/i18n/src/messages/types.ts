@@ -190,6 +190,24 @@ export type Messages = {
     noCharge: string
     perMonthLong: string
     perYearLong: string
+    payWithCard: string
+    payWithPix: string
+    cpfLabel: string
+    generatePix: string
+    pixInstructions: string
+    copyCode: string
+    copied: string
+    awaitingPayment: string
+    cardNumber: string
+    cardExpiry: string
+    cardCvv: string
+    cardHolder: string
+    postalCodeLabel: string
+    addressNumberLabel: string
+    phoneOptional: string
+    payNow: string
+    activatedTitle: string
+    activatedBody: string
   }
   notifications: {
     title: string

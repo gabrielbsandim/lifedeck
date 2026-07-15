@@ -26,6 +26,7 @@ export default mergeConfig(
         'src/database/prisma-scheduled-job-repository.ts',
         'src/database/prisma-subscription-repository.ts',
         'src/database/prisma-checkout-intent-repository.ts',
+        'src/database/prisma-billing-customer-repository.ts',
         'src/database/prisma-usage-event-repository.ts',
         'src/database/prisma-calendar-event-repository.ts',
         'src/database/prisma-calendar-connection-repository.ts',

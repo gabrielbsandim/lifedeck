@@ -137,6 +137,7 @@ export {
 } from '@/use-cases/dispatch-due-jobs'
 export type { SubscriptionRepository } from '@/ports/subscription-repository'
 export type { CheckoutIntentRepository } from '@/ports/checkout-intent-repository'
+export type { BillingCustomerRepository } from '@/ports/billing-customer-repository'
 export type {
   PaymentGateway,
   PaymentInterval,
@@ -144,8 +145,19 @@ export type {
   CheckoutInput,
   CheckoutSession,
   SubscriptionEvent,
+  LocalPaymentGateway,
+  LocalCustomerInput,
+  LocalSubscriptionInput,
+  PixCharge,
+  CardInput,
+  CardHolderInfo,
+  CardSubscriptionResult,
 } from '@/ports/payment-gateway'
 export { makeStartCheckout, gatewayForMarket } from '@/use-cases/start-checkout'
+export {
+  makeStartLocalCheckout,
+  type StartLocalCheckoutInput,
+} from '@/use-cases/start-local-checkout'
 export { makeHandleSubscriptionWebhook } from '@/use-cases/handle-subscription-webhook'
 export { makeResolvePlanFromSubscription } from '@/use-cases/resolve-plan-from-subscription'
 export { makeGetSubscription } from '@/use-cases/get-subscription'
@@ -306,6 +318,10 @@ export {
   type CheckoutRequest,
   subscriptionViewSchema,
   type SubscriptionView,
+  localCheckoutRequestSchema,
+  type LocalCheckoutRequest,
+  localCheckoutResultSchema,
+  type LocalCheckoutResult,
 } from '@/dtos/billing-dto'
 export type { HealthProbe, HealthProbeResult } from '@/ports/health-probe'
 export {
@@ -417,3 +433,4 @@ export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-rep
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
 export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
 export { InMemoryCheckoutIntentRepository } from '@/testing/in-memory-checkout-intent-repository'
+export { InMemoryBillingCustomerRepository } from '@/testing/in-memory-billing-customer-repository'

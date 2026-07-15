@@ -92,6 +92,7 @@ export {
 export { OutboxJobQueue } from '@/scheduling/outbox-job-queue'
 export { PrismaSubscriptionRepository } from '@/database/prisma-subscription-repository'
 export { PrismaCheckoutIntentRepository } from '@/database/prisma-checkout-intent-repository'
+export { PrismaBillingCustomerRepository } from '@/database/prisma-billing-customer-repository'
 export {
   toDomainSubscription,
   toSubscriptionRecord,

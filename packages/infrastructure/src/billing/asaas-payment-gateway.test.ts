@@ -317,6 +317,259 @@ describe('AsaasPaymentGateway', () => {
     })
   })
 
+  describe('createCustomer', () => {
+    it('posts the customer and returns its id', async () => {
+      const mock = stub(() => jsonResponse({ id: 'cus_1' }))
+      const id = await new AsaasPaymentGateway().createCustomer({
+        name: 'Gabriel',
+        email: 'g@x.com',
+        cpfCnpj: '11144477735',
+        phone: '11999998888',
+        postalCode: '01310100',
+        addressNumber: '100',
+      })
+      expect(id).toBe('cus_1')
+      const [url, init] = mock.mock.calls[0] as [string, RequestInit]
+      expect(url).toBe(`${BASE}/v3/customers`)
+      const body = JSON.parse(init.body as string)
+      expect(body.cpfCnpj).toBe('11144477735')
+      expect(body.mobilePhone).toBe('11999998888')
+    })
+
+    it('throws when Asaas rejects the customer', async () => {
+      stub(() => jsonResponse({}, false, 400))
+      await expect(
+        new AsaasPaymentGateway().createCustomer({
+          name: 'G',
+          email: null,
+          cpfCnpj: '11144477735',
+        }),
+      ).rejects.toThrow(/customer creation failed with status 400/)
+    })
+
+    it('throws when the customer has no id', async () => {
+      stub(() => jsonResponse({}))
+      await expect(
+        new AsaasPaymentGateway().createCustomer({
+          name: 'G',
+          email: null,
+          cpfCnpj: '11144477735',
+        }),
+      ).rejects.toThrow(/customer has no id/)
+    })
+  })
+
+  describe('createPixSubscription', () => {
+    const pixSub = {
+      customerId: 'cus_1',
+      userId: 'user-1',
+      plan: 'pro',
+      interval: 'monthly',
+    } as const
+
+    function pixStub() {
+      return stub(url => {
+        if (url.endsWith('/v3/subscriptions')) {
+          return jsonResponse({ id: 'sub_1' })
+        }
+        if (url.includes('/v3/subscriptions/') && url.endsWith('/payments')) {
+          return jsonResponse({ data: [{ id: 'pay_1' }] })
+        }
+        if (url.endsWith('/pixQrCode')) {
+          return jsonResponse({
+            encodedImage: 'IMG',
+            payload: 'CODE',
+            expirationDate: '2026-06-25',
+          })
+        }
+        return jsonResponse({})
+      })
+    }
+
+    it('creates the subscription, finds the payment and returns the QR', async () => {
+      pixStub()
+      const charge = await new AsaasPaymentGateway().createPixSubscription(
+        pixSub,
+      )
+      expect(charge).toEqual({
+        subscriptionRef: 'sub_1',
+        paymentId: 'pay_1',
+        encodedImage: 'IMG',
+        payload: 'CODE',
+        expiresAt: '2026-06-25',
+        reference: 'user-1|pro|monthly',
+      })
+    })
+
+    it('sends billingType PIX with the right value, cycle and reference', async () => {
+      const mock = pixStub()
+      await new AsaasPaymentGateway().createPixSubscription(pixSub)
+      const body = JSON.parse(
+        (mock.mock.calls[0] as [string, RequestInit])[1].body as string,
+      )
+      expect(body.billingType).toBe('PIX')
+      expect(body.value).toBe(14.9)
+      expect(body.cycle).toBe('MONTHLY')
+      expect(body.externalReference).toBe('user-1|pro|monthly')
+      expect(body.nextDueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    })
+
+    it('defaults expiresAt to null when Asaas omits it', async () => {
+      stub(url => {
+        if (url.endsWith('/v3/subscriptions')) {
+          return jsonResponse({ id: 'sub_1' })
+        }
+        if (url.endsWith('/payments')) {
+          return jsonResponse({ data: [{ id: 'pay_1' }] })
+        }
+        return jsonResponse({ encodedImage: 'IMG', payload: 'CODE' })
+      })
+      const charge = await new AsaasPaymentGateway().createPixSubscription(
+        pixSub,
+      )
+      expect(charge.expiresAt).toBeNull()
+    })
+
+    it('throws when the subscription creation fails', async () => {
+      stub(url =>
+        url.endsWith('/v3/subscriptions')
+          ? jsonResponse({}, false, 400)
+          : jsonResponse({}),
+      )
+      await expect(
+        new AsaasPaymentGateway().createPixSubscription(pixSub),
+      ).rejects.toThrow(/Pix subscription failed with status 400/)
+    })
+
+    it('throws when there is no first payment yet', async () => {
+      stub(url => {
+        if (url.endsWith('/v3/subscriptions')) {
+          return jsonResponse({ id: 'sub_1' })
+        }
+        if (url.endsWith('/payments')) {
+          return jsonResponse({ data: [] })
+        }
+        return jsonResponse({})
+      })
+      await expect(
+        new AsaasPaymentGateway().createPixSubscription(pixSub),
+      ).rejects.toThrow(/no first payment yet/)
+    })
+
+    it('throws when the payments lookup fails', async () => {
+      stub(url => {
+        if (url.endsWith('/v3/subscriptions')) {
+          return jsonResponse({ id: 'sub_1' })
+        }
+        if (url.endsWith('/payments')) {
+          return jsonResponse({}, false, 500)
+        }
+        return jsonResponse({})
+      })
+      await expect(
+        new AsaasPaymentGateway().createPixSubscription(pixSub),
+      ).rejects.toThrow(/payments lookup failed with status 500/)
+    })
+
+    it('throws when the QR code is incomplete', async () => {
+      stub(url => {
+        if (url.endsWith('/v3/subscriptions')) {
+          return jsonResponse({ id: 'sub_1' })
+        }
+        if (url.endsWith('/payments')) {
+          return jsonResponse({ data: [{ id: 'pay_1' }] })
+        }
+        return jsonResponse({ payload: 'CODE' })
+      })
+      await expect(
+        new AsaasPaymentGateway().createPixSubscription(pixSub),
+      ).rejects.toThrow(/QR code is incomplete/)
+    })
+
+    it('throws when the QR lookup fails', async () => {
+      stub(url => {
+        if (url.endsWith('/v3/subscriptions')) {
+          return jsonResponse({ id: 'sub_1' })
+        }
+        if (url.endsWith('/payments')) {
+          return jsonResponse({ data: [{ id: 'pay_1' }] })
+        }
+        return jsonResponse({}, false, 404)
+      })
+      await expect(
+        new AsaasPaymentGateway().createPixSubscription(pixSub),
+      ).rejects.toThrow(/QR code lookup failed with status 404/)
+    })
+
+    it('throws when the subscription has no id', async () => {
+      stub(url =>
+        url.endsWith('/v3/subscriptions') ? jsonResponse({}) : jsonResponse({}),
+      )
+      await expect(
+        new AsaasPaymentGateway().createPixSubscription(pixSub),
+      ).rejects.toThrow(/subscription has no id/)
+    })
+  })
+
+  describe('createCardSubscription', () => {
+    const cardSub = {
+      customerId: 'cus_1',
+      userId: 'user-1',
+      plan: 'premium',
+      interval: 'annual',
+      card: {
+        holderName: 'Gabriel Bastos',
+        number: '4111111111111111',
+        expiryMonth: '12',
+        expiryYear: '2030',
+        ccv: '123',
+      },
+      holder: {
+        name: 'Gabriel Bastos',
+        email: 'g@x.com',
+        cpfCnpj: '11144477735',
+        postalCode: '01310100',
+        addressNumber: '100',
+        phone: '11999998888',
+      },
+      remoteIp: '1.2.3.4',
+    } as const
+
+    it('creates a CREDIT_CARD subscription and returns the reference', async () => {
+      const mock = stub(() => jsonResponse({ id: 'sub_9' }))
+      const result = await new AsaasPaymentGateway().createCardSubscription(
+        cardSub,
+      )
+      expect(result).toEqual({
+        subscriptionRef: 'sub_9',
+        reference: 'user-1|premium|annual',
+      })
+      const body = JSON.parse(
+        (mock.mock.calls[0] as [string, RequestInit])[1].body as string,
+      )
+      expect(body.billingType).toBe('CREDIT_CARD')
+      expect(body.value).toBe(299)
+      expect(body.cycle).toBe('YEARLY')
+      expect(body.creditCard.number).toBe('4111111111111111')
+      expect(body.creditCardHolderInfo.cpfCnpj).toBe('11144477735')
+      expect(body.remoteIp).toBe('1.2.3.4')
+    })
+
+    it('throws when the card subscription is refused', async () => {
+      stub(() => jsonResponse({}, false, 402))
+      await expect(
+        new AsaasPaymentGateway().createCardSubscription(cardSub),
+      ).rejects.toThrow(/card subscription failed with status 402/)
+    })
+
+    it('throws when the subscription has no id', async () => {
+      stub(() => jsonResponse({}))
+      await expect(
+        new AsaasPaymentGateway().createCardSubscription(cardSub),
+      ).rejects.toThrow(/subscription has no id/)
+    })
+  })
+
   describe('cancelSubscription', () => {
     it('deletes the subscription', async () => {
       const mock = stub(() => jsonResponse({}, true, 200))

@@ -109,6 +109,11 @@ export {
   CheckoutIntent,
   type CheckoutIntentProps,
 } from '@/entities/checkout-intent'
+export {
+  BillingCustomer,
+  type BillingCustomerProps,
+} from '@/entities/billing-customer'
+export { isValidCpf, normalizeCpf } from '@/value-objects/cpf'
 export { UsageEvent, type UsageEventProps } from '@/entities/usage-event'
 export {
   CalendarEvent,
