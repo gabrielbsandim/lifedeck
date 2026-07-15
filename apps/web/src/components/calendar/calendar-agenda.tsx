@@ -1,16 +1,19 @@
 'use client'
 
 import type { CalendarEventView } from '@lifedeck/application'
-import { Badge, EmptyState } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
-import { groupByDay } from '@/lib/calendar/calendar-view'
+import {
+  eventCalendarLabel,
+  eventColor,
+  formatEventTime,
+} from '@/components/calendar/event-format'
 
 type Props = {
   days: string[]
   today: string
   timeZone: string
   locale: string
-  events: CalendarEventView[]
+  eventsByDay: Map<string, CalendarEventView[]>
   onSelectEvent: (event: CalendarEventView) => void
 }
 
@@ -19,86 +22,87 @@ export function CalendarAgenda({
   today,
   timeZone,
   locale,
-  events,
+  eventsByDay,
   onSelectEvent,
 }: Props) {
   const { messages } = useI18n()
   const t = messages.calendar
-  const byDay = groupByDay(events, timeZone)
-  const dayHeading = new Intl.DateTimeFormat(locale, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
+  const weekdayShort = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
     timeZone: 'UTC',
   })
 
-  const hasEventsOnShownDays = days.some(
-    day => (byDay.get(day) ?? []).length > 0,
-  )
-  if (!hasEventsOnShownDays) {
-    return <EmptyState title={t.empty} description={t.emptyHint} />
+  const populated = days.filter(day => (eventsByDay.get(day) ?? []).length > 0)
+
+  if (populated.length === 0) {
+    return (
+      <div className="border-line/80 text-ink-500 rounded-[14px] border border-dashed bg-white px-5 py-7 text-center text-sm">
+        {t.noEventsDay}
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {days.map(day => {
-        const dayEvents = byDay.get(day) ?? []
-        if (dayEvents.length === 0) {
-          return null
-        }
+    <div className="flex flex-col gap-[18px]">
+      {populated.map(day => {
+        const dayEvents = eventsByDay.get(day) ?? []
+        const isToday = day === today
         return (
-          <section key={day} className="flex flex-col gap-2">
-            <h3 className="text-ink-500 text-xs font-semibold uppercase tracking-wide">
-              {dayHeading.format(new Date(`${day}T00:00:00.000Z`))}
-              {day === today ? ` · ${t.today}` : ''}
-            </h3>
-            <ul className="border-line divide-line divide-y overflow-hidden rounded-2xl border bg-white">
+          <div key={day} className="flex gap-3.5">
+            <div className="flex w-[42px] flex-none flex-col items-center pt-0.5">
+              <span className="text-ink-400 text-[11px] font-bold uppercase tracking-wide">
+                {weekdayShort
+                  .format(new Date(`${day}T00:00:00.000Z`))
+                  .slice(0, 3)}
+              </span>
+              <span
+                className={
+                  isToday
+                    ? 'text-brand-600 text-2xl font-extrabold leading-tight tracking-tight'
+                    : 'text-ink-800 text-2xl font-extrabold leading-tight tracking-tight'
+                }
+              >
+                {Number(day.slice(8, 10))}
+              </span>
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
               {dayEvents.map(event => (
-                <li key={event.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSelectEvent(event)}
-                    className="hover:bg-brand-50/40 flex w-full items-start gap-3 px-4 py-3 text-left transition-colors"
-                  >
-                    <span className="text-ink-500 w-16 shrink-0 text-sm font-medium tabular-nums">
-                      {timeLabel(event, timeZone, locale, t.allDay)}
+                <button
+                  key={event.id}
+                  type="button"
+                  onClick={() => onSelectEvent(event)}
+                  className="border-line flex w-full items-stretch gap-3 rounded-[14px] border bg-white px-3.5 py-3 text-left shadow-sm transition active:scale-[0.99]"
+                >
+                  <span
+                    className="w-1 flex-none rounded-full"
+                    style={{ background: eventColor(event) }}
+                  />
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="text-ink-900 truncate text-[15px] font-semibold leading-snug">
+                      {event.title || t.untitled}
                     </span>
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="text-ink-800 truncate text-sm font-medium">
-                        {event.title || t.untitled}
+                    <span className="text-ink-500 flex items-center gap-2 text-[12.5px]">
+                      <span className="tabular-nums">
+                        {formatEventTime(event, timeZone, locale, t.allDay)}
                       </span>
-                      {event.location && (
-                        <span className="text-ink-500 truncate text-xs">
-                          {event.location}
+                      <span className="bg-ink-300 h-[3px] w-[3px] flex-none rounded-full" />
+                      <span className="inline-flex min-w-0 items-center gap-1.5">
+                        <span
+                          className="h-[7px] w-[7px] flex-none rounded-full"
+                          style={{ background: eventColor(event) }}
+                        />
+                        <span className="truncate">
+                          {eventCalendarLabel(event, t.syncedTag, t.title)}
                         </span>
-                      )}
+                      </span>
                     </span>
-                    {event.source === 'google' && (
-                      <Badge tone="shared">{t.syncedTag}</Badge>
-                    )}
-                  </button>
-                </li>
+                  </span>
+                </button>
               ))}
-            </ul>
-          </section>
+            </div>
+          </div>
         )
       })}
     </div>
   )
-}
-
-function timeLabel(
-  event: CalendarEventView,
-  timeZone: string,
-  locale: string,
-  allDayLabel: string,
-): string {
-  if (event.allDay) {
-    return allDayLabel
-  }
-  return new Intl.DateTimeFormat(locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZone,
-  }).format(new Date(event.startsAt))
 }

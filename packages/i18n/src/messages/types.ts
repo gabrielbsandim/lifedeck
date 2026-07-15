@@ -121,6 +121,12 @@ export type Messages = {
     applyTo: string
     thisEvent: string
     allEvents: string
+    agenda: string
+    addEvent: string
+    edit: string
+    noEventsDay: string
+    synced: string
+    moreEvents: string
   }
   billing: {
     title: string

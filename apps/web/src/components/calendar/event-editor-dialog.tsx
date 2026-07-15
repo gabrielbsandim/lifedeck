@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, TextField } from '@lifedeck/ui'
+import { Button, cn, Dialog, TextField } from '@lifedeck/ui'
 import type { CalendarEventView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import type { CalendarRange } from '@/lib/calendar/calendar-view'
@@ -155,15 +155,29 @@ export function EventEditorDialog({
           required
         />
 
-        <label className="text-ink-700 flex items-center gap-2 text-sm font-medium">
-          <input
-            type="checkbox"
-            checked={allDay}
-            onChange={changed => setAllDay(changed.target.checked)}
-            className="accent-brand-600 h-4 w-4"
-          />
-          {t.allDay}
-        </label>
+        <div className="border-line flex min-h-[52px] items-center gap-3 rounded-xl border px-4">
+          <span className="text-ink-700 flex-1 text-sm font-medium">
+            {t.allDay}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={allDay}
+            aria-label={t.allDay}
+            onClick={() => setAllDay(current => !current)}
+            className={cn(
+              'relative h-[29px] w-12 flex-none rounded-full transition-colors',
+              allDay ? 'bg-brand-600' : 'bg-line',
+            )}
+          >
+            <span
+              className={cn(
+                'absolute top-[2.5px] h-6 w-6 rounded-full bg-white shadow transition-[left]',
+                allDay ? 'left-[21px]' : 'left-[2.5px]',
+              )}
+            />
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5">

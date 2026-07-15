@@ -112,6 +112,12 @@ export const pt: Messages = {
     applyTo: 'Aplicar a',
     thisEvent: 'Este evento',
     allEvents: 'Todos os eventos',
+    agenda: 'Agenda',
+    addEvent: 'Evento',
+    edit: 'Editar',
+    noEventsDay: 'Nenhum evento neste dia.',
+    synced: 'sincronizado',
+    moreEvents: '{count} mais',
   },
   billing: {
     title: 'Plano e cobrança',
