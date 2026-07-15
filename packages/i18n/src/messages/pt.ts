@@ -342,6 +342,7 @@ export const pt: Messages = {
     edit: 'Editar tarefa',
     editTitle: 'Editar título',
     noteSection: 'Nota',
+    addAction: 'Adicionar',
     privacyHint: 'Tarefas privadas não aparecem para quem colabora com você.',
     delete: 'Excluir tarefa',
     save: 'Salvar',

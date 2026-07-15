@@ -344,6 +344,7 @@ export const es: Messages = {
     edit: 'Editar tarea',
     editTitle: 'Editar título',
     noteSection: 'Nota',
+    addAction: 'Añadir',
     privacyHint:
       'Las tareas privadas no aparecen para quienes colaboran contigo.',
     delete: 'Eliminar tarea',

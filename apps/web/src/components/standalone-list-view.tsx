@@ -314,7 +314,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
         />
         <button
           type="submit"
-          aria-label={messages.task.add}
+          aria-label={messages.task.addAction}
           className="bg-brand-600 active:bg-brand-700 flex h-12 w-12 flex-none items-center justify-center rounded-[14px] text-white shadow-[0_4px_12px_oklch(0.52_0.22_280/0.35)]"
         >
           <PlusIcon size={20} strokeWidth={2.4} />

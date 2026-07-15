@@ -335,6 +335,7 @@ export const en: Messages = {
     edit: 'Edit task',
     editTitle: 'Edit title',
     noteSection: 'Note',
+    addAction: 'Add',
     privacyHint: 'Private tasks are hidden from people you collaborate with.',
     delete: 'Delete task',
     save: 'Save',

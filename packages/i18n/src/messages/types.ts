@@ -324,6 +324,7 @@ export type Messages = {
     edit: string
     editTitle: string
     noteSection: string
+    addAction: string
     privacyHint: string
     delete: string
     save: string
