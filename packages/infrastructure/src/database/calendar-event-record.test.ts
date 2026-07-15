@@ -17,6 +17,9 @@ const RECORD: CalendarEventRecord = {
   allDay: false,
   reminders: [10, 30],
   recurrence: null,
+  recurrenceMasterExternalId: null,
+  originalStartsAt: null,
+  cancelled: false,
   source: 'local',
   connectionId: null,
   externalId: null,
@@ -45,6 +48,9 @@ describe('calendar-event-record', () => {
       allDay: RECORD.allDay,
       reminders: RECORD.reminders,
       recurrence: RECORD.recurrence,
+      recurrenceMasterExternalId: RECORD.recurrenceMasterExternalId,
+      originalStartsAt: RECORD.originalStartsAt,
+      cancelled: RECORD.cancelled,
       source: RECORD.source,
       connectionId: RECORD.connectionId
         ? asEntityId(RECORD.connectionId)

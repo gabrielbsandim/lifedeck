@@ -8,6 +8,7 @@ import type {
   CalendarEventView,
   CreateCalendarEventInput,
   UpdateCalendarEventInput,
+  UpdateCalendarOccurrenceInput,
 } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import type { CalendarRange } from '@/lib/calendar/calendar-view'
@@ -68,6 +69,48 @@ export function useDeleteCalendarEvent(range: CalendarRange) {
       apiRequest<{ deleted: boolean }>(`/api/v1/calendar/events/${id}`, {
         method: 'DELETE',
       }),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: calendarEventsKey(range) })
+    },
+  })
+}
+
+// Edit a single occurrence of a recurring series ("this event only").
+export function useUpdateCalendarOccurrence(range: CalendarRange) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      seriesId,
+      input,
+    }: {
+      seriesId: string
+      input: UpdateCalendarOccurrenceInput
+    }) =>
+      apiRequest<CalendarEventView>(
+        `/api/v1/calendar/events/${seriesId}/occurrences`,
+        { method: 'POST', body: JSON.stringify(input) },
+      ),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: calendarEventsKey(range) })
+    },
+  })
+}
+
+// Remove a single occurrence of a recurring series ("this event only").
+export function useDeleteCalendarOccurrence(range: CalendarRange) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      seriesId,
+      occurrenceStart,
+    }: {
+      seriesId: string
+      occurrenceStart: string
+    }) =>
+      apiRequest<{ deleted: boolean }>(
+        `/api/v1/calendar/events/${seriesId}/occurrences?occurrenceStart=${encodeURIComponent(occurrenceStart)}`,
+        { method: 'DELETE' },
+      ),
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: calendarEventsKey(range) })
     },

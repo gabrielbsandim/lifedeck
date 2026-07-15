@@ -35,6 +35,9 @@ function external(
     allDay: false,
     recurrence: null,
     updatedAt: new Date('2026-06-24T09:00:00.000Z'),
+    recurringEventExternalId: null,
+    originalStartsAt: null,
+    cancelledOccurrence: false,
     deleted: false,
     ...overrides,
   }
@@ -106,6 +109,92 @@ describe('pullCalendarChanges', () => {
       asEntityId(OWNER_ID),
     )
     expect(connection?.syncToken).toBe('sync-2')
+  })
+
+  it('stores a cancelled occurrence as an override, not a deletion', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const provider = providerWith({
+      events: [
+        external({
+          externalId: 'g-master_20260715T180000Z',
+          title: 'English Class',
+          recurringEventExternalId: 'g-master',
+          originalStartsAt: new Date('2026-07-15T18:00:00.000Z'),
+          cancelledOccurrence: true,
+          deleted: false,
+        }),
+      ],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      provider,
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    const result = await pull(OWNER_ID)
+
+    expect(result.applied).toBe(1)
+    const stored = await calendarEvents.findOverrideByOriginalStart(
+      asEntityId(OWNER_ID),
+      'g-master',
+      new Date('2026-07-15T18:00:00.000Z'),
+    )
+    expect(stored?.cancelled).toBe(true)
+    expect(stored?.recurrenceMasterExternalId).toBe('g-master')
+  })
+
+  it('updates an existing occurrence override when the remote is newer', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId('dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'English Class',
+        startsAt: new Date('2026-07-15T18:00:00.000Z'),
+        endsAt: new Date('2026-07-15T18:50:00.000Z'),
+        source: 'google',
+        externalId: 'g-master_20260715T180000Z',
+        recurrenceMasterExternalId: 'g-master',
+        originalStartsAt: new Date('2026-07-15T18:00:00.000Z'),
+        now: new Date('2026-06-23T00:00:00.000Z'),
+      }),
+    )
+    const provider = providerWith({
+      events: [
+        external({
+          externalId: 'g-master_20260715T180000Z',
+          title: 'English (moved)',
+          startsAt: new Date('2026-07-15T19:00:00.000Z'),
+          endsAt: new Date('2026-07-15T19:50:00.000Z'),
+          recurringEventExternalId: 'g-master',
+          originalStartsAt: new Date('2026-07-15T18:00:00.000Z'),
+          updatedAt: NOW,
+        }),
+      ],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      provider,
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    await pull(OWNER_ID)
+
+    const stored = await calendarEvents.findOverrideByOriginalStart(
+      asEntityId(OWNER_ID),
+      'g-master',
+      new Date('2026-07-15T18:00:00.000Z'),
+    )
+    expect(stored?.title).toBe('English (moved)')
+    expect(stored?.startsAt.toISOString()).toBe('2026-07-15T19:00:00.000Z')
   })
 
   it('adopts a remote change that is newer than the local copy', async () => {

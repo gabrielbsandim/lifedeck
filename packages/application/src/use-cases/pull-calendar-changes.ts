@@ -101,6 +101,59 @@ export function makePullCalendarChanges({
       const existing =
         tagged ?? (legacy && legacy.connectionId === null ? legacy : null)
 
+      // An override of a single recurring occurrence (edited or cancelled).
+      // Stored as its own row keyed by the series master + original start;
+      // never deletes a row, since a cancelled instance must still hide that
+      // one occurrence during expansion.
+      if (external.recurringEventExternalId) {
+        if (existing) {
+          if (external.updatedAt.getTime() <= existing.updatedAt.getTime()) {
+            return false
+          }
+          existing.update(
+            {
+              title: external.title,
+              description: external.description,
+              location: external.location,
+              startsAt: external.startsAt,
+              endsAt: external.endsAt,
+              allDay: external.allDay,
+              cancelled: external.cancelledOccurrence,
+            },
+            clock.now(),
+          )
+          existing.linkToExternal(
+            external.externalId,
+            external.etag,
+            clock.now(),
+            connection.id,
+          )
+          await calendarEvents.save(existing)
+          return true
+        }
+        const override = CalendarEvent.create({
+          id: ids.generate(),
+          ownerId: owner,
+          title: external.title,
+          description: external.description,
+          location: external.location,
+          startsAt: external.startsAt,
+          endsAt: external.endsAt,
+          allDay: external.allDay,
+          recurrenceMasterExternalId: external.recurringEventExternalId,
+          originalStartsAt: external.originalStartsAt,
+          cancelled: external.cancelledOccurrence,
+          source: 'google',
+          connectionId: connection.id,
+          externalId: external.externalId,
+          etag: external.etag,
+          now: clock.now(),
+        })
+        override.markSynced(external.etag, clock.now())
+        await calendarEvents.save(override)
+        return true
+      }
+
       if (external.deleted) {
         if (existing) {
           await calendarEvents.delete(existing.id)

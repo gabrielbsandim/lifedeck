@@ -90,6 +90,31 @@ function mondayWeekIndex(date: Date): number {
   return Math.floor((daysSinceEpoch(date) + 3) / 7)
 }
 
+// Upper bound on how many days a single expansion may scan. A calendar view is
+// at most a month, so this only guards against a pathological range/rule.
+const MAX_EXPANSION_DAYS = 1000
+
+// Returns the UTC-midnight date of every day in [from, to] on which the rule
+// fires. The caller re-attaches the master event's time-of-day to each date.
+export function occurrencesBetween(
+  rule: RecurrenceRule,
+  from: Date,
+  to: Date,
+): Date[] {
+  const result: Date[] = []
+  const end = utcMidnight(to)
+  let cursor = utcMidnight(from)
+  let scanned = 0
+  while (cursor.getTime() <= end.getTime() && scanned < MAX_EXPANSION_DAYS) {
+    if (occursOn(rule, cursor)) {
+      result.push(cursor)
+    }
+    cursor = new Date(cursor.getTime() + MS_PER_DAY)
+    scanned += 1
+  }
+  return result
+}
+
 export function occursOn(rule: RecurrenceRule, date: Date): boolean {
   const target = utcMidnight(date)
   const start = parseDate(rule.startDate, 'Recurrence start date')

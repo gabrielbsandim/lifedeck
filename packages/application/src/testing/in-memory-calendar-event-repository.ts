@@ -38,10 +38,48 @@ export class InMemoryCalendarEventRepository
       .filter(
         event =>
           event.isOwnedBy(ownerId) &&
+          event.recurrence === null &&
+          event.recurrenceMasterExternalId === null &&
           event.startsAt.getTime() <= to.getTime() &&
           event.endsAt.getTime() >= from.getTime(),
       )
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+  }
+
+  async listRecurringMasters(ownerId: EntityId): Promise<CalendarEvent[]> {
+    return [...this.items.values()]
+      .filter(event => event.isOwnedBy(ownerId) && event.recurrence !== null)
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+  }
+
+  async listOverridesByMasterExternalIds(
+    ownerId: EntityId,
+    masterExternalIds: string[],
+  ): Promise<CalendarEvent[]> {
+    const wanted = new Set(masterExternalIds)
+    return [...this.items.values()]
+      .filter(
+        event =>
+          event.isOwnedBy(ownerId) &&
+          event.recurrenceMasterExternalId !== null &&
+          wanted.has(event.recurrenceMasterExternalId),
+      )
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+  }
+
+  async findOverrideByOriginalStart(
+    ownerId: EntityId,
+    masterExternalId: string,
+    originalStartsAt: Date,
+  ): Promise<CalendarEvent | null> {
+    return (
+      [...this.items.values()].find(
+        event =>
+          event.isOwnedBy(ownerId) &&
+          event.recurrenceMasterExternalId === masterExternalId &&
+          event.originalStartsAt?.getTime() === originalStartsAt.getTime(),
+      ) ?? null
+    )
   }
 
   async listByOwner(ownerId: EntityId): Promise<CalendarEvent[]> {
@@ -52,6 +90,20 @@ export class InMemoryCalendarEventRepository
 
   async delete(id: EntityId): Promise<void> {
     this.items.delete(id as string)
+  }
+
+  async deleteOverridesByMasterExternalId(
+    ownerId: EntityId,
+    masterExternalId: string,
+  ): Promise<void> {
+    for (const [id, event] of this.items) {
+      if (
+        event.isOwnedBy(ownerId) &&
+        event.recurrenceMasterExternalId === masterExternalId
+      ) {
+        this.items.delete(id)
+      }
+    }
   }
 
   async deleteByConnection(

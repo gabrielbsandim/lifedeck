@@ -23,6 +23,13 @@ export type CalendarEventProps = {
   allDay: boolean
   reminders: number[]
   recurrence: RecurrenceRule | null
+  // When this event overrides a single occurrence of a recurring series, this
+  // holds the external id of that series' master event and the original start
+  // of the overridden occurrence. `cancelled` marks the occurrence as removed
+  // (a deleted single instance) while keeping the row so expansion can hide it.
+  recurrenceMasterExternalId: string | null
+  originalStartsAt: Date | null
+  cancelled: boolean
   source: CalendarEventSource
   connectionId: EntityId | null
   externalId: string | null
@@ -77,6 +84,9 @@ export class CalendarEvent {
     allDay?: boolean
     reminders?: number[]
     recurrence?: RecurrenceRule | null
+    recurrenceMasterExternalId?: string | null
+    originalStartsAt?: Date | null
+    cancelled?: boolean
     source?: CalendarEventSource
     connectionId?: EntityId | null
     externalId?: string | null
@@ -112,6 +122,9 @@ export class CalendarEvent {
       recurrence: input.recurrence
         ? validateRecurrenceRule(input.recurrence)
         : null,
+      recurrenceMasterExternalId: input.recurrenceMasterExternalId ?? null,
+      originalStartsAt: input.originalStartsAt ?? null,
+      cancelled: input.cancelled ?? false,
       source: input.source ?? 'local',
       connectionId: input.connectionId ?? null,
       externalId: input.externalId ?? null,
@@ -134,6 +147,22 @@ export class CalendarEvent {
     return this.props.ownerId
   }
 
+  get title(): string {
+    return this.props.title
+  }
+
+  get description(): string | null {
+    return this.props.description
+  }
+
+  get location(): string | null {
+    return this.props.location
+  }
+
+  get allDay(): boolean {
+    return this.props.allDay
+  }
+
   get startsAt(): Date {
     return this.props.startsAt
   }
@@ -148,6 +177,22 @@ export class CalendarEvent {
 
   get source(): CalendarEventSource {
     return this.props.source
+  }
+
+  get recurrence(): RecurrenceRule | null {
+    return this.props.recurrence
+  }
+
+  get recurrenceMasterExternalId(): string | null {
+    return this.props.recurrenceMasterExternalId
+  }
+
+  get originalStartsAt(): Date | null {
+    return this.props.originalStartsAt
+  }
+
+  get cancelled(): boolean {
+    return this.props.cancelled
   }
 
   get connectionId(): EntityId | null {
@@ -197,6 +242,7 @@ export class CalendarEvent {
       allDay?: boolean
       reminders?: number[]
       recurrence?: RecurrenceRule | null
+      cancelled?: boolean
     },
     now: Date,
   ): void {
@@ -240,6 +286,9 @@ export class CalendarEvent {
       this.props.recurrence = input.recurrence
         ? validateRecurrenceRule(input.recurrence)
         : null
+    }
+    if (input.cancelled !== undefined) {
+      this.props.cancelled = input.cancelled
     }
     this.props.updatedAt = now
   }

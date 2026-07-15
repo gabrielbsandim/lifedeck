@@ -158,4 +158,73 @@ describe('CalendarEvent', () => {
       event.toJSON(),
     )
   })
+
+  it('exposes its detail getters', () => {
+    const event = CalendarEvent.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      title: 'Lunch',
+      description: 'With Sam',
+      location: 'Cafe',
+      startsAt: STARTS,
+      endsAt: ENDS,
+      allDay: true,
+      now: NOW,
+    })
+    expect(event.title).toBe('Lunch')
+    expect(event.description).toBe('With Sam')
+    expect(event.location).toBe('Cafe')
+    expect(event.allDay).toBe(true)
+    expect(event.recurrence).toBeNull()
+  })
+
+  it('defaults occurrence-override fields to empty', () => {
+    const props = build().toJSON()
+    expect(props.recurrenceMasterExternalId).toBeNull()
+    expect(props.originalStartsAt).toBeNull()
+    expect(props.cancelled).toBe(false)
+  })
+
+  it('creates an occurrence override tied to a series', () => {
+    const original = new Date('2026-07-15T18:00:00.000Z')
+    const event = CalendarEvent.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      title: 'English Class (moved)',
+      startsAt: new Date('2026-07-15T19:00:00.000Z'),
+      endsAt: new Date('2026-07-15T19:50:00.000Z'),
+      source: 'google',
+      recurrenceMasterExternalId: 'master-1',
+      originalStartsAt: original,
+      now: NOW,
+    })
+    expect(event.recurrenceMasterExternalId).toBe('master-1')
+    expect(event.originalStartsAt).toEqual(original)
+    expect(event.cancelled).toBe(false)
+  })
+
+  it('marks an occurrence cancelled through update', () => {
+    const event = build()
+    event.update({ cancelled: true }, new Date('2026-06-26T10:00:00.000Z'))
+    expect(event.cancelled).toBe(true)
+    expect(event.updatedAt).toEqual(new Date('2026-06-26T10:00:00.000Z'))
+  })
+
+  it('exposes its recurrence rule', () => {
+    const event = CalendarEvent.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      title: 'Weekly',
+      startsAt: STARTS,
+      endsAt: ENDS,
+      recurrence: {
+        freq: 'weekly',
+        interval: 1,
+        byWeekday: [3],
+        startDate: '2026-06-25',
+      },
+      now: NOW,
+    })
+    expect(event.recurrence?.freq).toBe('weekly')
+  })
 })

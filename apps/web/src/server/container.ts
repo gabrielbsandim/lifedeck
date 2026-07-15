@@ -32,6 +32,8 @@ import {
   REMINDER_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
+  makeUpdateCalendarOccurrence,
+  makeDeleteCalendarOccurrence,
   makeDeleteList,
   makeDeleteTask,
   makeGetCalendarEvent,
@@ -254,7 +256,9 @@ type Container = {
   getUsage: ReturnType<typeof makeGetUsage>
   createCalendarEvent: ReturnType<typeof makeCreateCalendarEvent>
   updateCalendarEvent: ReturnType<typeof makeUpdateCalendarEvent>
+  updateCalendarOccurrence: ReturnType<typeof makeUpdateCalendarOccurrence>
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
+  deleteCalendarOccurrence: ReturnType<typeof makeDeleteCalendarOccurrence>
   listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
   getCalendarEvent: ReturnType<typeof makeGetCalendarEvent>
   connectGoogleCalendar: ReturnType<typeof makeConnectGoogleCalendar>
@@ -545,6 +549,18 @@ function build(
     jobQueue,
     clock,
   })
+  const updateCalendarOccurrence = makeUpdateCalendarOccurrence({
+    calendarEvents,
+    jobQueue,
+    ids,
+    clock,
+  })
+  const deleteCalendarOccurrence = makeDeleteCalendarOccurrence({
+    calendarEvents,
+    jobQueue,
+    ids,
+    clock,
+  })
   const assistantTools: AssistantTools = {
     async getToday(userId) {
       const user = await users.findById(asEntityId(userId))
@@ -825,7 +841,9 @@ function build(
     getUsage: makeGetUsage({ usageMeter, resolvePlan }),
     createCalendarEvent,
     updateCalendarEvent,
+    updateCalendarOccurrence,
     deleteCalendarEvent,
+    deleteCalendarOccurrence,
     listCalendarEvents,
     getCalendarEvent: makeGetCalendarEvent({ calendarEvents }),
     connectGoogleCalendar: makeConnectGoogleCalendar({

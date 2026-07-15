@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  occurrencesBetween,
   occursOn,
   validateRecurrenceRule,
   type RecurrenceRule,
@@ -120,5 +121,58 @@ describe('occursOn', () => {
     const r = rule({ freq: 'monthly', byMonthday: 31, startDate: '2026-01-31' })
     expect(occursOn(r, at('2026-02-28'))).toBe(false)
     expect(occursOn(r, at('2026-03-31'))).toBe(true)
+  })
+})
+
+describe('occurrencesBetween', () => {
+  it('lists every firing day within the window as UTC midnights', () => {
+    // Weekly on Wednesdays starting 2025-02-26 (a Wednesday).
+    const r = rule({
+      freq: 'weekly',
+      byWeekday: [3],
+      startDate: '2025-02-26',
+    })
+    const days = occurrencesBetween(
+      r,
+      new Date('2026-07-01T00:00:00.000Z'),
+      new Date('2026-07-31T23:59:59.000Z'),
+    )
+    expect(days.map(day => day.toISOString())).toEqual([
+      '2026-07-01T00:00:00.000Z',
+      '2026-07-08T00:00:00.000Z',
+      '2026-07-15T00:00:00.000Z',
+      '2026-07-22T00:00:00.000Z',
+      '2026-07-29T00:00:00.000Z',
+    ])
+  })
+
+  it('returns nothing when the range ends before it starts', () => {
+    const r = rule({ freq: 'daily' })
+    expect(
+      occurrencesBetween(
+        r,
+        new Date('2026-07-10T00:00:00.000Z'),
+        new Date('2026-07-01T00:00:00.000Z'),
+      ),
+    ).toEqual([])
+  })
+
+  it('honours the until bound and the daily interval', () => {
+    const r = rule({
+      freq: 'daily',
+      interval: 2,
+      startDate: '2026-07-01',
+      until: '2026-07-05',
+    })
+    const days = occurrencesBetween(
+      r,
+      new Date('2026-07-01T00:00:00.000Z'),
+      new Date('2026-07-31T00:00:00.000Z'),
+    )
+    expect(days.map(day => day.toISOString().slice(0, 10))).toEqual([
+      '2026-07-01',
+      '2026-07-03',
+      '2026-07-05',
+    ])
   })
 })

@@ -16,6 +16,9 @@ export type CalendarEventRecord = {
   allDay: boolean
   reminders: number[]
   recurrence: RecurrenceRule | null
+  recurrenceMasterExternalId: string | null
+  originalStartsAt: Date | null
+  cancelled: boolean
   source: CalendarEventSource
   connectionId: string | null
   externalId: string | null
@@ -39,6 +42,9 @@ export function toDomainCalendarEvent(
     allDay: record.allDay,
     reminders: record.reminders,
     recurrence: record.recurrence,
+    recurrenceMasterExternalId: record.recurrenceMasterExternalId,
+    originalStartsAt: record.originalStartsAt,
+    cancelled: record.cancelled,
     source: record.source,
     connectionId:
       record.connectionId === null ? null : asEntityId(record.connectionId),
@@ -65,6 +71,9 @@ export function toCalendarEventRecord(
     allDay: props.allDay,
     reminders: props.reminders,
     recurrence: props.recurrence,
+    recurrenceMasterExternalId: props.recurrenceMasterExternalId,
+    originalStartsAt: props.originalStartsAt,
+    cancelled: props.cancelled,
     source: props.source,
     connectionId: props.connectionId,
     externalId: props.externalId,

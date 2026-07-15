@@ -108,6 +108,9 @@ export const en: Messages = {
       'Disconnect this calendar? Events synced from it will be removed.',
     googleAccount: 'Google account',
     defaultCalendarHint: 'New events you create sync to your default calendar.',
+    applyTo: 'Apply to',
+    thisEvent: 'This event',
+    allEvents: 'All events',
   },
   billing: {
     title: 'Plan and billing',

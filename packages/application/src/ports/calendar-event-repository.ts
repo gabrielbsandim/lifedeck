@@ -13,7 +13,21 @@ export interface CalendarEventRepository {
     from: Date,
     to: Date,
   ): Promise<CalendarEvent[]>
+  listRecurringMasters(ownerId: EntityId): Promise<CalendarEvent[]>
+  listOverridesByMasterExternalIds(
+    ownerId: EntityId,
+    masterExternalIds: string[],
+  ): Promise<CalendarEvent[]>
+  findOverrideByOriginalStart(
+    ownerId: EntityId,
+    masterExternalId: string,
+    originalStartsAt: Date,
+  ): Promise<CalendarEvent | null>
   listByOwner(ownerId: EntityId): Promise<CalendarEvent[]>
   delete(id: EntityId): Promise<void>
+  deleteOverridesByMasterExternalId(
+    ownerId: EntityId,
+    masterExternalId: string,
+  ): Promise<void>
   deleteByConnection(ownerId: EntityId, connectionId: EntityId): Promise<void>
 }

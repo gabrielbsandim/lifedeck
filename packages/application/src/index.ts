@@ -187,17 +187,23 @@ export type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 export {
   createCalendarEventSchema,
   updateCalendarEventSchema,
+  updateCalendarOccurrenceSchema,
+  deleteCalendarOccurrenceSchema,
   listCalendarEventsQuerySchema,
   calendarEventViewSchema,
   type CreateCalendarEventInput,
   type UpdateCalendarEventInput,
+  type UpdateCalendarOccurrenceInput,
+  type DeleteCalendarOccurrenceInput,
   type ListCalendarEventsQuery,
   type CalendarEventView,
 } from '@/dtos/calendar-event-dto'
 export { toCalendarEventView } from '@/mappers/calendar-event-mapper'
 export { makeCreateCalendarEvent } from '@/use-cases/create-calendar-event'
 export { makeUpdateCalendarEvent } from '@/use-cases/update-calendar-event'
+export { makeUpdateCalendarOccurrence } from '@/use-cases/update-calendar-occurrence'
 export { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
+export { makeDeleteCalendarOccurrence } from '@/use-cases/delete-calendar-occurrence'
 export { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 export { makeGetCalendarEvent } from '@/use-cases/get-calendar-event'
 export { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'

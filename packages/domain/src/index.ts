@@ -32,6 +32,7 @@ export {
   RECURRENCE_FREQUENCIES,
   validateRecurrenceRule,
   occursOn,
+  occurrencesBetween,
   type RecurrenceFrequency,
   type RecurrenceRule,
 } from '@/value-objects/recurrence-rule'

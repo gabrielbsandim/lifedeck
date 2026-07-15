@@ -23,6 +23,9 @@ function fromPrisma(record: {
   allDay: boolean
   reminders: number[]
   recurrence: unknown
+  recurrenceMasterExternalId: string | null
+  originalStartsAt: Date | null
+  cancelled: boolean
   source: string
   connectionId: string | null
   externalId: string | null
@@ -42,6 +45,9 @@ function fromPrisma(record: {
     allDay: record.allDay,
     reminders: record.reminders,
     recurrence: (record.recurrence as RecurrenceRule | null) ?? null,
+    recurrenceMasterExternalId: record.recurrenceMasterExternalId,
+    originalStartsAt: record.originalStartsAt,
+    cancelled: record.cancelled,
     source: record.source as CalendarEventSource,
     connectionId: record.connectionId,
     externalId: record.externalId,
@@ -74,6 +80,9 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         allDay: record.allDay,
         reminders: record.reminders,
         recurrence,
+        recurrenceMasterExternalId: record.recurrenceMasterExternalId,
+        originalStartsAt: record.originalStartsAt,
+        cancelled: record.cancelled,
         source: record.source,
         connectionId: record.connectionId,
         externalId: record.externalId,
@@ -91,6 +100,9 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         allDay: record.allDay,
         reminders: { set: record.reminders },
         recurrence,
+        recurrenceMasterExternalId: record.recurrenceMasterExternalId,
+        originalStartsAt: record.originalStartsAt,
+        cancelled: record.cancelled,
         source: record.source,
         connectionId: record.connectionId,
         externalId: record.externalId,
@@ -128,15 +140,63 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
     from: Date,
     to: Date,
   ): Promise<CalendarEvent[]> {
+    // Plain, non-recurring events only. Recurring masters expand into virtual
+    // occurrences and occurrence overrides are applied on top of them, both in
+    // the list use case, so neither should surface here as a literal row.
     const rows = await this.prisma.calendarEvent.findMany({
       where: {
         ownerId: ownerId as string,
+        recurrence: { equals: Prisma.DbNull },
+        recurrenceMasterExternalId: null,
         startsAt: { lte: to },
         endsAt: { gte: from },
       },
       orderBy: { startsAt: 'asc' },
     })
     return rows.map(row => toDomainCalendarEvent(fromPrisma(row)))
+  }
+
+  async listRecurringMasters(ownerId: EntityId): Promise<CalendarEvent[]> {
+    const rows = await this.prisma.calendarEvent.findMany({
+      where: {
+        ownerId: ownerId as string,
+        recurrence: { not: Prisma.DbNull },
+      },
+      orderBy: { startsAt: 'asc' },
+    })
+    return rows.map(row => toDomainCalendarEvent(fromPrisma(row)))
+  }
+
+  async listOverridesByMasterExternalIds(
+    ownerId: EntityId,
+    masterExternalIds: string[],
+  ): Promise<CalendarEvent[]> {
+    if (masterExternalIds.length === 0) {
+      return []
+    }
+    const rows = await this.prisma.calendarEvent.findMany({
+      where: {
+        ownerId: ownerId as string,
+        recurrenceMasterExternalId: { in: masterExternalIds },
+      },
+      orderBy: { startsAt: 'asc' },
+    })
+    return rows.map(row => toDomainCalendarEvent(fromPrisma(row)))
+  }
+
+  async findOverrideByOriginalStart(
+    ownerId: EntityId,
+    masterExternalId: string,
+    originalStartsAt: Date,
+  ): Promise<CalendarEvent | null> {
+    const row = await this.prisma.calendarEvent.findFirst({
+      where: {
+        ownerId: ownerId as string,
+        recurrenceMasterExternalId: masterExternalId,
+        originalStartsAt,
+      },
+    })
+    return row ? toDomainCalendarEvent(fromPrisma(row)) : null
   }
 
   async listByOwner(ownerId: EntityId): Promise<CalendarEvent[]> {
@@ -149,6 +209,18 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
 
   async delete(id: EntityId): Promise<void> {
     await this.prisma.calendarEvent.deleteMany({ where: { id: id as string } })
+  }
+
+  async deleteOverridesByMasterExternalId(
+    ownerId: EntityId,
+    masterExternalId: string,
+  ): Promise<void> {
+    await this.prisma.calendarEvent.deleteMany({
+      where: {
+        ownerId: ownerId as string,
+        recurrenceMasterExternalId: masterExternalId,
+      },
+    })
   }
 
   async deleteByConnection(

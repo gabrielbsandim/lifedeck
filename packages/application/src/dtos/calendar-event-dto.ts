@@ -29,6 +29,32 @@ export const updateCalendarEventSchema = z.object({
 
 export type UpdateCalendarEventInput = z.infer<typeof updateCalendarEventSchema>
 
+// Editing a single occurrence of a recurring series. `occurrenceStart` is the
+// original start of the occurrence being overridden; the rest are its new
+// values.
+export const updateCalendarOccurrenceSchema = z.object({
+  occurrenceStart: z.string().datetime(),
+  title: z.string().trim().min(1).max(200),
+  description: z.string().max(2000).nullable().optional(),
+  location: z.string().max(300).nullable().optional(),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime(),
+  allDay: z.boolean().optional(),
+  reminders: reminders.optional(),
+})
+
+export type UpdateCalendarOccurrenceInput = z.infer<
+  typeof updateCalendarOccurrenceSchema
+>
+
+export const deleteCalendarOccurrenceSchema = z.object({
+  occurrenceStart: z.string().datetime(),
+})
+
+export type DeleteCalendarOccurrenceInput = z.infer<
+  typeof deleteCalendarOccurrenceSchema
+>
+
 export const listCalendarEventsQuerySchema = z.object({
   from: z.string().datetime(),
   to: z.string().datetime(),
@@ -39,7 +65,9 @@ export type ListCalendarEventsQuery = z.infer<
 >
 
 export const calendarEventViewSchema = z.object({
-  id: z.string().uuid(),
+  // A virtual occurrence of a recurring series uses a synthetic composite id
+  // (`${seriesId}::${occurrenceStart}`), so this is not always a uuid.
+  id: z.string(),
   ownerId: z.string().uuid(),
   title: z.string(),
   description: z.string().nullable(),
@@ -49,6 +77,12 @@ export const calendarEventViewSchema = z.object({
   allDay: z.boolean(),
   reminders: z.array(z.number().int()),
   recurrence: recurrenceRuleSchema.nullable(),
+  // Occurrence linkage: `recurring` marks an event that belongs to a series;
+  // `seriesId` is the master event's real id and `occurrenceStart` the original
+  // start of this occurrence (both null for plain, non-recurring events).
+  recurring: z.boolean(),
+  seriesId: z.string().nullable(),
+  occurrenceStart: z.string().datetime().nullable(),
   source: z.enum(['local', 'google']),
   externalId: z.string().nullable(),
   createdAt: z.string().datetime(),

@@ -16,6 +16,12 @@ export type ExternalCalendarEvent = {
   allDay: boolean
   recurrence: RecurrenceRule | null
   updatedAt: Date
+  // `deleted` removes a top-level event's row. Occurrence overrides never delete
+  // a row: `recurringEventExternalId` links them to the series master and
+  // `cancelledOccurrence` hides just that one instance during expansion.
+  recurringEventExternalId: string | null
+  originalStartsAt: Date | null
+  cancelledOccurrence: boolean
   deleted: boolean
 }
 

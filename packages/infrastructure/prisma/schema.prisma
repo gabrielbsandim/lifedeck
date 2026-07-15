@@ -300,6 +300,9 @@ model CalendarEvent {
   allDay      Boolean   @default(false) @map("all_day")
   reminders   Int[]     @default([])
   recurrence  Json?
+  recurrenceMasterExternalId String? @map("recurrence_master_external_id")
+  originalStartsAt           DateTime? @map("original_starts_at")
+  cancelled                  Boolean   @default(false)
   source      String    @default("local")
   connectionId String?  @map("connection_id")
   externalId  String?   @map("external_id")
@@ -313,6 +316,7 @@ model CalendarEvent {
   @@index([ownerId, startsAt])
   @@index([ownerId, externalId])
   @@index([connectionId, externalId])
+  @@index([ownerId, recurrenceMasterExternalId])
   @@map("calendar_events")
 }
 

@@ -14,6 +14,12 @@ export function toCalendarEventView(event: CalendarEvent): CalendarEventView {
     allDay: props.allDay,
     reminders: props.reminders,
     recurrence: props.recurrence,
+    recurring:
+      props.recurrence !== null || props.recurrenceMasterExternalId !== null,
+    seriesId: null,
+    occurrenceStart: props.originalStartsAt
+      ? props.originalStartsAt.toISOString()
+      : null,
     source: props.source,
     externalId: props.externalId,
     createdAt: props.createdAt.toISOString(),

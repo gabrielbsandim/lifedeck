@@ -55,4 +55,53 @@ describe('deleteCalendarEvent', () => {
     const { remove } = await setup()
     await expect(remove(OTHER_ID, ID)).rejects.toBeInstanceOf(NotFoundError)
   })
+
+  it('drops a recurring series overrides when the master is deleted', async () => {
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const SERIES = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+    const master = CalendarEvent.create({
+      id: asEntityId(SERIES),
+      ownerId: asEntityId(OWNER_ID),
+      title: 'English Class',
+      startsAt: new Date('2025-02-26T18:00:00.000Z'),
+      endsAt: new Date('2025-02-26T18:50:00.000Z'),
+      recurrence: {
+        freq: 'weekly',
+        interval: 1,
+        byWeekday: [3],
+        startDate: '2025-02-26',
+      },
+      source: 'google',
+      externalId: 'g-master',
+      now: NOW,
+    })
+    await calendarEvents.save(master)
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId('11111111-1111-4111-8111-111111111111'),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'English (moved)',
+        startsAt: new Date('2026-07-15T19:00:00.000Z'),
+        endsAt: new Date('2026-07-15T19:50:00.000Z'),
+        recurrenceMasterExternalId: 'g-master',
+        originalStartsAt: new Date('2026-07-15T18:00:00.000Z'),
+        source: 'google',
+        externalId: 'g-master_20260715T180000Z',
+        now: NOW,
+      }),
+    )
+    const remove = makeDeleteCalendarEvent({
+      calendarEvents,
+      jobQueue: { enqueue: vi.fn().mockResolvedValue(undefined) },
+      clock: { now: () => NOW },
+    })
+
+    await remove(OWNER_ID, SERIES)
+
+    const overrides = await calendarEvents.listOverridesByMasterExternalIds(
+      asEntityId(OWNER_ID),
+      ['g-master'],
+    )
+    expect(overrides).toHaveLength(0)
+  })
 })

@@ -109,6 +109,9 @@ export const es: Messages = {
     googleAccount: 'Cuenta de Google',
     defaultCalendarHint:
       'Los eventos nuevos que crees se sincronizan con tu calendario predeterminado.',
+    applyTo: 'Aplicar a',
+    thisEvent: 'Este evento',
+    allEvents: 'Todos los eventos',
   },
   billing: {
     title: 'Plan y facturación',

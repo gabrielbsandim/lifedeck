@@ -8,8 +8,12 @@ import type { CalendarRange } from '@/lib/calendar/calendar-view'
 import {
   useCreateCalendarEvent,
   useDeleteCalendarEvent,
+  useDeleteCalendarOccurrence,
   useUpdateCalendarEvent,
+  useUpdateCalendarOccurrence,
 } from '@/lib/api/use-calendar-events'
+
+type EditScope = 'this' | 'all'
 
 function pad(value: number): string {
   return String(value).padStart(2, '0')
@@ -68,8 +72,20 @@ export function EventEditorDialog({
   const create = useCreateCalendarEvent(range)
   const update = useUpdateCalendarEvent(range)
   const remove = useDeleteCalendarEvent(range)
+  const updateOccurrence = useUpdateCalendarOccurrence(range)
+  const removeOccurrence = useDeleteCalendarOccurrence(range)
   const isGoogle = event?.source === 'google'
-  const pending = create.isPending || update.isPending || remove.isPending
+  const isRecurring = event?.recurring === true
+  const [scope, setScope] = useState<EditScope>('this')
+  // The series master is the target for "all events"; fall back to the event's
+  // own id for a plain event.
+  const seriesId = event?.seriesId ?? event?.id ?? ''
+  const pending =
+    create.isPending ||
+    update.isPending ||
+    remove.isPending ||
+    updateOccurrence.isPending ||
+    removeOccurrence.isPending
 
   function handleSubmit(formEvent: FormEvent) {
     formEvent.preventDefault()
@@ -82,17 +98,38 @@ export function EventEditorDialog({
       location: location.trim() || null,
       description: description.trim() || null,
     }
-    if (event) {
-      update.mutate({ id: event.id, input }, { onSuccess: onClose })
-    } else {
+    if (!event) {
       create.mutate(input, { onSuccess: onClose })
+      return
     }
+    if (isRecurring && scope === 'this' && event.occurrenceStart) {
+      updateOccurrence.mutate(
+        {
+          seriesId,
+          input: { ...input, occurrenceStart: event.occurrenceStart },
+        },
+        { onSuccess: onClose },
+      )
+      return
+    }
+    update.mutate(
+      { id: isRecurring ? seriesId : event.id, input },
+      { onSuccess: onClose },
+    )
   }
 
   function handleDelete() {
-    if (event) {
-      remove.mutate(event.id, { onSuccess: onClose })
+    if (!event) {
+      return
     }
+    if (isRecurring && scope === 'this' && event.occurrenceStart) {
+      removeOccurrence.mutate(
+        { seriesId, occurrenceStart: event.occurrenceStart },
+        { onSuccess: onClose },
+      )
+      return
+    }
+    remove.mutate(isRecurring ? seriesId : event.id, { onSuccess: onClose })
   }
 
   return (
@@ -199,21 +236,51 @@ export function EventEditorDialog({
           </div>
         </div>
 
+        {isRecurring && (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-ink-700 text-sm font-medium">
+              {t.applyTo}
+            </span>
+            <div className="border-line flex gap-1 rounded-xl border p-1">
+              {(['this', 'all'] as const).map(option => {
+                const active = scope === option
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setScope(option)}
+                    className={
+                      active
+                        ? 'bg-brand-600 flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-white'
+                        : 'text-ink-600 hover:bg-bg flex-1 rounded-lg px-3 py-1.5 text-xs font-medium'
+                    }
+                  >
+                    {option === 'this' ? t.thisEvent : t.allEvents}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="mt-1 flex items-center gap-2">
           <Button
             type="submit"
-            isLoading={create.isPending || update.isPending}
+            isLoading={
+              create.isPending || update.isPending || updateOccurrence.isPending
+            }
             disabled={!title.trim() || pending}
             className="flex-1"
           >
             {t.save}
           </Button>
-          {event && !isGoogle && (
+          {event && (isRecurring || !isGoogle) && (
             <Button
               type="button"
               variant="ghost"
               onClick={handleDelete}
-              isLoading={remove.isPending}
+              isLoading={remove.isPending || removeOccurrence.isPending}
               disabled={pending}
               className="text-danger hover:bg-danger/5"
             >

@@ -118,6 +118,9 @@ export type Messages = {
     disconnectConfirm: string
     googleAccount: string
     defaultCalendarHint: string
+    applyTo: string
+    thisEvent: string
+    allEvents: string
   }
   billing: {
     title: string

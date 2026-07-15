@@ -44,6 +44,7 @@ type GoogleEvent = {
   updated?: string
   recurrence?: string[]
   recurringEventId?: string
+  originalStartTime?: GoogleSlot
 }
 
 function parseSlot(slot: GoogleSlot | undefined): Date | null {
@@ -57,8 +58,16 @@ function parseSlot(slot: GoogleSlot | undefined): Date | null {
 }
 
 function toExternalEvent(item: GoogleEvent): ExternalCalendarEvent {
-  const startsAt = parseSlot(item.start) ?? new Date(0)
+  const originalStartsAt = parseSlot(item.originalStartTime)
+  const isOccurrence = Boolean(item.recurringEventId)
+  // A cancelled single instance arrives without start/end, so fall back to its
+  // original start to keep the row's window sane.
+  const startsAt =
+    parseSlot(item.start) ??
+    (isOccurrence ? originalStartsAt : null) ??
+    new Date(0)
   const endsAt = parseSlot(item.end) ?? startsAt
+  const cancelled = item.status === 'cancelled'
   return {
     externalId: item.id,
     etag: item.etag ?? null,
@@ -67,13 +76,21 @@ function toExternalEvent(item: GoogleEvent): ExternalCalendarEvent {
     location: item.location ?? null,
     startsAt,
     endsAt,
-    allDay: Boolean(item.start?.date),
-    recurrence: fromGoogleRecurrence(
-      item.recurrence,
-      startsAt.toISOString().slice(0, 10),
-    ),
+    allDay: Boolean(item.start?.date ?? item.originalStartTime?.date),
+    // An occurrence override is a single instance, never itself recurring.
+    recurrence: isOccurrence
+      ? null
+      : fromGoogleRecurrence(
+          item.recurrence,
+          startsAt.toISOString().slice(0, 10),
+        ),
     updatedAt: item.updated ? new Date(item.updated) : new Date(0),
-    deleted: item.status === 'cancelled',
+    recurringEventExternalId: item.recurringEventId ?? null,
+    originalStartsAt,
+    cancelledOccurrence: isOccurrence && cancelled,
+    // Only a cancelled top-level event deletes its row; a cancelled instance is
+    // kept as an override so expansion can hide that single occurrence.
+    deleted: cancelled && !isOccurrence,
   }
 }
 
@@ -95,6 +112,21 @@ function emailFromIdToken(idToken: string | undefined): string | null {
   } catch {
     return null
   }
+}
+
+// Google identifies a single instance of a recurring series as
+// `${masterId}_${originalStart}` where the timestamp is the occurrence's
+// original start in UTC basic format (YYYYMMDDTHHMMSSZ, or YYYYMMDD all-day).
+function instanceIdFor(
+  masterExternalId: string,
+  originalStartsAt: Date,
+  allDay: boolean,
+): string {
+  const iso = originalStartsAt.toISOString()
+  const stamp = allDay
+    ? iso.slice(0, 10).replace(/-/g, '')
+    : `${iso.slice(0, 19).replace(/[-:]/g, '')}Z`
+  return `${masterExternalId}_${stamp}`
 }
 
 function slotFor(event: CalendarEvent): { start: GoogleSlot; end: GoogleSlot } {
@@ -182,6 +214,37 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: CalendarEvent,
   ): Promise<{ externalId: string; etag: string | null }> {
     const props = event.toJSON()
+
+    // Occurrence override: PATCH the specific instance of the series. The
+    // instance already exists implicitly in Google, so we never POST; we target
+    // it by its instance id (masterId + original start in UTC basic form) and
+    // either cancel it or write the moved/edited fields.
+    if (props.recurrenceMasterExternalId && props.originalStartsAt) {
+      const instanceId =
+        event.externalId ??
+        instanceIdFor(
+          props.recurrenceMasterExternalId,
+          props.originalStartsAt,
+          props.allDay,
+        )
+      const path = `/calendars/${encodeURIComponent(connection.calendarId)}/events/${encodeURIComponent(instanceId)}`
+      const body = props.cancelled
+        ? { status: 'cancelled' }
+        : {
+            summary: props.title,
+            description: props.description ?? undefined,
+            location: props.location ?? undefined,
+            ...slotFor(event),
+          }
+      const result = await this.api<GoogleEvent>(
+        'PATCH',
+        path,
+        connection.accessToken,
+        body,
+      )
+      return { externalId: result.id ?? instanceId, etag: result.etag ?? null }
+    }
+
     const body = {
       summary: props.title,
       description: props.description ?? undefined,
@@ -253,7 +316,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       // singleEvents=false keeps recurring series as a single master event that
       // carries its RRULE, so recurrence survives the round-trip. Modified/
       // cancelled single instances arrive separately with a recurringEventId
-      // and are skipped below; the series master is the source of truth.
+      // and are stored as occurrence overrides applied during expansion.
       const params = new URLSearchParams({
         singleEvents: 'false',
         showDeleted: 'true',
@@ -281,10 +344,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
       )
       for (const item of page.items ?? []) {
         // Exceptions to a recurring series (edited or cancelled instances) carry
-        // recurringEventId. We sync the series master only, so skip them.
-        if (item.recurringEventId) {
-          continue
-        }
+        // recurringEventId; we store them as occurrence overrides so expansion
+        // can move or hide that single instance. The series master arrives as a
+        // separate item with its RRULE.
         events.push(toExternalEvent(item))
       }
       pageToken = page.nextPageToken

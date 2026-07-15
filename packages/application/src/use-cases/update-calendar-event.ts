@@ -12,6 +12,10 @@ import type { JobQueue } from '@/ports/job-queue'
 import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
 import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
+function utcMidnightMs(date: Date): number {
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+}
+
 type Dependencies = {
   calendarEvents: CalendarEventRepository
   jobQueue: JobQueue
@@ -35,13 +39,28 @@ export function makeUpdateCalendarEvent({
       throw new NotFoundError('Calendar event')
     }
 
+    let startsAt = data.startsAt ? new Date(data.startsAt) : undefined
+    let endsAt = data.endsAt ? new Date(data.endsAt) : undefined
+    // Editing a recurring series from one of its occurrences ("all events"):
+    // the incoming times belong to that occurrence's day. Keep the series'
+    // recurrence anchor (its own date) and only shift the time-of-day and
+    // duration, so the whole series moves in time without changing which days
+    // it lands on.
+    if (event.recurrence && startsAt && endsAt) {
+      const anchor = utcMidnightMs(event.startsAt)
+      const timeOfDay = startsAt.getTime() - utcMidnightMs(startsAt)
+      const duration = endsAt.getTime() - startsAt.getTime()
+      startsAt = new Date(anchor + timeOfDay)
+      endsAt = new Date(startsAt.getTime() + duration)
+    }
+
     event.update(
       {
         title: data.title,
         description: data.description,
         location: data.location,
-        startsAt: data.startsAt ? new Date(data.startsAt) : undefined,
-        endsAt: data.endsAt ? new Date(data.endsAt) : undefined,
+        startsAt,
+        endsAt,
         allDay: data.allDay,
         reminders: data.reminders,
         recurrence: data.recurrence,
@@ -60,9 +79,9 @@ export function makeUpdateCalendarEvent({
     // Re-arm reminders for the (possibly edited) offsets and times. The handler
     // dedups against already-delivered notifications, so the overlap with jobs
     // armed at create time never double-delivers.
-    const startsAt = event.startsAt.getTime()
+    const reminderAnchor = event.startsAt.getTime()
     for (const minutesBefore of event.reminders) {
-      const fireAt = startsAt - minutesBefore * MINUTE_MS
+      const fireAt = reminderAnchor - minutesBefore * MINUTE_MS
       if (fireAt > clock.now().getTime()) {
         await jobQueue.enqueue({
           type: REMINDER_JOB,

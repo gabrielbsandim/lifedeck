@@ -28,6 +28,16 @@ export function makeDeleteCalendarEvent({
     const connectionId = event.connectionId
     await calendarEvents.delete(asEntityId(id))
 
+    // Deleting a recurring series ("all events") also drops its occurrence
+    // overrides so they cannot resurface as orphaned occurrences. The provider
+    // deletes the series (and its exceptions) remotely on its own.
+    if (event.recurrence && externalId) {
+      await calendarEvents.deleteOverridesByMasterExternalId(
+        asEntityId(ownerId),
+        externalId,
+      )
+    }
+
     if (externalId) {
       await jobQueue.enqueue({
         type: CALENDAR_DELETE_JOB,

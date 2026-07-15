@@ -64,4 +64,40 @@ describe('updateCalendarEvent', () => {
       NotFoundError,
     )
   })
+
+  it('shifts a series time-of-day but keeps its recurrence anchor date', async () => {
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const SERIES = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId(SERIES),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'English Class',
+        startsAt: new Date('2025-02-26T18:00:00.000Z'),
+        endsAt: new Date('2025-02-26T18:50:00.000Z'),
+        recurrence: {
+          freq: 'weekly',
+          interval: 1,
+          byWeekday: [3],
+          startDate: '2025-02-26',
+        },
+        now: NOW,
+      }),
+    )
+    const update = makeUpdateCalendarEvent({
+      calendarEvents,
+      jobQueue: { enqueue: vi.fn().mockResolvedValue(undefined) },
+      clock: { now: () => LATER },
+    })
+
+    // Editing "all events" from the July 15 occurrence, moved to 19:00.
+    const view = await update(OWNER_ID, SERIES, {
+      startsAt: '2026-07-15T19:00:00.000Z',
+      endsAt: '2026-07-15T19:50:00.000Z',
+    })
+
+    expect(view.startsAt).toBe('2025-02-26T19:00:00.000Z')
+    expect(view.endsAt).toBe('2025-02-26T19:50:00.000Z')
+    expect(view.recurrence?.freq).toBe('weekly')
+  })
 })

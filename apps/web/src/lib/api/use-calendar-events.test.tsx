@@ -4,7 +4,9 @@ import {
   useCalendarEvents,
   useCreateCalendarEvent,
   useDeleteCalendarEvent,
+  useDeleteCalendarOccurrence,
   useUpdateCalendarEvent,
+  useUpdateCalendarOccurrence,
 } from '@/lib/api/use-calendar-events'
 import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
 
@@ -24,6 +26,9 @@ const EVENT = {
   allDay: false,
   reminders: [],
   recurrence: null,
+  recurring: false,
+  seriesId: null,
+  occurrenceStart: null,
   source: 'local',
   externalId: null,
   createdAt: '2026-06-24T08:00:00.000Z',
@@ -98,6 +103,45 @@ describe('useCalendarEvents', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/v1/calendar/events/${EVENT.id}`,
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('edits a single occurrence', async () => {
+    const fetchMock = mockFetchOnce({ data: EVENT })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useUpdateCalendarOccurrence(RANGE), {
+      wrapper: Wrapper,
+    })
+    result.current.mutate({
+      seriesId: EVENT.id,
+      input: {
+        occurrenceStart: EVENT.startsAt,
+        title: 'Only this',
+        startsAt: EVENT.startsAt,
+        endsAt: EVENT.endsAt,
+      },
+    })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/calendar/events/${EVENT.id}/occurrences`,
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('deletes a single occurrence', async () => {
+    const fetchMock = mockFetchOnce({ data: { deleted: true } })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useDeleteCalendarOccurrence(RANGE), {
+      wrapper: Wrapper,
+    })
+    result.current.mutate({
+      seriesId: EVENT.id,
+      occurrenceStart: EVENT.startsAt,
+    })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/calendar/events/${EVENT.id}/occurrences?occurrenceStart=${encodeURIComponent(EVENT.startsAt)}`,
       expect.objectContaining({ method: 'DELETE' }),
     )
   })
