@@ -24,6 +24,12 @@ function isoToLocalInput(iso: string): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+// All-day events are date-only (stored at UTC midnight); show the UTC date so
+// the timezone never shifts them a day, mirroring how the grid places them.
+function isoToInput(iso: string, allDay: boolean): string {
+  return allDay ? `${iso.slice(0, 10)}T00:00` : isoToLocalInput(iso)
+}
+
 const REMINDER_OPTIONS = [0, 10, 30, 60, 1440]
 
 function reminderLabel(minutes: number, atStart: string): string {
@@ -63,10 +69,10 @@ export function EventEditorDialog({
   const [allDay, setAllDay] = useState(event?.allDay ?? false)
   const [reminders, setReminders] = useState<number[]>(event?.reminders ?? [])
   const [startsAt, setStartsAt] = useState(
-    event ? isoToLocalInput(event.startsAt) : `${defaultDay}T09:00`,
+    event ? isoToInput(event.startsAt, event.allDay) : `${defaultDay}T09:00`,
   )
   const [endsAt, setEndsAt] = useState(
-    event ? isoToLocalInput(event.endsAt) : `${defaultDay}T10:00`,
+    event ? isoToInput(event.endsAt, event.allDay) : `${defaultDay}T10:00`,
   )
 
   const create = useCreateCalendarEvent(range)

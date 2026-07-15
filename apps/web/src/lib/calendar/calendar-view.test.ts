@@ -106,4 +106,11 @@ describe('groupByDay', () => {
       eventDay(event('x', '2026-06-25T02:00:00.000Z'), 'America/New_York'),
     ).toBe('2026-06-24')
   })
+
+  it('keeps an all-day event on its UTC date regardless of time zone', () => {
+    // UTC midnight of the 16th is 21:00 on the 15th in Sao Paulo; an all-day
+    // event must still land on the 16th.
+    const allDay = { ...event('ad', '2026-07-16T00:00:00.000Z'), allDay: true }
+    expect(eventDay(allDay, 'America/Sao_Paulo')).toBe('2026-07-16')
+  })
 })

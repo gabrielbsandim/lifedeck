@@ -96,8 +96,14 @@ export function weekDays(anchor: string): string[] {
   )
 }
 
-/** The local calendar day (in `timeZone`) an event starts on, as YYYY-MM-DD. */
+/** The calendar day an event starts on, as YYYY-MM-DD. */
 export function eventDay(event: CalendarEventView, timeZone: string): string {
+  // All-day events are date-only (stored at UTC midnight). They belong to that
+  // calendar date for everyone, so applying the viewer's timezone would wrongly
+  // shift them a day in offsets behind UTC. Use the UTC date verbatim.
+  if (event.allDay) {
+    return event.startsAt.slice(0, 10)
+  }
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',
