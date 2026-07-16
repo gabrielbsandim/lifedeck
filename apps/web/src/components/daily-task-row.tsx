@@ -69,7 +69,7 @@ function TaskRowBody({
       style={style}
       {...dragHandle}
       className={cn(
-        'relative flex touch-none items-center gap-3 bg-white py-2.5 pl-4 pr-1.5',
+        'relative flex touch-pan-y items-center gap-3 bg-white py-2.5 pl-4 pr-1.5',
         overlay
           ? 'ring-brand-200/70 rounded-2xl shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
           : 'min-h-[56px]',
@@ -171,6 +171,12 @@ function TaskRowBody({
  * In-list row wired to dnd-kit. The whole row is the drag handle with a short
  * press delay, so a tap opens the detail sheet and a press-and-hold reorders
  * (matching the prototype, which shows no separate grip).
+ *
+ * The row uses `touch-pan-y` (not `touch-none`): the browser keeps native
+ * vertical scrolling, while the delay activation constraint (see the sensor in
+ * task-drag-list.tsx) distinguishes a swipe (scroll) from a press-and-hold
+ * (drag). Using `touch-none` here breaks page scroll on mobile because the rows
+ * cover most of the viewport.
  */
 export function DailyTaskRow(props: SharedProps) {
   const {
