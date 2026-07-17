@@ -6,7 +6,7 @@
   "crons": [
     {
       "path": "/api/v1/internal/dispatch-jobs",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/v1/internal/fan-out-jobs",

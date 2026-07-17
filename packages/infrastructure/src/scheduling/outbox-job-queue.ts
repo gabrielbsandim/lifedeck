@@ -4,6 +4,7 @@ import type {
   EnqueueJobInput,
   IdGenerator,
   JobQueue,
+  JobScheduler,
   ScheduledJobRepository,
 } from '@lifedeck/application'
 
@@ -12,6 +13,7 @@ export class OutboxJobQueue implements JobQueue {
     private readonly scheduledJobs: ScheduledJobRepository,
     private readonly ids: IdGenerator,
     private readonly clock: Clock,
+    private readonly scheduler: JobScheduler,
   ) {}
 
   async enqueue(input: EnqueueJobInput): Promise<void> {
@@ -23,5 +25,8 @@ export class OutboxJobQueue implements JobQueue {
       createdAt: this.clock.now(),
     })
     await this.scheduledJobs.save(job)
+    // Persist first (the outbox), then request an on-time wake. The scheduler is
+    // best-effort: if it fails, the fallback cron still drains the saved job.
+    await this.scheduler.scheduleWake(input.runAt)
   }
 }

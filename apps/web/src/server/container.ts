@@ -163,6 +163,8 @@ import {
   StripePaymentGateway,
   GoogleCalendarProvider,
   OutboxJobQueue,
+  QStashJobScheduler,
+  NoopJobScheduler,
   createMessagingChannel,
   createAgentRunner,
   createConversationStore,
@@ -184,6 +186,7 @@ import {
   prisma,
 } from '@lifedeck/infrastructure'
 import { createRedisHealthProbe } from '@/server/api/redis-health-probe'
+import { log } from '@/server/api/logger'
 import { SITE_NAME, siteUrl } from '@/lib/site'
 
 type Container = {
@@ -378,7 +381,27 @@ function build(
     emailSender,
     clock,
   })
-  const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock)
+  // Event-driven dispatch: when QStash is configured, each enqueued job gets a
+  // wake published at its run time so the dispatch route fires within seconds,
+  // letting the database autosuspend between real work instead of being pinned
+  // awake by a minute-by-minute poll. Without a token it degrades to the
+  // periodic fallback cron. Publish failures are swallowed (best-effort).
+  const qstashToken = process.env.QSTASH_TOKEN?.trim()
+  const cronSecret = process.env.CRON_SECRET?.trim()
+  const jobScheduler =
+    qstashToken && cronSecret
+      ? new QStashJobScheduler({
+          token: qstashToken,
+          destinationUrl: `${siteUrl()}/api/v1/internal/dispatch-jobs`,
+          forwardAuthorization: `Bearer ${cronSecret}`,
+          fetchFn: fetch,
+          onError: error =>
+            log('warn', 'qstash_schedule_wake_failed', {
+              error: error instanceof Error ? error.message : String(error),
+            }),
+        })
+      : new NoopJobScheduler()
+  const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock, jobScheduler)
   const pullCalendarChanges = makePullCalendarChanges({
     calendarConnections,
     calendarEvents,

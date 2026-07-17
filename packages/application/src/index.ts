@@ -130,6 +130,7 @@ export type {
 } from '@/ports/entitlement-service'
 export type { ScheduledJobRepository } from '@/ports/scheduled-job-repository'
 export type { JobQueue, EnqueueJobInput } from '@/ports/job-queue'
+export type { JobScheduler } from '@/ports/job-scheduler'
 export {
   makeDispatchDueJobs,
   type JobHandler,

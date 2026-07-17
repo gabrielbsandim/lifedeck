@@ -22,6 +22,7 @@ import {
   type AgentRunner,
 } from '@lifedeck/application'
 import { OutboxJobQueue } from '@/scheduling/outbox-job-queue'
+import { NoopJobScheduler } from '@/scheduling/noop-job-scheduler'
 
 const USER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
 const PHONE = '5511999990000'
@@ -60,7 +61,12 @@ describe('V2 calendar reminder happy path', () => {
       sendTemplate: vi.fn().mockResolvedValue(undefined),
       fetchMedia: vi.fn(),
     }
-    const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock)
+    const jobQueue = new OutboxJobQueue(
+      scheduledJobs,
+      ids,
+      clock,
+      new NoopJobScheduler(),
+    )
 
     const createEvent = makeCreateCalendarEvent({
       calendarEvents,
@@ -131,7 +137,12 @@ describe('V2 whatsapp assistant happy path', () => {
       sendTemplate: vi.fn().mockResolvedValue(undefined),
       fetchMedia: vi.fn(),
     }
-    const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock)
+    const jobQueue = new OutboxJobQueue(
+      scheduledJobs,
+      ids,
+      clock,
+      new NoopJobScheduler(),
+    )
     const createEvent = makeCreateCalendarEvent({
       calendarEvents,
       jobQueue,

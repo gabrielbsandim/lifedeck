@@ -90,6 +90,11 @@ export {
   type ScheduledJobRecord,
 } from '@/database/scheduled-job-record'
 export { OutboxJobQueue } from '@/scheduling/outbox-job-queue'
+export {
+  QStashJobScheduler,
+  type QStashJobSchedulerDeps,
+} from '@/scheduling/qstash-job-scheduler'
+export { NoopJobScheduler } from '@/scheduling/noop-job-scheduler'
 export { PrismaSubscriptionRepository } from '@/database/prisma-subscription-repository'
 export { PrismaCheckoutIntentRepository } from '@/database/prisma-checkout-intent-repository'
 export { PrismaBillingCustomerRepository } from '@/database/prisma-billing-customer-repository'
