@@ -20,7 +20,9 @@ function makeScheduler(overrides: {
 
 describe('QStashJobScheduler', () => {
   it('publishes a wake to the dispatch route at the absolute run time', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200 })
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, text: async () => '{}' })
     const scheduler = makeScheduler({ fetchFn })
 
     await scheduler.scheduleWake(AT)
@@ -28,9 +30,7 @@ describe('QStashJobScheduler', () => {
     expect(fetchFn).toHaveBeenCalledTimes(1)
     const [url, init] = fetchFn.mock.calls[0]!
     expect(url).toBe(
-      `https://qstash.upstash.io/v2/publish/${encodeURIComponent(
-        'https://app.lifedeck.test/api/v1/internal/dispatch-jobs',
-      )}`,
+      'https://qstash.upstash.io/v2/publish/https://app.lifedeck.test/api/v1/internal/dispatch-jobs',
     )
     expect(init.method).toBe('POST')
     expect(init.body).toBe('{}')
@@ -43,7 +43,11 @@ describe('QStashJobScheduler', () => {
   })
 
   it('reports but does not throw when QStash returns a non-ok status', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 429 })
+    const fetchFn = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      text: async () => 'rate limited',
+    })
     const onError = vi.fn()
     const scheduler = makeScheduler({ fetchFn, onError })
 
@@ -52,6 +56,7 @@ describe('QStashJobScheduler', () => {
     const reported = onError.mock.calls[0]![0]
     expect(reported).toBeInstanceOf(Error)
     expect((reported as Error).message).toContain('429')
+    expect((reported as Error).message).toContain('rate limited')
   })
 
   it('reports but does not throw when the request itself fails', async () => {
