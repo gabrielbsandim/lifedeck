@@ -112,5 +112,9 @@ export interface AssistantTools {
     userId: string,
     input: AssistantOccurrenceReschedule,
   ): Promise<{ ok: boolean }>
+  cancelOccurrence(
+    userId: string,
+    input: { seriesId: string; occurrenceStart: string },
+  ): Promise<{ ok: boolean }>
   deleteEvent(userId: string, eventId: string): Promise<{ ok: boolean }>
 }

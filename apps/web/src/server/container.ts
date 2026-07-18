@@ -723,6 +723,14 @@ function build(
       })
       return { ok: true }
     },
+    async cancelOccurrence(userId, input) {
+      await deleteCalendarOccurrence(
+        userId,
+        input.seriesId,
+        toUtcIso(input.occurrenceStart),
+      )
+      return { ok: true }
+    },
     async deleteEvent(userId, eventId) {
       await deleteCalendarEvent(userId, eventId)
       return { ok: true }
