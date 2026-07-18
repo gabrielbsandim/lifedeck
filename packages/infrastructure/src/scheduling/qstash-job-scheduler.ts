@@ -1,7 +1,5 @@
 import type { JobScheduler } from '@lifedeck/application'
 
-const QSTASH_BASE_URL = 'https://qstash.upstash.io'
-
 type FetchLike = (
   input: string,
   init: {
@@ -12,6 +10,12 @@ type FetchLike = (
 ) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>
 
 export interface QStashJobSchedulerDeps {
+  /**
+   * QStash REST endpoint for the token's region (from QSTASH_URL). QStash is
+   * multi-region: the default `qstash.upstash.io` is EU, and a US token needs
+   * `qstash-us-east-1.upstash.io`. Hitting the wrong region 404s.
+   */
+  baseUrl: string
   /** QStash REST token (Bearer) that authorizes publishing. */
   token: string
   /** Absolute URL QStash should call when the wake fires (the dispatch route). */
@@ -40,7 +44,8 @@ export class QStashJobScheduler implements JobScheduler {
     // QStash schedules an absolute delivery time via a Unix timestamp (seconds).
     // A past timestamp simply delivers as soon as possible.
     const notBefore = Math.floor(at.getTime() / 1000)
-    const url = `${QSTASH_BASE_URL}/v2/publish/${this.deps.destinationUrl}`
+    const base = this.deps.baseUrl.replace(/\/$/, '')
+    const url = `${base}/v2/publish/${this.deps.destinationUrl}`
     try {
       const response = await this.deps.fetchFn(url, {
         method: 'POST',

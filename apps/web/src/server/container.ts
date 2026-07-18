@@ -397,6 +397,10 @@ function build(
   const jobScheduler =
     qstashToken && cronSecret
       ? new QStashJobScheduler({
+          // QStash is multi-region; QSTASH_URL points at the token's region.
+          // Default (qstash.upstash.io) is EU, so a US token needs QSTASH_URL.
+          baseUrl:
+            process.env.QSTASH_URL?.trim() || 'https://qstash.upstash.io',
           token: qstashToken,
           destinationUrl: `${siteUrl()}/api/v1/internal/dispatch-jobs`,
           forwardAuthorization: `Bearer ${cronSecret}`,

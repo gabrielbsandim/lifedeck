@@ -10,6 +10,7 @@ function makeScheduler(overrides: {
   onError?: ReturnType<typeof vi.fn>
 }) {
   return new QStashJobScheduler({
+    baseUrl: 'https://qstash-us-east-1.upstash.io',
     token: 'qstash-token',
     destinationUrl: 'https://app.lifedeck.test/api/v1/internal/dispatch-jobs',
     forwardAuthorization: 'Bearer cron-secret',
@@ -30,7 +31,7 @@ describe('QStashJobScheduler', () => {
     expect(fetchFn).toHaveBeenCalledTimes(1)
     const [url, init] = fetchFn.mock.calls[0]!
     expect(url).toBe(
-      'https://qstash.upstash.io/v2/publish/https://app.lifedeck.test/api/v1/internal/dispatch-jobs',
+      'https://qstash-us-east-1.upstash.io/v2/publish/https://app.lifedeck.test/api/v1/internal/dispatch-jobs',
     )
     expect(init.method).toBe('POST')
     expect(init.body).toBe('{}')
