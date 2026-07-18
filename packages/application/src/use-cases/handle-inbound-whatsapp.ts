@@ -28,6 +28,7 @@ export type WhatsappCopy = {
   assistantQuota: string
   assistantError: string
   assistantMediaUnavailable: string
+  assistantDone: string
 }
 
 /**
@@ -53,6 +54,7 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
       'Something went wrong on my side. Please try again in a moment.',
     assistantMediaUnavailable:
       'I cannot understand voice or image messages yet. Please send your request as text.',
+    assistantDone: 'Done.',
   },
   pt: {
     pairLinked:
@@ -69,6 +71,7 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
       'Algo deu errado do meu lado. Tente novamente em instantes.',
     assistantMediaUnavailable:
       'Ainda não consigo entender mensagens de voz ou imagem. Por favor, envie seu pedido como texto.',
+    assistantDone: 'Feito.',
   },
   es: {
     pairLinked:
@@ -85,6 +88,7 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
       'Algo salió mal de mi lado. Inténtalo de nuevo en un momento.',
     assistantMediaUnavailable:
       'Todavía no puedo entender mensajes de voz o imagen. Por favor, envía tu solicitud como texto.',
+    assistantDone: 'Hecho.',
   },
 }
 
@@ -295,11 +299,15 @@ export function makeHandleInboundWhatsApp({
       return { action: 'error' }
     }
 
+    // The model sometimes runs a tool but returns no words; sending an empty
+    // body is rejected by the channel and the user gets nothing. Fall back to a
+    // short acknowledgement so a completed action is always confirmed.
+    const replyText = reply.text.trim() ? reply.text : copy.assistantDone
     await conversations.append(userId, [
       { role: 'user', content: text },
-      { role: 'assistant', content: reply.text },
+      { role: 'assistant', content: replyText },
     ])
-    await messaging.sendText(message.from, reply.text)
+    await messaging.sendText(message.from, replyText)
     return { action: 'reply' }
   }
 

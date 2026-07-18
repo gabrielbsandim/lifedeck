@@ -149,6 +149,25 @@ describe('handleInboundWhatsApp', () => {
     ])
   })
 
+  it('falls back to a confirmation when the model returns no text', async () => {
+    const ctx = setup({ agentRun: async () => ({ text: '  ' }) })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'move it to 10',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Done.')
+    const stored = await ctx.conversations.load(ID.user)
+    expect(stored).toEqual([
+      { role: 'user', content: 'move it to 10' },
+      { role: 'assistant', content: 'Done.' },
+    ])
+  })
+
   it('passes prior history to the agent', async () => {
     const ctx = setup()
     await verified(ctx.channelIdentities)
