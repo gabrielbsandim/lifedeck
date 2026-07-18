@@ -60,7 +60,7 @@ describe('createConversationStore (redis)', () => {
     expect(commands[1]).toEqual([
       'LTRIM',
       'lifedeck/conversation/user-1',
-      -20,
+      -40,
       -1,
     ])
     expect(commands[2]).toEqual([

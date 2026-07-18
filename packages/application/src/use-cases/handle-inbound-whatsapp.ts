@@ -29,6 +29,7 @@ export type WhatsappCopy = {
   assistantError: string
   assistantMediaUnavailable: string
   assistantDone: string
+  assistantBusy: string
 }
 
 /**
@@ -55,6 +56,8 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
     assistantMediaUnavailable:
       'I cannot understand voice or image messages yet. Please send your request as text.',
     assistantDone: 'Done.',
+    assistantBusy:
+      'I am handling a lot of messages right now. Please try again in a moment.',
   },
   pt: {
     pairLinked:
@@ -72,6 +75,8 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
     assistantMediaUnavailable:
       'Ainda não consigo entender mensagens de voz ou imagem. Por favor, envie seu pedido como texto.',
     assistantDone: 'Feito.',
+    assistantBusy:
+      'Estou recebendo muitas mensagens agora. Tente novamente em instantes.',
   },
   es: {
     pairLinked:
@@ -89,6 +94,8 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
     assistantMediaUnavailable:
       'Todavía no puedo entender mensajes de voz o imagen. Por favor, envía tu solicitud como texto.',
     assistantDone: 'Hecho.',
+    assistantBusy:
+      'Estoy recibiendo muchos mensajes ahora. Inténtalo de nuevo en un momento.',
   },
 }
 
@@ -154,6 +161,20 @@ function wantsProModel(granted: readonly string[], text: string): boolean {
     return false
   }
   return text.trim().split(/\s+/).filter(Boolean).length >= PRO_WORD_THRESHOLD
+}
+
+/** True when the model call failed on a provider rate limit / quota, not a bug. */
+function isRateLimitError(error: unknown): boolean {
+  const message = (
+    error instanceof Error ? error.message : String(error)
+  ).toLowerCase()
+  return (
+    message.includes('quota') ||
+    message.includes('rate limit') ||
+    message.includes('rate-limit') ||
+    message.includes('too many requests') ||
+    message.includes('429')
+  )
 }
 
 type Dependencies = {
@@ -288,6 +309,13 @@ export function makeHandleInboundWhatsApp({
       if (error instanceof MediaUnderstandingUnavailableError) {
         await messaging.sendText(message.from, copy.assistantMediaUnavailable)
         return { action: 'unconfigured' }
+      }
+      // A model rate limit is transient and self-inflicted by rapid messaging;
+      // tell the user to slow down instead of implying a real failure.
+      if (isRateLimitError(error)) {
+        logger.warn('whatsapp_assistant_rate_limited', { userId })
+        await messaging.sendText(message.from, copy.assistantBusy)
+        return { action: 'error' }
       }
       // Surface the failure: without this the user sees a generic apology and
       // the cause is invisible in logs.

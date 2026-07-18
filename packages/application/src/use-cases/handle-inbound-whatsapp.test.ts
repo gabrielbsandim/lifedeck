@@ -247,6 +247,30 @@ describe('handleInboundWhatsApp', () => {
     )
   })
 
+  it('tells the user to slow down when the model is rate limited', async () => {
+    const ctx = setup({
+      agentRun: async () => {
+        throw new Error('You exceeded your current quota (429)')
+      },
+    })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'change it to 9',
+    })
+
+    expect(result).toEqual({ action: 'error' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      expect.stringContaining('handling a lot of messages'),
+    )
+    expect(ctx.refund).toHaveBeenCalledWith(
+      ...(ctx.consume.mock.calls[0] ?? []),
+    )
+  })
+
   it('links a number when the text matches a pending code', async () => {
     const ctx = setup()
     await ctx.channelIdentities.save(pending('123456'))

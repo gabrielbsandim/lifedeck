@@ -5,7 +5,9 @@ import {
 } from '@lifedeck/application'
 import { httpFetch } from '@/http/http-fetch'
 
-const MAX_TURNS = 20
+// Roughly 20 back-and-forth exchanges, so the assistant can follow up on an
+// earlier message ("actually make it 9h") within a conversation.
+const MAX_TURNS = 40
 const TTL_SECONDS = 24 * 60 * 60
 
 type PipelineResult = Array<{ result: unknown }>
