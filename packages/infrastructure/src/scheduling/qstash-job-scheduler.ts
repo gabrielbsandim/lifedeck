@@ -40,7 +40,12 @@ export class QStashJobScheduler implements JobScheduler {
     // QStash schedules an absolute delivery time via a Unix timestamp (seconds).
     // A past timestamp simply delivers as soon as possible.
     const notBefore = Math.floor(at.getTime() / 1000)
-    const url = `${QSTASH_BASE_URL}/v2/publish/${this.deps.destinationUrl}`
+    // Encode the destination as a single path segment. Sent raw, the embedded
+    // `https://` has slashes a proxy can collapse (`https:/…`), which QStash
+    // rejects with 404; percent-encoding avoids that and QStash decodes it.
+    const url = `${QSTASH_BASE_URL}/v2/publish/${encodeURIComponent(
+      this.deps.destinationUrl,
+    )}`
     try {
       const response = await this.deps.fetchFn(url, {
         method: 'POST',
