@@ -288,7 +288,17 @@ export function makeHandleInboundWhatsApp({
         await messaging.sendText(message.from, copy.assistantQuota)
         return { action: 'quota' }
       }
-      throw error
+      // A metering-backend failure (e.g. the quota store returning an error the
+      // meter does not expect) must not escape to the webhook, which only logs
+      // and never replies — that is exactly what leaves the user in silence.
+      // Nothing was charged, so surface it as a normal assistant error and let
+      // them retry.
+      logger.error('whatsapp_metering_failed', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      await messaging.sendText(message.from, copy.assistantError)
+      return { action: 'error' }
     }
 
     let reply
@@ -331,10 +341,20 @@ export function makeHandleInboundWhatsApp({
     // body is rejected by the channel and the user gets nothing. Fall back to a
     // short acknowledgement so a completed action is always confirmed.
     const replyText = reply.text.trim() ? reply.text : copy.assistantDone
-    await conversations.append(userId, [
-      { role: 'user', content: text },
-      { role: 'assistant', content: replyText },
-    ])
+    // Persisting history must never cost the user their reply: if the store
+    // fails, log it and still deliver the answer instead of letting the error
+    // bubble to the webhook, which would drop the message silently.
+    try {
+      await conversations.append(userId, [
+        { role: 'user', content: text },
+        { role: 'assistant', content: replyText },
+      ])
+    } catch (error) {
+      logger.error('whatsapp_history_append_failed', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
     await messaging.sendText(message.from, replyText)
     return { action: 'reply' }
   }

@@ -90,7 +90,7 @@ class UnconfiguredUsageMeter implements UsageMeter {
   }
 }
 
-type PipelineResult = { result: unknown }[]
+type PipelineResult = { result?: unknown; error?: string }[]
 
 class RedisUsageMeter implements UsageMeter {
   constructor(
@@ -115,7 +115,15 @@ class RedisUsageMeter implements UsageMeter {
       throw new Error(`Upstash pipeline failed with status ${response.status}`)
     }
     const body = (await response.json()) as PipelineResult
-    return body.map(entry => entry.result)
+    // Upstash returns one entry per command, each either { result } or { error }.
+    // Surface a command-level error here instead of mapping it to `undefined`,
+    // which would flow on and blow up later with a cryptic "not iterable".
+    return body.map((entry, index) => {
+      if (entry.error) {
+        throw new Error(`Upstash command ${index} failed: ${entry.error}`)
+      }
+      return entry.result
+    })
   }
 
   private sumCredits(members: unknown): number {
@@ -185,6 +193,14 @@ class RedisUsageMeter implements UsageMeter {
         Math.ceil(WEEK_MS / 1000),
       ],
     ])
+    // The Lua script returns a 4-tuple; anything else means the EVAL misbehaved.
+    // Guard the shape so a malformed reply fails with a clear message rather than
+    // a cryptic "not iterable" from destructuring a non-array.
+    if (!Array.isArray(outcome)) {
+      throw new Error(
+        `Upstash EVAL returned an unexpected result: ${JSON.stringify(outcome)}`,
+      )
+    }
     const [ok, window, fiveUsed, weeklyUsed] = outcome as [
       number,
       string,

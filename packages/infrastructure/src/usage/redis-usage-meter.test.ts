@@ -149,6 +149,27 @@ describe('createUsageMeter (redis)', () => {
     expect(writes[3]).toEqual(['EXPIRE', 'lifedeck/usage/week/user-1', 604800])
   })
 
+  it('surfaces a command-level error from consume instead of "not iterable"', async () => {
+    // Upstash replies 200 but the EVAL entry carries an error. Previously the
+    // meter mapped it to `undefined` and destructured it, throwing a cryptic
+    // "not iterable" that escaped and left WhatsApp users with no reply.
+    stubFetch([[{ error: 'ERR Error running script' }]])
+    const meter = await loadMeter()
+
+    await expect(
+      meter.consume('user-1', 2, { fiveHour: 100, weekly: 500 }),
+    ).rejects.toThrow('Upstash command 0 failed: ERR Error running script')
+  })
+
+  it('rejects a malformed EVAL result shape from consume', async () => {
+    stubFetch([[{ result: 'not-a-tuple' }]])
+    const meter = await loadMeter()
+
+    await expect(
+      meter.consume('user-1', 2, { fiveHour: 100, weekly: 500 }),
+    ).rejects.toThrow('Upstash EVAL returned an unexpected result')
+  })
+
   it('throws when the upstash pipeline responds with an error status', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 500 })
     vi.stubGlobal('fetch', fetchMock)

@@ -223,6 +223,46 @@ describe('handleInboundWhatsApp', () => {
     expect(ctx.run).not.toHaveBeenCalled()
   })
 
+  it('replies with an error instead of going silent when metering fails', async () => {
+    const ctx = setup({
+      consumeCredits: async () => {
+        // A backend hiccup that is not a quota rejection — historically this
+        // escaped to the webhook and the user got no reply at all.
+        throw new TypeError('undefined is not iterable')
+      },
+    })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-1',
+    })
+
+    expect(result).toEqual({ action: 'error' })
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, ASSISTANT_ERROR_MESSAGE)
+    // Nothing was charged, so there is nothing to refund and no model call.
+    expect(ctx.refund).not.toHaveBeenCalled()
+    expect(ctx.run).not.toHaveBeenCalled()
+  })
+
+  it('still delivers the reply when persisting history fails', async () => {
+    const ctx = setup({ agentRun: async () => ({ text: 'Added milk.' }) })
+    await verified(ctx.channelIdentities)
+    vi.spyOn(ctx.conversations, 'append').mockRejectedValueOnce(
+      new Error('redis down'),
+    )
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'buy milk',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Added milk.')
+  })
+
   it('replies with an error message when the agent throws', async () => {
     const ctx = setup({
       agentRun: async () => {
