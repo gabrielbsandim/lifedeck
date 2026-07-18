@@ -70,7 +70,10 @@ export interface AssistantTools {
   getContext(userId: string): Promise<AssistantContext>
   getToday(userId: string): Promise<{ tasks: AssistantTaskSummary[] }>
   getLists(userId: string): Promise<{ lists: AssistantListSummary[] }>
-  getAgenda(userId: string): Promise<{ events: AssistantEventSummary[] }>
+  getAgenda(
+    userId: string,
+    range?: { from?: string; to?: string },
+  ): Promise<{ events: AssistantEventSummary[] }>
 
   // Tasks
   addTask(

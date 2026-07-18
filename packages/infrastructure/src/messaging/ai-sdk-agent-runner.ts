@@ -16,7 +16,9 @@ const SYSTEM_PROMPT = `You are the Lifedeck assistant, helping the user organize
 
 You have tools to read and manage the user's tasks, lists, subtasks, and calendar events. Prefer a tool over guessing. Confirm what you did in one short sentence. When the user asks to schedule something, infer sensible start and end times and state them back.
 
-To act on an existing task or event (complete, rename, delete, reschedule, add a subtask), first call a read tool (getToday, getAgenda, getLists) to find its id, then pass that id to the mutation tool. Never invent ids. If several items match, ask a short clarifying question instead of guessing.
+To act on an existing task or event (complete, rename, delete, reschedule, add a subtask), first call a read tool (getToday, getAgenda, getLists) to find its id, then pass that id to the mutation tool. Never invent ids. If several items match, ask a short clarifying question instead of guessing. When the user refers to a date beyond the next 30 days, pass from/to to the agenda read so you can find that event before giving up.
+
+Never expose internal details to the user: do not mention tool names (such as getAgenda), ids, or implementation limits. Speak naturally about what you can see and do. If you cannot find something, say so plainly and offer to check a specific date or period.
 
 Time handling: always work in the user's local time zone, given below with the current local date and time. Resolve relative dates like "today", "tomorrow", or "this Saturday" against that current date. When you set event times, output ISO 8601 that includes the user's UTC offset (for example 2026-07-18T11:30:00-03:00); never send a bare UTC "Z" time for a local wall-clock time. Agenda times you read are already in the user's local time.
 
@@ -54,9 +56,19 @@ export class AiSdkAgentRunner implements AgentRunner {
       }),
       getAgenda: tool({
         description:
-          "List the user's calendar events for the next seven days with their ids.",
-        inputSchema: z.object({}),
-        execute: async () => this.tools.getAgenda(userId),
+          "List the user's calendar events with their ids. Defaults to the next 30 days; pass from/to (ISO 8601 with offset) to look at a specific period, e.g. a date weeks away.",
+        inputSchema: z.object({
+          from: z
+            .string()
+            .optional()
+            .describe('Range start, ISO 8601 with offset. Omit for now.'),
+          to: z
+            .string()
+            .optional()
+            .describe('Range end, ISO 8601 with offset. Omit for 30 days out.'),
+        }),
+        execute: async ({ from, to }) =>
+          this.tools.getAgenda(userId, { from, to }),
       }),
       addTask: tool({
         description:

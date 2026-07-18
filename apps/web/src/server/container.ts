@@ -628,14 +628,26 @@ function build(
         lists: page.items.map(list => ({ id: list.id, title: list.title })),
       }
     },
-    async getAgenda(userId) {
+    async getAgenda(userId, range) {
       const user = await users.findById(asEntityId(userId))
       const timezone = user?.timezone ?? DEFAULT_TIME_ZONE
       const now = clock.now()
-      const to = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      const DAY_MS = 24 * 60 * 60 * 1000
+      const parseOr = (value: string | undefined, fallback: Date): Date => {
+        if (!value) return fallback
+        const parsed = new Date(value)
+        return Number.isNaN(parsed.getTime()) ? fallback : parsed
+      }
+      const from = parseOr(range?.from, now)
+      // Default to a 30-day look-ahead; cap the window at 180 days so a wide
+      // request can't pull an unbounded number of recurring occurrences.
+      const to = parseOr(range?.to, new Date(from.getTime() + 30 * DAY_MS))
+      const cappedTo = new Date(
+        Math.min(to.getTime(), from.getTime() + 180 * DAY_MS),
+      )
       const events = await listCalendarEvents(userId, {
-        from: now.toISOString(),
-        to: to.toISOString(),
+        from: from.toISOString(),
+        to: cappedTo.toISOString(),
       })
       return {
         // Times go out in the user's zone (with offset) so the model reads and
