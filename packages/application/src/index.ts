@@ -289,11 +289,13 @@ export type {
 } from '@/ports/conversation-store'
 export type {
   AssistantTools,
+  AssistantContext,
   AssistantTaskSummary,
   AssistantEventSummary,
   AssistantListSummary,
   AssistantEventInput,
   AssistantEventUpdate,
+  AssistantOccurrenceReschedule,
 } from '@/ports/assistant-tools'
 export type { MediaPayload, MessageTemplate } from '@/ports/messaging-channel'
 export type { Transcriber } from '@/ports/transcriber'

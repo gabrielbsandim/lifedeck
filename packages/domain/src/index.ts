@@ -79,6 +79,9 @@ export {
   civilDate,
   civilHour,
   startOfCivilDay,
+  zoneOffset,
+  zonedIso,
+  zonedWeekday,
 } from '@/value-objects/time-zone'
 export { Task, type TaskProps } from '@/entities/task'
 export {

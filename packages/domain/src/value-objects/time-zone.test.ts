@@ -4,6 +4,9 @@ import {
   civilHour,
   isTimeZone,
   startOfCivilDay,
+  zoneOffset,
+  zonedIso,
+  zonedWeekday,
 } from '@/value-objects/time-zone'
 
 describe('time zone', () => {
@@ -43,5 +46,39 @@ describe('time zone', () => {
     expect(startOfCivilDay(instant, 'America/Sao_Paulo').toISOString()).toBe(
       '2026-06-22T00:00:00.000Z',
     )
+  })
+
+  it('formats the zone UTC offset', () => {
+    const instant = new Date('2026-07-18T14:30:00.000Z')
+    expect(zoneOffset(instant, 'America/Sao_Paulo')).toBe('-03:00')
+    expect(zoneOffset(instant, 'UTC')).toBe('+00:00')
+    expect(zoneOffset(instant, 'Asia/Kolkata')).toBe('+05:30')
+    expect(zoneOffset(instant, 'Nowhere/Land')).toBe('+00:00')
+  })
+
+  it('formats an instant as offset-aware local ISO 8601', () => {
+    const instant = new Date('2026-07-18T14:30:00.000Z')
+    // 14:30 UTC is 11:30 in Sao Paulo (UTC-3), preserving the wall clock.
+    expect(zonedIso(instant, 'America/Sao_Paulo')).toBe(
+      '2026-07-18T11:30:00-03:00',
+    )
+    expect(zonedIso(instant, 'UTC')).toBe('2026-07-18T14:30:00+00:00')
+    // Round-trips back to the same instant.
+    expect(new Date(zonedIso(instant, 'America/Sao_Paulo')).getTime()).toBe(
+      instant.getTime(),
+    )
+  })
+
+  it('names the weekday in the target zone', () => {
+    // 2026-07-19T01:00Z is still Saturday the 18th in Sao Paulo (UTC-3).
+    const instant = new Date('2026-07-19T01:00:00.000Z')
+    expect(zonedWeekday(instant, 'America/Sao_Paulo')).toBe('Saturday')
+    expect(zonedWeekday(instant, 'UTC')).toBe('Sunday')
+  })
+
+  it('falls back to UTC for invalid zones when formatting', () => {
+    const instant = new Date('2026-07-18T14:30:00.000Z')
+    expect(zonedIso(instant, 'Nowhere/Land')).toBe('2026-07-18T14:30:00+00:00')
+    expect(zonedWeekday(instant, 'Nowhere/Land')).toBe('Saturday')
   })
 })

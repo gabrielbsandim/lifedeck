@@ -1,4 +1,10 @@
-import { asEntityId, civilDate, DEFAULT_TIME_ZONE } from '@lifedeck/domain'
+import {
+  asEntityId,
+  civilDate,
+  DEFAULT_TIME_ZONE,
+  zonedIso,
+  zonedWeekday,
+} from '@lifedeck/domain'
 import {
   makeAuthenticateApiKey,
   makeBringTaskToToday,
@@ -584,7 +590,22 @@ function build(
     ids,
     clock,
   })
+  // The assistant emits offset-aware local ISO (e.g. ...-03:00); the calendar
+  // use cases validate strict UTC (`z.string().datetime()`). Normalize to the
+  // same instant in UTC before handing off.
+  const toUtcIso = (value: string): string => new Date(value).toISOString()
+
   const assistantTools: AssistantTools = {
+    async getContext(userId) {
+      const user = await users.findById(asEntityId(userId))
+      const timezone = user?.timezone ?? DEFAULT_TIME_ZONE
+      const now = clock.now()
+      return {
+        timezone,
+        nowIso: zonedIso(now, timezone),
+        weekday: zonedWeekday(now, timezone),
+      }
+    },
     async getToday(userId) {
       const user = await users.findById(asEntityId(userId))
       const date = civilDate(clock.now(), user?.timezone ?? DEFAULT_TIME_ZONE)
@@ -608,6 +629,8 @@ function build(
       }
     },
     async getAgenda(userId) {
+      const user = await users.findById(asEntityId(userId))
+      const timezone = user?.timezone ?? DEFAULT_TIME_ZONE
       const now = clock.now()
       const to = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
       const events = await listCalendarEvents(userId, {
@@ -615,11 +638,16 @@ function build(
         to: to.toISOString(),
       })
       return {
+        // Times go out in the user's zone (with offset) so the model reads and
+        // echoes local wall-clock times, not UTC. seriesId/occurrenceStart let
+        // it target one occurrence of a recurring series.
         events: events.map(event => ({
           id: event.id,
           title: event.title,
-          startsAt: event.startsAt,
-          endsAt: event.endsAt,
+          startsAt: zonedIso(new Date(event.startsAt), timezone),
+          endsAt: zonedIso(new Date(event.endsAt), timezone),
+          seriesId: event.seriesId,
+          occurrenceStart: event.occurrenceStart,
         })),
       }
     },
@@ -669,8 +697,8 @@ function build(
     async addEvent(userId, input) {
       const event = await createCalendarEvent(userId, {
         title: input.title,
-        startsAt: input.startsAt,
-        endsAt: input.endsAt,
+        startsAt: toUtcIso(input.startsAt),
+        endsAt: toUtcIso(input.endsAt),
         description: input.description ?? null,
         location: input.location ?? null,
         allDay: input.allDay,
@@ -679,7 +707,20 @@ function build(
       return { id: event.id, added: true }
     },
     async updateEvent(userId, eventId, input) {
-      await updateCalendarEvent(userId, eventId, input)
+      await updateCalendarEvent(userId, eventId, {
+        ...input,
+        ...(input.startsAt ? { startsAt: toUtcIso(input.startsAt) } : {}),
+        ...(input.endsAt ? { endsAt: toUtcIso(input.endsAt) } : {}),
+      })
+      return { ok: true }
+    },
+    async rescheduleOccurrence(userId, input) {
+      await updateCalendarOccurrence(userId, input.seriesId, {
+        occurrenceStart: toUtcIso(input.occurrenceStart),
+        title: input.title,
+        startsAt: toUtcIso(input.startsAt),
+        endsAt: toUtcIso(input.endsAt),
+      })
       return { ok: true }
     },
     async deleteEvent(userId, eventId) {

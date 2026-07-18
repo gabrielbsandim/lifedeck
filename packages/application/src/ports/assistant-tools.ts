@@ -9,11 +9,36 @@ export type AssistantEventSummary = {
   title: string
   startsAt: string
   endsAt: string
+  // For a single occurrence of a recurring series: the series' real id and this
+  // occurrence's original start (an opaque UTC token to echo back). Both null on
+  // a plain, non-recurring event. Reschedule one occurrence with these;
+  // edit the whole series with updateEvent on the seriesId.
+  seriesId: string | null
+  occurrenceStart: string | null
+}
+
+export type AssistantOccurrenceReschedule = {
+  seriesId: string
+  occurrenceStart: string
+  title: string
+  startsAt: string
+  endsAt: string
 }
 
 export type AssistantListSummary = {
   id: string
   title: string
+}
+
+// Grounds the assistant in the user's local time so it resolves "tomorrow" and
+// sets clock times in the right zone. Without it the model has no anchor and
+// guesses the date and drifts times by the UTC offset.
+export type AssistantContext = {
+  timezone: string
+  /** Current instant as ISO 8601 in the user's zone, e.g. 2026-07-18T00:36:00-03:00. */
+  nowIso: string
+  /** Weekday of the current instant in the user's zone, e.g. Saturday. */
+  weekday: string
 }
 
 export type AssistantEventInput = {
@@ -42,6 +67,7 @@ export type AssistantEventUpdate = {
 // the REST API uses, so tenant/ownership checks are enforced identically.
 export interface AssistantTools {
   // Reads
+  getContext(userId: string): Promise<AssistantContext>
   getToday(userId: string): Promise<{ tasks: AssistantTaskSummary[] }>
   getLists(userId: string): Promise<{ lists: AssistantListSummary[] }>
   getAgenda(userId: string): Promise<{ events: AssistantEventSummary[] }>
@@ -81,6 +107,10 @@ export interface AssistantTools {
     userId: string,
     eventId: string,
     input: AssistantEventUpdate,
+  ): Promise<{ ok: boolean }>
+  rescheduleOccurrence(
+    userId: string,
+    input: AssistantOccurrenceReschedule,
   ): Promise<{ ok: boolean }>
   deleteEvent(userId: string, eventId: string): Promise<{ ok: boolean }>
 }
