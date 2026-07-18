@@ -1,6 +1,7 @@
 import { getContainer } from '@/server/container'
 import { fail, handleError, ok } from '@/server/api/respond'
 import { isAuthorizedCron } from '@/server/api/cron-guard'
+import { warmDb } from '@/server/db/warm-db'
 
 // Fanning out a large batch of due jobs must not be cut off mid-run.
 export const maxDuration = 300
@@ -10,6 +11,9 @@ export async function POST(request: Request) {
     if (!isAuthorizedCron(request)) {
       return fail('UNAUTHORIZED', 'Invalid cron credentials.', 401)
     }
+    // Resume a scaled-to-zero Neon compute before fanning out, so the first
+    // query does not fail on the cold start.
+    await warmDb()
     const result = await getContainer().runScheduledFanOut()
     return ok(result)
   } catch (error) {
