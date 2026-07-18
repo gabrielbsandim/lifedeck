@@ -1,4 +1,5 @@
 export type { Clock } from '@/ports/clock'
+export type { Logger } from '@/ports/logger'
 export type { UnitOfWork } from '@/ports/unit-of-work'
 export type { IdGenerator } from '@/ports/id-generator'
 export type { TaskRepository } from '@/ports/task-repository'

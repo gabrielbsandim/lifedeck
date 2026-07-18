@@ -194,6 +194,7 @@ describe('V2 whatsapp assistant happy path', () => {
       transcriber: { transcribe: vi.fn(), isAvailable: () => true },
       visionReader: { describe: vi.fn(), isAvailable: () => true },
       clock,
+      logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
     })
 
     const pairing = await startPairing(USER_ID, PHONE)

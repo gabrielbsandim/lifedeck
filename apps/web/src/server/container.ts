@@ -965,6 +965,11 @@ function build(
       transcriber,
       visionReader,
       clock,
+      logger: {
+        error: (message, meta) => log('error', message, meta),
+        warn: (message, meta) => log('warn', message, meta),
+        info: (message, meta) => log('info', message, meta),
+      },
     }),
     entitlements: entitlementService,
   }

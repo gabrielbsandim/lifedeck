@@ -82,6 +82,7 @@ function setup(options: Options = {}) {
     transcriber: { transcribe, isAvailable: () => mediaAvailable },
     visionReader: { describe, isAvailable: () => mediaAvailable },
     clock: new FixedClock(NOW),
+    logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
   })
   return {
     channelIdentities,

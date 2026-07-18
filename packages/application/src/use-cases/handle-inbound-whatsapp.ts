@@ -10,6 +10,7 @@ import {
   QuotaExceededError,
 } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
+import type { Logger } from '@/ports/logger'
 import type { AgentRunner } from '@/ports/agent-runner'
 import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
 import type { ConversationStore } from '@/ports/conversation-store'
@@ -163,6 +164,7 @@ type Dependencies = {
   transcriber: Transcriber
   visionReader: VisionReader
   clock: Clock
+  logger: Logger
 }
 
 export function makeHandleInboundWhatsApp({
@@ -177,6 +179,7 @@ export function makeHandleInboundWhatsApp({
   transcriber,
   visionReader,
   clock,
+  logger,
 }: Dependencies) {
   return async function handleInboundWhatsApp(
     message: InboundWhatsappMessage,
@@ -282,6 +285,12 @@ export function makeHandleInboundWhatsApp({
         await messaging.sendText(message.from, copy.assistantMediaUnavailable)
         return { action: 'unconfigured' }
       }
+      // Surface the failure: without this the user sees a generic apology and
+      // the cause is invisible in logs.
+      logger.error('whatsapp_assistant_failed', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      })
       await messaging.sendText(message.from, copy.assistantError)
       return { action: 'error' }
     }
