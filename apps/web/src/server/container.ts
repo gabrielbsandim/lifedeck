@@ -328,6 +328,10 @@ type Services = {
   visionReader: VisionReader
 }
 
+// Minutes-before-start reminder applied to an event the assistant creates when
+// the user did not ask for a specific reminder.
+const ASSISTANT_DEFAULT_REMINDER_MINUTES = 30
+
 function build(
   {
     tasks,
@@ -471,6 +475,11 @@ function build(
   const dispatchDueJobs = makeDispatchDueJobs({
     scheduledJobs,
     clock,
+    logger: {
+      error: (message, meta) => log('error', message, meta),
+      warn: (message, meta) => log('warn', message, meta),
+      info: (message, meta) => log('info', message, meta),
+    },
     handlers: {
       [DAILY_DIGEST_JOB]: async payload => {
         await sendDailyDigest(String(payload.userId))
@@ -718,7 +727,12 @@ function build(
         description: input.description ?? null,
         location: input.location ?? null,
         allDay: input.allDay,
-        reminders: input.reminders,
+        // Default a reminder when the assistant did not set one, so an event
+        // created over WhatsApp actually schedules a heads-up instead of
+        // silently relying on the calendar provider's own default reminders.
+        reminders: input.reminders?.length
+          ? input.reminders
+          : [ASSISTANT_DEFAULT_REMINDER_MINUTES],
       })
       return { id: event.id, added: true }
     },

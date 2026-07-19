@@ -1,4 +1,5 @@
 import type { Clock } from '@/ports/clock'
+import type { Logger } from '@/ports/logger'
 import type { ScheduledJobRepository } from '@/ports/scheduled-job-repository'
 
 export type JobHandler = (payload: Record<string, unknown>) => Promise<void>
@@ -13,6 +14,7 @@ type Dependencies = {
   scheduledJobs: ScheduledJobRepository
   handlers: Record<string, JobHandler>
   clock: Clock
+  logger?: Logger
   maxAttempts?: number
   backoff?: (attempt: number) => number
   leaseMs?: number
@@ -29,6 +31,7 @@ export function makeDispatchDueJobs({
   scheduledJobs,
   handlers,
   clock,
+  logger,
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
   backoff = defaultBackoff,
   leaseMs = DEFAULT_LEASE_MS,
@@ -48,6 +51,11 @@ export function makeDispatchDueJobs({
       if (!handler) {
         job.markFailed(`No handler for job type "${job.type}".`, null)
         await scheduledJobs.save(job)
+        // An unhandled type never recovers on its own, so surface it loudly.
+        logger?.error('job_dispatch_no_handler', {
+          jobId: job.id as string,
+          type: job.type,
+        })
         failed += 1
         continue
       }
@@ -66,6 +74,24 @@ export function makeDispatchDueJobs({
             : null
         job.markFailed(message, retryAt)
         await scheduledJobs.save(job)
+        // Job failures are otherwise only recorded on the job row, invisible in
+        // logs. Surface them so a silently-failing push/reminder is diagnosable:
+        // 'error' once retries are exhausted (the work is lost), 'warn' while it
+        // will still retry.
+        const meta = {
+          jobId: job.id as string,
+          type: job.type,
+          attempts: nextAttempt,
+          error: message,
+        }
+        if (retryAt) {
+          logger?.warn('job_dispatch_retry', {
+            ...meta,
+            retryAt: retryAt.toISOString(),
+          })
+        } else {
+          logger?.error('job_dispatch_exhausted', meta)
+        }
         failed += 1
       }
     }

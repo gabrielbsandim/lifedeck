@@ -122,6 +122,55 @@ describe('dispatchDueJobs', () => {
     expect(doomed.attempts).toBe(1)
   })
 
+  it('logs a warning while a failed job will still retry', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
+    const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn() }
+    const dispatch = makeDispatchDueJobs({
+      scheduledJobs: repo,
+      handlers: {
+        ping: async () => {
+          throw new Error('google patch 503')
+        },
+      },
+      clock,
+      logger,
+      backoff: () => 60_000,
+    })
+
+    await dispatch()
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      'job_dispatch_retry',
+      expect.objectContaining({ type: 'ping', error: 'google patch 503' }),
+    )
+    expect(logger.error).not.toHaveBeenCalled()
+  })
+
+  it('logs an error when a job exhausts its retries', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
+    const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn() }
+    const dispatch = makeDispatchDueJobs({
+      scheduledJobs: repo,
+      handlers: {
+        ping: async () => {
+          throw new Error('boom')
+        },
+      },
+      clock,
+      logger,
+      maxAttempts: 1,
+    })
+
+    await dispatch()
+
+    expect(logger.error).toHaveBeenCalledWith(
+      'job_dispatch_exhausted',
+      expect.objectContaining({ type: 'ping', error: 'boom' }),
+    )
+  })
+
   it('leases claimed jobs so a second claim in the window skips them', async () => {
     const repo = new InMemoryScheduledJobRepository()
     await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
