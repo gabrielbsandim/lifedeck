@@ -191,9 +191,9 @@ type Dependencies = {
   visionReader: VisionReader
   clock: Clock
   logger: Logger
-  // Optional: opens the WhatsApp 24h window so reminders can be sent as plain
-  // text (no template) while the user is in an active conversation.
-  whatsappSession?: WhatsappSessionWindow
+  // Opens the WhatsApp 24h window so reminders can later be sent as plain text
+  // (no template) while the user is in an active conversation.
+  whatsappSession: WhatsappSessionWindow
 }
 
 export function makeHandleInboundWhatsApp({
@@ -222,7 +222,7 @@ export function makeHandleInboundWhatsApp({
       // normal message. Best-effort: a session-store hiccup must not break the
       // reply the user is waiting for.
       try {
-        await whatsappSession?.markActive(address)
+        await whatsappSession.markActive(address)
       } catch {
         // Ignore; the window is a delivery optimization, not core to the reply.
       }

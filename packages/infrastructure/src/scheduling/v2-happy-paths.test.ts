@@ -19,6 +19,7 @@ import {
   makeDispatchDueJobs,
   makeHandleInboundWhatsApp,
   makeStartWhatsappPairing,
+  NoopWhatsappSessionWindow,
   type AgentRunner,
 } from '@lifedeck/application'
 import { OutboxJobQueue } from '@/scheduling/outbox-job-queue'
@@ -195,6 +196,7 @@ describe('V2 whatsapp assistant happy path', () => {
       visionReader: { describe: vi.fn(), isAvailable: () => true },
       clock,
       logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+      whatsappSession: new NoopWhatsappSessionWindow(),
     })
 
     const pairing = await startPairing(USER_ID, PHONE)

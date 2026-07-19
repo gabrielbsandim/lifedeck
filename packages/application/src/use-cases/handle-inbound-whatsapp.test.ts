@@ -201,6 +201,21 @@ describe('handleInboundWhatsApp', () => {
     expect(ctx.markActive).toHaveBeenCalledWith('+5511999990000')
   })
 
+  it('still replies when opening the whatsapp window fails', async () => {
+    const ctx = setup({ agentRun: async () => ({ text: 'Added milk.' }) })
+    await verified(ctx.channelIdentities)
+    ctx.markActive.mockRejectedValueOnce(new Error('session store down'))
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'buy milk',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Added milk.')
+  })
+
   it('denies a verified number without the assistant entitlement', async () => {
     const ctx = setup({ entitled: false })
     await verified(ctx.channelIdentities)
