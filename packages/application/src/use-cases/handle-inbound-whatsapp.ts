@@ -149,6 +149,11 @@ const OPERATION: Record<InboundWhatsappMessage['kind'], AiOperation> = {
 // messages stay on Flash so a quick "ok" never burns a Pro-weight credit.
 const PRO_WORD_THRESHOLD = 8
 
+// Stored as the user's turn when a voice note is understood directly (no
+// transcription to store). The assistant's own reply carries the acted-on
+// details, so a follow-up still has the context it needs.
+const VOICE_NOTE_HISTORY_TEXT = '[voice message]'
+
 // Pull the 6-digit pairing code out of an inbound message. The app sends a
 // friendly sentence ("...My code: 123456") instead of a bare code, so the user
 // understands what they are sending; we still pair as long as the code is in
@@ -315,16 +320,64 @@ export function makeHandleInboundWhatsApp({
     }
 
     let reply
-    let text
+    let userTurn = ''
     try {
-      text = await toText(message)
       const history = await conversations.load(userId)
-      reply = await agent.run({
-        userId,
-        message: text,
-        history,
-        model: pro ? 'pro' : 'flash',
-      })
+      const modelTier = pro ? 'pro' : 'flash'
+      if (message.kind === 'audio') {
+        const media = await messaging.fetchMedia(message.mediaId)
+        try {
+          // Understand the voice note directly (multimodally), with the full
+          // task/calendar context in the system prompt, instead of acting on a
+          // lossy transcription that mishears domain words like "checkout".
+          reply = await agent.run({
+            userId,
+            audio: media,
+            history,
+            model: modelTier,
+          })
+          userTurn = VOICE_NOTE_HISTORY_TEXT
+        } catch (directError) {
+          // A rate limit would only recur on a second call, so let it surface
+          // rather than doubling the load with a fallback.
+          if (isRateLimitError(directError)) {
+            throw directError
+          }
+          // Otherwise fall back to transcribing the same audio and running it as
+          // text, so a voice note still lands if direct understanding fails.
+          logger.warn('whatsapp_audio_direct_failed', {
+            userId,
+            error:
+              directError instanceof Error
+                ? directError.message
+                : String(directError),
+          })
+          userTurn = await transcriber.transcribe(media)
+          reply = await agent.run({
+            userId,
+            message: userTurn,
+            history,
+            model: modelTier,
+          })
+        }
+      } else if (message.kind === 'image') {
+        const media = await messaging.fetchMedia(message.mediaId)
+        userTurn = await visionReader.describe(media)
+        reply = await agent.run({
+          userId,
+          message: userTurn,
+          history,
+          model: modelTier,
+        })
+      } else {
+        userTurn = message.text
+        reply = await agent.run({
+          userId,
+          message: userTurn,
+          history,
+          model: modelTier,
+        })
+      }
     } catch (error) {
       // The credit was metered before the model call; the call failed, so give
       // it back rather than charge for a reply the user never got.
@@ -359,7 +412,7 @@ export function makeHandleInboundWhatsApp({
     // bubble to the webhook, which would drop the message silently.
     try {
       await conversations.append(userId, [
-        { role: 'user', content: text },
+        { role: 'user', content: userTurn },
         { role: 'assistant', content: replyText },
       ])
     } catch (error) {
@@ -370,16 +423,5 @@ export function makeHandleInboundWhatsApp({
     }
     await messaging.sendText(message.from, replyText)
     return { action: 'reply' }
-  }
-
-  async function toText(message: InboundWhatsappMessage): Promise<string> {
-    if (message.kind === 'text') {
-      return message.text
-    }
-    const media = await messaging.fetchMedia(message.mediaId)
-    if (message.kind === 'audio') {
-      return transcriber.transcribe(media)
-    }
-    return visionReader.describe(media)
   }
 }

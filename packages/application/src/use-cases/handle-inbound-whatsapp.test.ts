@@ -503,8 +503,8 @@ describe('handleInboundWhatsApp', () => {
     )
   })
 
-  it('transcribes an audio message and meters it as audio', async () => {
-    const ctx = setup()
+  it('understands an audio message directly and meters it as audio', async () => {
+    const ctx = setup({ agentRun: async () => ({ text: 'Reminder set.' }) })
     await verified(ctx.channelIdentities)
 
     const result = await ctx.handleInboundWhatsApp({
@@ -515,14 +515,76 @@ describe('handleInboundWhatsApp', () => {
 
     expect(result).toEqual({ action: 'reply' })
     expect(ctx.fetchMedia).toHaveBeenCalledWith('media-1')
-    expect(ctx.transcribe).toHaveBeenCalled()
     expect(ctx.consume).toHaveBeenCalledWith(ID.user, 'audioTranscription')
-    expect(ctx.run).toHaveBeenCalledWith({
-      userId: ID.user,
-      message: 'remind me to call mom',
-      history: [],
-      model: 'flash',
+    // The audio goes straight to the agent; no separate transcription step.
+    expect(ctx.transcribe).not.toHaveBeenCalled()
+    expect(ctx.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: ID.user,
+        audio: { data: expect.anything(), mimeType: 'audio/ogg' },
+        history: [],
+        model: 'flash',
+      }),
+    )
+  })
+
+  it('falls back to transcription when direct audio understanding fails', async () => {
+    const ctx = setup({ agentRun: async () => ({ text: 'Reminder set.' }) })
+    await verified(ctx.channelIdentities)
+    // The first (direct-audio) run fails with a non-rate-limit error; the retry
+    // after transcription succeeds via the default agentRun.
+    ctx.run.mockRejectedValueOnce(new Error('audio not understood'))
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-1',
     })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.transcribe).toHaveBeenCalled()
+    expect(ctx.run).toHaveBeenCalledTimes(2)
+    expect(ctx.run).toHaveBeenLastCalledWith(
+      expect.objectContaining({ message: 'remind me to call mom' }),
+    )
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Reminder set.')
+  })
+
+  it('falls back even when the direct-audio failure is not an Error object', async () => {
+    const ctx = setup({ agentRun: async () => ({ text: 'Reminder set.' }) })
+    await verified(ctx.channelIdentities)
+    ctx.run.mockRejectedValueOnce('opaque failure')
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-1',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.transcribe).toHaveBeenCalled()
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Reminder set.')
+  })
+
+  it('surfaces a rate limit on direct audio without a transcription fallback', async () => {
+    const ctx = setup()
+    await verified(ctx.channelIdentities)
+    ctx.run.mockRejectedValueOnce(new Error('You exceeded your quota (429)'))
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'audio',
+      mediaId: 'media-1',
+    })
+
+    expect(result).toEqual({ action: 'error' })
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      expect.stringContaining('handling a lot of messages'),
+    )
+    // No fallback transcription on a rate limit; the metered credit is refunded.
+    expect(ctx.transcribe).not.toHaveBeenCalled()
+    expect(ctx.refund).toHaveBeenCalled()
   })
 
   it('reads an image message and meters it as vision', async () => {
@@ -585,6 +647,9 @@ describe('handleInboundWhatsApp', () => {
   it('replies clearly when media understanding fails at runtime', async () => {
     const ctx = setup()
     await verified(ctx.channelIdentities)
+    // Direct audio fails (non-rate-limit), then the transcription fallback
+    // reports that media understanding is unavailable.
+    ctx.run.mockRejectedValueOnce(new Error('audio not understood'))
     ctx.transcribe.mockRejectedValueOnce(
       new MediaUnderstandingUnavailableError('audio'),
     )
@@ -600,6 +665,5 @@ describe('handleInboundWhatsApp', () => {
       FROM,
       ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
     )
-    expect(ctx.run).not.toHaveBeenCalled()
   })
 })
