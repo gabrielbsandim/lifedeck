@@ -10,7 +10,7 @@ import {
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
 
 const TRANSCRIBE_PROMPT =
-  'Transcribe the attached audio message verbatim. Output only the transcription text, in the original language.'
+  'You are transcribing a short voice message the user sent to a personal assistant that manages their tasks, lists, and calendar. The audio is usually in Brazilian Portuguese and often mixes in everyday English words (for example "checkout", "call", "meeting", "deadline", "reminder", "standup", "review"). Transcribe it verbatim in the language spoken, keeping those words exactly as said — do not translate them or replace them with similar-sounding names. If a short segment is unclear, prefer a common task or calendar word over an unusual proper name. Output only the transcription, with no extra commentary.'
 const VISION_PROMPT =
   'Describe the attached image for an assistant. Extract any text and note anything actionable (dates, amounts, tasks). Be concise.'
 
@@ -56,6 +56,9 @@ export class GeminiTranscriber implements Transcriber {
       model: this.model,
       system: TRANSCRIBE_PROMPT,
       messages: [filePart(audio)],
+      // Deterministic decoding: transcription should faithfully follow the audio,
+      // not creatively guess an unusual name for an unclear word.
+      temperature: 0,
     })
     return text
   }
