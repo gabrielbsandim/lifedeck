@@ -185,6 +185,7 @@ import {
   ScryptPasswordHasher,
   Sha256KeyHasher,
   PlanEntitlementService,
+  OpenMeteoWeatherProvider,
   StubListGenerator,
   SystemClock,
   UuidGenerator,
@@ -613,6 +614,8 @@ function build(
   // same instant in UTC before handing off.
   const toUtcIso = (value: string): string => new Date(value).toISOString()
 
+  const weatherProvider = new OpenMeteoWeatherProvider()
+
   const assistantTools: AssistantTools = {
     async getContext(userId) {
       const user = await users.findById(asEntityId(userId))
@@ -680,6 +683,9 @@ function build(
           occurrenceStart: event.occurrenceStart,
         })),
       }
+    },
+    async getWeather(query) {
+      return weatherProvider.getForecast(query)
     },
     async addTask(userId, input) {
       let listId = input.listId

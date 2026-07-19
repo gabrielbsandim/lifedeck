@@ -109,6 +109,10 @@ creating:
 
 - **Read** (return ids the model threads into mutations): `getToday`, `getLists`,
   `getAgenda`.
+- **Weather** (read-only, no user data): `getWeather` — geocodes a place and
+  returns a daily forecast up to ~16 days ahead via Open-Meteo
+  (`OpenMeteoWeatherProvider`, keyless), so the user can ask "will it rain in
+  Lisbon this weekend?".
 - **Tasks**: `addTask` (defaults to today's list, or a given `listId`),
   `completeTask`, `reopenTask`, `renameTask`, `deleteTask`, `moveTaskToToday`.
 - **Lists / subtasks**: `createList`, `addSubtask`, `completeSubtask`.

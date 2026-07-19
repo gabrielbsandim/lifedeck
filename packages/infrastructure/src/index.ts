@@ -64,6 +64,7 @@ export { VercelBlobStorage } from '@/storage/vercel-blob-storage'
 export { AiSdkListGenerator } from '@/ai/ai-sdk-list-generator'
 export { createGoogleListGenerator } from '@/ai/google-list-generator'
 export { StubListGenerator } from '@/ai/stub-list-generator'
+export { OpenMeteoWeatherProvider } from '@/weather/open-meteo-weather'
 export {
   toDomainEmailVerification,
   toEmailVerificationRecord,

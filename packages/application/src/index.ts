@@ -303,6 +303,13 @@ export type {
   AssistantEventUpdate,
   AssistantOccurrenceReschedule,
 } from '@/ports/assistant-tools'
+export type {
+  WeatherProvider,
+  WeatherQuery,
+  WeatherLookup,
+  WeatherForecast,
+  WeatherDay,
+} from '@/ports/weather-provider'
 export type { MediaPayload, MessageTemplate } from '@/ports/messaging-channel'
 export type { Transcriber } from '@/ports/transcriber'
 export type { VisionReader } from '@/ports/vision-reader'

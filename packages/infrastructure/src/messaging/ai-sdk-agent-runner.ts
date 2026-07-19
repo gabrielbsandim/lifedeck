@@ -18,6 +18,8 @@ You have tools to read and manage the user's tasks, lists, subtasks, and calenda
 
 To act on an existing task or event (complete, rename, delete, reschedule, add a subtask), first call a read tool (getToday, getAgenda, getLists) to find its id, then pass that id to the mutation tool. Never invent ids. If several items match, ask a short clarifying question instead of guessing. When the user refers to a date beyond the next 30 days, pass from/to to the agenda read so you can find that event before giving up.
 
+Weather: you can look up the weather forecast for any place, up to about two weeks ahead, with getWeather. When the user asks about the weather somewhere ("is it going to rain in Lisbon this weekend?", "weather in Rio next week"), call getWeather with the place name and the dates that match, resolved from the current local date and passed as YYYY-MM-DD. Temperatures come back in Celsius; summarize naturally and mention the chance of rain when it is relevant. If the place is not found or the requested day is beyond the forecast horizon, say so plainly. Do not invent weather you did not read from the tool.
+
 Never expose internal details to the user: do not mention tool names (such as getAgenda), ids, or implementation limits. Speak naturally about what you can see and do. If you cannot find something, say so plainly and offer to check a specific date or period.
 
 Time handling: always work in the user's local time zone, given below with the current local date and time. Resolve relative dates like "today", "tomorrow", or "this Saturday" against that current date. When you set event times, output ISO 8601 that includes the user's UTC offset (for example 2026-07-18T11:30:00-03:00); never send a bare UTC "Z" time for a local wall-clock time. Agenda times you read are already in the user's local time.
@@ -69,6 +71,31 @@ export class AiSdkAgentRunner implements AgentRunner {
         }),
         execute: async ({ from, to }) =>
           this.tools.getAgenda(userId, { from, to }),
+      }),
+      getWeather: tool({
+        description:
+          'Look up the weather forecast for a place, up to about 16 days ahead. Use for questions about the weather somewhere ("weather in Lisbon this weekend", "will it rain in Rio next week"). Temperatures are Celsius.',
+        inputSchema: z.object({
+          location: z
+            .string()
+            .min(1)
+            .max(160)
+            .describe('Place name, e.g. "Lisbon" or "Rio de Janeiro".'),
+          from: z
+            .string()
+            .optional()
+            .describe(
+              "First day of interest, YYYY-MM-DD in the place's local dates, resolved from the current date. Omit for the next several days.",
+            ),
+          to: z
+            .string()
+            .optional()
+            .describe(
+              'Last day of interest, YYYY-MM-DD. Omit to match `from`, or for the default window.',
+            ),
+        }),
+        execute: async ({ location, from, to }) =>
+          this.tools.getWeather({ location, from, to }),
       }),
       addTask: tool({
         description:

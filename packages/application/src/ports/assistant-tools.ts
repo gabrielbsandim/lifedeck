@@ -1,3 +1,5 @@
+import type { WeatherLookup, WeatherQuery } from '@/ports/weather-provider'
+
 export type AssistantTaskSummary = {
   id: string
   title: string
@@ -74,6 +76,9 @@ export interface AssistantTools {
     userId: string,
     range?: { from?: string; to?: string },
   ): Promise<{ events: AssistantEventSummary[] }>
+  // Read-only weather lookup for any place, up to the provider's ~16-day
+  // horizon. Not scoped to the user: the place and dates come from the query.
+  getWeather(query: WeatherQuery): Promise<WeatherLookup>
 
   // Tasks
   addTask(
