@@ -153,6 +153,7 @@ export {
   createAgentRunner,
 } from '@/messaging/ai-sdk-agent-runner'
 export { createConversationStore } from '@/messaging/redis-conversation-store'
+export { createWhatsappSessionWindow } from '@/messaging/redis-whatsapp-session'
 export {
   GeminiTranscriber,
   GeminiVisionReader,

@@ -1,4 +1,4 @@
-import { Notification, asEntityId } from '@lifedeck/domain'
+import { Notification, asEntityId, toMessageLanguage } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
@@ -6,10 +6,12 @@ import type { ChannelIdentityRepository } from '@/ports/channel-identity-reposit
 import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import { formatEventTime } from '@/shared/format-event-time'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
+import { whatsappReminderText } from '@/shared/whatsapp-reminder-text'
 import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { JobQueue } from '@/ports/job-queue'
+import type { WhatsappSessionWindow } from '@/ports/whatsapp-session'
 import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
 export type ReminderTemplate = {
@@ -28,6 +30,7 @@ type Dependencies = {
   ids: IdGenerator
   clock: Clock
   reminderTemplate?: ReminderTemplate
+  whatsappSession?: WhatsappSessionWindow
 }
 
 export type ReminderResult = {
@@ -46,6 +49,7 @@ export function makeDeliverReminder({
   ids,
   clock,
   reminderTemplate,
+  whatsappSession,
 }: Dependencies) {
   return async function deliverReminder(
     eventId: string,
@@ -122,16 +126,19 @@ export function makeDeliverReminder({
       }
     }
 
-    // Best-effort proactive WhatsApp alert when the user opted in, linked a
-    // number, and a utility template is configured.
-    if (reminderTemplate?.name && user?.reminderWhatsapp !== false) {
+    // Best-effort proactive WhatsApp alert when the user opted in and linked a
+    // verified number. Inside WhatsApp's 24h customer-service window (the user
+    // messaged us recently) we can send a normal text; once it closes WhatsApp
+    // only allows a pre-approved utility template, so we fall back to one when
+    // configured. With neither, only the in-app notification fires.
+    if (user?.reminderWhatsapp !== false) {
       const identity = await channelIdentities.findByUser(
         asEntityId(userId),
         'whatsapp',
       )
       if (identity?.isVerified() && identity.address) {
-        // A WhatsApp utility template renders the params as-is, so send a
-        // localized, timezone-aware time rather than a raw ISO timestamp.
+        // A localized, timezone-aware time rather than a raw ISO timestamp;
+        // both the free-form text and the template render it as-is.
         const when = user
           ? formatEventTime(
               startsAtIso,
@@ -139,16 +146,30 @@ export function makeDeliverReminder({
               user.timezone,
             )
           : startsAtIso
+        const windowOpen = whatsappSession
+          ? await whatsappSession.isOpen(identity.address)
+          : false
         try {
-          await messaging.sendTemplate(identity.address, {
-            name: reminderTemplate.name,
-            // Render in the recipient's language, not one global default.
-            language: whatsappLanguageForLocale(
-              user?.locale,
-              reminderTemplate.language,
-            ),
-            params: [props.title, when],
-          })
+          if (windowOpen) {
+            await messaging.sendText(
+              identity.address,
+              whatsappReminderText(
+                toMessageLanguage(user?.locale),
+                props.title,
+                when,
+              ),
+            )
+          } else if (reminderTemplate?.name) {
+            await messaging.sendTemplate(identity.address, {
+              name: reminderTemplate.name,
+              // Render in the recipient's language, not one global default.
+              language: whatsappLanguageForLocale(
+                user?.locale,
+                reminderTemplate.language,
+              ),
+              params: [props.title, when],
+            })
+          }
         } catch {
           // Ignore; the in-app notification already landed.
         }

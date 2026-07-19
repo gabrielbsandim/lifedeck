@@ -19,6 +19,7 @@ import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { Transcriber } from '@/ports/transcriber'
 import type { UserRepository } from '@/ports/user-repository'
 import type { VisionReader } from '@/ports/vision-reader'
+import type { WhatsappSessionWindow } from '@/ports/whatsapp-session'
 
 export type WhatsappCopy = {
   pairLinked: string
@@ -190,6 +191,9 @@ type Dependencies = {
   visionReader: VisionReader
   clock: Clock
   logger: Logger
+  // Optional: opens the WhatsApp 24h window so reminders can be sent as plain
+  // text (no template) while the user is in an active conversation.
+  whatsappSession?: WhatsappSessionWindow
 }
 
 export function makeHandleInboundWhatsApp({
@@ -205,6 +209,7 @@ export function makeHandleInboundWhatsApp({
   visionReader,
   clock,
   logger,
+  whatsappSession,
 }: Dependencies) {
   return async function handleInboundWhatsApp(
     message: InboundWhatsappMessage,
@@ -213,6 +218,14 @@ export function makeHandleInboundWhatsApp({
     const identity = await channelIdentities.findByAddress('whatsapp', address)
 
     if (identity?.isVerified()) {
+      // Opening the 24h window here lets a later reminder reach the user as a
+      // normal message. Best-effort: a session-store hiccup must not break the
+      // reply the user is waiting for.
+      try {
+        await whatsappSession?.markActive(address)
+      } catch {
+        // Ignore; the window is a delivery optimization, not core to the reply.
+      }
       // System replies mirror the language the user wrote in, the same way the
       // assistant itself answers. For a non-text message (no words to detect)
       // we fall back to the account's saved language.

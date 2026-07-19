@@ -61,6 +61,7 @@ function setup(options: Options = {}) {
   const transcribe = vi.fn().mockResolvedValue('remind me to call mom')
   const describe = vi.fn().mockResolvedValue('a photo of a receipt')
   const mediaAvailable = options.mediaAvailable ?? true
+  const markActive = vi.fn().mockResolvedValue(undefined)
   const handleInboundWhatsApp = makeHandleInboundWhatsApp({
     channelIdentities,
     users,
@@ -83,6 +84,7 @@ function setup(options: Options = {}) {
     visionReader: { describe, isAvailable: () => mediaAvailable },
     clock: new FixedClock(NOW),
     logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+    whatsappSession: { markActive, isOpen: async () => false },
   })
   return {
     channelIdentities,
@@ -94,6 +96,7 @@ function setup(options: Options = {}) {
     run,
     transcribe,
     describe,
+    markActive,
     handleInboundWhatsApp,
   }
 }
@@ -187,6 +190,15 @@ describe('handleInboundWhatsApp', () => {
       ],
       model: 'flash',
     })
+  })
+
+  it('opens the 24h whatsapp window for a verified sender', async () => {
+    const ctx = setup()
+    await verified(ctx.channelIdentities)
+
+    await ctx.handleInboundWhatsApp({ from: FROM, kind: 'text', text: 'hi' })
+
+    expect(ctx.markActive).toHaveBeenCalledWith('+5511999990000')
   })
 
   it('denies a verified number without the assistant entitlement', async () => {

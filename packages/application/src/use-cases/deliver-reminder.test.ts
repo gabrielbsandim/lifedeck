@@ -28,6 +28,7 @@ async function setup(options: {
   withEvent?: boolean
   reminderTemplate?: ReminderTemplate
   whatsappAddress?: string
+  whatsappWindowOpen?: boolean
   user?: {
     email?: string
     verified?: boolean
@@ -93,6 +94,7 @@ async function setup(options: {
   const emailSender = new FakeEmailSender()
   const enqueue = vi.fn().mockResolvedValue(undefined)
   const sendTemplate = vi.fn().mockResolvedValue(undefined)
+  const sendText = vi.fn().mockResolvedValue(undefined)
   const deliver = makeDeliverReminder({
     calendarEvents,
     notifications,
@@ -100,7 +102,7 @@ async function setup(options: {
     users,
     emailSender,
     messaging: {
-      sendText: vi.fn(),
+      sendText,
       sendTemplate,
       fetchMedia: vi.fn(),
     },
@@ -108,8 +110,22 @@ async function setup(options: {
     ids: { generate: () => asEntityId(NOTE_ID) },
     clock: { now: () => options.now },
     reminderTemplate: options.reminderTemplate,
+    whatsappSession:
+      options.whatsappWindowOpen === undefined
+        ? undefined
+        : {
+            markActive: vi.fn(),
+            isOpen: async () => options.whatsappWindowOpen ?? false,
+          },
   })
-  return { notifications, deliver, enqueue, sendTemplate, emailSender }
+  return {
+    notifications,
+    deliver,
+    enqueue,
+    sendTemplate,
+    sendText,
+    emailSender,
+  }
 }
 
 describe('deliverReminder', () => {
@@ -172,6 +188,56 @@ describe('deliverReminder', () => {
     })
     await deliver(EVENT_ID, OWNER_ID, 30)
     expect(sendTemplate).not.toHaveBeenCalled()
+  })
+
+  it('sends a free-form whatsapp text within the 24h window (no template needed)', async () => {
+    const { deliver, sendText, sendTemplate } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      whatsappWindowOpen: true,
+      // No reminderTemplate configured on purpose.
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(sendTemplate).not.toHaveBeenCalled()
+    expect(sendText).toHaveBeenCalledTimes(1)
+    const [to, body] = sendText.mock.calls[0] ?? []
+    expect(to).toBe('+5511999990000')
+    expect(body).toContain('Dentist')
+    expect(body).toContain('Reminder')
+  })
+
+  it('falls back to the template when the 24h window has closed', async () => {
+    const { deliver, sendText, sendTemplate } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      whatsappWindowOpen: false,
+      reminderTemplate: { name: 'event_reminder', language: 'pt_BR' },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(sendText).not.toHaveBeenCalled()
+    expect(sendTemplate).toHaveBeenCalledTimes(1)
+  })
+
+  it('sends nothing on whatsapp when the window is closed and no template exists', async () => {
+    const { deliver, sendText, sendTemplate } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      whatsappWindowOpen: false,
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(sendText).not.toHaveBeenCalled()
+    expect(sendTemplate).not.toHaveBeenCalled()
+  })
+
+  it('does not send a free-form whatsapp text when the user opted out', async () => {
+    const { deliver, sendText } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      whatsappAddress: '5511999990000',
+      whatsappWindowOpen: true,
+      user: { reminderWhatsapp: false },
+    })
+    await deliver(EVENT_ID, OWNER_ID, 30)
+    expect(sendText).not.toHaveBeenCalled()
   })
 
   it('emails a verified user who opted into email reminders', async () => {

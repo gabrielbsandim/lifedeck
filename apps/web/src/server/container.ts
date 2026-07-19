@@ -130,6 +130,7 @@ import {
   type MessagingChannel,
   type AssistantTools,
   type ConversationStore,
+  type WhatsappSessionWindow,
   type Transcriber,
   type VisionReader,
   type TaskRepository,
@@ -174,6 +175,7 @@ import {
   createMessagingChannel,
   createAgentRunner,
   createConversationStore,
+  createWhatsappSessionWindow,
   createTranscriber,
   createVisionReader,
   createUsageMeter,
@@ -324,6 +326,7 @@ type Services = {
   googleCalendar: CalendarProvider & { authUrl(state: string): string }
   messaging: MessagingChannel
   conversations: ConversationStore
+  whatsappSession: WhatsappSessionWindow
   transcriber: Transcriber
   visionReader: VisionReader
 }
@@ -366,6 +369,7 @@ function build(
     googleCalendar,
     messaging,
     conversations,
+    whatsappSession,
     transcriber,
     visionReader,
   }: Services,
@@ -450,6 +454,7 @@ function build(
           language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
         }
       : undefined,
+    whatsappSession,
   })
   const watchGoogleCalendar = makeWatchGoogleCalendar({
     calendarConnections,
@@ -1000,6 +1005,7 @@ function build(
         warn: (message, meta) => log('warn', message, meta),
         info: (message, meta) => log('info', message, meta),
       },
+      whatsappSession,
     }),
     entitlements: entitlementService,
   }
@@ -1105,6 +1111,7 @@ export function getContainer(): Container {
         googleCalendar: buildGoogleCalendarProvider(),
         messaging: createMessagingChannel(),
         conversations: createConversationStore(),
+        whatsappSession: createWhatsappSessionWindow(),
         transcriber: createTranscriber(),
         visionReader: createVisionReader(),
       },

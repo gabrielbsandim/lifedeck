@@ -260,6 +260,11 @@ export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calend
 export type { MessagingChannel } from '@/ports/messaging-channel'
 export type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
 export {
+  NoopWhatsappSessionWindow,
+  type WhatsappSessionWindow,
+} from '@/ports/whatsapp-session'
+export { whatsappReminderText } from '@/shared/whatsapp-reminder-text'
+export {
   makeStartWhatsappPairing,
   type WhatsappPairingResult,
 } from '@/use-cases/start-whatsapp-pairing'
