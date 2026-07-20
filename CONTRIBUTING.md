@@ -7,8 +7,10 @@ Thanks for your interest in Lifedeck. This guide keeps the codebase consistent.
 - **Clean architecture.** Respect the dependency direction (see
   [docs/architecture.md](./docs/architecture.md)). Domain never imports a
   framework; use cases depend on ports, not concrete adapters.
-- **No inline comments.** Code should read clearly through naming and small
-  functions. Document intent in `docs/`, not in code comments.
+- **Comment the _why_, not the _what_.** Code should read clearly through naming
+  and small functions, so don't narrate what the code plainly does. Do add short
+  inline comments for non-obvious intent, trade-offs, and edge cases; broader
+  design intent lives in `docs/`.
 - **English everywhere.** Code, comments-in-docs, commits, and identifiers.
 - **Tests first-class.** New logic ships with tests; coverage stays >= 95%.
 
@@ -46,5 +48,5 @@ Keep the subject as the whole message - no body required for small changes.
 
 - [ ] Tests added/updated and `pnpm check` is green.
 - [ ] Public behavior reflected in `docs/` and, for API changes, in the OpenAPI doc.
-- [ ] No new inline code comments.
+- [ ] Comments explain intent/trade-offs, not what the code already says.
 - [ ] Responsiveness checklist complete (UI changes).

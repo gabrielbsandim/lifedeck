@@ -73,7 +73,7 @@ Grounding every phase in code that already exists keeps V3 cheap and low-risk.
 | Enqueue-by-local-hour | `makeEnqueueDailyDigests` (matches `civilHour(now, tz) === hour`) — the template for the brief/check-in sweeps |
 | Proactive WhatsApp send | `makeDeliverReminder`: verified `ChannelIdentity`, `WhatsappSessionWindow.isOpen`, in-session text vs approved template fallback — extract into a shared sender |
 | Weather | `WeatherProvider` / `OpenMeteoWeatherProvider` (`getForecast`, `resolveLocation`) |
-| Calendar reads | `listCalendarEvents(userId, { from, to })` returning local-zone events |
+| Calendar reads | `listCalendarEvents(userId, { from, to })` returning UTC events (the caller localizes, as the container's `getAgenda` does with `zonedIso`) |
 | Calendar sync engine | `CalendarProvider` port + `CalendarConnection` (multi-account) + rrule mapping + sync jobs |
 | Streak math | `get-analytics` (`currentStreak`, `completionRate`) |
 | Per-user durable memory | the `weatherLocation` pattern: typed field on `User`, mapped in `user-record`, surfaced in `AssistantContext`, settable via a tool + settings field |
@@ -122,6 +122,35 @@ pillars); template names (`WHATSAPP_TEMPLATE_DAILY_BRIEF`, `_HABIT_CHECKIN`,
 **Tests.** Entitlement mapping unit tests; a metering guard test. Keep the 95%
 coverage gate green in every phase.
 
+**Pre-feature refactors (from the V3-readiness review).** These are cheap now and
+would otherwise fight the feature work, so they land as part of V3-0:
+
+- **Calendar provider registry.** Today the container injects one bound
+  `googleCalendar` adapter into every calendar use case, and
+  `pullCalendarChanges`/`pushCalendarEvent` ignore `connection.provider`. Replace
+  the single injected adapter with a `CalendarProviderName → CalendarProvider`
+  registry the use cases resolve per connection. **Hard prerequisite for V3-7**
+  (a Google + Apple user would otherwise sync everything through one adapter), and
+  it lets `source`/provider stop being hardcoded to `'google'`.
+- **Extract `makeAssistantTools(deps)`.** The ~170-line `AssistantTools` object
+  currently lives inline in `container.ts` and is untestable in isolation; V3-1/5/6
+  each add tools to it. Move it into `packages/application` like every other
+  `makeXxx`, and unit-test it (this also covers a gap the test review flagged).
+  While there, route the `setDefaultWeatherLocation` tool through the
+  `setWeatherLocation` use case instead of mutating inline, so there is one
+  validated path.
+- **Entitlement-aware tool exposure.** `AgentRunInput` carries no entitlements and
+  every user gets every tool. Thread the user's granted entitlements into
+  `run()`/`toolsFor` so Premium-only tools (`findTime`) and proactive features are
+  gated in the application layer, not by hoping the model won't call them.
+- **`ProactiveMessenger` extraction** — see V3-2; it is the other foundational
+  refactor and is the first feature phase.
+- **Cover the seams V3 depends on.** Add tests for the agent tool-wiring
+  (`toolsFor`/`systemPromptFor`), the handler-registry construction, the Google
+  calendar adapter's payload mapping, and the cron/weather route handlers — all
+  currently in `coverageExclude`/`src/app` and untested. Add `src/app/**` to the
+  web `coverageInclude`.
+
 ---
 
 ## 4. V3-1 — Assistant memory
@@ -150,7 +179,8 @@ proactive features.
 Validation mirrors `weatherLocation` (trim, max lengths, list caps). Getter +
 `updateProfile(partial)` / `rememberNote` / `forgetNote` methods.
 
-**Persistence.** `assistant_profile JSONB` on `users` (migration `11_…`);
+**Persistence.** `assistant_profile JSONB` on `users` (next migration is `22_`,
+since the tree already runs through `21_calendar_occurrence_exceptions`);
 `user-record` maps it both ways with a safe parse (fall back to empty profile on
 malformed JSON, like the timezone fallback).
 
@@ -272,7 +302,8 @@ weekdays, optional `checkinTime`, active flag) and `HabitLog` (habitId, civil
 date, done). Streak/consistency computed with the same approach as
 `get-analytics` (walk civil days back while satisfied).
 
-**Persistence.** `habits` + `habit_logs` tables (migration), repositories +
+**Persistence.** `habits` + `habit_logs` tables (its own later migration, e.g.
+`23_habits`), repositories +
 Prisma adapters (both are coverage-excluded like the other prisma repos, but the
 domain/use-cases are tested).
 

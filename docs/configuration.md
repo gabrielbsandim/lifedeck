@@ -89,8 +89,13 @@ Everything in V2 stays invisible in production until turned on. `true` enables i
 | --- | --- | --- |
 | `CRON_SECRET` | Bearer that authorizes the internal cron endpoints. | Generate: `openssl rand -base64 32`. On Vercel, cron already sends `Authorization: Bearer ${CRON_SECRET}` when set. |
 
-Schedules are already in `apps/web/vercel.json` (dispatch every minute, fan-out
-every 15 min). Alternative: point a QStash at the same endpoints.
+Schedules are already in `apps/web/vercel.json` (dispatch every 15 min, fan-out
+hourly). Alternative: point a QStash at the same endpoints.
+
+| Variable | What it is | Where to get it |
+| --- | --- | --- |
+| `QSTASH_TOKEN` | Authorizes best-effort "wake" calls that trigger the dispatcher right when a job is due, instead of waiting for the next cron sweep. Optional — the cron fallback drains the outbox regardless. | Upstash QStash console. |
+| `QSTASH_URL` | QStash publish endpoint, matched to your region. | Upstash QStash console. |
 
 ## Billing - Asaas (Brazil: Pix, card, boleto)
 
@@ -146,6 +151,20 @@ for production.
 | `WHATSAPP_REMINDER_TEMPLATE` | Name of the utility reminder template. | Meta → WhatsApp Manager → Message Templates (approved). Without it, reminders are in-app only. |
 | `WHATSAPP_TEMPLATE_LANGUAGE` | Template language. | E.g. `pt_BR`. |
 | `GEMINI_PRO_MODEL_ID` | Pro model for long text (Premium tier; reuses `GEMINI_API_KEY`). | Optional. Default `gemini-3-pro-preview`. |
+
+### WhatsApp via Abracode gateway (alternative transport)
+
+When these are set, the Abracode gateway is used instead of talking to Meta
+directly (it manages the access token; you only need an API key). Abracode
+**takes precedence** over the Meta-direct vars above.
+
+| Variable | What it is | Where to get it |
+| --- | --- | --- |
+| `ABRACODE_API_KEY` | Abracode API key (`wpk_live_…` / `wpk_test_…`). | Abracode dashboard. |
+| `ABRACODE_FROM` | Abracode PhoneNumber record id (from `GET /v1/numbers`), not the E.164. | Abracode dashboard. |
+| `ABRACODE_BASE_URL` | Optional API base URL. | Defaults to `https://api.abracode.com.br`. |
+| `ABRACODE_PHONE_NUMBER_ID` | Meta phone-number id, only needed to resolve inbound media. | Meta → WhatsApp → API Setup. |
+| `ABRACODE_WEBHOOK_SECRET` | Validates the inbound Abracode webhook. | You set it; paste the same value into Abracode. |
 
 ## V2 go-live checklist
 

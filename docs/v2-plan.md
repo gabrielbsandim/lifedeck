@@ -537,7 +537,8 @@ All optional-with-graceful-fallback where feasible, matching the V1 convention
 The list below reflects the variables the shipped code actually reads (see
 `.env.example` for the authoritative set). The Postgres outbox + Vercel Cron
 driver means no QStash keys are needed; token-at-rest reuses a single
-`CALENDAR_TOKEN_KEY`; there is no weather tool yet.
+`CALENDAR_TOKEN_KEY`. (A weather tool shipped after this section was written —
+see `docs/whatsapp.md` and `docs/v3-plan.md`.)
 
 ```
 # Feature flags (master gate + per-pillar)
@@ -547,7 +548,7 @@ FEATURES_V2, FEATURE_CALENDAR, FEATURE_WHATSAPP, FEATURE_BILLING
 CRON_SECRET
 
 # Billing - Asaas (Brazil)
-ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, ASAAS_PRICE_* (per plan/interval, BRL)
+ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, ASAAS_VALUE_* (per plan/interval, BRL)
 
 # Billing - Stripe (international)
 STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_* (per plan/interval, USD)
@@ -748,7 +749,8 @@ Each phase is small, independently shippable, ends green (`pnpm check`, coverage
       over existing use cases as the linked user (`getToday`/`addTask` on the
       provisioned daily list, `getAgenda`/`addEvent` on the calendar);
       `AiSdkAgentRunner` exposes them as AI SDK tools (`stopWhen: stepCountIs(5)`).
-      `WeatherProvider` and a richer surface remain later additions.
+      (The `WeatherProvider` and a richer tool surface shipped later — see
+      `docs/whatsapp.md`.)
 - [x] **Multimodal (DONE):** `Transcriber` + `VisionReader` ports + Gemini
       adapters (stub without a key); `MessagingChannel.fetchMedia` (Meta two-step
       lookup+download). The webhook parses audio/image messages; the orchestrator

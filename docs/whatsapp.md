@@ -144,7 +144,7 @@ transcribes or describes it and feeds the text to the agent.
 ## Pro routing for Premium
 
 Premium users (the `premiumModel` entitlement) get their non-trivial text (a
-word-count proxy, 8 or more words) routed to Gemini 3.1 Pro (`GEMINI_PRO_MODEL_ID`),
+word-count proxy, 8 or more words) routed to Gemini 3 Pro (`GEMINI_PRO_MODEL_ID`),
 debited `assistantPro` = 6. Short messages and Flash-tier users stay
 `assistantText` = 1. `AiSdkAgentRunner` holds both a flash and a pro model and picks
 by the run input's model tier.
@@ -161,4 +161,6 @@ number and `WHATSAPP_REMINDER_TEMPLATE` is set, alongside the in-app notificatio
 `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`,
 `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_REMINDER_TEMPLATE`, `WHATSAPP_TEMPLATE_LANGUAGE`,
 `GEMINI_API_KEY`, `GEMINI_MODEL_ID`, `GEMINI_PRO_MODEL_ID`, `AI_MODEL`,
-`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. When the Abracode gateway
+is used instead of Meta-direct: `ABRACODE_API_KEY`, `ABRACODE_FROM`,
+`ABRACODE_BASE_URL`, `ABRACODE_PHONE_NUMBER_ID`, `ABRACODE_WEBHOOK_SECRET`.
