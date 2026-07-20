@@ -1,4 +1,5 @@
 import type {
+  WeatherCurrent,
   WeatherDay,
   WeatherLocationResolution,
   WeatherLookup,
@@ -70,6 +71,11 @@ type ForecastDaily = {
   precipitation_probability_max?: (number | null)[]
 }
 
+type ForecastCurrent = {
+  temperature_2m?: number | null
+  weather_code?: number
+}
+
 function labelForCode(code: number | undefined): string {
   if (code === undefined) return 'Unknown'
   return WEATHER_CODE_LABELS[code] ?? 'Unknown'
@@ -99,6 +105,16 @@ function formatLocation(place: GeocodingResult): string {
   return [place.name, place.country].filter(Boolean).join(', ')
 }
 
+function toCurrent(
+  current: ForecastCurrent | undefined,
+): WeatherCurrent | null {
+  if (!current) return null
+  return {
+    temperatureC: current.temperature_2m ?? null,
+    condition: labelForCode(current.weather_code),
+  }
+}
+
 export class OpenMeteoWeatherProvider implements WeatherProvider {
   constructor(
     private readonly geocodingUrl: string = GEOCODING_URL,
@@ -121,6 +137,7 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
         forecast: {
           location: formatLocation(place),
           timezone: forecast.timezone,
+          current: toCurrent(forecast.current),
           days,
         },
       }
@@ -154,9 +171,11 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     return first
   }
 
-  private async fetchForecast(
-    place: GeocodingResult,
-  ): Promise<{ timezone: string; daily: ForecastDaily } | null> {
+  private async fetchForecast(place: GeocodingResult): Promise<{
+    timezone: string
+    daily: ForecastDaily
+    current?: ForecastCurrent
+  } | null> {
     const url = new URL(this.forecastUrl)
     url.searchParams.set('latitude', String(place.latitude))
     url.searchParams.set('longitude', String(place.longitude))
@@ -164,6 +183,8 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
       'daily',
       'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
     )
+    // The place's conditions right now, so "current temperature" questions work.
+    url.searchParams.set('current', 'temperature_2m,weather_code')
     url.searchParams.set('timezone', 'auto')
     url.searchParams.set('forecast_days', String(MAX_FORECAST_DAYS))
     const response = await httpFetch(url)
@@ -171,9 +192,14 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     const body = (await response.json()) as {
       timezone?: string
       daily?: ForecastDaily
+      current?: ForecastCurrent
     }
     if (!body.daily?.time?.length) return null
-    return { timezone: body.timezone ?? 'UTC', daily: body.daily }
+    return {
+      timezone: body.timezone ?? 'UTC',
+      daily: body.daily,
+      current: body.current,
+    }
   }
 
   // Filters the daily arrays to the requested [from, to] window. With no dates,

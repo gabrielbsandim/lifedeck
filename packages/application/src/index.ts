@@ -313,6 +313,7 @@ export type {
   WeatherQuery,
   WeatherLookup,
   WeatherForecast,
+  WeatherCurrent,
   WeatherDay,
   WeatherLocationResolution,
 } from '@/ports/weather-provider'

@@ -23,6 +23,7 @@ function dailyPayload() {
   }
   return {
     timezone: 'Europe/Lisbon',
+    current: { temperature_2m: 18.4, weather_code: 2 },
     daily: {
       time,
       weather_code: time.map(() => 61),
@@ -89,12 +90,40 @@ describe('OpenMeteoWeatherProvider', () => {
       precipitationProbabilityPct: 40,
     })
 
+    // Current conditions come back alongside the daily forecast.
+    expect(result.forecast.current).toEqual({
+      temperatureC: 18.4,
+      condition: 'Partly cloudy',
+    })
+
     // First call geocodes with the raw place name; second hits the forecast API.
     const geoUrl = String(fetchMock.mock.calls[0]?.[0])
     expect(geoUrl).toContain('name=Lisbon')
     const forecastUrl = String(fetchMock.mock.calls[1]?.[0])
     expect(forecastUrl).toContain('latitude=38.72')
     expect(forecastUrl).toContain('timezone=auto')
+    expect(forecastUrl).toContain('current=temperature_2m')
+  })
+
+  it('returns a null current block when the provider omits it', async () => {
+    stubFetch({
+      forecast: ok({
+        timezone: 'Europe/Lisbon',
+        daily: {
+          time: ['2026-07-19'],
+          weather_code: [1],
+          temperature_2m_max: [22],
+          temperature_2m_min: [12],
+          precipitation_probability_max: [0],
+        },
+      }),
+    })
+
+    const result = await provider().getForecast({ location: 'Lisbon' })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.forecast.current).toBeNull()
   })
 
   it('narrows to an explicit from/to range', async () => {

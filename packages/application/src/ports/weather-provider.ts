@@ -15,11 +15,21 @@ export type WeatherDay = {
   precipitationProbabilityPct: number | null
 }
 
+// The place's conditions right now (not a daily aggregate), so the assistant
+// can answer "what's the temperature at the moment?".
+export type WeatherCurrent = {
+  temperatureC: number | null
+  /** Human-readable sky condition, e.g. "Light rain". */
+  condition: string
+}
+
 export type WeatherForecast = {
   /** Resolved place name, e.g. "Lisbon, Portugal". */
   location: string
   /** IANA time zone the forecast dates are expressed in. */
   timezone: string
+  /** Conditions right now, or null when the provider omits them. */
+  current: WeatherCurrent | null
   days: WeatherDay[]
 }
 

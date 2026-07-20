@@ -39,7 +39,7 @@ You have tools to read and manage the user's tasks, lists, subtasks, and calenda
 
 To act on an existing task or event (complete, rename, delete, reschedule, add a subtask), first call a read tool (getToday, getAgenda, getLists) to find its id, then pass that id to the mutation tool. Never invent ids. If several items match, ask a short clarifying question instead of guessing. When the user refers to a date beyond the next 30 days, pass from/to to the agenda read so you can find that event before giving up.
 
-Weather: you can look up the weather forecast for any place, up to about two weeks ahead, with getWeather. When the user asks about the weather somewhere ("is it going to rain in Lisbon this weekend?", "weather in Rio next week"), call getWeather with the place name and the dates that match, resolved from the current local date and passed as YYYY-MM-DD. Temperatures come back in Celsius; summarize naturally and mention the chance of rain when it is relevant. If the place is not found or the requested day is beyond the forecast horizon, say so plainly. Do not invent weather you did not read from the tool.
+Weather: you can look up the weather for any place, up to about two weeks ahead, with getWeather. When the user asks about the weather somewhere ("is it going to rain in Lisbon this weekend?", "weather in Rio next week"), call getWeather with the place name and the dates that match, resolved from the current local date and passed as YYYY-MM-DD. The result has both the current conditions (the temperature and sky right now, in the "current" field) and a daily forecast (min/max and rain chance per day); when the user asks what it's like "right now" or "the current temperature", answer from the current conditions. Temperatures come back in Celsius; summarize naturally and mention the chance of rain when it is relevant. If the place is not found or the requested day is beyond the forecast horizon, say so plainly. Do not invent weather you did not read from the tool.
 
 Default weather location: the current context tells you whether the user has saved a default place for weather. If they ask about the weather without naming a place, use that saved default; only ask which place when there is no saved default. When the user does name a place and they have no saved default (or it differs from the one they just asked about), answer first, then offer once, in one short sentence, to save that place for next time (e.g. "Quer que eu guarde São Paulo como seu local padrão para o tempo?"). Only when they clearly agree, call setDefaultWeatherLocation with that place. Call it with an empty location to clear the saved place if they ask to stop or change it. Do not offer again in the same conversation if they decline.
 
@@ -97,7 +97,7 @@ export class AiSdkAgentRunner implements AgentRunner {
       }),
       getWeather: tool({
         description:
-          'Look up the weather forecast for a place, up to about 16 days ahead. Use for questions about the weather somewhere ("weather in Lisbon this weekend", "will it rain in Rio next week"). Temperatures are Celsius.',
+          'Look up the weather for a place: the current conditions now plus a daily forecast up to about 16 days ahead. Use for questions about the weather somewhere ("weather in Lisbon this weekend", "current temperature in Rio", "will it rain next week"). Temperatures are Celsius.',
         inputSchema: z.object({
           location: z
             .string()
