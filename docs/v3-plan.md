@@ -302,7 +302,33 @@ template.
 
 ---
 
-## 7. V3-4 — Proactive nudges
+## 7. V3-4 — Proactive nudges — SHIPPED
+
+Shipped: a daily evening `enqueueNudges` sweep (added to `runScheduledFanOut`,
+matches a fixed local `NUDGE_HOUR` — default 18 — over
+`users.listWithNudgesEnabled()`) → `nudge` job → `sendNudge`. The one shipped
+rule is **a pending task carried onto today's board for ≥ 3 days**: `sendNudge`
+picks the longest-lingering such task and offers to reschedule or break it down,
+delivered via the V3-2 `ProactiveMessenger` with the `nudge` template
+(`WHATSAPP_TEMPLATE_NUDGE`, single param = the composed text) out of session; the
+copy is template-composed (inlined en/pt/es), no AI credits. It is strictly
+gated: Premium plan only, the per-user `nudgesEnabled` opt-out (new
+`AssistantProfile` field, defaults on, settable in the memory card and by the
+agent), quiet-hours-aware (reuses `quietHoursStart/End`), **≤ 1 nudge/user/day**
+via a new `nudge_logs` ledger (migration `24_nudge_log`, prisma repo
+coverage-excluded), a per-task 3-day cooldown so it never nags, and the shared
+`ProactiveSendGuard` daily cap. The reply lands in the normal inbound flow and the
+agent acts with its existing task tools. Tested: rule detection on seeded board
+history, the plan gate, opt-out, quiet hours, the daily cap, the cooldown, and the
+sweep hour-match; 95% gate green.
+
+**Decisions.** Nudges anchor **Premium** via the plan tier directly (no dedicated
+entitlement, since V3-0 only introduced `proactiveMessaging`/`smartScheduling`).
+The `nudge_logs` ledger is bookkeeping only (no domain entity); dedup is by a
+`carried_task:<taskId>` key. Started with the single carried-task rule as the plan
+prescribes ("start with one or two, tune before adding more"); more rules
+(early-event-with-no-prep, streak-about-to-break) slot into `sendNudge` behind the
+same rate limits.
 
 The assistant notices patterns and reaches out with a single, actionable
 suggestion the user can accept by replying.
