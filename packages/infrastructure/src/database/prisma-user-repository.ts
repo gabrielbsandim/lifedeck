@@ -47,6 +47,16 @@ export class PrismaUserRepository implements UserRepository {
     return records.map(toDomainUser)
   }
 
+  async listWithBriefEnabled(): Promise<User[]> {
+    const records = await this.prisma.user.findMany({
+      where: {
+        isGuest: false,
+        assistantProfile: { path: ['briefEnabled'], equals: true },
+      },
+    })
+    return records.map(toDomainUser)
+  }
+
   async delete(id: EntityId): Promise<void> {
     await this.prisma.user.delete({ where: { id } })
   }

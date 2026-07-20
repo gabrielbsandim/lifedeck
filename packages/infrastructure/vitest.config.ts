@@ -35,6 +35,7 @@ export default mergeConfig(
         'src/messaging/whatsapp-cloud-channel.ts',
         'src/messaging/abracode-channel.ts',
         'src/messaging/redis-conversation-store.ts',
+        'src/usage/redis-proactive-send-guard.ts',
         'src/messaging/gemini-multimodal.ts',
         'src/email/resend-email-sender.ts',
         'src/email/console-email-sender.ts',

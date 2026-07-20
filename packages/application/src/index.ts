@@ -261,6 +261,22 @@ export {
   makeEnqueueDailyDigests,
   DAILY_DIGEST_JOB,
 } from '@/use-cases/enqueue-daily-digests'
+export {
+  makeEnqueueDailyBriefs,
+  DAILY_BRIEF_JOB,
+} from '@/use-cases/enqueue-daily-briefs'
+export {
+  makeSendDailyBrief,
+  type BriefTemplate,
+} from '@/use-cases/send-daily-brief'
+export {
+  composeDailyBrief,
+  type DailyBriefData,
+  type DailyBriefEvent,
+  type DailyBriefWeather,
+} from '@/shared/daily-brief-text'
+export type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
+export { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 export { makeReconcileCalendars } from '@/use-cases/reconcile-calendars'
 export { makeRenewCalendarChannels } from '@/use-cases/renew-calendar-channels'
 export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'

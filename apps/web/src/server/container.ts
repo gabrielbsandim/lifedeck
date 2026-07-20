@@ -16,6 +16,8 @@ import {
   makeDeliverReminder,
   makeSendProactiveMessage,
   makeEnqueueDailyDigests,
+  makeEnqueueDailyBriefs,
+  makeSendDailyBrief,
   makeReconcileCalendars,
   makeRenewCalendarChannels,
   makeStartWhatsappPairing,
@@ -30,6 +32,7 @@ import {
   CALENDAR_DELETE_JOB,
   CALENDAR_WATCH_JOB,
   DAILY_DIGEST_JOB,
+  DAILY_BRIEF_JOB,
   REMINDER_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
@@ -177,6 +180,7 @@ import {
   createTranscriber,
   createVisionReader,
   createUsageMeter,
+  createProactiveSendGuard,
   Argon2PasswordHasher,
   RandomTokenGenerator,
   ResendEmailSender,
@@ -250,6 +254,7 @@ type Container = {
   getAnalytics: ReturnType<typeof makeGetAnalytics>
   generateList: ReturnType<typeof makeGenerateList>
   sendDailyDigest: ReturnType<typeof makeSendDailyDigest>
+  sendDailyBrief: ReturnType<typeof makeSendDailyBrief>
   listNotifications: ReturnType<typeof makeListNotifications>
   markNotificationRead: ReturnType<typeof makeMarkNotificationRead>
   markAllNotificationsRead: ReturnType<typeof makeMarkAllNotificationsRead>
@@ -285,6 +290,7 @@ type Container = {
   googleCalendarAuthUrl: (state: string) => string
   runScheduledFanOut: () => Promise<{
     digests: number
+    briefs: number
     reconciled: number
     renewed: number
   }>
@@ -478,6 +484,11 @@ function build(
     jobQueue,
     clock,
   })
+  const enqueueDailyBriefs = makeEnqueueDailyBriefs({
+    users,
+    jobQueue,
+    clock,
+  })
   const reconcileCalendars = makeReconcileCalendars({
     calendarConnections,
     jobQueue,
@@ -499,6 +510,9 @@ function build(
     handlers: {
       [DAILY_DIGEST_JOB]: async payload => {
         await sendDailyDigest(String(payload.userId))
+      },
+      [DAILY_BRIEF_JOB]: async payload => {
+        await sendDailyBrief(String(payload.userId))
       },
       [CALENDAR_PULL_JOB]: async payload => {
         await pullCalendarChanges(String(payload.userId))
@@ -526,13 +540,15 @@ function build(
     },
   })
   const runScheduledFanOut = async () => {
-    const [digests, reconciled, renewed] = await Promise.all([
+    const [digests, briefs, reconciled, renewed] = await Promise.all([
       enqueueDailyDigests(),
+      enqueueDailyBriefs(),
       reconcileCalendars(),
       renewCalendarChannels(),
     ])
     return {
       digests: digests.enqueued,
+      briefs: briefs.enqueued,
       reconciled: reconciled.enqueued,
       renewed: renewed.enqueued,
     }
@@ -622,6 +638,25 @@ function build(
   const weatherProvider = new OpenMeteoWeatherProvider()
   const setWeatherLocation = makeSetWeatherLocation({ users })
   const setAssistantProfile = makeSetAssistantProfile({ users })
+  const proactiveDailyCap = Number(process.env.PROACTIVE_DAILY_CAP?.trim()) || 3
+  const proactiveSendGuard = createProactiveSendGuard(proactiveDailyCap)
+  const briefTemplateName = process.env.WHATSAPP_TEMPLATE_DAILY_BRIEF?.trim()
+  const sendDailyBrief = makeSendDailyBrief({
+    users,
+    entitlements: entitlementService,
+    getDailyBoard,
+    listCalendarEvents,
+    weather: weatherProvider,
+    sendProactiveMessage,
+    sendGuard: proactiveSendGuard,
+    clock,
+    briefTemplate: briefTemplateName
+      ? {
+          name: briefTemplateName,
+          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
+        }
+      : undefined,
+  })
 
   const assistantTools = makeAssistantTools({
     users,
@@ -769,6 +804,7 @@ function build(
     getAnalytics: makeGetAnalytics({ analytics, users, clock }),
     generateList: makeGenerateList({ generator: listGenerator }),
     sendDailyDigest,
+    sendDailyBrief,
     listNotifications: makeListNotifications({ notifications }),
     markNotificationRead: makeMarkNotificationRead({ notifications, clock }),
     markAllNotificationsRead: makeMarkAllNotificationsRead({

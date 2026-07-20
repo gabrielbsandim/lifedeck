@@ -5,5 +5,8 @@ export interface UserRepository {
   findById(id: EntityId): Promise<User | null>
   findByEmail(email: string): Promise<User | null>
   listForDailyDigest(): Promise<User[]>
+  // Non-guest users who opted into the daily brief, so the sweep only scans the
+  // few candidates instead of the whole table.
+  listWithBriefEnabled(): Promise<User[]>
   delete(id: EntityId): Promise<void>
 }

@@ -107,6 +107,7 @@ export {
 export { AsaasPaymentGateway } from '@/billing/asaas-payment-gateway'
 export { StripePaymentGateway } from '@/billing/stripe-payment-gateway'
 export { createUsageMeter } from '@/usage/redis-usage-meter'
+export { createProactiveSendGuard } from '@/usage/redis-proactive-send-guard'
 export { PrismaUsageEventRepository } from '@/database/prisma-usage-event-repository'
 export {
   toDomainUsageEvent,
