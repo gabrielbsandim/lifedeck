@@ -257,7 +257,23 @@ unverified/absent number skip, swallowed send failure, missing-window-as-closed.
 
 ---
 
-## 6. V3-3 — Daily proactive brief
+## 6. V3-3 — Daily proactive brief — SHIPPED
+
+Shipped: `enqueueDailyBriefs` sweep (added to `runScheduledFanOut`, matches
+`civilHour === briefHour` over `users.listWithBriefEnabled()`) → `daily-brief`
+job → `sendDailyBrief` use case. The brief is **template-composed**, not
+LLM-composed (`composeDailyBrief`, inlined en/pt/es like `whatsappReminderText`),
+so it burns no AI credits; it gates on the `proactiveMessaging` entitlement,
+composes from `getDailyBoard` + today's `listCalendarEvents` + `getForecast(home)`
++ carry-over count, and delivers via the V3-2 `ProactiveMessenger` with the
+`daily_brief` template (`WHATSAPP_TEMPLATE_DAILY_BRIEF`) out of session. The
+`PROACTIVE_DAILY_CAP` backstop ships as a `ProactiveSendGuard` port (Redis
+INCR+EXPIRE per user/day, fail-open; in-memory fake in tests) rather than the AI
+`UsageEvent` ledger, since the brief is not an AI operation and must not consume
+the user's credit budget. Quiet-hours enforcement is deferred to the nudges
+(V3-4), where it belongs; the brief hour is the user's explicit choice. Web
+brief on/off + time picker already shipped in V3-1's memory card. Tested across
+the sweep, compose, and delivery; 95% gate green.
 
 A "bom dia" (and optional "boa noite") WhatsApp message: today's tasks, agenda,
 weather for the saved location, what carried over, and reminders.
