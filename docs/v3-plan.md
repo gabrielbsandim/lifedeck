@@ -161,7 +161,15 @@ would otherwise fight the feature work, so they land as part of V3-0:
 
 ---
 
-## 4. V3-1 — Assistant memory
+## 4. V3-1 — Assistant memory — SHIPPED
+
+Shipped: `AssistantProfile` VO + `User.assistantProfile` (migration `22_`),
+mapped both ways in `user-record` with a lenient sanitize; `AssistantContext`
+carries a compact `memory` summary and the system prompt fences it as untrusted;
+`updateAssistantMemory` agent tool + `setAssistantProfile` use case/DTO/route;
+`UserView.assistantProfile`; a "What the assistant remembers" settings card
+(home/work, wake + quiet hours, daily-brief toggle/hour, people, notes) in
+en/pt/es. Tested across every layer, 95% gate green.
 
 Generalize the `weatherLocation` field into a small, typed **assistant profile**
 the model reads on every turn and writes to when the user shares a durable fact.
