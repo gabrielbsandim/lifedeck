@@ -264,6 +264,7 @@ export const en: Messages = {
     checking: 'Checking…',
     found: 'Found',
     notFound: 'City not found. Check the spelling.',
+    couldntCheck: "Couldn't check right now — you can still save.",
   },
   getStarted: {
     title: 'Get started',

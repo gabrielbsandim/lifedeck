@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ZodError } from 'zod'
 import { makePreviewWeatherLocation } from '@/use-cases/preview-weather-location'
 import type {
   WeatherLocationResolution,
@@ -39,6 +40,6 @@ describe('previewWeatherLocation', () => {
     const preview = makePreviewWeatherLocation({
       weather: weatherReturning({ ok: false, reason: 'not_found' }),
     })
-    await expect(preview({ location: '   ' })).rejects.toBeTruthy()
+    await expect(preview({ location: '   ' })).rejects.toBeInstanceOf(ZodError)
   })
 })

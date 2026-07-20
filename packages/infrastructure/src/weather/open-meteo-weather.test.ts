@@ -128,6 +128,64 @@ describe('OpenMeteoWeatherProvider', () => {
     expect(result.forecast.days.map(d => d.date)).toEqual(['2026-07-22'])
   })
 
+  it('snaps a request one day before the forecast to its first day (timezone skew)', async () => {
+    // A user behind the place asks for "today" (their date), which is a day
+    // before the place's own first forecast date. Without the grace clamp this
+    // filters to nothing and wrongly reads as out_of_range.
+    stubFetch()
+
+    const result = await provider().getForecast({
+      location: 'Lisbon',
+      from: '2026-07-18',
+      to: '2026-07-18',
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.forecast.days.map(d => d.date)).toEqual(['2026-07-19'])
+  })
+
+  it('snaps a request one day past the horizon to its last day (timezone skew)', async () => {
+    // Last forecast day is 2026-08-03; a user ahead of the place asks for the
+    // next day. One-day grace clamps it to the last available day.
+    stubFetch()
+
+    const result = await provider().getForecast({
+      location: 'Lisbon',
+      from: '2026-08-04',
+      to: '2026-08-04',
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.forecast.days.map(d => d.date)).toEqual(['2026-08-03'])
+  })
+
+  it('returns every day when the forecast is shorter than the default window', async () => {
+    stubFetch({
+      forecast: ok({
+        timezone: 'Europe/Lisbon',
+        daily: {
+          time: ['2026-07-19', '2026-07-20', '2026-07-21'],
+          weather_code: [0, 1, 2],
+          temperature_2m_max: [20, 21, 22],
+          temperature_2m_min: [10, 11, 12],
+          precipitation_probability_max: [0, 10, 20],
+        },
+      }),
+    })
+
+    const result = await provider().getForecast({ location: 'Lisbon' })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.forecast.days.map(d => d.date)).toEqual([
+      '2026-07-19',
+      '2026-07-20',
+      '2026-07-21',
+    ])
+  })
+
   it('reports not_found when geocoding has no results', async () => {
     stubFetch({ geo: ok({ results: [] }) })
 
@@ -213,8 +271,8 @@ describe('OpenMeteoWeatherProvider', () => {
       condition: 'Unknown',
       precipitationProbabilityPct: null,
     })
-    expect(result.forecast.days[0]?.tempMaxC).toBeNaN()
-    expect(result.forecast.days[0]?.tempMinC).toBeNaN()
+    expect(result.forecast.days[0]?.tempMaxC).toBeNull()
+    expect(result.forecast.days[0]?.tempMinC).toBeNull()
     expect(result.forecast.days[1]?.condition).toBe('Unknown')
     expect(result.forecast.days[1]?.precipitationProbabilityPct).toBeNull()
   })

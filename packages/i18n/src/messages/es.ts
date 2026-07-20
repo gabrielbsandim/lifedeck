@@ -268,6 +268,7 @@ export const es: Messages = {
     checking: 'Verificando…',
     found: 'Encontrada',
     notFound: 'Ciudad no encontrada. Revisa la ortografía.',
+    couldntCheck: 'No se pudo verificar ahora — puedes guardar igualmente.',
   },
   getStarted: {
     title: 'Empieza aquí',

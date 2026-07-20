@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ZodError } from 'zod'
 import { User } from '@lifedeck/domain'
 import { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -47,7 +48,7 @@ describe('setWeatherLocation', () => {
       ctx.setWeatherLocation(ID.user as string, {
         location: 'a'.repeat(161),
       }),
-    ).rejects.toBeTruthy()
+    ).rejects.toBeInstanceOf(ZodError)
   })
 
   it('rejects an unknown user', async () => {

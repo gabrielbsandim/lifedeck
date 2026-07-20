@@ -86,6 +86,15 @@ function weekdayFor(date: string): string {
   }).format(parsed)
 }
 
+// Shifts a bare YYYY-MM-DD by whole days, read at noon UTC so DST/offset can
+// never bump it. Used to absorb the ±1-day skew below.
+function shiftDay(date: string, deltaDays: number): string {
+  const parsed = new Date(`${date}T12:00:00Z`)
+  if (Number.isNaN(parsed.getTime())) return date
+  parsed.setUTCDate(parsed.getUTCDate() + deltaDays)
+  return parsed.toISOString().slice(0, 10)
+}
+
 function formatLocation(place: GeocodingResult): string {
   return [place.name, place.country].filter(Boolean).join(', ')
 }
@@ -176,9 +185,46 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     to?: string,
   ): WeatherDay[] {
     const dates = daily.time ?? []
-    const rangeStart = from ?? dates[0]
-    const rangeEnd =
+    const first = dates[0]
+    const last = dates[dates.length - 1]
+    let rangeStart = from ?? first
+    let rangeEnd =
       to ?? from ?? dates[Math.min(DEFAULT_WINDOW_DAYS, dates.length) - 1]
+
+    // The model resolves from/to in the *user's* time zone, but the forecast
+    // dates are in the *place's* own zone (timezone=auto), so a single-day
+    // "today"/"tomorrow" can land one day off. Absorb that ±1-day skew: a
+    // boundary that merely brushes the available range snaps into it, instead of
+    // filtering to nothing and being reported as out_of_range. A window that is
+    // genuinely in the past or beyond the horizon (off by more than a day) still
+    // yields nothing.
+    if (
+      first &&
+      rangeStart &&
+      rangeStart < first &&
+      rangeStart >= shiftDay(first, -1)
+    ) {
+      rangeStart = first
+    }
+    if (
+      first &&
+      rangeEnd &&
+      rangeEnd < first &&
+      rangeEnd >= shiftDay(first, -1)
+    ) {
+      rangeEnd = first
+    }
+    if (last && rangeEnd && rangeEnd > last && rangeEnd <= shiftDay(last, 1)) {
+      rangeEnd = last
+    }
+    if (
+      last &&
+      rangeStart &&
+      rangeStart > last &&
+      rangeStart <= shiftDay(last, 1)
+    ) {
+      rangeStart = last
+    }
 
     const days: WeatherDay[] = []
     for (let i = 0; i < dates.length; i++) {
@@ -190,8 +236,8 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
         date,
         weekday: weekdayFor(date),
         condition: labelForCode(daily.weather_code?.[i]),
-        tempMaxC: daily.temperature_2m_max?.[i] ?? Number.NaN,
-        tempMinC: daily.temperature_2m_min?.[i] ?? Number.NaN,
+        tempMaxC: daily.temperature_2m_max?.[i] ?? null,
+        tempMinC: daily.temperature_2m_min?.[i] ?? null,
         precipitationProbabilityPct:
           daily.precipitation_probability_max?.[i] ?? null,
       })

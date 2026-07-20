@@ -8,8 +8,9 @@ export type WeatherDay = {
   weekday: string
   /** Human-readable sky condition, e.g. "Light rain", "Partly cloudy". */
   condition: string
-  tempMinC: number
-  tempMaxC: number
+  /** Null only when the provider omits the value (malformed payload). */
+  tempMinC: number | null
+  tempMaxC: number | null
   /** Max chance of precipitation that day, 0-100, or null when unavailable. */
   precipitationProbabilityPct: number | null
 }

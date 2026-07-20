@@ -255,6 +255,7 @@ export type Messages = {
     checking: string
     found: string
     notFound: string
+    couldntCheck: string
   }
   getStarted: {
     title: string

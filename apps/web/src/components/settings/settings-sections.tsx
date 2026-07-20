@@ -288,11 +288,24 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
     previewForCurrent !== null &&
     !previewForCurrent.ok &&
     previewForCurrent.reason === 'not_found'
+  const weatherLocationUnverifiable =
+    previewForCurrent !== null &&
+    !previewForCurrent.ok &&
+    previewForCurrent.reason === 'unavailable'
   const saveWeatherLocation = () => {
     if (!weatherLocationDirty || weatherLocationNotFound) return
-    setWeatherLocation.mutate(
-      trimmedWeatherLocation === '' ? null : trimmedWeatherLocation,
-    )
+    // Save the canonical name the geocoder confirmed ("Lisbon, Portugal") rather
+    // than the raw draft ("lisboa") whenever a matching preview exists, so what
+    // we persist is what the user saw confirmed.
+    const confirmed = previewForCurrent?.ok
+      ? previewForCurrent.location
+      : trimmedWeatherLocation
+    if (confirmed === '') {
+      setWeatherLocation.mutate(null)
+    } else {
+      setWeatherLocation.mutate(confirmed)
+      setWeatherLocationDraft(confirmed)
+    }
     setWeatherPreview(null)
   }
 
@@ -431,6 +444,11 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
         {!previewWeatherLocation.isPending && weatherLocationNotFound && (
           <p className="text-xs font-medium text-red-600">
             {messages.weatherLocation.notFound}
+          </p>
+        )}
+        {!previewWeatherLocation.isPending && weatherLocationUnverifiable && (
+          <p className="text-ink-500 text-xs">
+            {messages.weatherLocation.couldntCheck}
           </p>
         )}
         {savedWeatherLocation !== '' && (

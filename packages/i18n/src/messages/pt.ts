@@ -268,6 +268,7 @@ export const pt: Messages = {
     checking: 'Verificando…',
     found: 'Encontrado',
     notFound: 'Cidade não encontrada. Verifique a grafia.',
+    couldntCheck: 'Não deu para verificar agora — você ainda pode salvar.',
   },
   getStarted: {
     title: 'Comece por aqui',
