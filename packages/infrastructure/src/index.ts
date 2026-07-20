@@ -10,6 +10,8 @@ export { PrismaSubtaskRepository } from '@/database/prisma-subtask-repository'
 export { PrismaUserRepository } from '@/database/prisma-user-repository'
 export { PrismaListRepository } from '@/database/prisma-list-repository'
 export { PrismaRecurringTaskRepository } from '@/database/prisma-recurring-task-repository'
+export { PrismaHabitRepository } from '@/database/prisma-habit-repository'
+export { PrismaHabitLogRepository } from '@/database/prisma-habit-log-repository'
 export { PrismaShareLinkRepository } from '@/database/prisma-share-link-repository'
 export { PrismaMembershipRepository } from '@/database/prisma-membership-repository'
 export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verification-repository'
@@ -56,6 +58,16 @@ export {
   toRecurringTaskRecord,
   type RecurringTaskRecord,
 } from '@/database/recurring-task-record'
+export {
+  toDomainHabit,
+  toHabitRecord,
+  type HabitRecord,
+} from '@/database/habit-record'
+export {
+  toDomainHabitLog,
+  toHabitLogRecord,
+  type HabitLogRecord,
+} from '@/database/habit-log-record'
 export { renderEmail } from '@/email/render-email'
 export { type EmailTemplate, type RenderedEmail } from '@/email/email-message'
 export { ResendEmailSender } from '@/email/resend-email-sender'

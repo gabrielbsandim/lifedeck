@@ -37,6 +37,15 @@ export {
   type RecurrenceRule,
 } from '@/value-objects/recurrence-rule'
 export {
+  HABIT_CADENCE_KINDS,
+  validateHabitCadence,
+  isHabitScheduledOn,
+  weekdayOfCivilDate,
+  computeHabitStreak,
+  type HabitCadence,
+  type HabitCadenceKind,
+} from '@/value-objects/habit-cadence'
+export {
   CARRY_OVER_MODES,
   isCarryOverMode,
   type CarryOverMode,
@@ -111,6 +120,8 @@ export {
   RecurringTask,
   type RecurringTaskProps,
 } from '@/entities/recurring-task'
+export { Habit, type HabitProps } from '@/entities/habit'
+export { HabitLog, type HabitLogProps } from '@/entities/habit-log'
 export { ShareLink, type ShareLinkProps } from '@/entities/share-link'
 export { ListMember, type ListMemberProps } from '@/entities/list-member'
 export {

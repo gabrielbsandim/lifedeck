@@ -4,7 +4,7 @@ import {
   makeAssistantTools,
   type AssistantToolsDeps,
 } from '@/shared/make-assistant-tools'
-import { NotFoundError } from '@/errors/use-case-error'
+import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 
 const USER_ID = '11111111-1111-4111-8111-111111111111'
 const NOW = new Date('2026-07-19T12:00:00.000Z')
@@ -93,6 +93,23 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
         notes: [],
       },
     })) as unknown as AssistantToolsDeps['setAssistantProfile'],
+    createHabit: vi.fn(async () => ({
+      id: 'habit-1',
+    })) as unknown as AssistantToolsDeps['createHabit'],
+    listHabits: vi.fn(async () => [
+      {
+        id: 'habit-1',
+        title: 'Meditate',
+        currentStreak: 3,
+        doneToday: false,
+        scheduledToday: true,
+        active: true,
+      },
+    ]) as unknown as AssistantToolsDeps['listHabits'],
+    logHabit: vi.fn(async () => ({
+      currentStreak: 4,
+      doneToday: true,
+    })) as unknown as AssistantToolsDeps['logHabit'],
     ...overrides,
   }
   return { tools: makeAssistantTools(deps), deps }
@@ -434,6 +451,73 @@ describe('makeAssistantTools', () => {
     const result = await tools.getWeather({ location: 'Lisbon' })
     expect(deps.weather.getForecast).toBeDefined()
     expect(result).toEqual({ ok: false, reason: 'unavailable' })
+  })
+
+  it('lists habits as compact summaries', async () => {
+    const { tools } = build()
+
+    const { habits } = await tools.getHabits(USER_ID)
+
+    expect(habits).toEqual([
+      {
+        id: 'habit-1',
+        title: 'Meditate',
+        currentStreak: 3,
+        doneToday: false,
+        scheduledToday: true,
+        active: true,
+      },
+    ])
+  })
+
+  it('adds a habit through the use case', async () => {
+    const { tools, deps } = build()
+
+    const result = await tools.addHabit(USER_ID, {
+      title: 'Read',
+      cadence: { kind: 'daily' },
+    })
+
+    expect(result).toEqual({ id: 'habit-1', added: true })
+    expect(deps.createHabit).toHaveBeenCalledWith(USER_ID, {
+      title: 'Read',
+      cadence: { kind: 'daily' },
+      checkinHour: null,
+    })
+  })
+
+  it('reports { added: false } when the free habit cap is hit', async () => {
+    const createHabit = vi.fn(async () => {
+      throw new ForbiddenError('habit')
+    }) as unknown as AssistantToolsDeps['createHabit']
+    const { tools } = build({ createHabit })
+
+    expect(
+      await tools.addHabit(USER_ID, {
+        title: 'Read',
+        cadence: { kind: 'daily' },
+      }),
+    ).toEqual({ id: '', added: false })
+  })
+
+  it('rethrows a non-Forbidden error from addHabit', async () => {
+    const createHabit = vi.fn(async () => {
+      throw new Error('db down')
+    }) as unknown as AssistantToolsDeps['createHabit']
+    const { tools } = build({ createHabit })
+
+    await expect(
+      tools.addHabit(USER_ID, { title: 'Read', cadence: { kind: 'daily' } }),
+    ).rejects.toThrow('db down')
+  })
+
+  it('logs a habit and returns the refreshed streak', async () => {
+    const { tools, deps } = build()
+
+    const result = await tools.logHabit(USER_ID, 'habit-1')
+
+    expect(result).toEqual({ ok: true, currentStreak: 4, doneToday: true })
+    expect(deps.logHabit).toHaveBeenCalledWith(USER_ID, 'habit-1', {})
   })
 
   it('maps agenda events into the user local zone', async () => {

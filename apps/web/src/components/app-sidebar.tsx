@@ -17,6 +17,7 @@ type NavItem = {
     | '/analytics'
     | '/generate'
     | '/recurring'
+    | '/habits'
     | '/developers'
   label: string
   icon: ReactNode
@@ -106,6 +107,15 @@ export function AppSidebar() {
       icon: (
         <Icon>
           <path d="M17 2l4 4-4 4M21 6H8a4 4 0 0 0-4 4M7 22l-4-4 4-4M3 18h13a4 4 0 0 0 4-4" />
+        </Icon>
+      ),
+    },
+    {
+      href: '/habits',
+      label: messages.habits.manage,
+      icon: (
+        <Icon>
+          <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM9 12l2 2 4-4" />
         </Icon>
       ),
     },

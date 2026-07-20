@@ -47,6 +47,9 @@ function spyTools(overrides: Partial<AssistantTools> = {}): AssistantTools {
     deleteTask: method({ ok: true }),
     moveTaskToToday: method({ ok: true }),
     createList: method({ id: 'list-1' }),
+    getHabits: method({ habits: [] }),
+    addHabit: method({ id: 'habit-1', added: true }),
+    logHabit: method({ ok: true, currentStreak: 5, doneToday: true }),
     addSubtask: method({ id: 'sub-1' }),
     completeSubtask: method({ ok: true }),
     addEvent: method({ id: 'event-1' }),
@@ -172,6 +175,44 @@ describe('buildAssistantToolset', () => {
 
     await run(toolset.completeSubtask, { subtaskId: 's1' })
     expect(tools.completeSubtask).toHaveBeenCalledWith(USER_ID, 's1')
+  })
+
+  it('wires the habit tools through', async () => {
+    const tools = spyTools()
+    const toolset = buildAssistantToolset(tools, USER_ID)
+
+    await run(toolset.getHabits, {})
+    expect(tools.getHabits).toHaveBeenCalledWith(USER_ID)
+
+    await run(toolset.addHabit, {
+      title: 'Meditate',
+      cadence: { kind: 'daily' },
+    })
+    expect(tools.addHabit).toHaveBeenLastCalledWith(
+      USER_ID,
+      expect.objectContaining({
+        title: 'Meditate',
+        cadence: { kind: 'daily' },
+      }),
+    )
+
+    await run(toolset.addHabit, {
+      title: 'Run',
+      cadence: { kind: 'weekdays', weekdays: [1, 3] },
+      checkinHour: 7,
+    })
+    expect(tools.addHabit).toHaveBeenLastCalledWith(USER_ID, {
+      title: 'Run',
+      cadence: { kind: 'weekdays', weekdays: [1, 3] },
+      checkinHour: 7,
+    })
+
+    await run(toolset.logHabit, { habitId: 'h1', done: true })
+    expect(tools.logHabit).toHaveBeenLastCalledWith(
+      USER_ID,
+      'h1',
+      expect.objectContaining({ done: true }),
+    )
   })
 
   it('wires every calendar tool through', async () => {

@@ -28,6 +28,10 @@ import type { makeDeleteCalendarOccurrence } from '@/use-cases/delete-calendar-o
 import type { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
 import type { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
 import type { makeSetAssistantProfile } from '@/use-cases/set-assistant-profile'
+import type { makeCreateHabit } from '@/use-cases/create-habit'
+import type { makeListHabits } from '@/use-cases/list-habits'
+import type { makeLogHabit } from '@/use-cases/log-habit'
+import { ForbiddenError } from '@/errors/use-case-error'
 
 // Default heads-up (minutes) for an event the assistant creates without an
 // explicit reminder, so a WhatsApp-made event actually schedules an alert.
@@ -57,6 +61,9 @@ export type AssistantToolsDeps = {
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
   setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
   setAssistantProfile: ReturnType<typeof makeSetAssistantProfile>
+  createHabit: ReturnType<typeof makeCreateHabit>
+  listHabits: ReturnType<typeof makeListHabits>
+  logHabit: ReturnType<typeof makeLogHabit>
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -83,6 +90,9 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     deleteCalendarEvent,
     setWeatherLocation,
     setAssistantProfile,
+    createHabit,
+    listHabits,
+    logHabit,
   } = deps
 
   // The assistant emits offset-aware local ISO (e.g. ...-03:00); the calendar
@@ -235,6 +245,42 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     async createList(userId, title) {
       const list = await createList(userId, { title })
       return { id: list.id }
+    },
+    async getHabits(userId) {
+      const views = await listHabits(userId)
+      return {
+        habits: views.map(view => ({
+          id: view.id,
+          title: view.title,
+          currentStreak: view.currentStreak,
+          doneToday: view.doneToday,
+          scheduledToday: view.scheduledToday,
+          active: view.active,
+        })),
+      }
+    },
+    async addHabit(userId, input) {
+      // The free-plan single-habit cap surfaces as a defensive { added: false }
+      // so the agent can explain the limit instead of the turn erroring out.
+      try {
+        const habit = await createHabit(userId, {
+          title: input.title,
+          cadence: input.cadence,
+          checkinHour: input.checkinHour ?? null,
+        })
+        return { id: habit.id, added: true }
+      } catch (error) {
+        if (error instanceof ForbiddenError) return { id: '', added: false }
+        throw error
+      }
+    },
+    async logHabit(userId, habitId, input) {
+      const view = await logHabit(userId, habitId, input ?? {})
+      return {
+        ok: true,
+        currentStreak: view.currentStreak,
+        doneToday: view.doneToday,
+      }
     },
     async addSubtask(userId, taskId, title) {
       const subtask = await createSubtask(userId, taskId, { title })

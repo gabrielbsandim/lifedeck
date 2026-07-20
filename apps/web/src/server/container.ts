@@ -18,6 +18,13 @@ import {
   makeEnqueueDailyDigests,
   makeEnqueueDailyBriefs,
   makeSendDailyBrief,
+  makeEnqueueHabitCheckins,
+  makeSendHabitCheckin,
+  makeCreateHabit,
+  makeListHabits,
+  makeUpdateHabit,
+  makeDeleteHabit,
+  makeLogHabit,
   makeReconcileCalendars,
   makeRenewCalendarChannels,
   makeStartWhatsappPairing,
@@ -33,6 +40,7 @@ import {
   CALENDAR_WATCH_JOB,
   DAILY_DIGEST_JOB,
   DAILY_BRIEF_JOB,
+  HABIT_CHECKIN_JOB,
   REMINDER_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
@@ -117,6 +125,8 @@ import {
   type OAuthProvider,
   type PasswordHasher,
   type RecurringTaskRepository,
+  type HabitRepository,
+  type HabitLogRepository,
   type ScheduledJobRepository,
   type ShareLinkRepository,
   type SubscriptionRepository,
@@ -155,6 +165,8 @@ import {
   PrismaMembershipRepository,
   PrismaNotificationRepository,
   PrismaRecurringTaskRepository,
+  PrismaHabitRepository,
+  PrismaHabitLogRepository,
   PrismaScheduledJobRepository,
   PrismaShareLinkRepository,
   PrismaSubscriptionRepository,
@@ -242,6 +254,12 @@ type Container = {
   listRecurringTasks: ReturnType<typeof makeListRecurringTasks>
   updateRecurringTask: ReturnType<typeof makeUpdateRecurringTask>
   deleteRecurringTask: ReturnType<typeof makeDeleteRecurringTask>
+  createHabit: ReturnType<typeof makeCreateHabit>
+  listHabits: ReturnType<typeof makeListHabits>
+  updateHabit: ReturnType<typeof makeUpdateHabit>
+  deleteHabit: ReturnType<typeof makeDeleteHabit>
+  logHabit: ReturnType<typeof makeLogHabit>
+  sendHabitCheckin: ReturnType<typeof makeSendHabitCheckin>
   createShareLink: ReturnType<typeof makeCreateShareLink>
   inviteToList: ReturnType<typeof makeInviteToList>
   listShareLinks: ReturnType<typeof makeListShareLinks>
@@ -291,6 +309,7 @@ type Container = {
   runScheduledFanOut: () => Promise<{
     digests: number
     briefs: number
+    checkins: number
     reconciled: number
     renewed: number
   }>
@@ -306,6 +325,8 @@ type Repositories = {
   users: UserRepository
   lists: ListRepository
   recurringTasks: RecurringTaskRepository
+  habits: HabitRepository
+  habitLogs: HabitLogRepository
   shareLinks: ShareLinkRepository
   memberships: MembershipRepository
   emailVerifications: EmailVerificationRepository
@@ -346,6 +367,8 @@ function build(
     users,
     lists,
     recurringTasks,
+    habits,
+    habitLogs,
     shareLinks,
     memberships,
     emailVerifications,
@@ -489,6 +512,12 @@ function build(
     jobQueue,
     clock,
   })
+  const enqueueHabitCheckins = makeEnqueueHabitCheckins({
+    habits,
+    users,
+    jobQueue,
+    clock,
+  })
   const reconcileCalendars = makeReconcileCalendars({
     calendarConnections,
     jobQueue,
@@ -513,6 +542,9 @@ function build(
       },
       [DAILY_BRIEF_JOB]: async payload => {
         await sendDailyBrief(String(payload.userId))
+      },
+      [HABIT_CHECKIN_JOB]: async payload => {
+        await sendHabitCheckin(String(payload.userId), String(payload.habitId))
       },
       [CALENDAR_PULL_JOB]: async payload => {
         await pullCalendarChanges(String(payload.userId))
@@ -540,15 +572,17 @@ function build(
     },
   })
   const runScheduledFanOut = async () => {
-    const [digests, briefs, reconciled, renewed] = await Promise.all([
+    const [digests, briefs, checkins, reconciled, renewed] = await Promise.all([
       enqueueDailyDigests(),
       enqueueDailyBriefs(),
+      enqueueHabitCheckins(),
       reconcileCalendars(),
       renewCalendarChannels(),
     ])
     return {
       digests: digests.enqueued,
       briefs: briefs.enqueued,
+      checkins: checkins.enqueued,
       reconciled: reconciled.enqueued,
       renewed: renewed.enqueued,
     }
@@ -658,6 +692,35 @@ function build(
       : undefined,
   })
 
+  const createHabit = makeCreateHabit({
+    habits,
+    users,
+    entitlements: entitlementService,
+    ids,
+    clock,
+  })
+  const listHabits = makeListHabits({ habits, habitLogs, users, clock })
+  const updateHabit = makeUpdateHabit({ habits, habitLogs, users, clock })
+  const deleteHabit = makeDeleteHabit({ habits })
+  const logHabit = makeLogHabit({ habits, habitLogs, users, ids, clock })
+  const checkinTemplateName =
+    process.env.WHATSAPP_TEMPLATE_HABIT_CHECKIN?.trim()
+  const sendHabitCheckin = makeSendHabitCheckin({
+    habits,
+    habitLogs,
+    users,
+    entitlements: entitlementService,
+    sendProactiveMessage,
+    sendGuard: proactiveSendGuard,
+    clock,
+    checkinTemplate: checkinTemplateName
+      ? {
+          name: checkinTemplateName,
+          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
+        }
+      : undefined,
+  })
+
   const assistantTools = makeAssistantTools({
     users,
     clock,
@@ -679,6 +742,9 @@ function build(
     deleteCalendarEvent,
     setWeatherLocation,
     setAssistantProfile,
+    createHabit,
+    listHabits,
+    logHabit,
   })
   const agent = createAgentRunner(assistantTools)
   return {
@@ -764,6 +830,12 @@ function build(
     listRecurringTasks: makeListRecurringTasks({ recurringTasks }),
     updateRecurringTask: makeUpdateRecurringTask({ recurringTasks }),
     deleteRecurringTask: makeDeleteRecurringTask({ recurringTasks }),
+    createHabit,
+    listHabits,
+    updateHabit,
+    deleteHabit,
+    logHabit,
+    sendHabitCheckin,
     createShareLink: makeCreateShareLink({
       shareLinks,
       lists,
@@ -999,6 +1071,8 @@ export function getContainer(): Container {
         users: new PrismaUserRepository(db),
         lists: new PrismaListRepository(db),
         recurringTasks: new PrismaRecurringTaskRepository(db),
+        habits: new PrismaHabitRepository(db),
+        habitLogs: new PrismaHabitLogRepository(db),
         shareLinks: new PrismaShareLinkRepository(db),
         memberships: new PrismaMembershipRepository(db),
         emailVerifications: new PrismaEmailVerificationRepository(db),

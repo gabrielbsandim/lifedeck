@@ -32,6 +32,22 @@ export type AssistantListSummary = {
   title: string
 }
 
+// How often a habit is expected. Mirrors the domain HabitCadence so the agent
+// can create a habit with any of the three shapes.
+export type AssistantHabitCadence =
+  | { kind: 'daily' }
+  | { kind: 'weekdays'; weekdays: number[] }
+  | { kind: 'times_per_week'; count: number }
+
+export type AssistantHabitSummary = {
+  id: string
+  title: string
+  currentStreak: number
+  doneToday: boolean
+  scheduledToday: boolean
+  active: boolean
+}
+
 // Grounds the assistant in the user's local time so it resolves "tomorrow" and
 // sets clock times in the right zone. Without it the model has no anchor and
 // guesses the date and drifts times by the UTC offset.
@@ -133,6 +149,22 @@ export interface AssistantTools {
   ): Promise<{ ok: boolean }>
   deleteTask(userId: string, taskId: string): Promise<{ ok: boolean }>
   moveTaskToToday(userId: string, taskId: string): Promise<{ ok: boolean }>
+
+  // Habits
+  getHabits(userId: string): Promise<{ habits: AssistantHabitSummary[] }>
+  addHabit(
+    userId: string,
+    input: {
+      title: string
+      cadence: AssistantHabitCadence
+      checkinHour?: number | null
+    },
+  ): Promise<{ id: string; added: boolean }>
+  logHabit(
+    userId: string,
+    habitId: string,
+    input?: { date?: string; done?: boolean },
+  ): Promise<{ ok: boolean; currentStreak: number; doneToday: boolean }>
 
   // Lists
   createList(userId: string, title: string): Promise<{ id: string }>

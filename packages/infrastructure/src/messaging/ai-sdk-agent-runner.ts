@@ -48,6 +48,8 @@ Default weather location: the current context tells you whether the user has sav
 
 Memory: you keep a small, durable memory of the user (home, work, wake and quiet hours, the people they mention, and lasting preferences). When the user shares a fact that will still be true next week ("I work downtown", "my daughter is called Ana", "I hate early meetings", "I usually wake up at 7"), save it with updateAssistantMemory, then use it to personalize later answers without asking again. Only save lasting facts, never one-off details or anything sensitive (passwords, health, financial, documents). Confirm briefly what you saved. The current context below tells you what you already remember.
 
+Habits: the user can track habits, each with a cadence (every day, specific weekdays, or a number of times per week) and a running streak. Use getHabits to see their habits, streaks, and whether each is already done today; addHabit to start tracking a new one (ask for the cadence if unclear); and logHabit to mark one done when the user says they did it ("did my run today", "meditated"). Always call getHabits first to find a habit's id before logging it. Answer streak questions ("how's my reading streak?") from getHabits, and celebrate a good streak in one short phrase.
+
 Never expose internal details to the user: do not mention tool names (such as getAgenda), ids, or implementation limits. Speak naturally about what you can see and do. If you cannot find something, say so plainly and offer to check a specific date or period.
 
 Time handling: always work in the user's local time zone, given below with the current local date and time. Resolve relative dates like "today", "tomorrow", or "this Saturday" against that current date. When you set event times, output ISO 8601 that includes the user's UTC offset (for example 2026-07-18T11:30:00-03:00); never send a bare UTC "Z" time for a local wall-clock time. Agenda times you read are already in the user's local time.
@@ -238,6 +240,67 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
         title: z.string().min(1).max(120).describe('The list title.'),
       }),
       execute: async ({ title }) => tools.createList(userId, title),
+    }),
+    getHabits: tool({
+      description:
+        "List the user's habits with their ids, current streak, and whether each is done today and scheduled today. Use to answer streak questions and to find a habit's id before logging it.",
+      inputSchema: z.object({}),
+      execute: async () => tools.getHabits(userId),
+    }),
+    addHabit: tool({
+      description:
+        'Start tracking a habit. Cadence is daily, specific weekdays, or a number of times per week. Optionally set a local hour for a daily check-in.',
+      inputSchema: z.object({
+        title: z
+          .string()
+          .min(1)
+          .max(120)
+          .describe('The habit, e.g. "Meditate".'),
+        cadence: z
+          .discriminatedUnion('kind', [
+            z.object({ kind: z.literal('daily') }),
+            z.object({
+              kind: z.literal('weekdays'),
+              weekdays: z
+                .array(z.number().int().min(0).max(6))
+                .min(1)
+                .describe('Weekdays, 0=Sunday .. 6=Saturday.'),
+            }),
+            z.object({
+              kind: z.literal('times_per_week'),
+              count: z.number().int().min(1).max(7),
+            }),
+          ])
+          .describe('How often the habit is expected.'),
+        checkinHour: z
+          .number()
+          .int()
+          .min(0)
+          .max(23)
+          .nullish()
+          .describe(
+            'Local hour (0-23) for a proactive check-in. Omit for none.',
+          ),
+      }),
+      execute: async ({ title, cadence, checkinHour }) =>
+        tools.addHabit(userId, { title, cadence, checkinHour }),
+    }),
+    logHabit: tool({
+      description:
+        'Mark a habit done for a day (or un-mark it with done=false). Defaults to today. Get the habitId from getHabits first. Use when the user says they did a habit.',
+      inputSchema: z.object({
+        habitId: z.string().uuid().describe('Habit id from getHabits.'),
+        date: z
+          .string()
+          .optional()
+          .describe('Civil date YYYY-MM-DD. Omit for today.'),
+        done: z
+          .boolean()
+          .optional()
+          .describe('false to un-mark a day logged by mistake.'),
+      }),
+      execute: async ({ habitId, date, done }) =>
+        tools.logHabit(userId, habitId, { date, done }),
     }),
     addSubtask: tool({
       description: 'Add a subtask to an existing task.',

@@ -63,6 +63,7 @@ model User {
   memberships       ListMember[]
   assignedTo        Task[]             @relation("TaskAssignee")
   recurringTasks    RecurringTask[]    @relation("RecurringTaskOwner")
+  habits            Habit[]            @relation("HabitOwner")
   emailVerification EmailVerification?
   notifications     Notification[]
   apiKeys           ApiKey[]
@@ -191,6 +192,35 @@ model RecurringTask {
 
   @@index([ownerId, createdAt])
   @@map("recurring_tasks")
+}
+
+model Habit {
+  id          String   @id @default(uuid())
+  ownerId     String   @map("owner_id")
+  title       String
+  cadence     Json
+  checkinHour Int?     @map("checkin_hour")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  owner User       @relation("HabitOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  logs  HabitLog[]
+
+  @@index([ownerId])
+  @@index([active, checkinHour])
+  @@map("habits")
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  habitId   String   @map("habit_id")
+  date      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@map("habit_logs")
 }
 
 model ListMember {

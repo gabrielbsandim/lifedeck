@@ -74,6 +74,35 @@ export type Messages = {
     delete: string
     back: string
   }
+  habits: {
+    manage: string
+    title: string
+    subtitle: string
+    add: string
+    empty: string
+    titlePlaceholder: string
+    cadence: string
+    daily: string
+    weekdays: string
+    timesPerWeek: string
+    timesPerWeekUnit: string
+    checkin: string
+    checkinHint: string
+    checkinNone: string
+    streak: string
+    markDone: string
+    done: string
+    paused: string
+    pause: string
+    resume: string
+    save: string
+    cancel: string
+    edit: string
+    delete: string
+    upsellTitle: string
+    upsellBody: string
+    upsellCta: string
+  }
   nav: {
     today: string
     lists: string
@@ -81,6 +110,7 @@ export type Messages = {
     generate: string
     developers: string
     calendar: string
+    habits: string
     profile: string
     menu: string
   }

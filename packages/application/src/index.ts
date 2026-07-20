@@ -10,6 +10,8 @@ export type {
 export type { UserRepository } from '@/ports/user-repository'
 export type { ListRepository, ListPageParams } from '@/ports/list-repository'
 export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
+export type { HabitRepository } from '@/ports/habit-repository'
+export type { HabitLogRepository } from '@/ports/habit-log-repository'
 export type { Page, PageParams, PageCursor } from '@/pagination'
 export {
   DEFAULT_PAGE_LIMIT,
@@ -111,6 +113,17 @@ export {
   type UpdateRecurringTaskInput,
   type RecurringTaskView,
 } from '@/dtos/recurring-task-dto'
+export {
+  habitCadenceSchema,
+  createHabitSchema,
+  updateHabitSchema,
+  logHabitSchema,
+  habitViewSchema,
+  type CreateHabitInput,
+  type UpdateHabitInput,
+  type LogHabitInput,
+  type HabitView,
+} from '@/dtos/habit-dto'
 export {
   createShareLinkSchema,
   inviteToListSchema,
@@ -270,6 +283,14 @@ export {
   type BriefTemplate,
 } from '@/use-cases/send-daily-brief'
 export {
+  makeEnqueueHabitCheckins,
+  HABIT_CHECKIN_JOB,
+} from '@/use-cases/enqueue-habit-checkins'
+export {
+  makeSendHabitCheckin,
+  type CheckinTemplate,
+} from '@/use-cases/send-habit-checkin'
+export {
   composeDailyBrief,
   type DailyBriefData,
   type DailyBriefEvent,
@@ -385,6 +406,7 @@ export { summarizeSubtasks } from '@/mappers/subtask-summary'
 export { toUserView } from '@/mappers/user-mapper'
 export { toListView } from '@/mappers/list-mapper'
 export { toRecurringTaskView } from '@/mappers/recurring-task-mapper'
+export { toHabitView } from '@/mappers/habit-mapper'
 export { toMemberView } from '@/mappers/member-mapper'
 export { makeCreateTask } from '@/use-cases/create-task'
 export { makeUpdateTask } from '@/use-cases/update-task'
@@ -438,6 +460,11 @@ export { makeCreateRecurringTask } from '@/use-cases/create-recurring-task'
 export { makeListRecurringTasks } from '@/use-cases/list-recurring-tasks'
 export { makeUpdateRecurringTask } from '@/use-cases/update-recurring-task'
 export { makeDeleteRecurringTask } from '@/use-cases/delete-recurring-task'
+export { makeCreateHabit } from '@/use-cases/create-habit'
+export { makeListHabits } from '@/use-cases/list-habits'
+export { makeUpdateHabit } from '@/use-cases/update-habit'
+export { makeDeleteHabit } from '@/use-cases/delete-habit'
+export { makeLogHabit } from '@/use-cases/log-habit'
 export { makeCreateShareLink } from '@/use-cases/create-share-link'
 export { makeInviteToList } from '@/use-cases/invite-to-list'
 export { makeListShareLinks } from '@/use-cases/list-share-links'
@@ -485,6 +512,8 @@ export { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
 export { FakeListGenerator } from '@/testing/fake-list-generator'
 export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
+export { InMemoryHabitRepository } from '@/testing/in-memory-habit-repository'
+export { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 export { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'

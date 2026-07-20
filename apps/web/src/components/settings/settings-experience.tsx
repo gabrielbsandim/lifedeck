@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import type { Route } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@lifedeck/ui'
@@ -10,6 +11,7 @@ import { useI18n } from '@/lib/i18n/messages-provider'
 import type { Messages } from '@lifedeck/i18n'
 import {
   ChartIcon,
+  CheckSquareIcon,
   ChevronRightIcon,
   CodeIcon,
   DeckGlyph,
@@ -304,6 +306,12 @@ function MobileHub({
             iconClassName="bg-success"
             label={messages.recurring.manage}
             href="/recurring"
+          />
+          <HubRow
+            icon={<CheckSquareIcon size={16} />}
+            iconClassName="bg-brand-600"
+            label={messages.habits.manage}
+            href={'/habits' as Route}
           />
           <HubRow
             icon={<CodeIcon size={16} />}
