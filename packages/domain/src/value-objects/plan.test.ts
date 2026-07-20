@@ -31,11 +31,14 @@ describe('plan', () => {
     expect(entitlementsForPlan('pro')).toEqual([
       'calendarSync',
       'whatsappAssistant',
+      'proactiveMessaging',
     ])
     expect(entitlementsForPlan('premium')).toEqual([
       'calendarSync',
       'whatsappAssistant',
       'premiumModel',
+      'proactiveMessaging',
+      'smartScheduling',
     ])
   })
 
@@ -45,6 +48,16 @@ describe('plan', () => {
     expect(planGrants('pro', 'calendarSync')).toBe(true)
     expect(planGrants('pro', 'premiumModel')).toBe(false)
     expect(planGrants('premium', 'premiumModel')).toBe(true)
+  })
+
+  it('gates proactive messaging to paid plans and smart scheduling to premium', () => {
+    expect(planGrants('free', 'proactiveMessaging')).toBe(false)
+    expect(planGrants('pro', 'proactiveMessaging')).toBe(true)
+    expect(planGrants('premium', 'proactiveMessaging')).toBe(true)
+
+    expect(planGrants('free', 'smartScheduling')).toBe(false)
+    expect(planGrants('pro', 'smartScheduling')).toBe(false)
+    expect(planGrants('premium', 'smartScheduling')).toBe(true)
   })
 
   it('exposes a rising credit quota per plan', () => {

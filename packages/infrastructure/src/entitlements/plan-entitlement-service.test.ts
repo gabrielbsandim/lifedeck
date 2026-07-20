@@ -23,6 +23,8 @@ describe('PlanEntitlementService', () => {
       'calendarSync',
       'whatsappAssistant',
       'premiumModel',
+      'proactiveMessaging',
+      'smartScheduling',
     ])
   })
 

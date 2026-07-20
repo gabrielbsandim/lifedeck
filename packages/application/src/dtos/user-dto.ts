@@ -95,7 +95,15 @@ export const userViewSchema = z.object({
   weatherLocation: z.string().nullable(),
   plan: z.enum(['free', 'pro', 'premium']).optional(),
   entitlements: z
-    .array(z.enum(['calendarSync', 'whatsappAssistant', 'premiumModel']))
+    .array(
+      z.enum([
+        'calendarSync',
+        'whatsappAssistant',
+        'premiumModel',
+        'proactiveMessaging',
+        'smartScheduling',
+      ]),
+    )
     .optional(),
   createdAt: z.string().datetime(),
 })

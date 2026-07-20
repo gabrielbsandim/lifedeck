@@ -32,11 +32,17 @@ const PLAN_CATALOG: Record<Plan, PlanDefinition> = {
     quota: { fiveHourCredits: 15, weeklyCredits: 50 },
   },
   pro: {
-    entitlements: ['calendarSync', 'whatsappAssistant'],
+    entitlements: ['calendarSync', 'whatsappAssistant', 'proactiveMessaging'],
     quota: { fiveHourCredits: 40, weeklyCredits: 200 },
   },
   premium: {
-    entitlements: ['calendarSync', 'whatsappAssistant', 'premiumModel'],
+    entitlements: [
+      'calendarSync',
+      'whatsappAssistant',
+      'premiumModel',
+      'proactiveMessaging',
+      'smartScheduling',
+    ],
     quota: { fiveHourCredits: 80, weeklyCredits: 500 },
   },
 }
