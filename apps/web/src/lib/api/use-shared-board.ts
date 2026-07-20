@@ -20,7 +20,7 @@ export function useSharedBoard(token: string) {
         `/api/v1/shared/${encodeURIComponent(token)}`,
       ),
     retry: false,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   })
 }
 

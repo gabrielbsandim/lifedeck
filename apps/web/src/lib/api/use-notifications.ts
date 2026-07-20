@@ -8,7 +8,7 @@ export function useNotifications() {
   return useQuery({
     queryKey: notificationsKey,
     queryFn: () => apiRequest<NotificationListView>('/api/v1/notifications'),
-    refetchInterval: 60_000,
+    refetchInterval: 20_000,
   })
 }
 

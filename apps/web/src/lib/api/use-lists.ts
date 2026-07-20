@@ -133,7 +133,7 @@ export function useListTasks(id: string) {
     queryKey: listTasksKey(id),
     queryFn: () => apiRequest<TaskView[]>(`/api/v1/lists/${id}/tasks`),
     enabled: id !== '',
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   })
 }
 
