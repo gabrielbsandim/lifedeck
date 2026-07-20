@@ -402,6 +402,10 @@ export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
 export { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
 export { makePreviewWeatherLocation } from '@/use-cases/preview-weather-location'
+export {
+  makeAssistantTools,
+  type AssistantToolsDeps,
+} from '@/shared/make-assistant-tools'
 export { makeSetReminderPreferences } from '@/use-cases/set-reminder-preferences'
 export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
 export { makeRemoveAvatar } from '@/use-cases/remove-avatar'
