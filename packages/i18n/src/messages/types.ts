@@ -246,6 +246,13 @@ export type Messages = {
     settingHint: string
     useDetected: string
   }
+  weatherLocation: {
+    settingLabel: string
+    settingHint: string
+    placeholder: string
+    save: string
+    clear: string
+  }
   getStarted: {
     title: string
     subtitle: string

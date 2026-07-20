@@ -8,6 +8,7 @@ import {
   useSetCarryOverMode,
   useSetReminderPreferences,
   useSetTimezone,
+  useSetWeatherLocation,
   useSignOut,
   useSyncTimezone,
   useUploadAvatar,
@@ -33,6 +34,7 @@ const USER = {
   carryOverMode: 'manual' as const,
   reminderEmail: false,
   reminderWhatsapp: true,
+  weatherLocation: null,
   createdAt: '2026-06-22T10:00:00.000Z',
 }
 
@@ -81,6 +83,35 @@ describe('account hooks', () => {
       '/api/v1/account/reminders',
       expect.objectContaining({ method: 'PATCH' }),
     )
+  })
+
+  it('saves the default weather location via PATCH', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ...USER, weatherLocation: 'Mogi das Cruzes' },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetWeatherLocation(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync('Mogi das Cruzes')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/account/weather-location',
+      expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('clears the default weather location with null', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ...USER, weatherLocation: null },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetWeatherLocation(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync(null)
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toEqual({
+      location: null,
+    })
   })
 
   it('uploads an avatar via POST with the image content-type', async () => {

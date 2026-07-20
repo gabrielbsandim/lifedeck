@@ -258,6 +258,14 @@ export const es: Messages = {
       'Detectada desde tu dispositivo. Tus listas diarias, resumen y rachas usan esta zona.',
     useDetected: 'Usar la zona del dispositivo',
   },
+  weatherLocation: {
+    settingLabel: 'Ubicación predeterminada del clima',
+    settingHint:
+      'El asistente de WhatsApp la usa cuando preguntas por el clima sin indicar un lugar.',
+    placeholder: 'ej.: Lisboa',
+    save: 'Guardar',
+    clear: 'Borrar',
+  },
   getStarted: {
     title: 'Empieza aquí',
     subtitle:

@@ -95,6 +95,7 @@ import {
   makeSetCarryOverMode,
   makeSetReminderPreferences,
   makeSetTimezone,
+  makeSetWeatherLocation,
   makeSetAvatar,
   makeRemoveAvatar,
   makeSignInWithEmail,
@@ -231,6 +232,7 @@ type Container = {
   setCarryOverMode: ReturnType<typeof makeSetCarryOverMode>
   setReminderPreferences: ReturnType<typeof makeSetReminderPreferences>
   setTimezone: ReturnType<typeof makeSetTimezone>
+  setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
   setAvatar: ReturnType<typeof makeSetAvatar>
   removeAvatar: ReturnType<typeof makeRemoveAvatar>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
@@ -854,6 +856,7 @@ function build(
     setCarryOverMode: makeSetCarryOverMode({ users }),
     setReminderPreferences: makeSetReminderPreferences({ users }),
     setTimezone: makeSetTimezone({ users }),
+    setWeatherLocation: makeSetWeatherLocation({ users }),
     setAvatar: makeSetAvatar({ users, fileStorage }),
     removeAvatar: makeRemoveAvatar({ users, fileStorage }),
     createRecurringTask: makeCreateRecurringTask({

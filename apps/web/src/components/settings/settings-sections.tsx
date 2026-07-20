@@ -20,6 +20,7 @@ import {
   useSetCarryOverMode,
   useSetReminderPreferences,
   useSetTimezone,
+  useSetWeatherLocation,
   useSignOut,
   useUploadAvatar,
 } from '@/lib/api/use-account'
@@ -247,9 +248,21 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
   const setCarryOverMode = useSetCarryOverMode()
   const setReminders = useSetReminderPreferences()
   const setTimezone = useSetTimezone()
+  const setWeatherLocation = useSetWeatherLocation()
 
   const timeZones = useMemo(() => listTimeZones(user.timezone), [user.timezone])
   const detectedZone = browserTimeZone()
+
+  const [weatherLocation, setWeatherLocationDraft] = useState(
+    user.weatherLocation ?? '',
+  )
+  const savedWeatherLocation = user.weatherLocation ?? ''
+  const weatherLocationDirty = weatherLocation.trim() !== savedWeatherLocation
+  const saveWeatherLocation = () => {
+    const trimmed = weatherLocation.trim()
+    if (trimmed === savedWeatherLocation) return
+    setWeatherLocation.mutate(trimmed === '' ? null : trimmed)
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -333,6 +346,53 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
         )}
         <p className="text-ink-500 text-xs leading-relaxed">
           {messages.timezone.settingHint}
+        </p>
+      </SectionCard>
+
+      <SectionCard className="flex flex-col gap-2.5">
+        <span className="text-ink-900 text-sm font-semibold">
+          {messages.weatherLocation.settingLabel}
+        </span>
+        <form
+          className="flex max-w-md flex-wrap items-center gap-2"
+          onSubmit={event => {
+            event.preventDefault()
+            saveWeatherLocation()
+          }}
+        >
+          <input
+            type="text"
+            value={weatherLocation}
+            maxLength={160}
+            onChange={event => setWeatherLocationDraft(event.target.value)}
+            disabled={setWeatherLocation.isPending}
+            placeholder={messages.weatherLocation.placeholder}
+            aria-label={messages.weatherLocation.settingLabel}
+            className="border-line text-ink-700 focus:border-brand-300 h-[42px] min-w-0 flex-1 rounded-xl border bg-white px-3.5 text-sm outline-none"
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={!weatherLocationDirty || setWeatherLocation.isPending}
+          >
+            {messages.weatherLocation.save}
+          </Button>
+        </form>
+        {savedWeatherLocation !== '' && (
+          <button
+            type="button"
+            onClick={() => {
+              setWeatherLocationDraft('')
+              setWeatherLocation.mutate(null)
+            }}
+            disabled={setWeatherLocation.isPending}
+            className="text-brand-600 self-start text-[13px] font-semibold"
+          >
+            {messages.weatherLocation.clear}
+          </button>
+        )}
+        <p className="text-ink-500 text-xs leading-relaxed">
+          {messages.weatherLocation.settingHint}
         </p>
       </SectionCard>
     </div>

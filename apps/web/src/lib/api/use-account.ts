@@ -48,6 +48,20 @@ export function useSetReminderPreferences() {
   })
 }
 
+export function useSetWeatherLocation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    // null clears the saved default place; the API also treats a blank string
+    // as a clear.
+    mutationFn: (location: string | null) =>
+      apiRequest<UserView>('/api/v1/account/weather-location', {
+        method: 'PATCH',
+        body: JSON.stringify({ location }),
+      }),
+    onSuccess: user => queryClient.setQueryData(sessionKey, user),
+  })
+}
+
 function timezonePinKey(userId: string): string {
   return `lifedeck.tz.pinned.${userId}`
 }

@@ -77,6 +77,7 @@ export {
   carryOverModeSchema,
   timezoneSchema,
   reminderPreferencesSchema,
+  weatherLocationSchema,
   userViewSchema,
   type GuestSignInInput,
   type RegisterInput,
@@ -86,6 +87,7 @@ export {
   type RenameUserInput,
   type CarryOverModeInput,
   type TimezoneInput,
+  type WeatherLocationInput,
   type UserView,
 } from '@/dtos/user-dto'
 export {
@@ -395,6 +397,7 @@ export {
 export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
+export { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
 export { makeSetReminderPreferences } from '@/use-cases/set-reminder-preferences'
 export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
 export { makeRemoveAvatar } from '@/use-cases/remove-avatar'

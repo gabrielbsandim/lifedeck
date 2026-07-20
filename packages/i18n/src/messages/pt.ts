@@ -258,6 +258,14 @@ export const pt: Messages = {
       'Detectado pelo seu dispositivo. Suas listas diárias, resumo e sequências usam este fuso.',
     useDetected: 'Usar o fuso do dispositivo',
   },
+  weatherLocation: {
+    settingLabel: 'Local padrão do tempo',
+    settingHint:
+      'O assistente do WhatsApp usa este local quando você pergunta sobre o tempo sem dizer a cidade.',
+    placeholder: 'ex.: Mogi das Cruzes',
+    save: 'Salvar',
+    clear: 'Limpar',
+  },
   getStarted: {
     title: 'Comece por aqui',
     subtitle:

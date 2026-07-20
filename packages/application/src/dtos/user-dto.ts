@@ -63,6 +63,14 @@ export const reminderPreferencesSchema = z.object({
 
 export type ReminderPreferencesInput = z.infer<typeof reminderPreferencesSchema>
 
+// null (or a blank string, which the domain normalizes away) clears the saved
+// default place used for weather questions.
+export const weatherLocationSchema = z.object({
+  location: z.string().max(160).nullable(),
+})
+
+export type WeatherLocationInput = z.infer<typeof weatherLocationSchema>
+
 export const userViewSchema = z.object({
   id: z.string().uuid(),
   displayName: z.string(),
@@ -76,6 +84,7 @@ export const userViewSchema = z.object({
   carryOverMode: z.enum(['manual', 'auto']),
   reminderEmail: z.boolean(),
   reminderWhatsapp: z.boolean(),
+  weatherLocation: z.string().nullable(),
   plan: z.enum(['free', 'pro', 'premium']).optional(),
   entitlements: z
     .array(z.enum(['calendarSync', 'whatsappAssistant', 'premiumModel']))

@@ -254,6 +254,14 @@ export const en: Messages = {
       'Detected from your device. Your daily lists, digest and streaks use this zone.',
     useDetected: 'Use device time zone',
   },
+  weatherLocation: {
+    settingLabel: 'Default weather location',
+    settingHint:
+      'The WhatsApp assistant uses this when you ask about the weather without naming a place.',
+    placeholder: 'e.g. Lisbon',
+    save: 'Save',
+    clear: 'Clear',
+  },
   getStarted: {
     title: 'Get started',
     subtitle: 'Two quick steps to unlock reminders and the WhatsApp assistant.',
