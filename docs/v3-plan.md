@@ -331,7 +331,38 @@ strictly rate-limited (≤1 nudge/day), tuned before adding more.
 
 ---
 
-## 8. V3-5 — Habits & goals with streaks
+## 8. V3-5 — Habits & goals with streaks — SHIPPED
+
+Shipped: a `Habit` entity + `HabitCadence` VO (`daily` / specific `weekdays` /
+`times_per_week`) + `HabitLog` (one completion mark per civil date), with a pure,
+cadence-aware `computeHabitStreak` (day streaks for daily/weekdays, week streaks
+for times-per-week, with a grace day/week for the current period). Migration
+`23_habits` adds `habits` + `habit_logs`; both prisma repos are coverage-excluded
+like the others, the domain/use-cases are fully tested. CRUD + `logHabit`
+(idempotent per day, un-log with `done:false`) + a streak-aware `HabitView`;
+`createHabit` enforces the **Free single-habit cap** via the plan (paid is
+unlimited). The agent gained `getHabits` / `addHabit` / `logHabit` (system-prompt
+block included), so WhatsApp drives it ("done with the gym today", "how's my
+reading streak?"). An hourly `enqueueHabitCheckins` sweep (added to
+`runScheduledFanOut`, matches each habit's `checkinHour` against the owner's local
+hour) → `habit-checkin` job → `sendHabitCheckin`, which gates on
+`proactiveMessaging`, skips days the cadence isn't due or the habit is already
+logged, reuses the V3-3 `ProactiveSendGuard` cap, and delivers via the V3-2
+`ProactiveMessenger` with the `habit_checkin` template
+(`WHATSAPP_TEMPLATE_HABIT_CHECKIN`, single param = habit title) out of session;
+the check-in text is template-composed (inlined en/pt/es), so it burns no AI
+credits. Web: a Habits screen (list + streak badges + one-tap "done today" +
+cadence/check-in form) with a Free upsell, plus sidebar + mobile-hub nav, in
+en/pt/es. Tested across domain, use-cases, tools, sweep, and the web hook; 95%
+gate green.
+
+**Decisions.** Habit CRUD is baseline with a **1-habit Free cap** enforced in the
+use case (no new entitlement); proactive check-ins gate on the existing
+`proactiveMessaging` (Pro+). The check-in is template-composed, not LLM-composed
+(no credit cost), so it shares the brief's `ProactiveSendGuard` rather than the
+AI `UsageEvent` ledger. Habit REST routes stay out of the scoped web
+`coverageInclude` (the hook in `src/lib` is covered; routes join the untested-route
+follow-up).
 
 First-class habits the assistant tracks and checks in on, reusing the streak math.
 
