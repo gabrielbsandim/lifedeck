@@ -143,6 +143,7 @@ describe('handleInboundWhatsApp', () => {
       message: 'buy milk',
       history: [],
       model: 'flash',
+      entitlements: ['whatsappAssistant'],
     })
     expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Added milk.')
     const stored = await ctx.conversations.load(ID.user)
@@ -150,6 +151,21 @@ describe('handleInboundWhatsApp', () => {
       { role: 'user', content: 'buy milk' },
       { role: 'assistant', content: 'Added milk.' },
     ])
+  })
+
+  it('passes the plan entitlements to the agent so tools can be gated', async () => {
+    const ctx = setup({
+      grants: ['whatsappAssistant', 'calendarSync', 'smartScheduling'],
+    })
+    await verified(ctx.channelIdentities)
+
+    await ctx.handleInboundWhatsApp({ from: FROM, kind: 'text', text: 'hi' })
+
+    expect(ctx.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entitlements: ['whatsappAssistant', 'calendarSync', 'smartScheduling'],
+      }),
+    )
   })
 
   it('falls back to a confirmation when the model returns no text', async () => {
@@ -189,6 +205,7 @@ describe('handleInboundWhatsApp', () => {
         { role: 'assistant', content: 'hello' },
       ],
       model: 'flash',
+      entitlements: ['whatsappAssistant'],
     })
   })
 

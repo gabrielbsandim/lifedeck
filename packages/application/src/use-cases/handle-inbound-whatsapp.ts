@@ -335,6 +335,7 @@ export function makeHandleInboundWhatsApp({
             audio: media,
             history,
             model: modelTier,
+            entitlements: granted,
           })
           userTurn = VOICE_NOTE_HISTORY_TEXT
         } catch (directError) {
@@ -358,6 +359,7 @@ export function makeHandleInboundWhatsApp({
             message: userTurn,
             history,
             model: modelTier,
+            entitlements: granted,
           })
         }
       } else if (message.kind === 'image') {
@@ -368,6 +370,7 @@ export function makeHandleInboundWhatsApp({
           message: userTurn,
           history,
           model: modelTier,
+          entitlements: granted,
         })
       } else {
         userTurn = message.text
@@ -376,6 +379,7 @@ export function makeHandleInboundWhatsApp({
           message: userTurn,
           history,
           model: modelTier,
+          entitlements: granted,
         })
       }
     } catch (error) {

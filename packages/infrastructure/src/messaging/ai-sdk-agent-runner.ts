@@ -2,6 +2,7 @@ import { generateText, stepCountIs, tool, type LanguageModel } from 'ai'
 import type { ModelMessage } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
+import type { Entitlement } from '@lifedeck/domain'
 import type {
   AgentReply,
   AgentRunInput,
@@ -10,6 +11,26 @@ import type {
 } from '@lifedeck/application'
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
+
+// Tools that require a plan entitlement to be exposed to the model. Empty today
+// (every current tool is part of the baseline WhatsApp assistant); V3-6 adds
+// `findTime: 'smartScheduling'`. A tool not listed here is always available.
+const TOOL_ENTITLEMENTS: Record<string, Entitlement> = {}
+
+// Drops any tool whose required entitlement the user's plan does not grant, so
+// gating happens here rather than relying on the model to avoid a tool.
+function gateTools<T extends Record<string, unknown>>(
+  tools: T,
+  entitlements: Entitlement[],
+): Partial<T> {
+  const granted = new Set(entitlements)
+  return Object.fromEntries(
+    Object.entries(tools).filter(([name]) => {
+      const required = TOOL_ENTITLEMENTS[name]
+      return !required || granted.has(required)
+    }),
+  ) as Partial<T>
+}
 const DEFAULT_GEMINI_PRO_MODEL = 'gemini-3-pro-preview'
 
 const SYSTEM_PROMPT = `You are the Lifedeck assistant, helping the user organize their life over WhatsApp. Be concise, friendly, and practical; reply in the user's language.
@@ -349,7 +370,7 @@ ${weatherLine}`
       model: input.model === 'pro' ? this.proModel : this.flashModel,
       system: await this.systemPromptFor(input.userId),
       messages,
-      tools: this.toolsFor(input.userId),
+      tools: gateTools(this.toolsFor(input.userId), input.entitlements ?? []),
       stopWhen: stepCountIs(5),
     })
     return { text }

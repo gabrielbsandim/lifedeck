@@ -1,3 +1,4 @@
+import type { Entitlement } from '@lifedeck/domain'
 import type { ConversationTurn } from '@/ports/conversation-store'
 import type { MediaPayload } from '@/ports/messaging-channel'
 
@@ -12,6 +13,9 @@ export type AgentRunInput = {
   audio?: MediaPayload
   history: ConversationTurn[]
   model?: AgentModelTier
+  // The plan entitlements granted to this user, so the runner can gate
+  // entitlement-scoped tools (e.g. smart scheduling). Omitted means none extra.
+  entitlements?: Entitlement[]
 }
 
 export type AgentReply = {
