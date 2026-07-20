@@ -12,6 +12,10 @@ export type { ListRepository, ListPageParams } from '@/ports/list-repository'
 export type { RecurringTaskRepository } from '@/ports/recurring-task-repository'
 export type { HabitRepository } from '@/ports/habit-repository'
 export type { HabitLogRepository } from '@/ports/habit-log-repository'
+export type {
+  NudgeLogRepository,
+  NudgeLogEntry,
+} from '@/ports/nudge-log-repository'
 export type { Page, PageParams, PageCursor } from '@/pagination'
 export {
   DEFAULT_PAGE_LIMIT,
@@ -290,6 +294,9 @@ export {
   makeSendHabitCheckin,
   type CheckinTemplate,
 } from '@/use-cases/send-habit-checkin'
+export { makeEnqueueNudges, NUDGE_JOB } from '@/use-cases/enqueue-nudges'
+export { makeSendNudge, type NudgeTemplate } from '@/use-cases/send-nudge'
+export { composeNudge, type NudgeData } from '@/shared/nudge-text'
 export {
   composeDailyBrief,
   type DailyBriefData,
@@ -514,6 +521,7 @@ export { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 export { InMemoryRecurringTaskRepository } from '@/testing/in-memory-recurring-task-repository'
 export { InMemoryHabitRepository } from '@/testing/in-memory-habit-repository'
 export { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-repository'
+export { InMemoryNudgeLogRepository } from '@/testing/in-memory-nudge-log-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 export { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'

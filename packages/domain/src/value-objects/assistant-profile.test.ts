@@ -178,6 +178,7 @@ describe('sanitizeAssistantProfile', () => {
       quietHoursEnd: null,
       briefEnabled: true,
       briefHour: null,
+      nudgesEnabled: true,
       people: [{ name: 'Ana', relationship: 'daughter' }],
       notes: ['keep'],
     })
@@ -200,8 +201,29 @@ describe('isAssistantProfileEmpty', () => {
     expect(isAssistantProfileEmpty(EMPTY_ASSISTANT_PROFILE)).toBe(true)
     expect(isAssistantProfileEmpty(base({ homeLocation: 'x' }))).toBe(false)
     expect(isAssistantProfileEmpty(base({ briefEnabled: true }))).toBe(false)
+    expect(isAssistantProfileEmpty(base({ nudgesEnabled: false }))).toBe(false)
     expect(isAssistantProfileEmpty(base({ notes: ['n'] }))).toBe(false)
     expect(isAssistantProfileEmpty(base({ wakeHour: 6 }))).toBe(false)
+  })
+})
+
+describe('nudgesEnabled', () => {
+  it('defaults on and is turned off through a patch', () => {
+    expect(EMPTY_ASSISTANT_PROFILE.nudgesEnabled).toBe(true)
+    const off = applyAssistantProfilePatch(base(), { nudgesEnabled: false })
+    expect(off.nudgesEnabled).toBe(false)
+    const back = applyAssistantProfilePatch(off, { nudgesEnabled: true })
+    expect(back.nudgesEnabled).toBe(true)
+  })
+
+  it('reads a stored value, defaulting to on unless explicitly false', () => {
+    expect(sanitizeAssistantProfile({}).nudgesEnabled).toBe(true)
+    expect(
+      sanitizeAssistantProfile({ nudgesEnabled: false }).nudgesEnabled,
+    ).toBe(false)
+    expect(
+      sanitizeAssistantProfile({ nudgesEnabled: true }).nudgesEnabled,
+    ).toBe(true)
   })
 })
 

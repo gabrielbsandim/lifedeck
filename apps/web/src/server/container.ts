@@ -20,6 +20,8 @@ import {
   makeSendDailyBrief,
   makeEnqueueHabitCheckins,
   makeSendHabitCheckin,
+  makeEnqueueNudges,
+  makeSendNudge,
   makeCreateHabit,
   makeListHabits,
   makeUpdateHabit,
@@ -41,6 +43,7 @@ import {
   DAILY_DIGEST_JOB,
   DAILY_BRIEF_JOB,
   HABIT_CHECKIN_JOB,
+  NUDGE_JOB,
   REMINDER_JOB,
   makeCreateList,
   makeDeleteCalendarEvent,
@@ -127,6 +130,7 @@ import {
   type RecurringTaskRepository,
   type HabitRepository,
   type HabitLogRepository,
+  type NudgeLogRepository,
   type ScheduledJobRepository,
   type ShareLinkRepository,
   type SubscriptionRepository,
@@ -167,6 +171,7 @@ import {
   PrismaRecurringTaskRepository,
   PrismaHabitRepository,
   PrismaHabitLogRepository,
+  PrismaNudgeLogRepository,
   PrismaScheduledJobRepository,
   PrismaShareLinkRepository,
   PrismaSubscriptionRepository,
@@ -260,6 +265,7 @@ type Container = {
   deleteHabit: ReturnType<typeof makeDeleteHabit>
   logHabit: ReturnType<typeof makeLogHabit>
   sendHabitCheckin: ReturnType<typeof makeSendHabitCheckin>
+  sendNudge: ReturnType<typeof makeSendNudge>
   createShareLink: ReturnType<typeof makeCreateShareLink>
   inviteToList: ReturnType<typeof makeInviteToList>
   listShareLinks: ReturnType<typeof makeListShareLinks>
@@ -310,6 +316,7 @@ type Container = {
     digests: number
     briefs: number
     checkins: number
+    nudges: number
     reconciled: number
     renewed: number
   }>
@@ -327,6 +334,7 @@ type Repositories = {
   recurringTasks: RecurringTaskRepository
   habits: HabitRepository
   habitLogs: HabitLogRepository
+  nudgeLogs: NudgeLogRepository
   shareLinks: ShareLinkRepository
   memberships: MembershipRepository
   emailVerifications: EmailVerificationRepository
@@ -369,6 +377,7 @@ function build(
     recurringTasks,
     habits,
     habitLogs,
+    nudgeLogs,
     shareLinks,
     memberships,
     emailVerifications,
@@ -518,6 +527,13 @@ function build(
     jobQueue,
     clock,
   })
+  const nudgeHour = Number(process.env.NUDGE_HOUR?.trim()) || 18
+  const enqueueNudges = makeEnqueueNudges({
+    users,
+    jobQueue,
+    clock,
+    nudgeHour,
+  })
   const reconcileCalendars = makeReconcileCalendars({
     calendarConnections,
     jobQueue,
@@ -546,6 +562,9 @@ function build(
       [HABIT_CHECKIN_JOB]: async payload => {
         await sendHabitCheckin(String(payload.userId), String(payload.habitId))
       },
+      [NUDGE_JOB]: async payload => {
+        await sendNudge(String(payload.userId))
+      },
       [CALENDAR_PULL_JOB]: async payload => {
         await pullCalendarChanges(String(payload.userId))
       },
@@ -572,17 +591,20 @@ function build(
     },
   })
   const runScheduledFanOut = async () => {
-    const [digests, briefs, checkins, reconciled, renewed] = await Promise.all([
-      enqueueDailyDigests(),
-      enqueueDailyBriefs(),
-      enqueueHabitCheckins(),
-      reconcileCalendars(),
-      renewCalendarChannels(),
-    ])
+    const [digests, briefs, checkins, nudges, reconciled, renewed] =
+      await Promise.all([
+        enqueueDailyDigests(),
+        enqueueDailyBriefs(),
+        enqueueHabitCheckins(),
+        enqueueNudges(),
+        reconcileCalendars(),
+        renewCalendarChannels(),
+      ])
     return {
       digests: digests.enqueued,
       briefs: briefs.enqueued,
       checkins: checkins.enqueued,
+      nudges: nudges.enqueued,
       reconciled: reconciled.enqueued,
       renewed: renewed.enqueued,
     }
@@ -720,6 +742,23 @@ function build(
         }
       : undefined,
   })
+  const nudgeTemplateName = process.env.WHATSAPP_TEMPLATE_NUDGE?.trim()
+  const sendNudge = makeSendNudge({
+    users,
+    entitlements: entitlementService,
+    getDailyBoard,
+    nudgeLogs,
+    sendProactiveMessage,
+    sendGuard: proactiveSendGuard,
+    ids,
+    clock,
+    nudgeTemplate: nudgeTemplateName
+      ? {
+          name: nudgeTemplateName,
+          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
+        }
+      : undefined,
+  })
 
   const assistantTools = makeAssistantTools({
     users,
@@ -836,6 +875,7 @@ function build(
     deleteHabit,
     logHabit,
     sendHabitCheckin,
+    sendNudge,
     createShareLink: makeCreateShareLink({
       shareLinks,
       lists,
@@ -1073,6 +1113,7 @@ export function getContainer(): Container {
         recurringTasks: new PrismaRecurringTaskRepository(db),
         habits: new PrismaHabitRepository(db),
         habitLogs: new PrismaHabitLogRepository(db),
+        nudgeLogs: new PrismaNudgeLogRepository(db),
         shareLinks: new PrismaShareLinkRepository(db),
         memberships: new PrismaMembershipRepository(db),
         emailVerifications: new PrismaEmailVerificationRepository(db),

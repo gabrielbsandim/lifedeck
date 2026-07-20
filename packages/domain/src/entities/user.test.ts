@@ -216,6 +216,7 @@ describe('User', () => {
       quietHoursEnd: null,
       briefEnabled: false,
       briefHour: null,
+      nudgesEnabled: true,
       people: [],
       notes: [],
     })

@@ -72,6 +72,7 @@ model User {
   calendarEvents      CalendarEvent[]
   calendarConnections CalendarConnection[]
   channelIdentities   ChannelIdentity[]
+  nudgeLogs           NudgeLog[]
 
   @@map("users")
 }
@@ -221,6 +222,20 @@ model HabitLog {
 
   @@unique([habitId, date])
   @@map("habit_logs")
+}
+
+model NudgeLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  key       String
+  date      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([userId, key])
+  @@map("nudge_logs")
 }
 
 model ListMember {

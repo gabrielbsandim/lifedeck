@@ -95,6 +95,7 @@ export const setAssistantProfileSchema = z.object({
   quietHoursEnd: z.number().int().min(0).max(23).nullish(),
   briefEnabled: z.boolean().optional(),
   briefHour: z.number().int().min(0).max(23).nullish(),
+  nudgesEnabled: z.boolean().optional(),
   people: z.array(assistantPersonInputSchema).max(20).optional(),
   notes: z.array(z.string().trim().min(1).max(280)).max(50).optional(),
   addNote: z.string().trim().min(1).max(280).optional(),
@@ -110,6 +111,7 @@ const assistantProfileViewSchema = z.object({
   quietHoursEnd: z.number().nullable(),
   briefEnabled: z.boolean(),
   briefHour: z.number().nullable(),
+  nudgesEnabled: z.boolean(),
   people: z.array(
     z.object({ name: z.string(), relationship: z.string().nullable() }),
   ),

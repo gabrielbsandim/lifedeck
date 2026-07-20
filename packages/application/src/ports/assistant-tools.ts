@@ -81,6 +81,7 @@ export type AssistantMemoryUpdate = {
   quietHoursEnd?: number | null
   briefEnabled?: boolean
   briefHour?: number | null
+  nudgesEnabled?: boolean
   people?: { name: string; relationship?: string | null }[]
   addNote?: string
 }

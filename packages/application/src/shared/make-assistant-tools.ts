@@ -202,6 +202,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
             quietHoursEnd: view.assistantProfile.quietHoursEnd,
             briefEnabled: view.assistantProfile.briefEnabled,
             briefHour: view.assistantProfile.briefHour,
+            nudgesEnabled: view.assistantProfile.nudgesEnabled,
             people: view.assistantProfile.people,
             notes: view.assistantProfile.notes,
           }),

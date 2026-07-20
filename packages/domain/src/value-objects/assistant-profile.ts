@@ -30,6 +30,8 @@ export type AssistantProfile = {
   /** Whether the daily brief is on, and the local hour (0-23) it should send. */
   briefEnabled: boolean
   briefHour: number | null
+  /** Whether proactive nudges are on. Defaults to on; the per-feature opt-out. */
+  nudgesEnabled: boolean
   people: AssistantPerson[]
   notes: string[]
 }
@@ -42,6 +44,7 @@ export const EMPTY_ASSISTANT_PROFILE: AssistantProfile = {
   quietHoursEnd: null,
   briefEnabled: false,
   briefHour: null,
+  nudgesEnabled: true,
   people: [],
   notes: [],
 }
@@ -56,6 +59,7 @@ export type AssistantProfilePatch = Partial<{
   quietHoursEnd: number | null
   briefEnabled: boolean
   briefHour: number | null
+  nudgesEnabled: boolean
   people: AssistantPerson[]
   notes: string[]
 }>
@@ -163,6 +167,9 @@ export function applyAssistantProfilePatch(
   }
   if (patch.briefHour !== undefined) {
     next.briefHour = cleanHour(patch.briefHour, 'Brief hour')
+  }
+  if (patch.nudgesEnabled !== undefined) {
+    next.nudgesEnabled = patch.nudgesEnabled
   }
   if (patch.people !== undefined) {
     next.people = cleanPeople(patch.people)
@@ -273,6 +280,8 @@ export function sanitizeAssistantProfile(value: unknown): AssistantProfile {
     quietHoursEnd: coerceHour(raw.quietHoursEnd),
     briefEnabled: raw.briefEnabled === true,
     briefHour: coerceHour(raw.briefHour),
+    // Defaults on: only an explicit false opts out, so legacy rows keep nudges.
+    nudgesEnabled: raw.nudgesEnabled !== false,
     people: coercePeople(raw.people),
     notes: coerceNotes(raw.notes),
   }
@@ -288,6 +297,7 @@ export function isAssistantProfileEmpty(profile: AssistantProfile): boolean {
     profile.quietHoursEnd === null &&
     !profile.briefEnabled &&
     profile.briefHour === null &&
+    profile.nudgesEnabled &&
     profile.people.length === 0 &&
     profile.notes.length === 0
   )

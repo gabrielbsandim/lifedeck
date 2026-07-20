@@ -66,6 +66,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
   const [quietEnd, setQuietEnd] = useState<number | null>(profile.quietHoursEnd)
   const [briefEnabled, setBriefEnabled] = useState(profile.briefEnabled)
   const [briefHour, setBriefHour] = useState<number | null>(profile.briefHour)
+  const [nudgesEnabled, setNudgesEnabled] = useState(profile.nudgesEnabled)
   const [people, setPeople] = useState<PersonDraft[]>(
     profile.people.map(person => ({
       name: person.name,
@@ -96,6 +97,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
       quietHoursEnd: quietEnd,
       briefEnabled,
       briefHour,
+      nudgesEnabled,
       people: cleanPeople,
       notes,
     }
@@ -107,6 +109,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
     quietEnd,
     briefEnabled,
     briefHour,
+    nudgesEnabled,
     people,
     notes,
   ])
@@ -120,6 +123,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
       quietHoursEnd: profile.quietHoursEnd,
       briefEnabled: profile.briefEnabled,
       briefHour: profile.briefHour,
+      nudgesEnabled: profile.nudgesEnabled,
       people: profile.people.map(person => ({
         name: person.name,
         relationship: person.relationship,
@@ -225,6 +229,20 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
             />
           </label>
         )}
+      </div>
+
+      <div className="border-line flex flex-col gap-2 border-t pt-4">
+        <div className="flex max-w-xl items-center justify-between gap-3">
+          <div className="flex flex-col">
+            <FieldLabel>{m.nudges}</FieldLabel>
+            <span className="text-ink-500 text-xs">{m.nudgesHint}</span>
+          </div>
+          <Toggle
+            label={m.nudges}
+            checked={nudgesEnabled}
+            onChange={() => setNudgesEnabled(value => !value)}
+          />
+        </div>
       </div>
 
       <div className="border-line flex flex-col gap-2 border-t pt-4">

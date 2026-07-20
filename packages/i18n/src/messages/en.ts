@@ -312,6 +312,9 @@ export const en: Messages = {
     dailyBrief: 'Daily brief',
     dailyBriefHint: 'A good-morning message with your day, on WhatsApp.',
     briefHour: 'Send at',
+    nudges: 'Proactive nudges',
+    nudgesHint:
+      'Occasional suggestions when the assistant spots something, like a task you keep putting off.',
     people: 'People',
     peopleHint:
       'People you mention often, so the assistant knows who they are.',

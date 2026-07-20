@@ -27,6 +27,7 @@ const RECORD: UserRecord = {
     quietHoursEnd: 6,
     briefEnabled: true,
     briefHour: 8,
+    nudgesEnabled: true,
     people: [{ name: 'Ana', relationship: 'daughter' }],
     notes: ['prefers metric'],
   },
@@ -78,6 +79,7 @@ describe('user-record mapping', () => {
       quietHoursEnd: null,
       briefEnabled: false,
       briefHour: null,
+      nudgesEnabled: true,
       people: [],
       notes: [],
     })

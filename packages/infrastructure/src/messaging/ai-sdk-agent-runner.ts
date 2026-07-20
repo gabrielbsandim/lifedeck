@@ -164,6 +164,10 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
           .max(23)
           .nullish()
           .describe('Local hour (0-23) the daily brief should send.'),
+        nudgesEnabled: z
+          .boolean()
+          .optional()
+          .describe('Whether proactive nudges are on. Set false to stop them.'),
         people: z
           .array(
             z.object({

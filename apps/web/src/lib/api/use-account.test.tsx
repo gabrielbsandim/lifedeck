@@ -45,6 +45,7 @@ const USER = {
     quietHoursEnd: null,
     briefEnabled: false,
     briefHour: null,
+    nudgesEnabled: true,
     people: [],
     notes: [],
   },

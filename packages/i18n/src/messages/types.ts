@@ -301,6 +301,8 @@ export type Messages = {
     dailyBrief: string
     dailyBriefHint: string
     briefHour: string
+    nudges: string
+    nudgesHint: string
     people: string
     peopleHint: string
     personName: string

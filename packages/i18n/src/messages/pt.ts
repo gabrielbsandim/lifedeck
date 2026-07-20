@@ -316,6 +316,9 @@ export const pt: Messages = {
     dailyBrief: 'Resumo diário',
     dailyBriefHint: 'Uma mensagem de bom dia com o seu dia, no WhatsApp.',
     briefHour: 'Enviar às',
+    nudges: 'Lembretes proativos',
+    nudgesHint:
+      'Sugestões ocasionais quando o assistente percebe algo, como uma tarefa que você vive adiando.',
     people: 'Pessoas',
     peopleHint:
       'Pessoas que você menciona bastante, para o assistente saber quem são.',

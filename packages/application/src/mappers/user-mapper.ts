@@ -25,6 +25,7 @@ export function toUserView(user: User): UserView {
       quietHoursEnd: props.assistantProfile.quietHoursEnd,
       briefEnabled: props.assistantProfile.briefEnabled,
       briefHour: props.assistantProfile.briefHour,
+      nudgesEnabled: props.assistantProfile.nudgesEnabled,
       people: props.assistantProfile.people.map(person => ({
         name: person.name,
         relationship: person.relationship,

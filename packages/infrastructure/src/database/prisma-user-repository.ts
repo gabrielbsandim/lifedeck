@@ -57,6 +57,18 @@ export class PrismaUserRepository implements UserRepository {
     return records.map(toDomainUser)
   }
 
+  async listWithNudgesEnabled(): Promise<User[]> {
+    // Nudges default on: include everyone who has not explicitly set the flag to
+    // false (legacy rows and null profiles read as opted in).
+    const records = await this.prisma.user.findMany({
+      where: {
+        isGuest: false,
+        NOT: { assistantProfile: { path: ['nudgesEnabled'], equals: false } },
+      },
+    })
+    return records.map(toDomainUser)
+  }
+
   async delete(id: EntityId): Promise<void> {
     await this.prisma.user.delete({ where: { id } })
   }

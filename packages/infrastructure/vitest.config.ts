@@ -19,6 +19,7 @@ export default mergeConfig(
         'src/database/prisma-recurring-task-repository.ts',
         'src/database/prisma-habit-repository.ts',
         'src/database/prisma-habit-log-repository.ts',
+        'src/database/prisma-nudge-log-repository.ts',
         'src/database/prisma-share-link-repository.ts',
         'src/database/prisma-membership-repository.ts',
         'src/database/prisma-email-verification-repository.ts',

@@ -32,6 +32,12 @@ export class InMemoryUserRepository implements UserRepository {
     )
   }
 
+  async listWithNudgesEnabled(): Promise<User[]> {
+    return [...this.store.values()].filter(
+      user => !user.isGuest && user.assistantProfile.nudgesEnabled,
+    )
+  }
+
   async delete(id: EntityId): Promise<void> {
     this.store.delete(id)
   }
