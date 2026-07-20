@@ -1,15 +1,15 @@
 import { asEntityId } from '@lifedeck/domain'
 import type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
-import type { CalendarProvider } from '@/ports/calendar-provider'
+import type { CalendarProviderRegistry } from '@/ports/calendar-provider'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
-  provider: CalendarProvider
+  providers: CalendarProviderRegistry
 }
 
 export function makeDeleteRemoteCalendarEvent({
   calendarConnections,
-  provider,
+  providers,
 }: Dependencies) {
   return async function deleteRemoteCalendarEvent(
     ownerId: string,
@@ -25,6 +25,7 @@ export function makeDeleteRemoteCalendarEvent({
     if (!connection || !connection.isOwnedBy(owner)) {
       return { deleted: false }
     }
+    const provider = providers.get(connection.provider)
     await provider.deleteEvent(connection, externalId)
     return { deleted: true }
   }

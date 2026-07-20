@@ -122,6 +122,7 @@ import {
   type CalendarEventRepository,
   type CalendarConnectionRepository,
   type CalendarProvider,
+  type CalendarProviderRegistry,
   type ChannelIdentityRepository,
   type MessagingChannel,
   type ConversationStore,
@@ -414,22 +415,30 @@ function build(
         })
       : new NoopJobScheduler()
   const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock, jobScheduler)
+  // One adapter per provider; sync use cases resolve by connection.provider so a
+  // user's Google, Apple, and cal.com calendars all flow through one path.
+  const calendarProviders: CalendarProviderRegistry = {
+    get(provider) {
+      if (provider === 'google') return googleCalendar
+      throw new Error(`No calendar provider registered for "${provider}".`)
+    },
+  }
   const pullCalendarChanges = makePullCalendarChanges({
     calendarConnections,
     calendarEvents,
-    provider: googleCalendar,
+    providers: calendarProviders,
     ids,
     clock,
   })
   const pushCalendarEvent = makePushCalendarEvent({
     calendarConnections,
     calendarEvents,
-    provider: googleCalendar,
+    providers: calendarProviders,
     clock,
   })
   const deleteRemoteCalendarEvent = makeDeleteRemoteCalendarEvent({
     calendarConnections,
-    provider: googleCalendar,
+    providers: calendarProviders,
   })
   const reminderTemplateName = process.env.WHATSAPP_REMINDER_TEMPLATE?.trim()
   const deliverReminder = makeDeliverReminder({
@@ -452,7 +461,7 @@ function build(
   })
   const watchGoogleCalendar = makeWatchGoogleCalendar({
     calendarConnections,
-    provider: googleCalendar,
+    providers: calendarProviders,
     clock,
   })
   const calendarWebhookUrl = `${siteUrl()}/api/v1/webhooks/google`

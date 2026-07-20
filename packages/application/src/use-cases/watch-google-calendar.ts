@@ -1,17 +1,17 @@
 import { asEntityId } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
-import type { CalendarProvider } from '@/ports/calendar-provider'
+import type { CalendarProviderRegistry } from '@/ports/calendar-provider'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
-  provider: CalendarProvider
+  providers: CalendarProviderRegistry
   clock: Clock
 }
 
 export function makeWatchGoogleCalendar({
   calendarConnections,
-  provider,
+  providers,
   clock,
 }: Dependencies) {
   return async function watchGoogleCalendar(
@@ -24,6 +24,7 @@ export function makeWatchGoogleCalendar({
     let watched = 0
     for (const connection of connections) {
       try {
+        const provider = providers.get(connection.provider)
         const channel = await provider.watch(connection, callbackUrl)
         connection.setChannel(
           channel.channelId,

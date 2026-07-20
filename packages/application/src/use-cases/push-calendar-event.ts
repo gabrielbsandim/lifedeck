@@ -3,19 +3,19 @@ import { NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
-import type { CalendarProvider } from '@/ports/calendar-provider'
+import type { CalendarProviderRegistry } from '@/ports/calendar-provider'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
   calendarEvents: CalendarEventRepository
-  provider: CalendarProvider
+  providers: CalendarProviderRegistry
   clock: Clock
 }
 
 export function makePushCalendarEvent({
   calendarConnections,
   calendarEvents,
-  provider,
+  providers,
   clock,
 }: Dependencies) {
   return async function pushCalendarEvent(
@@ -38,6 +38,7 @@ export function makePushCalendarEvent({
       return { pushed: false }
     }
 
+    const provider = providers.get(connection.provider)
     const { externalId, etag } = await provider.pushEvent(connection, event)
     event.linkToExternal(externalId, etag, clock.now(), connection.id)
     await calendarEvents.save(event)

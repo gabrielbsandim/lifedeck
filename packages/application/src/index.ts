@@ -216,6 +216,7 @@ export { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-ev
 export type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
 export type {
   CalendarProvider,
+  CalendarProviderRegistry,
   ExternalCalendarEvent,
   CalendarSyncPage,
   OAuthTokens,

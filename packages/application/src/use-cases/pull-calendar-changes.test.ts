@@ -92,7 +92,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -130,7 +130,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -181,7 +181,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -219,7 +219,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -260,7 +260,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -296,7 +296,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -317,7 +317,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -340,7 +340,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -388,7 +388,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -431,7 +431,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -487,7 +487,7 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents,
-      provider,
+      providers: { get: () => provider },
       ids,
       clock: { now: () => NOW },
     })
@@ -500,7 +500,9 @@ describe('pullCalendarChanges', () => {
     const pull = makePullCalendarChanges({
       calendarConnections,
       calendarEvents: new InMemoryCalendarEventRepository(),
-      provider: providerWith({ events: [], nextSyncToken: null }),
+      providers: {
+        get: () => providerWith({ events: [], nextSyncToken: null }),
+      },
       ids,
       clock: { now: () => NOW },
     })

@@ -38,7 +38,7 @@ describe('deleteRemoteCalendarEvent', () => {
     const deleteEvent = vi.fn().mockResolvedValue(undefined)
     const remove = makeDeleteRemoteCalendarEvent({
       calendarConnections,
-      provider: provider(deleteEvent),
+      providers: { get: () => provider(deleteEvent) },
     })
     expect(await remove(OWNER_ID, 'g-1')).toEqual({ deleted: true })
     expect(deleteEvent).toHaveBeenCalled()
@@ -47,7 +47,7 @@ describe('deleteRemoteCalendarEvent', () => {
   it('is a no-op when no calendar is connected', async () => {
     const remove = makeDeleteRemoteCalendarEvent({
       calendarConnections: new InMemoryCalendarConnectionRepository(),
-      provider: provider(),
+      providers: { get: () => provider() },
     })
     expect(await remove(OWNER_ID, 'g-1')).toEqual({ deleted: false })
   })

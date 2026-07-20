@@ -39,7 +39,7 @@ describe('watchGoogleCalendar', () => {
     )
     const watch = makeWatchGoogleCalendar({
       calendarConnections,
-      provider: provider(),
+      providers: { get: () => provider() },
       clock: { now: () => NOW },
     })
 
@@ -53,7 +53,7 @@ describe('watchGoogleCalendar', () => {
   it('is a no-op when the user has no connection', async () => {
     const watch = makeWatchGoogleCalendar({
       calendarConnections: new InMemoryCalendarConnectionRepository(),
-      provider: provider(),
+      providers: { get: () => provider() },
       clock: { now: () => NOW },
     })
     await expect(watch(OWNER_ID, 'https://cb')).resolves.toEqual({

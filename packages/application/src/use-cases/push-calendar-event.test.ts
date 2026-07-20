@@ -60,7 +60,7 @@ describe('pushCalendarEvent', () => {
     const push = makePushCalendarEvent({
       calendarConnections,
       calendarEvents,
-      provider: provider(),
+      providers: { get: () => provider() },
       clock: { now: () => NOW },
     })
 
@@ -75,7 +75,7 @@ describe('pushCalendarEvent', () => {
     const push = makePushCalendarEvent({
       calendarConnections: new InMemoryCalendarConnectionRepository(),
       calendarEvents,
-      provider: provider(),
+      providers: { get: () => provider() },
       clock: { now: () => NOW },
     })
     expect(await push(OWNER_ID, EVENT_ID)).toEqual({ pushed: false })
@@ -87,7 +87,7 @@ describe('pushCalendarEvent', () => {
     const push = makePushCalendarEvent({
       calendarConnections,
       calendarEvents: new InMemoryCalendarEventRepository(),
-      provider: provider(),
+      providers: { get: () => provider() },
       clock: { now: () => NOW },
     })
     await expect(push(OWNER_ID, EVENT_ID)).rejects.toBeInstanceOf(NotFoundError)

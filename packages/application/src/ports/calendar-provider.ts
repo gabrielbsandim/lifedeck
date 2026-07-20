@@ -48,6 +48,13 @@ export type WatchChannel = {
   expiresAt: Date | null
 }
 
+// Resolves the adapter for a connection's provider, so sync use cases can drive
+// a user's Google, Apple, and cal.com calendars through one code path. The
+// container registers one adapter per CalendarProviderName.
+export interface CalendarProviderRegistry {
+  get(provider: CalendarProviderName): CalendarProvider
+}
+
 export interface CalendarProvider {
   readonly provider: CalendarProviderName
   exchangeCode(code: string, redirectUri: string): Promise<OAuthTokens>

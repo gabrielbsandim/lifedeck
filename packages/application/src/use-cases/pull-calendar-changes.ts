@@ -9,14 +9,14 @@ import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type {
-  CalendarProvider,
+  CalendarProviderRegistry,
   ExternalCalendarEvent,
 } from '@/ports/calendar-provider'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
   calendarEvents: CalendarEventRepository
-  provider: CalendarProvider
+  providers: CalendarProviderRegistry
   ids: IdGenerator
   clock: Clock
 }
@@ -28,7 +28,7 @@ export type CalendarPullResult = {
 export function makePullCalendarChanges({
   calendarConnections,
   calendarEvents,
-  provider,
+  providers,
   ids,
   clock,
 }: Dependencies) {
@@ -55,6 +55,7 @@ export function makePullCalendarChanges({
     async function pullConnection(
       connection: CalendarConnection,
     ): Promise<number> {
+      const provider = providers.get(connection.provider)
       if (connection.needsRefresh(clock.now())) {
         const refreshed = await provider.refreshAccessToken(
           connection.refreshToken,
