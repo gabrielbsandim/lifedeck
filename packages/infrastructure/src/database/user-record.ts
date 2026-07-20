@@ -1,4 +1,11 @@
-import { User, asEntityId, isCarryOverMode, isTimeZone } from '@lifedeck/domain'
+import {
+  User,
+  asEntityId,
+  isCarryOverMode,
+  isTimeZone,
+  sanitizeAssistantProfile,
+  type AssistantProfile,
+} from '@lifedeck/domain'
 
 export type UserRecord = {
   id: string
@@ -14,6 +21,9 @@ export type UserRecord = {
   reminderEmail: boolean
   reminderWhatsapp: boolean
   weatherLocation: string | null
+  // Stored JSON; read leniently (unknown -> sanitized profile), written as the
+  // concrete AssistantProfile shape.
+  assistantProfile: unknown
   createdAt: Date
 }
 
@@ -34,6 +44,7 @@ export function toDomainUser(record: UserRecord): User {
     reminderEmail: record.reminderEmail,
     reminderWhatsapp: record.reminderWhatsapp,
     weatherLocation: record.weatherLocation,
+    assistantProfile: sanitizeAssistantProfile(record.assistantProfile),
     createdAt: record.createdAt,
   })
 }
@@ -54,6 +65,7 @@ export function toUserRecord(user: User): UserRecord {
     reminderEmail: props.reminderEmail,
     reminderWhatsapp: props.reminderWhatsapp,
     weatherLocation: props.weatherLocation,
+    assistantProfile: props.assistantProfile satisfies AssistantProfile,
     createdAt: props.createdAt,
   }
 }

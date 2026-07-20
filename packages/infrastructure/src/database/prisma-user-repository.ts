@@ -1,6 +1,6 @@
 import type { EntityId, User } from '@lifedeck/domain'
 import type { UserRepository } from '@lifedeck/application'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient, Prisma } from '@prisma/client'
 import { toDomainUser, toUserRecord } from '@/database/user-record'
 
 export class PrismaUserRepository implements UserRepository {
@@ -8,9 +8,10 @@ export class PrismaUserRepository implements UserRepository {
 
   async save(user: User): Promise<void> {
     const record = toUserRecord(user)
+    const assistantProfile = record.assistantProfile as Prisma.InputJsonValue
     await this.prisma.user.upsert({
       where: { id: record.id },
-      create: record,
+      create: { ...record, assistantProfile },
       update: {
         displayName: record.displayName,
         email: record.email,
@@ -24,6 +25,7 @@ export class PrismaUserRepository implements UserRepository {
         reminderEmail: record.reminderEmail,
         reminderWhatsapp: record.reminderWhatsapp,
         weatherLocation: record.weatherLocation,
+        assistantProfile,
       },
     })
   }

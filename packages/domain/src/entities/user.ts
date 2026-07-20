@@ -7,6 +7,14 @@ import {
   type CarryOverMode,
 } from '@/value-objects/carry-over-mode'
 import { DEFAULT_TIME_ZONE, isTimeZone } from '@/value-objects/time-zone'
+import {
+  EMPTY_ASSISTANT_PROFILE,
+  applyAssistantProfilePatch,
+  appendAssistantNote,
+  removeAssistantNote,
+  type AssistantProfile,
+  type AssistantProfilePatch,
+} from '@/value-objects/assistant-profile'
 
 const MAX_DISPLAY_NAME_LENGTH = 80
 const MAX_AVATAR_URL_LENGTH = 2048
@@ -62,6 +70,7 @@ export type UserProps = {
   reminderEmail: boolean
   reminderWhatsapp: boolean
   weatherLocation: string | null
+  assistantProfile: AssistantProfile
   createdAt: Date
 }
 
@@ -96,6 +105,7 @@ export class User {
       reminderEmail: false,
       reminderWhatsapp: true,
       weatherLocation: null,
+      assistantProfile: { ...EMPTY_ASSISTANT_PROFILE },
       createdAt: input.createdAt,
     })
   }
@@ -187,6 +197,31 @@ export class User {
 
   setWeatherLocation(value: string | null): void {
     this.props.weatherLocation = normalizeWeatherLocation(value)
+  }
+
+  get assistantProfile(): AssistantProfile {
+    return this.props.assistantProfile
+  }
+
+  updateProfile(patch: AssistantProfilePatch): void {
+    this.props.assistantProfile = applyAssistantProfilePatch(
+      this.props.assistantProfile,
+      patch,
+    )
+  }
+
+  rememberNote(note: string): void {
+    this.props.assistantProfile = appendAssistantNote(
+      this.props.assistantProfile,
+      note,
+    )
+  }
+
+  forgetNote(index: number): void {
+    this.props.assistantProfile = removeAssistantNote(
+      this.props.assistantProfile,
+      index,
+    )
   }
 
   setTimezone(timezone: string): void {

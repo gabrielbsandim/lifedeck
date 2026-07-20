@@ -80,6 +80,19 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
     setWeatherLocation: vi.fn(async (_userId: string, input) => ({
       weatherLocation: input.location,
     })) as unknown as AssistantToolsDeps['setWeatherLocation'],
+    setAssistantProfile: vi.fn(async () => ({
+      assistantProfile: {
+        homeLocation: null,
+        workLocation: null,
+        wakeHour: null,
+        quietHoursStart: null,
+        quietHoursEnd: null,
+        briefEnabled: false,
+        briefHour: null,
+        people: [],
+        notes: [],
+      },
+    })) as unknown as AssistantToolsDeps['setAssistantProfile'],
     ...overrides,
   }
   return { tools: makeAssistantTools(deps), deps }
@@ -192,6 +205,73 @@ describe('makeAssistantTools', () => {
 
     await expect(
       tools.setDefaultWeatherLocation(USER_ID, 'Lisbon'),
+    ).rejects.toThrow('db down')
+  })
+
+  it('summarizes the saved memory in the context', async () => {
+    const remembered = user()
+    remembered.updateProfile({ homeLocation: 'Lisbon' })
+    remembered.rememberNote('prefers metric')
+    const { tools } = build({ users: { findById: async () => remembered } })
+
+    const ctx = await tools.getContext(USER_ID)
+
+    expect(ctx.memory).toContain('Home: Lisbon')
+    expect(ctx.memory).toContain('Note: prefers metric')
+  })
+
+  it('reports an empty memory when nothing is saved', async () => {
+    const { tools } = build()
+    const ctx = await tools.getContext(USER_ID)
+    expect(ctx.memory).toBe('')
+  })
+
+  it('routes updateAssistantMemory through the use case and returns a summary', async () => {
+    const setAssistantProfile = vi.fn(async () => ({
+      assistantProfile: {
+        homeLocation: 'Lisbon',
+        workLocation: null,
+        wakeHour: null,
+        quietHoursStart: null,
+        quietHoursEnd: null,
+        briefEnabled: false,
+        briefHour: null,
+        people: [],
+        notes: [],
+      },
+    })) as unknown as AssistantToolsDeps['setAssistantProfile']
+    const { tools } = build({ setAssistantProfile })
+
+    const result = await tools.updateAssistantMemory(USER_ID, {
+      homeLocation: 'Lisbon',
+    })
+
+    expect(setAssistantProfile).toHaveBeenCalledWith(USER_ID, {
+      homeLocation: 'Lisbon',
+    })
+    expect(result.ok).toBe(true)
+    expect(result.memory).toContain('Home: Lisbon')
+  })
+
+  it('reports { ok: false } from updateAssistantMemory when the user is missing', async () => {
+    const setAssistantProfile = vi.fn(async () => {
+      throw new NotFoundError('User')
+    }) as unknown as AssistantToolsDeps['setAssistantProfile']
+    const { tools } = build({ setAssistantProfile })
+
+    const result = await tools.updateAssistantMemory(USER_ID, { addNote: 'x' })
+
+    expect(result).toEqual({ ok: false, memory: '' })
+  })
+
+  it('rethrows a non-NotFound error from updateAssistantMemory', async () => {
+    const setAssistantProfile = vi.fn(async () => {
+      throw new Error('db down')
+    }) as unknown as AssistantToolsDeps['setAssistantProfile']
+    const { tools } = build({ setAssistantProfile })
+
+    await expect(
+      tools.updateAssistantMemory(USER_ID, { addNote: 'x' }),
     ).rejects.toThrow('db down')
   })
 

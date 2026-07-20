@@ -17,6 +17,20 @@ export function toUserView(user: User): UserView {
     reminderEmail: props.reminderEmail,
     reminderWhatsapp: props.reminderWhatsapp,
     weatherLocation: props.weatherLocation,
+    assistantProfile: {
+      homeLocation: props.assistantProfile.homeLocation,
+      workLocation: props.assistantProfile.workLocation,
+      wakeHour: props.assistantProfile.wakeHour,
+      quietHoursStart: props.assistantProfile.quietHoursStart,
+      quietHoursEnd: props.assistantProfile.quietHoursEnd,
+      briefEnabled: props.assistantProfile.briefEnabled,
+      briefHour: props.assistantProfile.briefHour,
+      people: props.assistantProfile.people.map(person => ({
+        name: person.name,
+        relationship: person.relationship,
+      })),
+      notes: [...props.assistantProfile.notes],
+    },
     createdAt: props.createdAt.toISOString(),
   }
 }

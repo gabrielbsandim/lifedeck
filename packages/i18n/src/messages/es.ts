@@ -270,6 +270,36 @@ export const es: Messages = {
     notFound: 'Ciudad no encontrada. Revisa la ortografía.',
     couldntCheck: 'No se pudo verificar ahora — puedes guardar igualmente.',
   },
+  assistantMemory: {
+    settingLabel: 'Lo que el asistente recuerda',
+    settingHint:
+      'El asistente usa esto para personalizar su ayuda. Todo es opcional y puedes borrarlo cuando quieras.',
+    home: 'Casa',
+    homePlaceholder: 'ej.: Lisboa',
+    work: 'Trabajo',
+    workPlaceholder: 'ej.: centro de São Paulo',
+    wakeHour: 'Hora habitual de despertar',
+    quietHours: 'Horas de silencio',
+    quietTo: 'a',
+    hourUnset: 'Sin definir',
+    dailyBrief: 'Resumen diario',
+    dailyBriefHint: 'Un mensaje de buenos días con tu día, por WhatsApp.',
+    briefHour: 'Enviar a las',
+    people: 'Personas',
+    peopleHint:
+      'Personas que mencionas a menudo, para que el asistente sepa quiénes son.',
+    personName: 'Nombre',
+    personRelationship: 'Relación (opcional)',
+    addPerson: 'Agregar persona',
+    notes: 'Notas',
+    notesHint:
+      'Preferencias duraderas, como “prefiere métrico” o “sin reuniones temprano”.',
+    notePlaceholder: 'Agregar una nota',
+    addNote: 'Agregar nota',
+    remove: 'Quitar',
+    save: 'Guardar',
+    saved: 'Guardado',
+  },
   getStarted: {
     title: 'Empieza aquí',
     subtitle:

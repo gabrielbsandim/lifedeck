@@ -270,6 +270,36 @@ export const pt: Messages = {
     notFound: 'Cidade não encontrada. Verifique a grafia.',
     couldntCheck: 'Não deu para verificar agora — você ainda pode salvar.',
   },
+  assistantMemory: {
+    settingLabel: 'O que o assistente lembra',
+    settingHint:
+      'O assistente usa isto para personalizar a ajuda. Tudo aqui é opcional e você pode limpar quando quiser.',
+    home: 'Casa',
+    homePlaceholder: 'ex.: Mogi das Cruzes',
+    work: 'Trabalho',
+    workPlaceholder: 'ex.: centro de São Paulo',
+    wakeHour: 'Horário que costuma acordar',
+    quietHours: 'Horário de silêncio',
+    quietTo: 'até',
+    hourUnset: 'Não definido',
+    dailyBrief: 'Resumo diário',
+    dailyBriefHint: 'Uma mensagem de bom dia com o seu dia, no WhatsApp.',
+    briefHour: 'Enviar às',
+    people: 'Pessoas',
+    peopleHint:
+      'Pessoas que você menciona bastante, para o assistente saber quem são.',
+    personName: 'Nome',
+    personRelationship: 'Relação (opcional)',
+    addPerson: 'Adicionar pessoa',
+    notes: 'Notas',
+    notesHint:
+      'Preferências duradouras, como “prefere métrico” ou “sem reuniões cedo”.',
+    notePlaceholder: 'Adicionar uma nota',
+    addNote: 'Adicionar nota',
+    remove: 'Remover',
+    save: 'Salvar',
+    saved: 'Salvo',
+  },
   getStarted: {
     title: 'Comece por aqui',
     subtitle:

@@ -257,6 +257,33 @@ export type Messages = {
     notFound: string
     couldntCheck: string
   }
+  assistantMemory: {
+    settingLabel: string
+    settingHint: string
+    home: string
+    homePlaceholder: string
+    work: string
+    workPlaceholder: string
+    wakeHour: string
+    quietHours: string
+    quietTo: string
+    hourUnset: string
+    dailyBrief: string
+    dailyBriefHint: string
+    briefHour: string
+    people: string
+    peopleHint: string
+    personName: string
+    personRelationship: string
+    addPerson: string
+    notes: string
+    notesHint: string
+    notePlaceholder: string
+    addNote: string
+    remove: string
+    save: string
+    saved: string
+  }
   getStarted: {
     title: string
     subtitle: string

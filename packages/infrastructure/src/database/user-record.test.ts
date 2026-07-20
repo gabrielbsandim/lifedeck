@@ -19,6 +19,17 @@ const RECORD: UserRecord = {
   reminderEmail: false,
   reminderWhatsapp: true,
   weatherLocation: 'Mogi das Cruzes',
+  assistantProfile: {
+    homeLocation: 'Lisbon',
+    workLocation: null,
+    wakeHour: 7,
+    quietHoursStart: 22,
+    quietHoursEnd: 6,
+    briefEnabled: true,
+    briefHour: 8,
+    people: [{ name: 'Ana', relationship: 'daughter' }],
+    notes: ['prefers metric'],
+  },
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
 }
 
@@ -50,6 +61,32 @@ describe('user-record mapping', () => {
       toDomainUser({ ...RECORD, weatherLocation: null }),
     )
     expect(record.weatherLocation).toBeNull()
+  })
+
+  it('round-trips a populated assistant profile', () => {
+    const record = toUserRecord(toDomainUser(RECORD))
+    expect(record.assistantProfile).toEqual(RECORD.assistantProfile)
+  })
+
+  it('falls back to an empty assistant profile on malformed stored JSON', () => {
+    const user = toDomainUser({ ...RECORD, assistantProfile: 'not-json' })
+    expect(user.assistantProfile).toEqual({
+      homeLocation: null,
+      workLocation: null,
+      wakeHour: null,
+      quietHoursStart: null,
+      quietHoursEnd: null,
+      briefEnabled: false,
+      briefHour: null,
+      people: [],
+      notes: [],
+    })
+  })
+
+  it('treats a null (legacy) assistant profile column as empty', () => {
+    const user = toDomainUser({ ...RECORD, assistantProfile: null })
+    expect(user.assistantProfile.notes).toEqual([])
+    expect(user.assistantProfile.homeLocation).toBeNull()
   })
 
   it('preserves the auto carry-over mode and falls back on unknown values', () => {

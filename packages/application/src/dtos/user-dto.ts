@@ -79,6 +79,43 @@ export type WeatherLocationPreviewInput = z.infer<
   typeof weatherLocationPreviewSchema
 >
 
+const assistantPersonInputSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  relationship: z.string().trim().max(60).nullish(),
+})
+
+// A partial update of the assistant memory. Absent keys are unchanged; a
+// nullable field sent as null clears it; `people`/`notes` replace the whole
+// list; `addNote` appends one note (the agent's incremental "remember this").
+export const setAssistantProfileSchema = z.object({
+  homeLocation: z.string().max(160).nullish(),
+  workLocation: z.string().max(160).nullish(),
+  wakeHour: z.number().int().min(0).max(23).nullish(),
+  quietHoursStart: z.number().int().min(0).max(23).nullish(),
+  quietHoursEnd: z.number().int().min(0).max(23).nullish(),
+  briefEnabled: z.boolean().optional(),
+  briefHour: z.number().int().min(0).max(23).nullish(),
+  people: z.array(assistantPersonInputSchema).max(20).optional(),
+  notes: z.array(z.string().trim().min(1).max(280)).max(50).optional(),
+  addNote: z.string().trim().min(1).max(280).optional(),
+})
+
+export type SetAssistantProfileInput = z.infer<typeof setAssistantProfileSchema>
+
+const assistantProfileViewSchema = z.object({
+  homeLocation: z.string().nullable(),
+  workLocation: z.string().nullable(),
+  wakeHour: z.number().nullable(),
+  quietHoursStart: z.number().nullable(),
+  quietHoursEnd: z.number().nullable(),
+  briefEnabled: z.boolean(),
+  briefHour: z.number().nullable(),
+  people: z.array(
+    z.object({ name: z.string(), relationship: z.string().nullable() }),
+  ),
+  notes: z.array(z.string()),
+})
+
 export const userViewSchema = z.object({
   id: z.string().uuid(),
   displayName: z.string(),
@@ -93,6 +130,7 @@ export const userViewSchema = z.object({
   reminderEmail: z.boolean(),
   reminderWhatsapp: z.boolean(),
   weatherLocation: z.string().nullable(),
+  assistantProfile: assistantProfileViewSchema,
   plan: z.enum(['free', 'pro', 'premium']).optional(),
   entitlements: z
     .array(

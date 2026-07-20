@@ -79,6 +79,7 @@ export {
   reminderPreferencesSchema,
   weatherLocationSchema,
   weatherLocationPreviewSchema,
+  setAssistantProfileSchema,
   userViewSchema,
   type GuestSignInInput,
   type RegisterInput,
@@ -90,6 +91,7 @@ export {
   type TimezoneInput,
   type WeatherLocationInput,
   type WeatherLocationPreviewInput,
+  type SetAssistantProfileInput,
   type UserView,
 } from '@/dtos/user-dto'
 export {
@@ -403,6 +405,7 @@ export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
 export { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
+export { makeSetAssistantProfile } from '@/use-cases/set-assistant-profile'
 export { makePreviewWeatherLocation } from '@/use-cases/preview-weather-location'
 export {
   makeAssistantTools,

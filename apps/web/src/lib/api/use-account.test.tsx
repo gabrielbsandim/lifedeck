@@ -7,6 +7,7 @@ import {
   useRemoveAvatar,
   usePreviewWeatherLocation,
   useSetCarryOverMode,
+  useSetAssistantProfile,
   useSetReminderPreferences,
   useSetTimezone,
   useSetWeatherLocation,
@@ -36,6 +37,17 @@ const USER = {
   reminderEmail: false,
   reminderWhatsapp: true,
   weatherLocation: null,
+  assistantProfile: {
+    homeLocation: null,
+    workLocation: null,
+    wakeHour: null,
+    quietHoursStart: null,
+    quietHoursEnd: null,
+    briefEnabled: false,
+    briefHour: null,
+    people: [],
+    notes: [],
+  },
   createdAt: '2026-06-22T10:00:00.000Z',
 }
 
@@ -97,6 +109,27 @@ describe('account hooks', () => {
     await result.current.mutateAsync('Mogi das Cruzes')
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/account/weather-location',
+      expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('saves the assistant profile via PATCH', async () => {
+    const fetchMock = mockFetchOnce({
+      data: {
+        ...USER,
+        assistantProfile: {
+          ...USER.assistantProfile,
+          homeLocation: 'Lisbon',
+        },
+      },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSetAssistantProfile(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync({ homeLocation: 'Lisbon' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/account/assistant-profile',
       expect.objectContaining({ method: 'PATCH' }),
     )
   })

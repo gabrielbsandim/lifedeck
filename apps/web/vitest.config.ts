@@ -14,6 +14,7 @@ export default mergeConfig(
       // its routes are covered.
       'src/app/api/v1/internal/**/*.ts',
       'src/app/api/v1/account/weather-location/**/*.ts',
+      'src/app/api/v1/account/assistant-profile/**/*.ts',
     ],
     coverageExclude: [
       'src/**/*.test.{ts,tsx}',

@@ -46,6 +46,27 @@ export type AssistantContext = {
    * assistant answer "weather tomorrow?" without asking where every time.
    */
   defaultWeatherLocation: string | null
+  /**
+   * A compact, one-fact-per-line summary of the durable assistant memory (home,
+   * work, routine, people, notes), or an empty string when nothing is saved.
+   * The user's own words: the prompt must frame it as untrusted data.
+   */
+  memory: string
+}
+
+// A structured update to the durable assistant memory. Absent keys are left
+// unchanged; a nullable field sent as null clears it; `people` replaces the
+// whole list; `addNote` appends one note.
+export type AssistantMemoryUpdate = {
+  homeLocation?: string | null
+  workLocation?: string | null
+  wakeHour?: number | null
+  quietHoursStart?: number | null
+  quietHoursEnd?: number | null
+  briefEnabled?: boolean
+  briefHour?: number | null
+  people?: { name: string; relationship?: string | null }[]
+  addNote?: string
 }
 
 export type AssistantEventInput = {
@@ -90,6 +111,13 @@ export interface AssistantTools {
     userId: string,
     location: string | null,
   ): Promise<{ ok: boolean; location: string | null }>
+  // Save a durable fact the user shared (home, work, routine, family member, a
+  // lasting preference) so later turns can personalize. Returns the refreshed
+  // memory summary so the assistant can confirm what it now knows.
+  updateAssistantMemory(
+    userId: string,
+    update: AssistantMemoryUpdate,
+  ): Promise<{ ok: boolean; memory: string }>
 
   // Tasks
   addTask(

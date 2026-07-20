@@ -40,6 +40,7 @@ import {
   SegmentedControl,
   Toggle,
 } from '@/components/settings/settings-ui'
+import { AssistantMemoryCard } from '@/components/settings/assistant-memory-card'
 import {
   planName,
   renewLine,
@@ -468,6 +469,8 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
           {messages.weatherLocation.settingHint}
         </p>
       </SectionCard>
+
+      <AssistantMemoryCard user={user} />
     </div>
   )
 }

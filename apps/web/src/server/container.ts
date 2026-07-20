@@ -92,6 +92,7 @@ import {
   makeSetTimezone,
   makeSetWeatherLocation,
   makePreviewWeatherLocation,
+  makeSetAssistantProfile,
   makeSetAvatar,
   makeRemoveAvatar,
   makeSignInWithEmail,
@@ -230,6 +231,7 @@ type Container = {
   setTimezone: ReturnType<typeof makeSetTimezone>
   setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
   previewWeatherLocation: ReturnType<typeof makePreviewWeatherLocation>
+  setAssistantProfile: ReturnType<typeof makeSetAssistantProfile>
   setAvatar: ReturnType<typeof makeSetAvatar>
   removeAvatar: ReturnType<typeof makeRemoveAvatar>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
@@ -619,6 +621,7 @@ function build(
   })
   const weatherProvider = new OpenMeteoWeatherProvider()
   const setWeatherLocation = makeSetWeatherLocation({ users })
+  const setAssistantProfile = makeSetAssistantProfile({ users })
 
   const assistantTools = makeAssistantTools({
     users,
@@ -640,6 +643,7 @@ function build(
     deleteCalendarOccurrence,
     deleteCalendarEvent,
     setWeatherLocation,
+    setAssistantProfile,
   })
   const agent = createAgentRunner(assistantTools)
   return {
@@ -711,6 +715,7 @@ function build(
     setReminderPreferences: makeSetReminderPreferences({ users }),
     setTimezone: makeSetTimezone({ users }),
     setWeatherLocation,
+    setAssistantProfile,
     previewWeatherLocation: makePreviewWeatherLocation({
       weather: weatherProvider,
     }),

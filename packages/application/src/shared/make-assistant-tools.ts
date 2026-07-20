@@ -2,6 +2,7 @@ import {
   DEFAULT_TIME_ZONE,
   asEntityId,
   civilDate,
+  summarizeAssistantProfile,
   zonedIso,
   zonedWeekday,
 } from '@lifedeck/domain'
@@ -26,6 +27,7 @@ import type { makeUpdateCalendarOccurrence } from '@/use-cases/update-calendar-o
 import type { makeDeleteCalendarOccurrence } from '@/use-cases/delete-calendar-occurrence'
 import type { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
 import type { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
+import type { makeSetAssistantProfile } from '@/use-cases/set-assistant-profile'
 
 // Default heads-up (minutes) for an event the assistant creates without an
 // explicit reminder, so a WhatsApp-made event actually schedules an alert.
@@ -54,6 +56,7 @@ export type AssistantToolsDeps = {
   deleteCalendarOccurrence: ReturnType<typeof makeDeleteCalendarOccurrence>
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
   setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
+  setAssistantProfile: ReturnType<typeof makeSetAssistantProfile>
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -79,6 +82,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     deleteCalendarOccurrence,
     deleteCalendarEvent,
     setWeatherLocation,
+    setAssistantProfile,
   } = deps
 
   // The assistant emits offset-aware local ISO (e.g. ...-03:00); the calendar
@@ -101,6 +105,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
         nowIso: zonedIso(now, timezone),
         weekday: zonedWeekday(now, timezone),
         defaultWeatherLocation: user?.weatherLocation ?? null,
+        memory: user ? summarizeAssistantProfile(user.assistantProfile) : '',
       }
     },
     async getToday(userId) {
@@ -169,6 +174,30 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
         return { ok: true, location: view.weatherLocation }
       } catch (error) {
         if (error instanceof NotFoundError) return { ok: false, location: null }
+        throw error
+      }
+    },
+    async updateAssistantMemory(userId, update) {
+      // Same single validated path as the settings screen; a missing user is a
+      // defensive no-op so a stale session can't crash the turn.
+      try {
+        const view = await setAssistantProfile(userId, update)
+        return {
+          ok: true,
+          memory: summarizeAssistantProfile({
+            homeLocation: view.assistantProfile.homeLocation,
+            workLocation: view.assistantProfile.workLocation,
+            wakeHour: view.assistantProfile.wakeHour,
+            quietHoursStart: view.assistantProfile.quietHoursStart,
+            quietHoursEnd: view.assistantProfile.quietHoursEnd,
+            briefEnabled: view.assistantProfile.briefEnabled,
+            briefHour: view.assistantProfile.briefHour,
+            people: view.assistantProfile.people,
+            notes: view.assistantProfile.notes,
+          }),
+        }
+      } catch (error) {
+        if (error instanceof NotFoundError) return { ok: false, memory: '' }
         throw error
       }
     },

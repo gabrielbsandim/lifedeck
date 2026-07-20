@@ -2,7 +2,11 @@
 
 import { useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { UserView, WeatherLocationResolution } from '@lifedeck/application'
+import type {
+  SetAssistantProfileInput,
+  UserView,
+  WeatherLocationResolution,
+} from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { browserTimeZone } from '@/lib/api/dates'
 import { sessionKey } from '@/lib/api/use-session'
@@ -57,6 +61,18 @@ export function useSetWeatherLocation() {
       apiRequest<UserView>('/api/v1/account/weather-location', {
         method: 'PATCH',
         body: JSON.stringify({ location }),
+      }),
+    onSuccess: user => queryClient.setQueryData(sessionKey, user),
+  })
+}
+
+export function useSetAssistantProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: SetAssistantProfileInput) =>
+      apiRequest<UserView>('/api/v1/account/assistant-profile', {
+        method: 'PATCH',
+        body: JSON.stringify(input),
       }),
     onSuccess: user => queryClient.setQueryData(sessionKey, user),
   })

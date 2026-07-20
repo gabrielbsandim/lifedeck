@@ -42,6 +42,22 @@ export {
   type CarryOverMode,
 } from '@/value-objects/carry-over-mode'
 export {
+  EMPTY_ASSISTANT_PROFILE,
+  MAX_PEOPLE,
+  MAX_NOTES,
+  MAX_NOTE_LENGTH,
+  MAX_PROFILE_LOCATION_LENGTH,
+  applyAssistantProfilePatch,
+  appendAssistantNote,
+  removeAssistantNote,
+  sanitizeAssistantProfile,
+  isAssistantProfileEmpty,
+  summarizeAssistantProfile,
+  type AssistantProfile,
+  type AssistantProfilePatch,
+  type AssistantPerson,
+} from '@/value-objects/assistant-profile'
+export {
   ENTITLEMENTS,
   isEntitlement,
   type Entitlement,

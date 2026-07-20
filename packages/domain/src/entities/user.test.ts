@@ -205,4 +205,39 @@ describe('User', () => {
     expect(user.passwordHash).toBe('new-hash')
     expect(() => user.changePassword('')).toThrow(ValidationError)
   })
+
+  it('starts with an empty assistant profile', () => {
+    const user = createGuest()
+    expect(user.assistantProfile).toEqual({
+      homeLocation: null,
+      workLocation: null,
+      wakeHour: null,
+      quietHoursStart: null,
+      quietHoursEnd: null,
+      briefEnabled: false,
+      briefHour: null,
+      people: [],
+      notes: [],
+    })
+  })
+
+  it('updates the assistant profile through a validated patch', () => {
+    const user = createGuest()
+    user.updateProfile({ homeLocation: '  Lisbon  ', briefEnabled: true })
+    expect(user.assistantProfile.homeLocation).toBe('Lisbon')
+    expect(user.assistantProfile.briefEnabled).toBe(true)
+    expect(() => user.updateProfile({ wakeHour: 99 })).toThrow(ValidationError)
+  })
+
+  it('remembers and forgets notes', () => {
+    const user = createGuest()
+    user.rememberNote('  prefers metric  ')
+    user.rememberNote('no early meetings')
+    expect(user.assistantProfile.notes).toEqual([
+      'prefers metric',
+      'no early meetings',
+    ])
+    user.forgetNote(0)
+    expect(user.assistantProfile.notes).toEqual(['no early meetings'])
+  })
 })
