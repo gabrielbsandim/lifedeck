@@ -265,6 +265,9 @@ export const pt: Messages = {
     placeholder: 'ex.: Mogi das Cruzes',
     save: 'Salvar',
     clear: 'Limpar',
+    checking: 'Verificando…',
+    found: 'Encontrado',
+    notFound: 'Cidade não encontrada. Verifique a grafia.',
   },
   getStarted: {
     title: 'Comece por aqui',

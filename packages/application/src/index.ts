@@ -78,6 +78,7 @@ export {
   timezoneSchema,
   reminderPreferencesSchema,
   weatherLocationSchema,
+  weatherLocationPreviewSchema,
   userViewSchema,
   type GuestSignInInput,
   type RegisterInput,
@@ -88,6 +89,7 @@ export {
   type CarryOverModeInput,
   type TimezoneInput,
   type WeatherLocationInput,
+  type WeatherLocationPreviewInput,
   type UserView,
 } from '@/dtos/user-dto'
 export {
@@ -311,6 +313,7 @@ export type {
   WeatherLookup,
   WeatherForecast,
   WeatherDay,
+  WeatherLocationResolution,
 } from '@/ports/weather-provider'
 export type { MediaPayload, MessageTemplate } from '@/ports/messaging-channel'
 export type { Transcriber } from '@/ports/transcriber'
@@ -398,6 +401,7 @@ export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
 export { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
+export { makePreviewWeatherLocation } from '@/use-cases/preview-weather-location'
 export { makeSetReminderPreferences } from '@/use-cases/set-reminder-preferences'
 export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
 export { makeRemoveAvatar } from '@/use-cases/remove-avatar'

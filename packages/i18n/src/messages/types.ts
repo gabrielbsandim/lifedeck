@@ -252,6 +252,9 @@ export type Messages = {
     placeholder: string
     save: string
     clear: string
+    checking: string
+    found: string
+    notFound: string
   }
   getStarted: {
     title: string

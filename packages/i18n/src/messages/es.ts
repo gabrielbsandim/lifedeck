@@ -265,6 +265,9 @@ export const es: Messages = {
     placeholder: 'ej.: Lisboa',
     save: 'Guardar',
     clear: 'Borrar',
+    checking: 'Verificando…',
+    found: 'Encontrada',
+    notFound: 'Ciudad no encontrada. Revisa la ortografía.',
   },
   getStarted: {
     title: 'Empieza aquí',

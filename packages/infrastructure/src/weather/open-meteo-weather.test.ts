@@ -219,6 +219,33 @@ describe('OpenMeteoWeatherProvider', () => {
     expect(result.forecast.days[1]?.precipitationProbabilityPct).toBeNull()
   })
 
+  it('resolves a place to its canonical name', async () => {
+    stubFetch()
+
+    const result = await provider().resolveLocation('lisbon')
+
+    expect(result).toEqual({ ok: true, location: 'Lisbon, Portugal' })
+  })
+
+  it('resolves to not_found for an unknown place', async () => {
+    stubFetch({ geo: ok({ results: [] }) })
+
+    const result = await provider().resolveLocation('nowhereville')
+
+    expect(result).toEqual({ ok: false, reason: 'not_found' })
+  })
+
+  it('resolves to unavailable when geocoding throws', async () => {
+    const fetchMock = vi.fn(async () => {
+      throw new Error('network')
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await provider().resolveLocation('lisbon')
+
+    expect(result).toEqual({ ok: false, reason: 'unavailable' })
+  })
+
   it('leaves the weekday blank for an unparseable date', async () => {
     stubFetch({
       forecast: ok({

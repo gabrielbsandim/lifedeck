@@ -38,9 +38,17 @@ export type WeatherQuery = {
   to?: string
 }
 
+// Resolves a free-text place to its canonical name (e.g. "lisboa" ->
+// "Lisbon, Portugal") so a UI can confirm a place before saving it, telling
+// "not found" apart from "couldn't check" (network/provider down).
+export type WeatherLocationResolution =
+  | { ok: true; location: string }
+  | { ok: false; reason: 'not_found' | 'unavailable' }
+
 // A stateless, read-only weather source. It needs no user data — the place and
 // dates come straight from the assistant, and the forecast horizon is the
 // provider's (roughly two weeks ahead).
 export interface WeatherProvider {
   getForecast(query: WeatherQuery): Promise<WeatherLookup>
+  resolveLocation(location: string): Promise<WeatherLocationResolution>
 }

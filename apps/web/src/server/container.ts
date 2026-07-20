@@ -96,6 +96,7 @@ import {
   makeSetReminderPreferences,
   makeSetTimezone,
   makeSetWeatherLocation,
+  makePreviewWeatherLocation,
   makeSetAvatar,
   makeRemoveAvatar,
   makeSignInWithEmail,
@@ -233,6 +234,7 @@ type Container = {
   setReminderPreferences: ReturnType<typeof makeSetReminderPreferences>
   setTimezone: ReturnType<typeof makeSetTimezone>
   setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
+  previewWeatherLocation: ReturnType<typeof makePreviewWeatherLocation>
   setAvatar: ReturnType<typeof makeSetAvatar>
   removeAvatar: ReturnType<typeof makeRemoveAvatar>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
@@ -857,6 +859,9 @@ function build(
     setReminderPreferences: makeSetReminderPreferences({ users }),
     setTimezone: makeSetTimezone({ users }),
     setWeatherLocation: makeSetWeatherLocation({ users }),
+    previewWeatherLocation: makePreviewWeatherLocation({
+      weather: weatherProvider,
+    }),
     setAvatar: makeSetAvatar({ users, fileStorage }),
     removeAvatar: makeRemoveAvatar({ users, fileStorage }),
     createRecurringTask: makeCreateRecurringTask({

@@ -261,6 +261,9 @@ export const en: Messages = {
     placeholder: 'e.g. Lisbon',
     save: 'Save',
     clear: 'Clear',
+    checking: 'Checking…',
+    found: 'Found',
+    notFound: 'City not found. Check the spelling.',
   },
   getStarted: {
     title: 'Get started',

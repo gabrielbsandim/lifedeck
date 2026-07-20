@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { UserView } from '@lifedeck/application'
+import type { UserView, WeatherLocationResolution } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { browserTimeZone } from '@/lib/api/dates'
 import { sessionKey } from '@/lib/api/use-session'
@@ -59,6 +59,19 @@ export function useSetWeatherLocation() {
         body: JSON.stringify({ location }),
       }),
     onSuccess: user => queryClient.setQueryData(sessionKey, user),
+  })
+}
+
+export function usePreviewWeatherLocation() {
+  return useMutation({
+    mutationFn: (location: string) =>
+      apiRequest<WeatherLocationResolution>(
+        '/api/v1/account/weather-location/preview',
+        {
+          method: 'POST',
+          body: JSON.stringify({ location }),
+        },
+      ),
   })
 }
 

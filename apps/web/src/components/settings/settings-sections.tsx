@@ -9,6 +9,7 @@ import {
 } from 'react'
 import Link from 'next/link'
 import { Avatar, Badge, Button, cn } from '@lifedeck/ui'
+import type { WeatherLocationResolution } from '@lifedeck/application'
 import type { SessionUser } from '@/lib/api/use-session'
 import { useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
@@ -18,6 +19,7 @@ import {
   useRemoveAvatar,
   useRenameUser,
   useSetCarryOverMode,
+  usePreviewWeatherLocation,
   useSetReminderPreferences,
   useSetTimezone,
   useSetWeatherLocation,
@@ -249,6 +251,7 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
   const setReminders = useSetReminderPreferences()
   const setTimezone = useSetTimezone()
   const setWeatherLocation = useSetWeatherLocation()
+  const previewWeatherLocation = usePreviewWeatherLocation()
 
   const timeZones = useMemo(() => listTimeZones(user.timezone), [user.timezone])
   const detectedZone = browserTimeZone()
@@ -256,12 +259,41 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
   const [weatherLocation, setWeatherLocationDraft] = useState(
     user.weatherLocation ?? '',
   )
+  // Holds the last geocoder check tied to the exact text it ran on, so a stale
+  // result never shows against a since-edited value.
+  const [weatherPreview, setWeatherPreview] = useState<{
+    for: string
+    result: WeatherLocationResolution
+  } | null>(null)
   const savedWeatherLocation = user.weatherLocation ?? ''
-  const weatherLocationDirty = weatherLocation.trim() !== savedWeatherLocation
+  const trimmedWeatherLocation = weatherLocation.trim()
+  const weatherLocationDirty = trimmedWeatherLocation !== savedWeatherLocation
+
+  const checkWeatherLocation = () => {
+    if (trimmedWeatherLocation === '' || !weatherLocationDirty) {
+      setWeatherPreview(null)
+      return
+    }
+    previewWeatherLocation.mutate(trimmedWeatherLocation, {
+      onSuccess: result =>
+        setWeatherPreview({ for: trimmedWeatherLocation, result }),
+      onError: () => setWeatherPreview(null),
+    })
+  }
+  const previewForCurrent =
+    weatherPreview && weatherPreview.for === trimmedWeatherLocation
+      ? weatherPreview.result
+      : null
+  const weatherLocationNotFound =
+    previewForCurrent !== null &&
+    !previewForCurrent.ok &&
+    previewForCurrent.reason === 'not_found'
   const saveWeatherLocation = () => {
-    const trimmed = weatherLocation.trim()
-    if (trimmed === savedWeatherLocation) return
-    setWeatherLocation.mutate(trimmed === '' ? null : trimmed)
+    if (!weatherLocationDirty || weatherLocationNotFound) return
+    setWeatherLocation.mutate(
+      trimmedWeatherLocation === '' ? null : trimmedWeatherLocation,
+    )
+    setWeatherPreview(null)
   }
 
   return (
@@ -364,7 +396,11 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
             type="text"
             value={weatherLocation}
             maxLength={160}
-            onChange={event => setWeatherLocationDraft(event.target.value)}
+            onChange={event => {
+              setWeatherLocationDraft(event.target.value)
+              setWeatherPreview(null)
+            }}
+            onBlur={checkWeatherLocation}
             disabled={setWeatherLocation.isPending}
             placeholder={messages.weatherLocation.placeholder}
             aria-label={messages.weatherLocation.settingLabel}
@@ -373,11 +409,30 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
           <Button
             type="submit"
             variant="primary"
-            disabled={!weatherLocationDirty || setWeatherLocation.isPending}
+            disabled={
+              !weatherLocationDirty ||
+              weatherLocationNotFound ||
+              setWeatherLocation.isPending
+            }
           >
             {messages.weatherLocation.save}
           </Button>
         </form>
+        {weatherLocationDirty && previewWeatherLocation.isPending && (
+          <p className="text-ink-500 text-xs">
+            {messages.weatherLocation.checking}
+          </p>
+        )}
+        {!previewWeatherLocation.isPending && previewForCurrent?.ok && (
+          <p className="text-xs font-medium text-emerald-600">
+            {messages.weatherLocation.found}: {previewForCurrent.location}
+          </p>
+        )}
+        {!previewWeatherLocation.isPending && weatherLocationNotFound && (
+          <p className="text-xs font-medium text-red-600">
+            {messages.weatherLocation.notFound}
+          </p>
+        )}
         {savedWeatherLocation !== '' && (
           <button
             type="button"

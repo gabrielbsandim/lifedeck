@@ -5,6 +5,7 @@ import {
   useDeleteAccount,
   useRenameUser,
   useRemoveAvatar,
+  usePreviewWeatherLocation,
   useSetCarryOverMode,
   useSetReminderPreferences,
   useSetTimezone,
@@ -97,6 +98,22 @@ describe('account hooks', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/account/weather-location',
       expect.objectContaining({ method: 'PATCH' }),
+    )
+  })
+
+  it('previews a weather location via POST and returns the resolution', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { ok: true, location: 'Lisbon, Portugal' },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => usePreviewWeatherLocation(), {
+      wrapper: Wrapper,
+    })
+    const resolution = await result.current.mutateAsync('lisbon')
+    expect(resolution).toEqual({ ok: true, location: 'Lisbon, Portugal' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/account/weather-location/preview',
+      expect.objectContaining({ method: 'POST' }),
     )
   })
 

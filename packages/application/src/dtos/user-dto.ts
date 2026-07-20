@@ -71,6 +71,14 @@ export const weatherLocationSchema = z.object({
 
 export type WeatherLocationInput = z.infer<typeof weatherLocationSchema>
 
+export const weatherLocationPreviewSchema = z.object({
+  location: z.string().trim().min(1).max(160),
+})
+
+export type WeatherLocationPreviewInput = z.infer<
+  typeof weatherLocationPreviewSchema
+>
+
 export const userViewSchema = z.object({
   id: z.string().uuid(),
   displayName: z.string(),

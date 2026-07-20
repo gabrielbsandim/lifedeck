@@ -1,5 +1,6 @@
 import type {
   WeatherDay,
+  WeatherLocationResolution,
   WeatherLookup,
   WeatherProvider,
   WeatherQuery,
@@ -117,6 +118,16 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     } catch {
       // Timeout, network error, or malformed payload — the assistant should
       // tell the user weather is unavailable rather than guess.
+      return { ok: false, reason: 'unavailable' }
+    }
+  }
+
+  async resolveLocation(location: string): Promise<WeatherLocationResolution> {
+    try {
+      const place = await this.geocode(location)
+      if (!place) return { ok: false, reason: 'not_found' }
+      return { ok: true, location: formatLocation(place) }
+    } catch {
       return { ok: false, reason: 'unavailable' }
     }
   }
