@@ -15,6 +15,7 @@ import {
   makeDeliverReminder,
   type ReminderTemplate,
 } from '@/use-cases/deliver-reminder'
+import { makeSendProactiveMessage } from '@/shared/send-proactive-message'
 
 const OWNER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
 const EVENT_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
@@ -95,21 +96,13 @@ async function setup(options: {
   const enqueue = vi.fn().mockResolvedValue(undefined)
   const sendTemplate = vi.fn().mockResolvedValue(undefined)
   const sendText = vi.fn().mockResolvedValue(undefined)
-  const deliver = makeDeliverReminder({
-    calendarEvents,
-    notifications,
+  const sendProactiveMessage = makeSendProactiveMessage({
     channelIdentities,
-    users,
-    emailSender,
     messaging: {
       sendText,
       sendTemplate,
       fetchMedia: vi.fn(),
     },
-    jobQueue: { enqueue },
-    ids: { generate: () => asEntityId(NOTE_ID) },
-    clock: { now: () => options.now },
-    reminderTemplate: options.reminderTemplate,
     whatsappSession:
       options.whatsappWindowOpen === undefined
         ? undefined
@@ -117,6 +110,17 @@ async function setup(options: {
             markActive: vi.fn(),
             isOpen: async () => options.whatsappWindowOpen ?? false,
           },
+  })
+  const deliver = makeDeliverReminder({
+    calendarEvents,
+    notifications,
+    users,
+    emailSender,
+    sendProactiveMessage,
+    jobQueue: { enqueue },
+    ids: { generate: () => asEntityId(NOTE_ID) },
+    clock: { now: () => options.now },
+    reminderTemplate: options.reminderTemplate,
   })
   return {
     notifications,

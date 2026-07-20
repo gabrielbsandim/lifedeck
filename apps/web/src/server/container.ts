@@ -14,6 +14,7 @@ import {
   makeCreateGuestUser,
   makeDeleteRemoteCalendarEvent,
   makeDeliverReminder,
+  makeSendProactiveMessage,
   makeEnqueueDailyDigests,
   makeReconcileCalendars,
   makeRenewCalendarChannels,
@@ -440,14 +441,20 @@ function build(
     calendarConnections,
     providers: calendarProviders,
   })
+  // Single path for assistant-initiated WhatsApp; V3's brief/nudge/check-in
+  // reuse it. Reminders delegate their WhatsApp delivery here.
+  const sendProactiveMessage = makeSendProactiveMessage({
+    channelIdentities,
+    messaging,
+    whatsappSession,
+  })
   const reminderTemplateName = process.env.WHATSAPP_REMINDER_TEMPLATE?.trim()
   const deliverReminder = makeDeliverReminder({
     calendarEvents,
     notifications,
-    channelIdentities,
     users,
     emailSender,
-    messaging,
+    sendProactiveMessage,
     jobQueue,
     ids,
     clock,
@@ -457,7 +464,6 @@ function build(
           language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
         }
       : undefined,
-    whatsappSession,
   })
   const watchGoogleCalendar = makeWatchGoogleCalendar({
     calendarConnections,

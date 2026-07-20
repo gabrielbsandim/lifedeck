@@ -116,8 +116,9 @@ In-session (24h window open) we send free-form text and skip the template. Copy
 lives per language via `whatsappLanguageForLocale`, mirroring the reminder template.
 
 **New env / config.** `FEATURE_PROACTIVE` master flag (dark-launchable like the V2
-pillars); template names (`WHATSAPP_TEMPLATE_DAILY_BRIEF`, `_HABIT_CHECKIN`,
-`_NUDGE`); `PROACTIVE_DAILY_CAP` (default e.g. 4).
+pillars) — SHIPPED in the feature-flag system. Template names
+(`WHATSAPP_TEMPLATE_DAILY_BRIEF`, `_HABIT_CHECKIN`, `_NUDGE`) and
+`PROACTIVE_DAILY_CAP` land with the sweeps that use them (V3-3+).
 
 **Tests.** Entitlement mapping unit tests; a metering guard test. Keep the 95%
 coverage gate green in every phase.
@@ -206,28 +207,38 @@ wiring (agent-runner is coverage-excluded), hook + settings interactions.
 
 ---
 
-## 5. V3-2 — Proactive messaging foundation
+## 5. V3-2 — Proactive messaging foundation — SHIPPED
 
 Extract the one proven proactive path so brief/nudge/check-in don't each
 re-implement it.
 
-**What.** A shared `sendProactiveMessage(userId, { text, template })` use case
-that encapsulates the deliver-reminder logic: resolve verified WhatsApp
+**Shipped.** `makeSendProactiveMessage(userId, { text, template })`
+(`application/src/shared/send-proactive-message.ts`): resolve verified WhatsApp
 `ChannelIdentity`, check `WhatsappSessionWindow.isOpen`, send free-form text when
-open else the named template, meter the send, honor quiet hours and the daily cap,
-and swallow failures (best-effort, like reminders). `deliver-reminder` is
-refactored to call it (behavior unchanged; existing tests stay green).
+open else the named template, swallow failures (best-effort). `deliver-reminder`
+now delegates its WhatsApp delivery to it (behavior unchanged; tests green).
+Wired in the container from `channelIdentities`, `messaging`, `whatsappSession`.
+The `FEATURE_PROACTIVE` master flag ships alongside (dark-launch).
 
-**Value / monetization.** Pure enabler; the gate is `proactiveMessaging`.
+**Deliberately NOT in the messenger** (they belong to the AI-composing callers,
+so a templated reminder never pays an AI credit or gets rate-limited):
 
-**Infra/App.** New `ProactiveMessenger` shared module in application `shared/`;
-container wires it with `messaging`, `channelIdentities`, `whatsappSession`,
-`usageMeter`, template config. No new UI.
+- **Metering** stays with the brief/nudge/check-in use cases that make the Gemini
+  call; the reminder path is not metered, as before.
+- **Quiet hours** need the assistant profile (V3-1), so the brief/check-in
+  sweeps enforce them once that lands.
+- **Daily cap**: the sweeps are naturally once-per-day per user; a hard
+  `PROACTIVE_DAILY_CAP` backstop lands with the first sweep (V3-3).
+- **Template config** (`daily_brief`/`habit_checkin`/`nudge` names) lands with
+  the feature that sends each — the messenger takes a template descriptor from
+  its caller.
 
-**Tests.** Window-open text path, window-closed template path, quiet-hours skip,
-cap-exceeded skip, unverified-number skip.
+**Value / monetization.** Pure enabler; callers gate on `proactiveMessaging`.
 
-**Effort:** small–medium (mostly a careful refactor).
+**Tests.** Window-open text, window-closed template, no-template no-op,
+unverified/absent number skip, swallowed send failure, missing-window-as-closed.
+
+**Effort:** small–medium (mostly a careful refactor). Done.
 
 ---
 

@@ -1,10 +1,12 @@
-export type Feature = 'v2' | 'calendar' | 'whatsapp' | 'billing'
+export type Feature = 'v2' | 'calendar' | 'whatsapp' | 'billing' | 'proactive'
 
 const FEATURE_ENV: Record<Feature, string> = {
   v2: 'FEATURES_V2',
   calendar: 'FEATURE_CALENDAR',
   whatsapp: 'FEATURE_WHATSAPP',
   billing: 'FEATURE_BILLING',
+  // Assistant-initiated messaging (daily brief, nudges, habit check-ins).
+  proactive: 'FEATURE_PROACTIVE',
 }
 
 function flagEnabled(name: string): boolean {

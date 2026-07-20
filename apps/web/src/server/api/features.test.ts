@@ -19,6 +19,13 @@ describe('isFeatureEnabled', () => {
     expect(isFeatureEnabled('calendar')).toBe(false)
     expect(isFeatureEnabled('whatsapp')).toBe(false)
     expect(isFeatureEnabled('billing')).toBe(false)
+    expect(isFeatureEnabled('proactive')).toBe(false)
+  })
+
+  it('enables proactive only when the master and proactive flags are on', () => {
+    vi.stubEnv('FEATURES_V2', 'true')
+    vi.stubEnv('FEATURE_PROACTIVE', 'true')
+    expect(isFeatureEnabled('proactive')).toBe(true)
   })
 
   it('enables a pillar only when both the master and pillar flags are on', () => {

@@ -408,6 +408,10 @@ export {
   makeAssistantTools,
   type AssistantToolsDeps,
 } from '@/shared/make-assistant-tools'
+export {
+  makeSendProactiveMessage,
+  type ProactiveMessage,
+} from '@/shared/send-proactive-message'
 export { makeSetReminderPreferences } from '@/use-cases/set-reminder-preferences'
 export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
 export { makeRemoveAvatar } from '@/use-cases/remove-avatar'

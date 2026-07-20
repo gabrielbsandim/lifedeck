@@ -2,16 +2,14 @@ import { Notification, asEntityId, toMessageLanguage } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
-import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
 import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import { formatEventTime } from '@/shared/format-event-time'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import { whatsappReminderText } from '@/shared/whatsapp-reminder-text'
-import type { MessagingChannel } from '@/ports/messaging-channel'
+import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
 import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { JobQueue } from '@/ports/job-queue'
-import type { WhatsappSessionWindow } from '@/ports/whatsapp-session'
 import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
 export type ReminderTemplate = {
@@ -22,15 +20,13 @@ export type ReminderTemplate = {
 type Dependencies = {
   calendarEvents: CalendarEventRepository
   notifications: NotificationRepository
-  channelIdentities: ChannelIdentityRepository
   users: UserRepository
   emailSender: EmailSender
-  messaging: MessagingChannel
+  sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   jobQueue: JobQueue
   ids: IdGenerator
   clock: Clock
   reminderTemplate?: ReminderTemplate
-  whatsappSession?: WhatsappSessionWindow
 }
 
 export type ReminderResult = {
@@ -41,15 +37,13 @@ export type ReminderResult = {
 export function makeDeliverReminder({
   calendarEvents,
   notifications,
-  channelIdentities,
   users,
   emailSender,
-  messaging,
+  sendProactiveMessage,
   jobQueue,
   ids,
   clock,
   reminderTemplate,
-  whatsappSession,
 }: Dependencies) {
   return async function deliverReminder(
     eventId: string,
@@ -127,40 +121,27 @@ export function makeDeliverReminder({
     }
 
     // Best-effort proactive WhatsApp alert when the user opted in and linked a
-    // verified number. Inside WhatsApp's 24h customer-service window (the user
-    // messaged us recently) we can send a normal text; once it closes WhatsApp
-    // only allows a pre-approved utility template, so we fall back to one when
-    // configured. With neither, only the in-app notification fires.
+    // verified number. The shared sender picks a free-form text while WhatsApp's
+    // 24h window is open and falls back to the approved template once it closes;
+    // with neither available, only the in-app notification fires.
     if (user?.reminderWhatsapp !== false) {
-      const identity = await channelIdentities.findByUser(
-        asEntityId(userId),
-        'whatsapp',
-      )
-      if (identity?.isVerified() && identity.address) {
-        // A localized, timezone-aware time rather than a raw ISO timestamp;
-        // both the free-form text and the template render it as-is.
-        const when = user
-          ? formatEventTime(
-              startsAtIso,
-              toEmailLocale(user.locale),
-              user.timezone,
-            )
-          : startsAtIso
-        const windowOpen = whatsappSession
-          ? await whatsappSession.isOpen(identity.address)
-          : false
-        try {
-          if (windowOpen) {
-            await messaging.sendText(
-              identity.address,
-              whatsappReminderText(
-                toMessageLanguage(user?.locale),
-                props.title,
-                when,
-              ),
-            )
-          } else if (reminderTemplate?.name) {
-            await messaging.sendTemplate(identity.address, {
+      // A localized, timezone-aware time rather than a raw ISO timestamp; both
+      // the free-form text and the template render it as-is.
+      const when = user
+        ? formatEventTime(
+            startsAtIso,
+            toEmailLocale(user.locale),
+            user.timezone,
+          )
+        : startsAtIso
+      await sendProactiveMessage(userId, {
+        text: whatsappReminderText(
+          toMessageLanguage(user?.locale),
+          props.title,
+          when,
+        ),
+        template: reminderTemplate?.name
+          ? {
               name: reminderTemplate.name,
               // Render in the recipient's language, not one global default.
               language: whatsappLanguageForLocale(
@@ -168,12 +149,9 @@ export function makeDeliverReminder({
                 reminderTemplate.language,
               ),
               params: [props.title, when],
-            })
-          }
-        } catch {
-          // Ignore; the in-app notification already landed.
-        }
-      }
+            }
+          : undefined,
+      })
     }
 
     return { delivered: true }

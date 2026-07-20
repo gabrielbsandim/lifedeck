@@ -16,6 +16,7 @@ import {
   makeRefundCredits,
   makeCreateCalendarEvent,
   makeDeliverReminder,
+  makeSendProactiveMessage,
   makeDispatchDueJobs,
   makeHandleInboundWhatsApp,
   makeStartWhatsappPairing,
@@ -78,10 +79,12 @@ describe('V2 calendar reminder happy path', () => {
     const deliverReminder = makeDeliverReminder({
       calendarEvents,
       notifications,
-      channelIdentities,
       users: new InMemoryUserRepository(),
       emailSender: new FakeEmailSender(),
-      messaging,
+      sendProactiveMessage: makeSendProactiveMessage({
+        channelIdentities,
+        messaging,
+      }),
       jobQueue,
       ids,
       clock,
