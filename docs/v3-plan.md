@@ -81,9 +81,12 @@ Grounding every phase in code that already exists keeps V3 cheap and low-risk.
 
 ---
 
-## 3. Cross-cutting foundation (V3-0)
+## 3. Cross-cutting foundation (V3-0) — SHIPPED
 
-Shipped first because everything else sits on it.
+Shipped first because everything else sits on it. Entitlements, plan copy, the
+proactive-send path, and the pre-feature refactors below are all landed and
+green under the 95% gate; the metered-send cap and Meta templates land with the
+sweeps that use them (V3-3+), as noted inline.
 
 **Entitlements.** Add to `ENTITLEMENTS` (`packages/domain/src/value-objects/entitlement.ts`):
 
@@ -146,11 +149,15 @@ would otherwise fight the feature work, so they land as part of V3-0:
   gated in the application layer, not by hoping the model won't call them.
 - **`ProactiveMessenger` extraction** — see V3-2; it is the other foundational
   refactor and is the first feature phase.
-- **Cover the seams V3 depends on.** Add tests for the agent tool-wiring
-  (`toolsFor`/`systemPromptFor`), the handler-registry construction, the Google
-  calendar adapter's payload mapping, and the cron/weather route handlers — all
-  currently in `coverageExclude`/`src/app` and untested. Add `src/app/**` to the
-  web `coverageInclude`.
+- **Cover the seams V3 depends on** — DONE. The agent tool-wiring is now a pair
+  of pure exported builders (`buildAssistantToolset`/`buildSystemPrompt`, plus an
+  injectable `gateTools`) unit-tested against a spy `AssistantTools`; the Google
+  adapter's payload mapping and the cron (`internal/**`) + weather
+  (`account/weather-location/**`) route handlers are tested and removed from
+  `coverageExclude`. The web `coverageInclude` was extended to exactly those
+  route globs rather than all of `src/app/**`: the other ~60 routes are still
+  untested, so measuring them now would fail the 95% gate. Blanket `src/app/**`
+  coverage is a separate follow-up (not a V3 prerequisite).
 
 ---
 

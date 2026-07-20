@@ -6,7 +6,15 @@ export default mergeConfig(
   createVitestConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    coverageInclude: ['src/lib/**/*.{ts,tsx}', 'src/server/**/*.{ts,tsx}'],
+    coverageInclude: [
+      'src/lib/**/*.{ts,tsx}',
+      'src/server/**/*.{ts,tsx}',
+      // The cron (internal) and weather route handlers the V3 proactive stack
+      // builds on. The rest of src/app is still measured out of the gate until
+      // its routes are covered.
+      'src/app/api/v1/internal/**/*.ts',
+      'src/app/api/v1/account/weather-location/**/*.ts',
+    ],
     coverageExclude: [
       'src/**/*.test.{ts,tsx}',
       'src/lib/api/test-utils.tsx',
