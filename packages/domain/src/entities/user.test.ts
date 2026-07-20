@@ -124,6 +124,28 @@ describe('User', () => {
     expect(user.reminderWhatsapp).toBe(false)
   })
 
+  it('saves, trims, and clears the default weather location', () => {
+    const user = createGuest()
+    expect(user.weatherLocation).toBeNull()
+
+    user.setWeatherLocation('  Mogi das Cruzes  ')
+    expect(user.weatherLocation).toBe('Mogi das Cruzes')
+
+    user.setWeatherLocation('   ')
+    expect(user.weatherLocation).toBeNull()
+
+    user.setWeatherLocation('Lisboa')
+    user.setWeatherLocation(null)
+    expect(user.weatherLocation).toBeNull()
+  })
+
+  it('rejects an over-long weather location', () => {
+    const user = createGuest()
+    expect(() => user.setWeatherLocation('a'.repeat(161))).toThrow(
+      ValidationError,
+    )
+  })
+
   it('registers a guest with email and password, normalizing the address', () => {
     const user = createGuest()
     user.register({

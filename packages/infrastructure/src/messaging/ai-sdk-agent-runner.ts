@@ -20,6 +20,8 @@ To act on an existing task or event (complete, rename, delete, reschedule, add a
 
 Weather: you can look up the weather forecast for any place, up to about two weeks ahead, with getWeather. When the user asks about the weather somewhere ("is it going to rain in Lisbon this weekend?", "weather in Rio next week"), call getWeather with the place name and the dates that match, resolved from the current local date and passed as YYYY-MM-DD. Temperatures come back in Celsius; summarize naturally and mention the chance of rain when it is relevant. If the place is not found or the requested day is beyond the forecast horizon, say so plainly. Do not invent weather you did not read from the tool.
 
+Default weather location: the current context tells you whether the user has saved a default place for weather. If they ask about the weather without naming a place, use that saved default; only ask which place when there is no saved default. When the user does name a place and they have no saved default (or it differs from the one they just asked about), answer first, then offer once, in one short sentence, to save that place for next time (e.g. "Quer que eu guarde São Paulo como seu local padrão para o tempo?"). Only when they clearly agree, call setDefaultWeatherLocation with that place. Call it with an empty location to clear the saved place if they ask to stop or change it. Do not offer again in the same conversation if they decline.
+
 Never expose internal details to the user: do not mention tool names (such as getAgenda), ids, or implementation limits. Speak naturally about what you can see and do. If you cannot find something, say so plainly and offer to check a specific date or period.
 
 Time handling: always work in the user's local time zone, given below with the current local date and time. Resolve relative dates like "today", "tomorrow", or "this Saturday" against that current date. When you set event times, output ISO 8601 that includes the user's UTC offset (for example 2026-07-18T11:30:00-03:00); never send a bare UTC "Z" time for a local wall-clock time. Agenda times you read are already in the user's local time.
@@ -96,6 +98,23 @@ export class AiSdkAgentRunner implements AgentRunner {
         }),
         execute: async ({ location, from, to }) =>
           this.tools.getWeather({ location, from, to }),
+      }),
+      setDefaultWeatherLocation: tool({
+        description:
+          "Save the user's default place for weather questions so later asks need no location, or clear it with an empty string. Only call this after the user agrees to save or asks to change/remove it.",
+        inputSchema: z.object({
+          location: z
+            .string()
+            .max(160)
+            .describe(
+              'The place to save as the default, e.g. "São Paulo". Empty string clears the saved default.',
+            ),
+        }),
+        execute: async ({ location }) =>
+          this.tools.setDefaultWeatherLocation(
+            userId,
+            location.trim() === '' ? null : location,
+          ),
       }),
       addTask: tool({
         description:
@@ -285,11 +304,15 @@ export class AiSdkAgentRunner implements AgentRunner {
 
   private async systemPromptFor(userId: string): Promise<string> {
     const context = await this.tools.getContext(userId)
+    const weatherLine = context.defaultWeatherLocation
+      ? `- The user's saved default weather location is ${context.defaultWeatherLocation}. Use it when they ask about the weather without naming a place.`
+      : '- The user has no saved default weather location yet.'
     return `${SYSTEM_PROMPT}
 
 Current context:
 - The user's time zone is ${context.timezone}.
-- The current local date and time there is ${context.nowIso} (${context.weekday}).`
+- The current local date and time there is ${context.nowIso} (${context.weekday}).
+${weatherLine}`
   }
 
   async run(input: AgentRunInput): Promise<AgentReply> {

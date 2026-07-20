@@ -109,10 +109,13 @@ creating:
 
 - **Read** (return ids the model threads into mutations): `getToday`, `getLists`,
   `getAgenda`.
-- **Weather** (read-only, no user data): `getWeather` — geocodes a place and
+- **Weather**: `getWeather` (read-only, no user data) geocodes a place and
   returns a daily forecast up to ~16 days ahead via Open-Meteo
   (`OpenMeteoWeatherProvider`, keyless), so the user can ask "will it rain in
-  Lisbon this weekend?".
+  Lisbon this weekend?". `setDefaultWeatherLocation` saves (or clears) a default
+  place on the user, surfaced back through `getContext`, so later "weather
+  tomorrow?" asks need no location; the assistant offers to save it after the
+  user first names a place and none is stored.
 - **Tasks**: `addTask` (defaults to today's list, or a given `listId`),
   `completeTask`, `reopenTask`, `renameTask`, `deleteTask`, `moveTaskToToday`.
 - **Lists / subtasks**: `createList`, `addSubtask`, `completeSubtask`.

@@ -625,6 +625,7 @@ function build(
         timezone,
         nowIso: zonedIso(now, timezone),
         weekday: zonedWeekday(now, timezone),
+        defaultWeatherLocation: user?.weatherLocation ?? null,
       }
     },
     async getToday(userId) {
@@ -686,6 +687,13 @@ function build(
     },
     async getWeather(query) {
       return weatherProvider.getForecast(query)
+    },
+    async setDefaultWeatherLocation(userId, location) {
+      const user = await users.findById(asEntityId(userId))
+      if (!user) return { ok: false, location: null }
+      user.setWeatherLocation(location)
+      await users.save(user)
+      return { ok: true, location: user.weatherLocation }
     },
     async addTask(userId, input) {
       let listId = input.listId

@@ -18,6 +18,7 @@ const RECORD: UserRecord = {
   carryOverMode: 'manual',
   reminderEmail: false,
   reminderWhatsapp: true,
+  weatherLocation: 'Mogi das Cruzes',
   createdAt: new Date('2026-06-21T10:00:00.000Z'),
 }
 
@@ -42,6 +43,13 @@ describe('user-record mapping', () => {
     expect(record.emailVerified).toBeNull()
     expect(record.isGuest).toBe(true)
     expect(record.avatarUrl).toBeNull()
+  })
+
+  it('round-trips a null weather location', () => {
+    const record = toUserRecord(
+      toDomainUser({ ...RECORD, weatherLocation: null }),
+    )
+    expect(record.weatherLocation).toBeNull()
   })
 
   it('preserves the auto carry-over mode and falls back on unknown values', () => {

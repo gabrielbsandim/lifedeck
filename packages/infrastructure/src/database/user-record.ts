@@ -13,6 +13,7 @@ export type UserRecord = {
   carryOverMode: string
   reminderEmail: boolean
   reminderWhatsapp: boolean
+  weatherLocation: string | null
   createdAt: Date
 }
 
@@ -32,6 +33,7 @@ export function toDomainUser(record: UserRecord): User {
       : 'manual',
     reminderEmail: record.reminderEmail,
     reminderWhatsapp: record.reminderWhatsapp,
+    weatherLocation: record.weatherLocation,
     createdAt: record.createdAt,
   })
 }
@@ -51,6 +53,7 @@ export function toUserRecord(user: User): UserRecord {
     carryOverMode: props.carryOverMode,
     reminderEmail: props.reminderEmail,
     reminderWhatsapp: props.reminderWhatsapp,
+    weatherLocation: props.weatherLocation,
     createdAt: props.createdAt,
   }
 }

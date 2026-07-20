@@ -41,6 +41,11 @@ export type AssistantContext = {
   nowIso: string
   /** Weekday of the current instant in the user's zone, e.g. Saturday. */
   weekday: string
+  /**
+   * The place the user saved for weather questions, or null if none. Lets the
+   * assistant answer "weather tomorrow?" without asking where every time.
+   */
+  defaultWeatherLocation: string | null
 }
 
 export type AssistantEventInput = {
@@ -79,6 +84,12 @@ export interface AssistantTools {
   // Read-only weather lookup for any place, up to the provider's ~16-day
   // horizon. Not scoped to the user: the place and dates come from the query.
   getWeather(query: WeatherQuery): Promise<WeatherLookup>
+  // Save (or clear, with null) the user's default place for weather questions,
+  // so later "weather tomorrow?" asks need no location.
+  setDefaultWeatherLocation(
+    userId: string,
+    location: string | null,
+  ): Promise<{ ok: boolean; location: string | null }>
 
   // Tasks
   addTask(
