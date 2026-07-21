@@ -151,7 +151,7 @@ export function HabitsManager() {
                   key={habit.id}
                   className="border-line flex flex-col gap-3 rounded-xl border bg-white px-4 py-3.5"
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-wrap items-start gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p
@@ -175,32 +175,37 @@ export function HabitsManager() {
                         {!habit.active && ` · ${t.paused}`}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="h-9 px-3"
-                      onClick={() =>
-                        updateHabit.mutate({
-                          id: habit.id,
-                          input: { active: !habit.active },
-                        })
-                      }
-                    >
-                      {habit.active ? t.pause : t.resume}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-9 px-3"
-                      onClick={() => setEditingId(habit.id)}
-                    >
-                      {t.edit}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="text-danger h-9 px-3"
-                      onClick={() => deleteHabit.mutate(habit.id)}
-                    >
-                      {t.delete}
-                    </Button>
+                    {/* Actions sit inline on desktop and drop to their own
+                        right-aligned line on narrow screens, so the title never
+                        gets squeezed to a truncated stub. */}
+                    <div className="flex w-full justify-end gap-1 sm:w-auto">
+                      <Button
+                        variant="ghost"
+                        className="h-9 px-3"
+                        onClick={() =>
+                          updateHabit.mutate({
+                            id: habit.id,
+                            input: { active: !habit.active },
+                          })
+                        }
+                      >
+                        {habit.active ? t.pause : t.resume}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-9 px-3"
+                        onClick={() => setEditingId(habit.id)}
+                      >
+                        {t.edit}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="text-danger h-9 px-3"
+                        onClick={() => deleteHabit.mutate(habit.id)}
+                      >
+                        {t.delete}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3">

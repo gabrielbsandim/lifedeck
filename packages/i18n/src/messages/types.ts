@@ -89,9 +89,7 @@ export type Messages = {
     checkin: string
     checkinHint: string
     checkinNone: string
-    streak: string
     markDone: string
-    done: string
     today: string
     weekAria: string
     paused: string
@@ -232,9 +230,6 @@ export type Messages = {
     subscribePlan: string
     compare: string
     sample: string
-    freeFeatures: string[]
-    proFeatures: string[]
-    premiumFeatures: string[]
     compareDailyLists: string
     compareSharing: string
     compareAnalytics: string
