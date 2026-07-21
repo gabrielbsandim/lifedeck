@@ -23,6 +23,8 @@ export function toUserView(user: User): UserView {
       wakeHour: props.assistantProfile.wakeHour,
       quietHoursStart: props.assistantProfile.quietHoursStart,
       quietHoursEnd: props.assistantProfile.quietHoursEnd,
+      workHoursStart: props.assistantProfile.workHoursStart,
+      workHoursEnd: props.assistantProfile.workHoursEnd,
       briefEnabled: props.assistantProfile.briefEnabled,
       briefHour: props.assistantProfile.briefHour,
       nudgesEnabled: props.assistantProfile.nudgesEnabled,

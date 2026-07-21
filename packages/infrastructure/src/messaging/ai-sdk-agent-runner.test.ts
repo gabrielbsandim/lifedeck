@@ -57,6 +57,7 @@ function spyTools(overrides: Partial<AssistantTools> = {}): AssistantTools {
     rescheduleOccurrence: method({ ok: true }),
     cancelOccurrence: method({ ok: true }),
     deleteEvent: method({ ok: true }),
+    findTime: method({ slots: [] }),
     ...overrides,
   } as AssistantTools
 }
@@ -258,6 +259,12 @@ describe('buildAssistantToolset', () => {
 
     await run(toolset.deleteEvent, { eventId: 'e1' })
     expect(tools.deleteEvent).toHaveBeenCalledWith(USER_ID, 'e1')
+
+    await run(toolset.findTime, { durationMin: 60 })
+    expect(tools.findTime).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ durationMin: 60 }),
+    )
   })
 })
 

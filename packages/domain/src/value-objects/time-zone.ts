@@ -86,3 +86,37 @@ export function zonedWeekday(instant: Date, timeZone: string): string {
     weekday: 'long',
   }).format(instant)
 }
+
+function offsetToMinutes(offset: string): number {
+  const match = offset.match(/^([+-])(\d{2}):(\d{2})$/)
+  if (!match) {
+    return 0
+  }
+  const [, sign, hours, minutes] = match
+  const magnitude = Number(hours) * 60 + Number(minutes)
+  return sign === '-' ? -magnitude : magnitude
+}
+
+/**
+ * The UTC instant whose wall clock in `timeZone` is `hour` (0-24, where 24 is
+ * midnight starting the next day) on the civil date `date` (a `YYYY-MM-DD`
+ * string). The inverse of `civilHour`: for a whole hour,
+ * `civilHour(zonedInstant(date, hour, tz), tz) === hour`. Two passes converge
+ * even across a DST change — the offset is sampled at the provisional instant,
+ * then re-sampled after the first correction.
+ */
+export function zonedInstant(
+  date: string,
+  hour: number,
+  timeZone: string,
+): Date {
+  const zone = isTimeZone(timeZone) ? timeZone : DEFAULT_TIME_ZONE
+  const baseMs =
+    Date.parse(`${date}T00:00:00.000Z`) + Math.round(hour * 60) * 60_000
+  let instant = baseMs
+  for (let pass = 0; pass < 2; pass += 1) {
+    const offsetMinutes = offsetToMinutes(zoneOffset(new Date(instant), zone))
+    instant = baseMs - offsetMinutes * 60_000
+  }
+  return new Date(instant)
+}

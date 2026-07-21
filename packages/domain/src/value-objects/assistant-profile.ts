@@ -27,6 +27,10 @@ export type AssistantProfile = {
   /** Local hours (0-23) between which we never message proactively. */
   quietHoursStart: number | null
   quietHoursEnd: number | null
+  /** Local hours (0-23) that bound the working day; smart scheduling only
+   *  proposes focus blocks inside this window. */
+  workHoursStart: number | null
+  workHoursEnd: number | null
   /** Whether the daily brief is on, and the local hour (0-23) it should send. */
   briefEnabled: boolean
   briefHour: number | null
@@ -42,6 +46,8 @@ export const EMPTY_ASSISTANT_PROFILE: AssistantProfile = {
   wakeHour: null,
   quietHoursStart: null,
   quietHoursEnd: null,
+  workHoursStart: null,
+  workHoursEnd: null,
   briefEnabled: false,
   briefHour: null,
   nudgesEnabled: true,
@@ -57,6 +63,8 @@ export type AssistantProfilePatch = Partial<{
   wakeHour: number | null
   quietHoursStart: number | null
   quietHoursEnd: number | null
+  workHoursStart: number | null
+  workHoursEnd: number | null
   briefEnabled: boolean
   briefHour: number | null
   nudgesEnabled: boolean
@@ -161,6 +169,12 @@ export function applyAssistantProfilePatch(
   }
   if (patch.quietHoursEnd !== undefined) {
     next.quietHoursEnd = cleanHour(patch.quietHoursEnd, 'Quiet hours end')
+  }
+  if (patch.workHoursStart !== undefined) {
+    next.workHoursStart = cleanHour(patch.workHoursStart, 'Work hours start')
+  }
+  if (patch.workHoursEnd !== undefined) {
+    next.workHoursEnd = cleanHour(patch.workHoursEnd, 'Work hours end')
   }
   if (patch.briefEnabled !== undefined) {
     next.briefEnabled = patch.briefEnabled
@@ -278,6 +292,8 @@ export function sanitizeAssistantProfile(value: unknown): AssistantProfile {
     wakeHour: coerceHour(raw.wakeHour),
     quietHoursStart: coerceHour(raw.quietHoursStart),
     quietHoursEnd: coerceHour(raw.quietHoursEnd),
+    workHoursStart: coerceHour(raw.workHoursStart),
+    workHoursEnd: coerceHour(raw.workHoursEnd),
     briefEnabled: raw.briefEnabled === true,
     briefHour: coerceHour(raw.briefHour),
     // Defaults on: only an explicit false opts out, so legacy rows keep nudges.
@@ -295,6 +311,8 @@ export function isAssistantProfileEmpty(profile: AssistantProfile): boolean {
     profile.wakeHour === null &&
     profile.quietHoursStart === null &&
     profile.quietHoursEnd === null &&
+    profile.workHoursStart === null &&
+    profile.workHoursEnd === null &&
     !profile.briefEnabled &&
     profile.briefHour === null &&
     profile.nudgesEnabled &&
@@ -320,6 +338,11 @@ export function summarizeAssistantProfile(profile: AssistantProfile): string {
   if (profile.quietHoursStart !== null && profile.quietHoursEnd !== null) {
     lines.push(
       `Quiet hours ${profile.quietHoursStart}:00-${profile.quietHoursEnd}:00`,
+    )
+  }
+  if (profile.workHoursStart !== null && profile.workHoursEnd !== null) {
+    lines.push(
+      `Work hours ${profile.workHoursStart}:00-${profile.workHoursEnd}:00`,
     )
   }
   if (profile.people.length > 0) {

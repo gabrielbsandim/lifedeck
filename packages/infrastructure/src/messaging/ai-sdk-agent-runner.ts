@@ -13,10 +13,12 @@ import type {
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
 
-// Tools that require a plan entitlement to be exposed to the model. Empty today
-// (every current tool is part of the baseline WhatsApp assistant); V3-6 adds
-// `findTime: 'smartScheduling'`. A tool not listed here is always available.
-export const TOOL_ENTITLEMENTS: Record<string, Entitlement> = {}
+// Tools that require a plan entitlement to be exposed to the model. A tool not
+// listed here is part of the baseline WhatsApp assistant and always available.
+export const TOOL_ENTITLEMENTS: Record<string, Entitlement> = {
+  // Smart scheduling ("find me time") is Premium-only.
+  findTime: 'smartScheduling',
+}
 
 // Drops any tool whose required entitlement the user's plan does not grant, so
 // gating happens here rather than relying on the model to avoid a tool. The
@@ -132,7 +134,7 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
     }),
     updateAssistantMemory: tool({
       description:
-        "Save a durable fact about the user so later chats can personalize (home/work place, wake or quiet hours, a person they mention, the daily brief on/off and its hour). Pass only the fields to change; send null to clear one. Use addNote for a lasting preference that doesn't fit a field. Only call this for facts that stay true; never for one-off details or anything sensitive.",
+        "Save a durable fact about the user so later chats can personalize (home/work place, wake or quiet hours, working hours, a person they mention, the daily brief on/off and its hour). Pass only the fields to change; send null to clear one. Use addNote for a lasting preference that doesn't fit a field. Only call this for facts that stay true; never for one-off details or anything sensitive.",
       inputSchema: z.object({
         homeLocation: z
           .string()
@@ -153,6 +155,20 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
           .describe('Local hour (0-23) they usually wake.'),
         quietHoursStart: z.number().int().min(0).max(23).nullish(),
         quietHoursEnd: z.number().int().min(0).max(23).nullish(),
+        workHoursStart: z
+          .number()
+          .int()
+          .min(0)
+          .max(23)
+          .nullish()
+          .describe('Local hour (0-23) the working day starts.'),
+        workHoursEnd: z
+          .number()
+          .int()
+          .min(0)
+          .max(23)
+          .nullish()
+          .describe('Local hour (0-23) the working day ends.'),
         briefEnabled: z
           .boolean()
           .optional()
@@ -422,6 +438,30 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
         eventId: z.string().uuid().describe('Event id from getAgenda.'),
       }),
       execute: async ({ eventId }) => tools.deleteEvent(userId, eventId),
+    }),
+    findTime: tool({
+      description:
+        "Find free time slots of a given length within the user's working hours, avoiding their existing events (Premium). Returns proposed slots as local ISO times; confirm one with the user, then book it with addEvent.",
+      inputSchema: z.object({
+        durationMin: z
+          .number()
+          .int()
+          .min(5)
+          .max(1440)
+          .describe('Desired slot length in minutes, e.g. 60.'),
+        from: z
+          .string()
+          .optional()
+          .describe('Earliest start to consider, ISO 8601. Defaults to now.'),
+        to: z
+          .string()
+          .optional()
+          .describe(
+            'Latest end to consider, ISO 8601. Defaults to a week out.',
+          ),
+      }),
+      execute: async ({ durationMin, from, to }) =>
+        tools.findTime(userId, { durationMin, from, to }),
     }),
   }
 }

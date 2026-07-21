@@ -79,11 +79,28 @@ export type AssistantMemoryUpdate = {
   wakeHour?: number | null
   quietHoursStart?: number | null
   quietHoursEnd?: number | null
+  workHoursStart?: number | null
+  workHoursEnd?: number | null
   briefEnabled?: boolean
   briefHour?: number | null
   nudgesEnabled?: boolean
   people?: { name: string; relationship?: string | null }[]
   addNote?: string
+}
+
+// A "find me time" request. `durationMin` is required; the window defaults to
+// the next week and the work hours to the user's profile when omitted.
+export type AssistantFindTimeInput = {
+  durationMin: number
+  from?: string
+  to?: string
+}
+
+// A proposed free slot, in the user's local ISO time so the model reads back a
+// wall-clock the user recognizes.
+export type AssistantFreeSlot = {
+  startsAt: string
+  endsAt: string
 }
 
 export type AssistantEventInput = {
@@ -197,4 +214,11 @@ export interface AssistantTools {
     input: { seriesId: string; occurrenceStart: string },
   ): Promise<{ ok: boolean }>
   deleteEvent(userId: string, eventId: string): Promise<{ ok: boolean }>
+  // Smart scheduling (Premium): propose free slots of the requested length in
+  // the user's working hours, clear of existing events. The assistant then books
+  // a chosen slot with addEvent.
+  findTime(
+    userId: string,
+    input: AssistantFindTimeInput,
+  ): Promise<{ slots: AssistantFreeSlot[] }>
 }

@@ -5,6 +5,7 @@ import {
   isTimeZone,
   startOfCivilDay,
   zoneOffset,
+  zonedInstant,
   zonedIso,
   zonedWeekday,
 } from '@/value-objects/time-zone'
@@ -66,6 +67,46 @@ describe('time zone', () => {
     // Round-trips back to the same instant.
     expect(new Date(zonedIso(instant, 'America/Sao_Paulo')).getTime()).toBe(
       instant.getTime(),
+    )
+  })
+
+  it('builds the UTC instant for a local wall-clock hour', () => {
+    // 09:00 in Sao Paulo (UTC-3) is 12:00 UTC.
+    expect(
+      zonedInstant('2026-07-18', 9, 'America/Sao_Paulo').toISOString(),
+    ).toBe('2026-07-18T12:00:00.000Z')
+    expect(zonedInstant('2026-07-18', 9, 'UTC').toISOString()).toBe(
+      '2026-07-18T09:00:00.000Z',
+    )
+    // Half-hour offset zone.
+    expect(zonedInstant('2026-07-18', 9, 'Asia/Kolkata').toISOString()).toBe(
+      '2026-07-18T03:30:00.000Z',
+    )
+    // Hour 24 is midnight starting the next civil day.
+    expect(zonedInstant('2026-07-18', 24, 'UTC').toISOString()).toBe(
+      '2026-07-19T00:00:00.000Z',
+    )
+  })
+
+  it('samples the offset per date, so DST is handled', () => {
+    // New York is EST (-05:00) in January and EDT (-04:00) in July.
+    expect(
+      zonedInstant('2026-01-18', 9, 'America/New_York').toISOString(),
+    ).toBe('2026-01-18T14:00:00.000Z')
+    expect(
+      zonedInstant('2026-07-18', 9, 'America/New_York').toISOString(),
+    ).toBe('2026-07-18T13:00:00.000Z')
+  })
+
+  it('round-trips through civilHour and falls back to UTC for junk zones', () => {
+    expect(
+      civilHour(
+        zonedInstant('2026-07-18', 14, 'America/Sao_Paulo'),
+        'America/Sao_Paulo',
+      ),
+    ).toBe(14)
+    expect(zonedInstant('2026-07-18', 9, 'Nowhere/Land').toISOString()).toBe(
+      '2026-07-18T09:00:00.000Z',
     )
   })
 

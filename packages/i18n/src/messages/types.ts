@@ -157,6 +157,22 @@ export type Messages = {
     noEventsDay: string
     synced: string
     moreEvents: string
+    findTime: {
+      title: string
+      hint: string
+      duration: string
+      minutes: string
+      search: string
+      searching: string
+      results: string
+      noResults: string
+      book: string
+      booking: string
+      booked: string
+      defaultTitle: string
+      error: string
+      close: string
+    }
   }
   billing: {
     title: string
@@ -296,6 +312,7 @@ export type Messages = {
     workPlaceholder: string
     wakeHour: string
     quietHours: string
+    workHours: string
     quietTo: string
     hourUnset: string
     dailyBrief: string

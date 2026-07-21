@@ -64,6 +64,10 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
     profile.quietHoursStart,
   )
   const [quietEnd, setQuietEnd] = useState<number | null>(profile.quietHoursEnd)
+  const [workStart, setWorkStart] = useState<number | null>(
+    profile.workHoursStart,
+  )
+  const [workEnd, setWorkEnd] = useState<number | null>(profile.workHoursEnd)
   const [briefEnabled, setBriefEnabled] = useState(profile.briefEnabled)
   const [briefHour, setBriefHour] = useState<number | null>(profile.briefHour)
   const [nudgesEnabled, setNudgesEnabled] = useState(profile.nudgesEnabled)
@@ -95,6 +99,8 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
       wakeHour,
       quietHoursStart: quietStart,
       quietHoursEnd: quietEnd,
+      workHoursStart: workStart,
+      workHoursEnd: workEnd,
       briefEnabled,
       briefHour,
       nudgesEnabled,
@@ -107,6 +113,8 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
     wakeHour,
     quietStart,
     quietEnd,
+    workStart,
+    workEnd,
     briefEnabled,
     briefHour,
     nudgesEnabled,
@@ -121,6 +129,8 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
       wakeHour: profile.wakeHour,
       quietHoursStart: profile.quietHoursStart,
       quietHoursEnd: profile.quietHoursEnd,
+      workHoursStart: profile.workHoursStart,
+      workHoursEnd: profile.workHoursEnd,
       briefEnabled: profile.briefEnabled,
       briefHour: profile.briefHour,
       nudgesEnabled: profile.nudgesEnabled,
@@ -200,6 +210,24 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
               value={quietEnd}
               onChange={setQuietEnd}
               label={`${m.quietHours} ${m.quietTo}`}
+              unsetLabel={m.hourUnset}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <FieldLabel>{m.workHours}</FieldLabel>
+          <div className="flex items-center gap-2">
+            <HourSelect
+              value={workStart}
+              onChange={setWorkStart}
+              label={`${m.workHours} ${m.quietTo}`}
+              unsetLabel={m.hourUnset}
+            />
+            <span className="text-ink-500 text-xs">{m.quietTo}</span>
+            <HourSelect
+              value={workEnd}
+              onChange={setWorkEnd}
+              label={`${m.workHours} ${m.quietTo}`}
               unsetLabel={m.hourUnset}
             />
           </div>

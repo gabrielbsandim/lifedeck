@@ -106,8 +106,15 @@ export {
   startOfCivilDay,
   zoneOffset,
   zonedIso,
+  zonedInstant,
   zonedWeekday,
 } from '@/value-objects/time-zone'
+export {
+  findFreeSlots,
+  subtractIntervals,
+  type TimeInterval,
+  type FindFreeSlotsParams,
+} from '@/value-objects/free-slots'
 export { Task, type TaskProps } from '@/entities/task'
 export {
   Subtask,

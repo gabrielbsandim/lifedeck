@@ -76,6 +76,20 @@ describe('applyAssistantProfilePatch', () => {
     })
   })
 
+  it('sets and clears the work-hours window', () => {
+    const next = applyAssistantProfilePatch(base(), {
+      workHoursStart: 9,
+      workHoursEnd: 18,
+    })
+    expect(next).toMatchObject({ workHoursStart: 9, workHoursEnd: 18 })
+    const cleared = applyAssistantProfilePatch(next, { workHoursStart: null })
+    expect(cleared.workHoursStart).toBeNull()
+    expect(cleared.workHoursEnd).toBe(18)
+    expect(() =>
+      applyAssistantProfilePatch(base(), { workHoursEnd: 24 }),
+    ).toThrow(ValidationError)
+  })
+
   it('replaces the people list, trimming and dropping blank rows', () => {
     const next = applyAssistantProfilePatch(base(), {
       people: [
@@ -176,6 +190,8 @@ describe('sanitizeAssistantProfile', () => {
       wakeHour: 7,
       quietHoursStart: null,
       quietHoursEnd: null,
+      workHoursStart: null,
+      workHoursEnd: null,
       briefEnabled: true,
       briefHour: null,
       nudgesEnabled: true,
@@ -204,6 +220,7 @@ describe('isAssistantProfileEmpty', () => {
     expect(isAssistantProfileEmpty(base({ nudgesEnabled: false }))).toBe(false)
     expect(isAssistantProfileEmpty(base({ notes: ['n'] }))).toBe(false)
     expect(isAssistantProfileEmpty(base({ wakeHour: 6 }))).toBe(false)
+    expect(isAssistantProfileEmpty(base({ workHoursStart: 9 }))).toBe(false)
   })
 })
 
@@ -240,6 +257,8 @@ describe('summarizeAssistantProfile', () => {
         wakeHour: 7,
         quietHoursStart: 22,
         quietHoursEnd: 6,
+        workHoursStart: 9,
+        workHoursEnd: 18,
         people: [
           { name: 'Ana', relationship: 'daughter' },
           { name: 'Bob', relationship: null },
@@ -251,6 +270,7 @@ describe('summarizeAssistantProfile', () => {
     expect(summary).toContain('Work: Downtown')
     expect(summary).toContain('wakes around 7:00')
     expect(summary).toContain('Quiet hours 22:00-6:00')
+    expect(summary).toContain('Work hours 9:00-18:00')
     expect(summary).toContain('Ana (daughter)')
     expect(summary).toContain('Bob')
     expect(summary).toContain('Note: prefers metric')

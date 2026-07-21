@@ -214,6 +214,8 @@ describe('User', () => {
       wakeHour: null,
       quietHoursStart: null,
       quietHoursEnd: null,
+      workHoursStart: null,
+      workHoursEnd: null,
       briefEnabled: false,
       briefHour: null,
       nudgesEnabled: true,

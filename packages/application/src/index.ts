@@ -231,6 +231,13 @@ export { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
 export { makeDeleteCalendarOccurrence } from '@/use-cases/delete-calendar-occurrence'
 export { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 export { makeGetCalendarEvent } from '@/use-cases/get-calendar-event'
+export { makeFindFreeSlots } from '@/use-cases/find-free-slots'
+export {
+  findFreeSlotsInputSchema,
+  freeSlotViewSchema,
+  type FindFreeSlotsInput,
+  type FreeSlotView,
+} from '@/dtos/find-free-slots-dto'
 export { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 export type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
 export type {

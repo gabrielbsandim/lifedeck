@@ -14,6 +14,7 @@ import { NotFoundError } from '@/errors/use-case-error'
 import type { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import type { makeListUserLists } from '@/use-cases/list-user-lists'
 import type { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
+import type { makeFindFreeSlots } from '@/use-cases/find-free-slots'
 import type { makeCreateTask } from '@/use-cases/create-task'
 import type { makeUpdateTask } from '@/use-cases/update-task'
 import type { makeDeleteTask } from '@/use-cases/delete-task'
@@ -47,6 +48,7 @@ export type AssistantToolsDeps = {
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
   listUserLists: ReturnType<typeof makeListUserLists>
   listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
+  findFreeSlots: ReturnType<typeof makeFindFreeSlots>
   createTask: ReturnType<typeof makeCreateTask>
   updateTask: ReturnType<typeof makeUpdateTask>
   deleteTask: ReturnType<typeof makeDeleteTask>
@@ -76,6 +78,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     getDailyBoard,
     listUserLists,
     listCalendarEvents,
+    findFreeSlots,
     createTask,
     updateTask,
     deleteTask,
@@ -200,6 +203,8 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
             wakeHour: view.assistantProfile.wakeHour,
             quietHoursStart: view.assistantProfile.quietHoursStart,
             quietHoursEnd: view.assistantProfile.quietHoursEnd,
+            workHoursStart: view.assistantProfile.workHoursStart,
+            workHoursEnd: view.assistantProfile.workHoursEnd,
             briefEnabled: view.assistantProfile.briefEnabled,
             briefHour: view.assistantProfile.briefHour,
             nudgesEnabled: view.assistantProfile.nudgesEnabled,
@@ -336,6 +341,30 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     async deleteEvent(userId, eventId) {
       await deleteCalendarEvent(userId, eventId)
       return { ok: true }
+    },
+    async findTime(userId, input) {
+      const timezone = await timezoneOf(userId)
+      const now = clock.now()
+      const parseOr = (value: string | undefined, fallback: Date): Date => {
+        if (!value) return fallback
+        const parsed = new Date(value)
+        return Number.isNaN(parsed.getTime()) ? fallback : parsed
+      }
+      const from = parseOr(input.from, now)
+      // Default to the next 7 days when no window is given.
+      const to = parseOr(input.to, new Date(from.getTime() + 7 * DAY_MS))
+      const slots = await findFreeSlots(userId, {
+        durationMin: input.durationMin,
+        from: from.toISOString(),
+        to: to.toISOString(),
+      })
+      // Local wall-clock (with offset) so the model proposes times the user reads.
+      return {
+        slots: slots.map(slot => ({
+          startsAt: zonedIso(new Date(slot.startsAt), timezone),
+          endsAt: zonedIso(new Date(slot.endsAt), timezone),
+        })),
+      }
     },
   }
 }

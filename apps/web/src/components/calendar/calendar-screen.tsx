@@ -22,6 +22,7 @@ import { CalendarAgenda } from '@/components/calendar/calendar-agenda'
 import { CalendarWeekStrip } from '@/components/calendar/calendar-week-strip'
 import { EventEditorDialog } from '@/components/calendar/event-editor-dialog'
 import { EventDetailSheet } from '@/components/calendar/event-detail-sheet'
+import { FindTimeDialog } from '@/components/calendar/find-time-dialog'
 import { GoogleCalendarsManager } from '@/components/calendar/google-calendars-manager'
 
 type Mode = 'agenda' | 'month'
@@ -39,6 +40,25 @@ function PlusIcon({ size = 20 }: { size?: number }) {
       aria-hidden
     >
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+function ClockIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
     </svg>
   )
 }
@@ -80,6 +100,7 @@ export function CalendarScreen() {
   const [anchor, setAnchor] = useState(today)
   const [selectedDay, setSelectedDay] = useState(today)
   const [detail, setDetail] = useState<CalendarEventView | null>(null)
+  const [findingTime, setFindingTime] = useState(false)
   const [editing, setEditing] = useState<{
     event: CalendarEventView | null
     day: string
@@ -88,6 +109,9 @@ export function CalendarScreen() {
   const available =
     (session.data?.features?.calendar ?? false) &&
     (session.data?.entitlements?.includes('calendarSync') ?? false)
+  // Smart scheduling is Premium-only; the "Find time" action gates on it.
+  const canFindTime =
+    session.data?.entitlements?.includes('smartScheduling') ?? false
 
   // A month range around the anchor covers both the desktop grid and the
   // mobile agenda week (which always falls inside the 6-week grid).
@@ -168,13 +192,25 @@ export function CalendarScreen() {
           <h1 className="text-ink-900 text-lg font-bold capitalize">
             {monthTitle}
           </h1>
-          <button
-            type="button"
-            onClick={goToday}
-            className="border-line text-ink-500 h-[30px] rounded-full border bg-white px-3 text-xs font-bold"
-          >
-            {t.today}
-          </button>
+          <div className="flex items-center gap-2">
+            {canFindTime && (
+              <button
+                type="button"
+                onClick={() => setFindingTime(true)}
+                className="border-line text-ink-500 flex h-[30px] items-center gap-1.5 rounded-full border bg-white px-3 text-xs font-bold"
+              >
+                <ClockIcon size={13} />
+                {t.findTime.title}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={goToday}
+              className="border-line text-ink-500 h-[30px] rounded-full border bg-white px-3 text-xs font-bold"
+            >
+              {t.today}
+            </button>
+          </div>
         </div>
 
         <div className="mb-2.5 flex gap-2">
@@ -280,14 +316,26 @@ export function CalendarScreen() {
           <h1 className="text-ink-900 text-[26px] font-bold tracking-tight">
             {t.title}
           </h1>
-          <button
-            type="button"
-            onClick={() => openNew(selectedDay)}
-            className="bg-brand-600 hover:bg-brand-700 flex h-10 items-center gap-2 rounded-[13px] px-4 text-sm font-semibold text-white shadow-sm"
-          >
-            <PlusIcon size={17} />
-            {t.newEvent}
-          </button>
+          <div className="flex items-center gap-2">
+            {canFindTime && (
+              <button
+                type="button"
+                onClick={() => setFindingTime(true)}
+                className="border-line text-ink-700 hover:bg-bg flex h-10 items-center gap-2 rounded-[13px] border bg-white px-4 text-sm font-semibold"
+              >
+                <ClockIcon size={16} />
+                {t.findTime.title}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => openNew(selectedDay)}
+              className="bg-brand-600 hover:bg-brand-700 flex h-10 items-center gap-2 rounded-[13px] px-4 text-sm font-semibold text-white shadow-sm"
+            >
+              <PlusIcon size={17} />
+              {t.newEvent}
+            </button>
+          </div>
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -355,6 +403,16 @@ export function CalendarScreen() {
           range={range}
           event={editing.event}
           defaultDay={editing.day}
+        />
+      )}
+
+      {findingTime && (
+        <FindTimeDialog
+          open
+          onClose={() => setFindingTime(false)}
+          range={range}
+          timeZone={timeZone}
+          locale={locale}
         />
       )}
     </div>

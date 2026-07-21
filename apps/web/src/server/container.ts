@@ -54,6 +54,7 @@ import {
   makeGetCalendarEvent,
   makeLeaveList,
   makeListCalendarEvents,
+  makeFindFreeSlots,
   makeRenameList,
   makeReorderTasks,
   makeCreateRecurringTask,
@@ -302,6 +303,7 @@ type Container = {
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
   deleteCalendarOccurrence: ReturnType<typeof makeDeleteCalendarOccurrence>
   listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
+  findFreeSlots: ReturnType<typeof makeFindFreeSlots>
   getCalendarEvent: ReturnType<typeof makeGetCalendarEvent>
   connectGoogleCalendar: ReturnType<typeof makeConnectGoogleCalendar>
   listCalendarConnections: ReturnType<typeof makeListCalendarConnections>
@@ -663,6 +665,7 @@ function build(
     clock,
   })
   const listCalendarEvents = makeListCalendarEvents({ calendarEvents })
+  const findFreeSlots = makeFindFreeSlots({ users, listCalendarEvents, clock })
   const createCalendarEvent = makeCreateCalendarEvent({
     calendarEvents,
     jobQueue,
@@ -767,6 +770,7 @@ function build(
     getDailyBoard,
     listUserLists,
     listCalendarEvents,
+    findFreeSlots,
     createTask,
     updateTask,
     deleteTask,
@@ -979,6 +983,7 @@ function build(
     deleteCalendarEvent,
     deleteCalendarOccurrence,
     listCalendarEvents,
+    findFreeSlots,
     getCalendarEvent: makeGetCalendarEvent({ calendarEvents }),
     connectGoogleCalendar: makeConnectGoogleCalendar({
       calendarConnections,

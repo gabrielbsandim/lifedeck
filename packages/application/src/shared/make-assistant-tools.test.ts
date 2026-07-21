@@ -41,6 +41,9 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
     listCalendarEvents: vi.fn(
       async () => [],
     ) as unknown as AssistantToolsDeps['listCalendarEvents'],
+    findFreeSlots: vi.fn(
+      async () => [],
+    ) as unknown as AssistantToolsDeps['findFreeSlots'],
     createTask: vi.fn(async () => ({
       id: 'task-1',
     })) as unknown as AssistantToolsDeps['createTask'],
@@ -87,6 +90,8 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
         wakeHour: null,
         quietHoursStart: null,
         quietHoursEnd: null,
+        workHoursStart: null,
+        workHoursEnd: null,
         briefEnabled: false,
         briefHour: null,
         nudgesEnabled: true,
@@ -252,6 +257,8 @@ describe('makeAssistantTools', () => {
         wakeHour: null,
         quietHoursStart: null,
         quietHoursEnd: null,
+        workHoursStart: null,
+        workHoursEnd: null,
         briefEnabled: false,
         briefHour: null,
         nudgesEnabled: true,
@@ -543,5 +550,29 @@ describe('makeAssistantTools', () => {
       startsAt: '2026-07-20T12:00:00-03:00',
       endsAt: '2026-07-20T13:00:00-03:00',
     })
+  })
+
+  it('findTime delegates to the use case and localizes the slots', async () => {
+    const findFreeSlots = vi.fn(async () => [
+      {
+        startsAt: '2026-07-20T12:00:00.000Z',
+        endsAt: '2026-07-20T13:00:00.000Z',
+      },
+    ]) as unknown as AssistantToolsDeps['findFreeSlots']
+    const { tools } = build({ findFreeSlots })
+
+    const result = await tools.findTime(USER_ID, { durationMin: 60 })
+
+    expect(findFreeSlots).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ durationMin: 60 }),
+    )
+    // 12:00 UTC is 09:00 in Sao Paulo (UTC-3).
+    expect(result.slots).toEqual([
+      {
+        startsAt: '2026-07-20T09:00:00-03:00',
+        endsAt: '2026-07-20T10:00:00-03:00',
+      },
+    ])
   })
 })
