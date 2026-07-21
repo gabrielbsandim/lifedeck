@@ -423,7 +423,28 @@ use cases, tools, sweep, web hooks/screen.
 
 ---
 
-## 9. V3-6 — Smart scheduling ("find me time")
+## 9. V3-6 — Smart scheduling ("find me time") — SHIPPED
+
+Shipped: a pure `findFreeSlots` domain module (merge/subtract busy intervals from
+candidate windows, grid-aligned slot enumeration) + a DST-aware `zonedInstant`
+tz helper (the inverse of `civilHour`). `makeFindFreeSlots` builds each civil
+day's work window in the user's timezone, subtracts quiet hours (including a
+window that wraps past midnight) and existing timed events (all-day events are
+treated as informational, not busy), never proposes a past slot, and clamps the
+scan (and the events query) to 31 days. A new **persistent
+`workHoursStart/workHoursEnd`** on `AssistantProfile` (JSON field, no migration)
+feeds the window and is overridable per request; it is surfaced in the "what the
+assistant remembers" settings card (en/pt/es) and settable by the agent via
+`updateAssistantMemory`. The `findTime` agent tool is gated **Premium-only**
+through `TOOL_ENTITLEMENTS.findTime = 'smartScheduling'` (the `smartScheduling`
+entitlement was already mapped in V3-0); it returns local-ISO slots and the agent
+books a chosen one with the existing `addEvent` (propose-then-confirm, so no
+separate booking use case and no double-book risk). Web: a Premium-gated "Find
+time" action in the calendar screen (`POST /api/v1/calendar/find-time`, a
+`useFindTime` hook, and a duration → slots → book dialog) in en/pt/es. On-demand
+only — no new cron, so no added Neon compute burn. Tested across the domain
+slot-math, the use case (tz/quiet/all-day/past/override edge cases), the tool
+wiring, the web hook, and the record round-trip; 95% gate green.
 
 "Reserve an hour of deep work this week" → the assistant finds a real free slot
 and books it.
