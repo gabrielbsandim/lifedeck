@@ -373,7 +373,11 @@ export type {
   WeatherDay,
   WeatherLocationResolution,
 } from '@/ports/weather-provider'
-export type { MediaPayload, MessageTemplate } from '@/ports/messaging-channel'
+export type {
+  InteractiveButton,
+  MediaPayload,
+  MessageTemplate,
+} from '@/ports/messaging-channel'
 export type { Transcriber } from '@/ports/transcriber'
 export type { VisionReader } from '@/ports/vision-reader'
 export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'

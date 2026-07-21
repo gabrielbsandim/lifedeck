@@ -11,6 +11,7 @@ type AbracodeInboundData = {
   messageType?: string
   text?: string | null
   media?: { id?: string } | null
+  buttonReply?: { id?: string; title?: string } | null
 }
 
 type AbracodeWebhookBody = {
@@ -25,7 +26,7 @@ export function parseAbracodeInbound(
   if (body.type !== 'message.received' || !body.data) {
     return []
   }
-  const { from, messageId, messageType, text, media } = body.data
+  const { from, messageId, messageType, text, media, buttonReply } = body.data
   if (!from || !messageId) {
     return []
   }
@@ -37,6 +38,17 @@ export function parseAbracodeInbound(
   }
   if (messageType === 'image' && media?.id) {
     return [{ from, messageId, kind: 'image', mediaId: media.id }]
+  }
+  if (messageType === 'button' && buttonReply?.id) {
+    return [
+      {
+        from,
+        messageId,
+        kind: 'button',
+        buttonId: buttonReply.id,
+        text: buttonReply.title ?? '',
+      },
+    ]
   }
   return []
 }

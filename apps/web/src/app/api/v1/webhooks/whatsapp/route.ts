@@ -79,11 +79,18 @@ export async function POST(request: Request) {
           await container.handleInboundWhatsApp(
             message.kind === 'text'
               ? { from: message.from, kind: 'text', text: message.text }
-              : {
-                  from: message.from,
-                  kind: message.kind,
-                  mediaId: message.mediaId,
-                },
+              : message.kind === 'button'
+                ? {
+                    from: message.from,
+                    kind: 'button',
+                    buttonId: message.buttonId,
+                    text: message.text,
+                  }
+                : {
+                    from: message.from,
+                    kind: message.kind,
+                    mediaId: message.mediaId,
+                  },
           )
         } catch (error) {
           if (claimed) {

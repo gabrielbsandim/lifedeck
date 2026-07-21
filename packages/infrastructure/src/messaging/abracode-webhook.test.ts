@@ -64,6 +64,27 @@ describe('parseAbracodeInbound', () => {
     ])
   })
 
+  it('parses a tapped quick-reply button', () => {
+    expect(
+      parseAbracodeInbound(
+        received({
+          from: '551199',
+          messageId: 'wamid.b',
+          messageType: 'button',
+          buttonReply: { id: 'nudge_no:task-9', title: 'Not today' },
+        }),
+      ),
+    ).toEqual([
+      {
+        from: '551199',
+        messageId: 'wamid.b',
+        kind: 'button',
+        buttonId: 'nudge_no:task-9',
+        text: 'Not today',
+      },
+    ])
+  })
+
   it('ignores non message.received events', () => {
     expect(
       parseAbracodeInbound({

@@ -114,6 +114,9 @@ export type InboundWhatsappMessage =
   | { from: string; kind: 'text'; text: string }
   | { from: string; kind: 'audio'; mediaId: string }
   | { from: string; kind: 'image'; mediaId: string }
+  // A tapped quick-reply button (e.g. a nudge's "Yes, reschedule"). The visible
+  // title is treated as the user's words so the assistant acts on it naturally.
+  | { from: string; kind: 'button'; buttonId: string; text: string }
 
 export type InboundWhatsappAction =
   | 'reply'
@@ -129,6 +132,10 @@ export type InboundWhatsappResult = {
   action: InboundWhatsappAction
 }
 
+// A button tap is normalized to a text turn before the assistant runs, so the
+// model-facing path only ever sees these three modalities.
+type AssistMessage = Exclude<InboundWhatsappMessage, { kind: 'button' }>
+
 type ConsumeCredits = (
   userId: string,
   operation: AiOperation,
@@ -139,7 +146,7 @@ type RefundCredits = (
   operation: AiOperation,
 ) => Promise<unknown>
 
-const OPERATION: Record<InboundWhatsappMessage['kind'], AiOperation> = {
+const OPERATION: Record<AssistMessage['kind'], AiOperation> = {
   text: 'assistantText',
   audio: 'audioTranscription',
   image: 'imageVision',
@@ -233,12 +240,20 @@ export function makeHandleInboundWhatsApp({
       }
       // System replies mirror the language the user wrote in, the same way the
       // assistant itself answers. For a non-text message (no words to detect)
-      // we fall back to the account's saved language.
+      // we fall back to the account's saved language. A button reply carries a
+      // title, but it is our own label in the user's language, so the account
+      // locale is the right anchor there too.
       const locale =
         message.kind === 'text'
           ? detectMessageLanguage(message.text)
           : toMessageLanguage((await users.findById(identity.userId))?.locale)
-      return assist(identity.userId as string, message, locale)
+      // A tapped button is handled as if the user typed its title, so the
+      // assistant runs its normal tool loop (with the nudge already in history).
+      const effective: AssistMessage =
+        message.kind === 'button'
+          ? { from: message.from, kind: 'text', text: message.text }
+          : message
+      return assist(identity.userId as string, effective, locale)
     }
 
     // An unknown number gets the reply in the language it wrote in.
@@ -271,7 +286,7 @@ export function makeHandleInboundWhatsApp({
 
   async function assist(
     userId: string,
-    message: InboundWhatsappMessage,
+    message: AssistMessage,
     locale: MessageLanguage,
   ): Promise<InboundWhatsappResult> {
     const copy = WHATSAPP_COPY[locale]

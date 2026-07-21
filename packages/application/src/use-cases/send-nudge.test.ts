@@ -4,6 +4,7 @@ import { makeSendNudge } from '@/use-cases/send-nudge'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryNudgeLogRepository } from '@/testing/in-memory-nudge-log-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
+import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 import { FixedClock, SequentialIdGenerator, ID } from '@/testing/fakes'
 
 // Noon UTC; the user sits in UTC so "today" is 2026-07-20 there.
@@ -71,6 +72,7 @@ async function setup(options?: {
   }
 
   const sendProactiveMessage = vi.fn().mockResolvedValue({ delivered: true })
+  const conversations = new InMemoryConversationStore()
   const sendNudge = makeSendNudge({
     users,
     entitlements: {
@@ -84,17 +86,19 @@ async function setup(options?: {
     nudgeLogs,
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
+    conversations,
     ids: new SequentialIdGenerator([NUDGE_LOG_ID]),
     clock: new FixedClock(NOW),
     nudgeTemplate: options?.nudgeTemplate,
   })
 
-  return { sendNudge, sendProactiveMessage, nudgeLogs }
+  return { sendNudge, sendProactiveMessage, nudgeLogs, conversations }
 }
 
 describe('sendNudge', () => {
   it('nudges a premium user about their longest-carried task and logs it', async () => {
-    const { sendNudge, sendProactiveMessage, nudgeLogs } = await setup()
+    const { sendNudge, sendProactiveMessage, nudgeLogs, conversations } =
+      await setup()
 
     const result = await sendNudge(ID.user)
 
@@ -103,7 +107,16 @@ describe('sendNudge', () => {
     expect(message.text).toContain('Call dentist')
     expect(message.text).toContain('4 days')
     expect(message.template).toBeUndefined()
+    // Two quick-reply buttons whose ids carry the task, so a tap can be traced.
+    expect(message.buttons).toEqual([
+      { id: `nudge_yes:${TASK_A}`, title: 'Yes, reschedule' },
+      { id: `nudge_no:${TASK_A}`, title: 'Not today' },
+    ])
     expect(await nudgeLogs.hasSentOn(ID.user, '2026-07-20')).toBe(true)
+    // The nudge is seeded into history so a reply reaches the assistant in context.
+    expect(await conversations.load(ID.user)).toEqual([
+      { role: 'assistant', content: message.text },
+    ])
   })
 
   it('sends the nudge template with the composed text as its param', async () => {

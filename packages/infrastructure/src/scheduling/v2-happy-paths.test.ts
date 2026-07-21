@@ -61,6 +61,7 @@ describe('V2 calendar reminder happy path', () => {
     const messaging = {
       sendText: vi.fn().mockResolvedValue(undefined),
       sendTemplate: vi.fn().mockResolvedValue(undefined),
+      sendButtons: vi.fn().mockResolvedValue(undefined),
       fetchMedia: vi.fn(),
     }
     const jobQueue = new OutboxJobQueue(
@@ -139,6 +140,7 @@ describe('V2 whatsapp assistant happy path', () => {
     const messaging = {
       sendText: vi.fn().mockResolvedValue(undefined),
       sendTemplate: vi.fn().mockResolvedValue(undefined),
+      sendButtons: vi.fn().mockResolvedValue(undefined),
       fetchMedia: vi.fn(),
     }
     const jobQueue = new OutboxJobQueue(

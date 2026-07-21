@@ -1,4 +1,5 @@
 import type {
+  InteractiveButton,
   MediaPayload,
   MessageTemplate,
   MessagingChannel,
@@ -14,6 +15,10 @@ class NoopMessagingChannel implements MessagingChannel {
   }
 
   async sendTemplate(): Promise<void> {
+    // No WhatsApp credentials configured; sends are dropped (dev/preview).
+  }
+
+  async sendButtons(): Promise<void> {
     // No WhatsApp credentials configured; sends are dropped (dev/preview).
   }
 
@@ -80,6 +85,41 @@ export class WhatsAppCloudChannel implements MessagingChannel {
       throw new Error(
         `WhatsApp template failed (${response.status}): ${detail}`,
       )
+    }
+  }
+
+  async sendButtons(
+    to: string,
+    body: string,
+    buttons: InteractiveButton[],
+  ): Promise<void> {
+    const url = `https://graph.facebook.com/${GRAPH_VERSION}/${this.phoneNumberId}/messages`
+    const response = await httpFetch(url, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${this.accessToken}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to,
+        type: 'interactive',
+        interactive: {
+          type: 'button',
+          body: { text: body },
+          action: {
+            buttons: buttons.map(button => ({
+              type: 'reply',
+              reply: { id: button.id, title: button.title },
+            })),
+          },
+        },
+      }),
+    })
+    if (!response.ok) {
+      const detail = await response.text()
+      throw new Error(`WhatsApp buttons failed (${response.status}): ${detail}`)
     }
   }
 

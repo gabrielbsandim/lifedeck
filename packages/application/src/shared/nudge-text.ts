@@ -20,3 +20,21 @@ export function composeNudge(
 ): string {
   return COPY[language](data)
 }
+
+export type NudgeButtonLabels = { yes: string; no: string }
+
+// Quick-reply labels for the nudge, one pair per language. Kept short (WhatsApp
+// caps a button title at 20 chars). "yes" invites the assistant to reschedule
+// the task; "no" defers it. The reply flows back through the assistant with the
+// nudge in context, so it acts on the same task without extra plumbing.
+const BUTTONS: Record<MessageLanguage, NudgeButtonLabels> = {
+  en: { yes: 'Yes, reschedule', no: 'Not today' },
+  pt: { yes: 'Sim, reagende', no: 'Hoje não' },
+  es: { yes: 'Sí, reprográmala', no: 'Hoy no' },
+}
+
+export function nudgeButtonLabels(
+  language: MessageLanguage,
+): NudgeButtonLabels {
+  return BUTTONS[language]
+}

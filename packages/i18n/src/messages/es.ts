@@ -377,8 +377,8 @@ export const es: Messages = {
       showNudgeTitle: 'Empujoncito amable',
       showNudgeSub: 'Un empujón en el momento justo.',
       showNudgeMsg:
-        'Has aplazado **“llamar al dentista”** 3 días seguidos. ¿Quiero que lo agende mañana a las 10? 🦷',
-      showNudgeYes: 'Sí, agéndalo',
+        'Has aplazado **“llamar al dentista”** 3 días seguidos. ¿Quieres que la reprograme o la divida en pasos más pequeños? 🦷',
+      showNudgeYes: 'Sí, reprográmala',
       showNudgeNo: 'Hoy no',
       compareEyebrow: 'Comparar',
       compareTitle: 'Todo, lado a lado',

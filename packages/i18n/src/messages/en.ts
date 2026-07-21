@@ -371,8 +371,8 @@ export const en: Messages = {
       showNudgeTitle: 'Gentle nudge',
       showNudgeSub: 'A little push at the right time.',
       showNudgeMsg:
-        'You have moved **“call the dentist”** 3 days running. Want me to book tomorrow at 10? 🦷',
-      showNudgeYes: 'Yes, book it',
+        'You have moved **“call the dentist”** 3 days running. Want me to reschedule it or break it into smaller steps? 🦷',
+      showNudgeYes: 'Yes, reschedule',
       showNudgeNo: 'Not today',
       compareEyebrow: 'Compare',
       compareTitle: 'Everything, side by side',

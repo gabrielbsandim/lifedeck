@@ -73,6 +73,35 @@ describe('AbracodeChannel', () => {
     })
   })
 
+  it('maps quick-reply buttons to an interactive body', async () => {
+    const fetchMock = stubFetch(accepted())
+
+    await channel().sendButtons('+551199', 'Reschedule it?', [
+      { id: 'nudge_yes:1', title: 'Yes, reschedule' },
+      { id: 'nudge_no:1', title: 'Not today' },
+    ])
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).toEqual({
+      type: 'interactive',
+      from: 'pn_1',
+      to: '+551199',
+      interactive: {
+        type: 'button',
+        body: { text: 'Reschedule it?' },
+        action: {
+          buttons: [
+            {
+              type: 'reply',
+              reply: { id: 'nudge_yes:1', title: 'Yes, reschedule' },
+            },
+            { type: 'reply', reply: { id: 'nudge_no:1', title: 'Not today' } },
+          ],
+        },
+      },
+    })
+  })
+
   it('throws with status and detail when a send fails', async () => {
     stubFetch({
       ok: false,

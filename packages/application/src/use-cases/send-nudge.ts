@@ -6,6 +6,7 @@ import {
 } from '@lifedeck/domain'
 import type { AssistantProfile } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
+import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { UserRepository } from '@/ports/user-repository'
@@ -14,7 +15,7 @@ import type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
 import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
 import type { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
-import { composeNudge } from '@/shared/nudge-text'
+import { composeNudge, nudgeButtonLabels } from '@/shared/nudge-text'
 
 const DAY_MS = 86_400_000
 // A pending task carried this many civil days is stale enough to nudge about.
@@ -34,6 +35,9 @@ type Dependencies = {
   nudgeLogs: NudgeLogRepository
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
+  // Records the nudge as an assistant turn so a "Yes, reschedule" reply (tapped
+  // button or typed) reaches the assistant with the task already in context.
+  conversations: Pick<ConversationStore, 'append'>
   ids: IdGenerator
   clock: Clock
   nudgeTemplate?: NudgeTemplate
@@ -64,6 +68,7 @@ export function makeSendNudge({
   nudgeLogs,
   sendProactiveMessage,
   sendGuard,
+  conversations,
   ids,
   clock,
   nudgeTemplate,
@@ -130,12 +135,18 @@ export function makeSendNudge({
       return { sent: false }
     }
 
-    const text = composeNudge(toMessageLanguage(user.locale), {
+    const language = toMessageLanguage(user.locale)
+    const text = composeNudge(language, {
       taskTitle: candidate.task.title,
       days: candidate.days,
     })
+    const labels = nudgeButtonLabels(language)
     const { delivered } = await sendProactiveMessage(userId, {
       text,
+      buttons: [
+        { id: `nudge_yes:${candidate.task.id}`, title: labels.yes },
+        { id: `nudge_no:${candidate.task.id}`, title: labels.no },
+      ],
       template: nudgeTemplate?.name
         ? {
             name: nudgeTemplate.name,
@@ -156,6 +167,15 @@ export function makeSendNudge({
         date: today,
         createdAt: now,
       })
+      // Best-effort: the reply context is a nicety, not worth failing the send.
+      try {
+        await conversations.append(userId, [
+          { role: 'assistant', content: text },
+        ])
+      } catch {
+        // Ignore; the nudge already went out and a reply still reaches the
+        // assistant, just without this pre-seeded context.
+      }
     }
 
     return { sent: delivered }

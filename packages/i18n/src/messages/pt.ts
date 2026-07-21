@@ -377,8 +377,8 @@ export const pt: Messages = {
       showNudgeTitle: 'Cutucada gentil',
       showNudgeSub: 'Um empurrãozinho na hora certa.',
       showNudgeMsg:
-        'Você adiou **“ligar para o dentista”** 3 dias seguidos. Quer que eu marque amanhã às 10h? 🦷',
-      showNudgeYes: 'Sim, pode marcar',
+        'Você adiou **“ligar para o dentista”** 3 dias seguidos. Quer que eu reagende ou divida em passos menores? 🦷',
+      showNudgeYes: 'Sim, reagende',
       showNudgeNo: 'Hoje não',
       compareEyebrow: 'Comparar',
       compareTitle: 'Tudo, lado a lado',

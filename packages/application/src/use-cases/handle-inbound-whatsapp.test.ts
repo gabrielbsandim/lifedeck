@@ -65,7 +65,12 @@ function setup(options: Options = {}) {
   const handleInboundWhatsApp = makeHandleInboundWhatsApp({
     channelIdentities,
     users,
-    messaging: { sendText, sendTemplate, fetchMedia },
+    messaging: {
+      sendText,
+      sendTemplate,
+      sendButtons: vi.fn().mockResolvedValue(undefined),
+      fetchMedia,
+    },
     entitlements: {
       for: async () => ({
         plan: 'pro' as const,
@@ -150,6 +155,31 @@ describe('handleInboundWhatsApp', () => {
     expect(stored).toEqual([
       { role: 'user', content: 'buy milk' },
       { role: 'assistant', content: 'Added milk.' },
+    ])
+  })
+
+  it('runs the assistant with a tapped button title as the user turn', async () => {
+    const ctx = setup({
+      agentRun: async () => ({ text: 'Moved to tomorrow.' }),
+    })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'button',
+      buttonId: 'nudge_yes:task-1',
+      text: 'Yes, reschedule',
+    })
+
+    expect(result).toEqual({ action: 'reply' })
+    expect(ctx.run).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Yes, reschedule' }),
+    )
+    expect(ctx.sendText).toHaveBeenCalledWith(FROM, 'Moved to tomorrow.')
+    const stored = await ctx.conversations.load(ID.user)
+    expect(stored).toEqual([
+      { role: 'user', content: 'Yes, reschedule' },
+      { role: 'assistant', content: 'Moved to tomorrow.' },
     ])
   })
 

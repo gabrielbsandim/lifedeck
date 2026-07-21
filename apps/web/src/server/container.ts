@@ -771,6 +771,7 @@ function build(
     nudgeLogs,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
+    conversations,
     ids,
     clock,
     nudgeTemplate: nudgeTemplateName

@@ -4,6 +4,9 @@ export type ParsedWhatsappMessage = { from: string; messageId: string } & (
   | { kind: 'text'; text: string }
   | { kind: 'audio'; mediaId: string }
   | { kind: 'image'; mediaId: string }
+  // A tapped quick-reply button: `buttonId` is the id we set when sending, and
+  // `text` is the visible title the user chose.
+  | { kind: 'button'; buttonId: string; text: string }
 )
 
 export function verifyWhatsAppSignature(
@@ -28,6 +31,10 @@ type WhatsappMessage = {
   text?: { body?: string }
   audio?: { id?: string }
   image?: { id?: string }
+  interactive?: {
+    type?: string
+    button_reply?: { id?: string; title?: string }
+  }
 }
 
 type WhatsappPayload = {
@@ -50,6 +57,16 @@ function parseMessage(message: WhatsappMessage): ParsedWhatsappMessage | null {
   }
   if (message.type === 'image' && message.image?.id) {
     return { from, messageId, kind: 'image', mediaId: message.image.id }
+  }
+  const reply = message.interactive?.button_reply
+  if (message.type === 'interactive' && reply?.id) {
+    return {
+      from,
+      messageId,
+      kind: 'button',
+      buttonId: reply.id,
+      text: reply.title ?? '',
+    }
   }
   return null
 }

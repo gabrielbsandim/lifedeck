@@ -1,6 +1,7 @@
 import { asEntityId } from '@lifedeck/domain'
 import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
 import type {
+  InteractiveButton,
   MessageTemplate,
   MessagingChannel,
 } from '@/ports/messaging-channel'
@@ -13,6 +14,10 @@ export type ProactiveMessage = {
   // Pre-approved utility template, sent once the window has closed. Omit to send
   // only when the window is open (in-app/other channels cover the rest).
   template?: MessageTemplate
+  // Quick-reply buttons for the in-window send. Interactive messages are only
+  // valid while the window is open, so once it closes we fall back to the plain
+  // template (which cannot carry buttons).
+  buttons?: InteractiveButton[]
 }
 
 type Dependencies = {
@@ -46,7 +51,15 @@ export function makeSendProactiveMessage({
       : false
     try {
       if (windowOpen) {
-        await messaging.sendText(identity.address, message.text)
+        if (message.buttons && message.buttons.length > 0) {
+          await messaging.sendButtons(
+            identity.address,
+            message.text,
+            message.buttons,
+          )
+        } else {
+          await messaging.sendText(identity.address, message.text)
+        }
         return { delivered: true }
       }
       if (message.template) {

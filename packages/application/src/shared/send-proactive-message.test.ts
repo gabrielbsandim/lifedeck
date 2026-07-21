@@ -31,9 +31,10 @@ async function setup(options: {
   }
   const sendText = vi.fn().mockResolvedValue(undefined)
   const sendTemplate = vi.fn().mockResolvedValue(undefined)
+  const sendButtons = vi.fn().mockResolvedValue(undefined)
   const send = makeSendProactiveMessage({
     channelIdentities,
-    messaging: { sendText, sendTemplate, fetchMedia: vi.fn() },
+    messaging: { sendText, sendTemplate, sendButtons, fetchMedia: vi.fn() },
     whatsappSession:
       options.windowOpen === undefined
         ? undefined
@@ -42,7 +43,7 @@ async function setup(options: {
             isOpen: async () => options.windowOpen ?? false,
           },
   })
-  return { send, sendText, sendTemplate }
+  return { send, sendText, sendTemplate, sendButtons }
 }
 
 describe('sendProactiveMessage', () => {
@@ -56,14 +57,36 @@ describe('sendProactiveMessage', () => {
     expect(sendTemplate).not.toHaveBeenCalled()
   })
 
-  it('falls back to the template once the window has closed', async () => {
-    const { send, sendText, sendTemplate } = await setup({ windowOpen: false })
+  it('sends quick-reply buttons while the window is open', async () => {
+    const { send, sendText, sendButtons } = await setup({ windowOpen: true })
+    const buttons = [
+      { id: 'nudge_yes:1', title: 'Yes' },
+      { id: 'nudge_no:1', title: 'No' },
+    ]
 
-    const result = await send(USER_ID, { text: 'Bom dia!', template: TEMPLATE })
+    const result = await send(USER_ID, { text: 'Reschedule?', buttons })
+
+    expect(result).toEqual({ delivered: true })
+    expect(sendButtons).toHaveBeenCalledWith(ADDRESS, 'Reschedule?', buttons)
+    expect(sendText).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the template once the window has closed', async () => {
+    const { send, sendText, sendTemplate, sendButtons } = await setup({
+      windowOpen: false,
+    })
+
+    const result = await send(USER_ID, {
+      text: 'Bom dia!',
+      template: TEMPLATE,
+      buttons: [{ id: 'nudge_yes:1', title: 'Yes' }],
+    })
 
     expect(result).toEqual({ delivered: true })
     expect(sendTemplate).toHaveBeenCalledWith(ADDRESS, TEMPLATE)
     expect(sendText).not.toHaveBeenCalled()
+    // Interactive messages are window-only; the closed-window path drops them.
+    expect(sendButtons).not.toHaveBeenCalled()
   })
 
   it('does nothing when the window is closed and no template is given', async () => {

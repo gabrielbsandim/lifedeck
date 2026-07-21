@@ -94,6 +94,44 @@ describe('parseInboundMessages', () => {
     ])
   })
 
+  it('extracts a tapped quick-reply button', () => {
+    const payload = {
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                messages: [
+                  {
+                    from: '5511999990000',
+                    id: 'wamid.5',
+                    type: 'interactive',
+                    interactive: {
+                      type: 'button_reply',
+                      button_reply: {
+                        id: 'nudge_yes:task-1',
+                        title: 'Yes, reschedule',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    }
+    expect(parseInboundMessages(payload)).toEqual([
+      {
+        from: '5511999990000',
+        messageId: 'wamid.5',
+        kind: 'button',
+        buttonId: 'nudge_yes:task-1',
+        text: 'Yes, reschedule',
+      },
+    ])
+  })
+
   it('returns an empty list for a status-only payload', () => {
     expect(
       parseInboundMessages({ entry: [{ changes: [{ value: {} }] }] }),

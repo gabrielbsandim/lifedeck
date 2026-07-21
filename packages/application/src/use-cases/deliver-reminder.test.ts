@@ -101,6 +101,7 @@ async function setup(options: {
     messaging: {
       sendText,
       sendTemplate,
+      sendButtons: vi.fn().mockResolvedValue(undefined),
       fetchMedia: vi.fn(),
     },
     whatsappSession:

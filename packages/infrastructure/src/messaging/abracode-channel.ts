@@ -1,4 +1,5 @@
 import type {
+  InteractiveButton,
   MediaPayload,
   MessageTemplate,
   MessagingChannel,
@@ -77,6 +78,31 @@ export class AbracodeChannel implements MessagingChannel {
         ],
       },
       'template',
+    )
+  }
+
+  async sendButtons(
+    to: string,
+    body: string,
+    buttons: InteractiveButton[],
+  ): Promise<void> {
+    await this.postMessage(
+      {
+        type: 'interactive',
+        from: this.from,
+        to,
+        interactive: {
+          type: 'button',
+          body: { text: body },
+          action: {
+            buttons: buttons.map(button => ({
+              type: 'reply',
+              reply: { id: button.id, title: button.title },
+            })),
+          },
+        },
+      },
+      'buttons',
     )
   }
 
