@@ -165,6 +165,22 @@ export const pt: Messages = {
       error: 'Não foi possível buscar horários. Tente novamente.',
       close: 'Fechar',
     },
+    connect: {
+      connectApple: 'Conectar Apple',
+      connectCalcom: 'Conectar cal.com',
+      appleEmail: 'E-mail do Apple ID',
+      applePassword: 'Senha específica do app',
+      applePasswordHint:
+        'Crie uma em appleid.apple.com, em Início de Sessão e Segurança.',
+      calcomEmail: 'E-mail do cal.com',
+      calcomApiKey: 'Chave de API do cal.com',
+      calcomReadOnly: 'Os agendamentos do cal.com são importados como leitura.',
+      connect: 'Conectar',
+      connecting: 'Conectando…',
+      connectError:
+        'Não foi possível conectar. Verifique os dados e tente de novo.',
+      cancel: 'Cancelar',
+    },
   },
   billing: {
     title: 'Plano e cobrança',

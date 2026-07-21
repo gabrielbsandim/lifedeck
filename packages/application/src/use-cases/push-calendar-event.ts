@@ -39,6 +39,10 @@ export function makePushCalendarEvent({
     }
 
     const provider = providers.get(connection.provider)
+    // Read-only providers (e.g. cal.com) import events but accept no writes.
+    if (provider.writable === false) {
+      return { pushed: false }
+    }
     const { externalId, etag } = await provider.pushEvent(connection, event)
     event.linkToExternal(externalId, etag, clock.now(), connection.id)
     await calendarEvents.save(event)

@@ -48,6 +48,20 @@ export type WatchChannel = {
   expiresAt: Date | null
 }
 
+// A user-entered static credential for a non-OAuth provider: an Apple ID +
+// app-specific password (Apple CalDAV) or an account email + API key (cal.com).
+export type CredentialConnectInput = {
+  accountEmail: string
+  secret: string
+}
+
+// What a provider resolves from a valid credential: the label to store and the
+// calendar collection to sync (a CalDAV calendar href for Apple).
+export type CredentialConnectResult = {
+  accountEmail: string
+  calendarId: string
+}
+
 // Resolves the adapter for a connection's provider, so sync use cases can drive
 // a user's Google, Apple, and cal.com calendars through one code path. The
 // container registers one adapter per CalendarProviderName.
@@ -57,6 +71,10 @@ export interface CalendarProviderRegistry {
 
 export interface CalendarProvider {
   readonly provider: CalendarProviderName
+  // Whether local events push back to this provider. Omitted means writable
+  // (Google, Apple); a read-only provider (cal.com, whose model is bookings, not
+  // an event store) sets false so the push/delete use cases skip it.
+  readonly writable?: boolean
   exchangeCode(code: string, redirectUri: string): Promise<OAuthTokens>
   refreshAccessToken(refreshToken: string): Promise<RefreshedToken>
   listChanges(connection: CalendarConnection): Promise<CalendarSyncPage>
@@ -69,4 +87,10 @@ export interface CalendarProvider {
     connection: CalendarConnection,
     callbackUrl: string,
   ): Promise<WatchChannel>
+  // Present only on static-credential providers (Apple, cal.com): validates a
+  // user-entered secret and resolves the account label + calendar to sync.
+  // OAuth providers (Google) connect via exchangeCode and omit this.
+  connectWithCredentials?(
+    input: CredentialConnectInput,
+  ): Promise<CredentialConnectResult>
 }

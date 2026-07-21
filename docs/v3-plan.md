@@ -467,7 +467,39 @@ across days, none-available), tool + agent path, entitlement gate.
 
 ---
 
-## 10. V3-7 — More calendar providers (Apple + cal.com)
+## 10. V3-7 — More calendar providers (Apple + cal.com) — SHIPPED
+
+Shipped: `CALENDAR_PROVIDERS` and `CALENDAR_EVENT_SOURCES` now include `apple` +
+`calcom`; the pull use case derives an event's `source` from `connection.provider`
+instead of hardcoding `'google'`. Credentials are modelled cleanly for non-OAuth
+providers — migration `25_calendar_credentials` makes `refresh_token` /
+`token_expires_at` **nullable**, so a static secret (Apple app-specific password,
+cal.com API key) lives in the encrypted `accessToken` with `needsRefresh` false
+when there is no expiry (no sentinel values); the record mapper + Prisma repo
+handle the null. A new `connectWithCredentials` port method (OAuth providers omit
+it) validates a user-entered secret and resolves the account + calendar to sync;
+`makeConnectCalendarWithCredentials` creates/rotates the connection (dedup per
+owner+provider+account, read-only providers never become the default push
+target). A `writable?: boolean` capability lets the push/delete use cases skip a
+read-only provider.
+
+**cal.com** (`CalcomCalendarProvider`, `writable = false`): read-only import of
+the account's bookings as events via the v2 REST API (API-key auth); pushes are
+skipped. **Apple** (`AppleCalendarProvider`): a hand-rolled CalDAV/iCloud client
+(Basic auth with an app-specific password) — PROPFIND principal → calendar-home →
+collection discovery, `sync-collection` REPORT for incremental changes, PUT/.ics
+for push, DELETE for removal, `watch` unsupported (the reconcile sweep covers it,
+so no push channels). A minimal RFC 5545 reader/writer (`ical.ts`) handles the
+VEVENT fields we sync (UID/SUMMARY/DTSTART/DTEND/RRULE/RECURRENCE-ID/STATUS),
+reusing the existing rrule map. Web: Premium-gated `POST /calendar/apple/connect`
+and `/calendar/calcom/connect` routes (`requirePremium`), a generalized
+`CalendarConnectionsManager` with provider-specific connect forms + per-connection
+provider labels, and `useConnectAppleCalendar`/`useConnectCalcomCalendar` hooks,
+in en/pt/es. Both adapters are unit-tested against mocked HTTP; the 95% gate is
+green across every layer. **Verification note:** neither integration was tested
+against a live iCloud/cal.com account — the mapping and request shapes are proven
+by unit tests only, so real-account testing (a real app-specific password / API
+key) is still required and the CalDAV specifics may need tuning against iCloud.
 
 Extend reach behind the existing `CalendarProvider` port — no new sync engine.
 

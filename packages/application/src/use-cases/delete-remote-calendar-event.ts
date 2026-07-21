@@ -26,6 +26,10 @@ export function makeDeleteRemoteCalendarEvent({
       return { deleted: false }
     }
     const provider = providers.get(connection.provider)
+    // Read-only providers (e.g. cal.com) accept no remote writes.
+    if (provider.writable === false) {
+      return { deleted: false }
+    }
     await provider.deleteEvent(connection, externalId)
     return { deleted: true }
   }

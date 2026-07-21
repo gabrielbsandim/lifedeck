@@ -143,6 +143,14 @@ export {
   GoogleCalendarProvider,
   type GoogleCalendarConfig,
 } from '@/calendar/google-calendar-provider'
+export {
+  AppleCalendarProvider,
+  type AppleCalendarConfig,
+} from '@/calendar/apple-calendar-provider'
+export {
+  CalcomCalendarProvider,
+  type CalcomCalendarConfig,
+} from '@/calendar/calcom-calendar-provider'
 export { PrismaChannelIdentityRepository } from '@/database/prisma-channel-identity-repository'
 export {
   toDomainChannelIdentity,

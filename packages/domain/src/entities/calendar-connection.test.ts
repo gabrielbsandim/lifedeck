@@ -63,18 +63,33 @@ describe('CalendarConnection', () => {
     expect(connection.toJSON().updatedAt).toEqual(later)
   })
 
-  it('rejects an empty refresh token', () => {
+  it('rejects an empty access token', () => {
     expect(() =>
       CalendarConnection.create({
         id: asEntityId(ID),
         ownerId: asEntityId(OWNER_ID),
         provider: 'google',
-        accessToken: 'access-1',
-        refreshToken: '  ',
+        accessToken: '  ',
+        refreshToken: 'refresh-1',
         tokenExpiresAt: NOW,
         now: NOW,
       }),
     ).toThrow(ValidationError)
+  })
+
+  it('supports a static credential with no refresh token or expiry', () => {
+    const connection = CalendarConnection.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      provider: 'apple',
+      accessToken: 'app-specific-password',
+      now: NOW,
+    })
+    expect(connection.refreshToken).toBeNull()
+    // A null expiry never needs a refresh.
+    expect(connection.needsRefresh(new Date('2030-01-01T00:00:00.000Z'))).toBe(
+      false,
+    )
   })
 
   it('detects a token that needs refreshing within the skew window', () => {

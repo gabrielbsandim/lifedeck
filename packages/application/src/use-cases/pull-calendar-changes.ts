@@ -56,7 +56,7 @@ export function makePullCalendarChanges({
       connection: CalendarConnection,
     ): Promise<number> {
       const provider = providers.get(connection.provider)
-      if (connection.needsRefresh(clock.now())) {
+      if (connection.needsRefresh(clock.now()) && connection.refreshToken) {
         const refreshed = await provider.refreshAccessToken(
           connection.refreshToken,
         )
@@ -144,7 +144,7 @@ export function makePullCalendarChanges({
           recurrenceMasterExternalId: external.recurringEventExternalId,
           originalStartsAt: external.originalStartsAt,
           cancelled: external.cancelledOccurrence,
-          source: 'google',
+          source: connection.provider,
           connectionId: connection.id,
           externalId: external.externalId,
           etag: external.etag,
@@ -202,7 +202,7 @@ export function makePullCalendarChanges({
         endsAt: external.endsAt,
         allDay: external.allDay,
         recurrence: external.recurrence,
-        source: 'google',
+        source: connection.provider,
         connectionId: connection.id,
         externalId: external.externalId,
         etag: external.etag,

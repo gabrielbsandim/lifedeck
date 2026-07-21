@@ -173,6 +173,20 @@ export type Messages = {
       error: string
       close: string
     }
+    connect: {
+      connectApple: string
+      connectCalcom: string
+      appleEmail: string
+      applePassword: string
+      applePasswordHint: string
+      calcomEmail: string
+      calcomApiKey: string
+      calcomReadOnly: string
+      connect: string
+      connecting: string
+      connectError: string
+      cancel: string
+    }
   }
   billing: {
     title: string

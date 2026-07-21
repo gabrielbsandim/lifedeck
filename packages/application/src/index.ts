@@ -248,6 +248,8 @@ export type {
   OAuthTokens,
   RefreshedToken,
   WatchChannel,
+  CredentialConnectInput,
+  CredentialConnectResult,
 } from '@/ports/calendar-provider'
 export {
   makePullCalendarChanges,
@@ -258,6 +260,7 @@ export {
   makeConnectGoogleCalendar,
   type ConnectCalendarResult,
 } from '@/use-cases/connect-google-calendar'
+export { makeConnectCalendarWithCredentials } from '@/use-cases/connect-calendar-with-credentials'
 export { makeListCalendarConnections } from '@/use-cases/list-calendar-connections'
 export { makeDisconnectCalendar } from '@/use-cases/disconnect-calendar'
 export { makeSetDefaultCalendar } from '@/use-cases/set-default-calendar'

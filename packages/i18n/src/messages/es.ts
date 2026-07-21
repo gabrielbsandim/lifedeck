@@ -166,6 +166,22 @@ export const es: Messages = {
       error: 'No se pudieron buscar huecos. Inténtalo de nuevo.',
       close: 'Cerrar',
     },
+    connect: {
+      connectApple: 'Conectar Apple',
+      connectCalcom: 'Conectar cal.com',
+      appleEmail: 'Correo del Apple ID',
+      applePassword: 'Contraseña específica de la app',
+      applePasswordHint:
+        'Crea una en appleid.apple.com, en Inicio de sesión y seguridad.',
+      calcomEmail: 'Correo de cal.com',
+      calcomApiKey: 'Clave de API de cal.com',
+      calcomReadOnly: 'Las reservas de cal.com se importan como solo lectura.',
+      connect: 'Conectar',
+      connecting: 'Conectando…',
+      connectError:
+        'No se pudo conectar. Revisa los datos e inténtalo de nuevo.',
+      cancel: 'Cancelar',
+    },
   },
   billing: {
     title: 'Plan y facturación',

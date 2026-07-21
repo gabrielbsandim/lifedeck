@@ -11,8 +11,8 @@ export type CalendarConnectionRecord = {
   accountEmail: string | null
   isDefault: boolean
   accessToken: string
-  refreshToken: string
-  tokenExpiresAt: Date
+  refreshToken: string | null
+  tokenExpiresAt: Date | null
   calendarId: string
   syncToken: string | null
   channelId: string | null

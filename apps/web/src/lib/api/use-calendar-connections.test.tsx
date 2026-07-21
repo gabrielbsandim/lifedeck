@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import {
   useCalendarConnections,
+  useConnectAppleCalendar,
+  useConnectCalcomCalendar,
   useDisconnectCalendar,
   useSetDefaultCalendar,
 } from '@/lib/api/use-calendar-connections'
@@ -52,6 +54,38 @@ describe('useCalendarConnections', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/v1/calendar/connections/${CONNECTION.id}`,
       expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('connects an Apple calendar with an app password', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { connected: true, connectionId: 'x' },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useConnectAppleCalendar(), {
+      wrapper: Wrapper,
+    })
+    result.current.mutate({ email: 'me@icloud.com', appPassword: 'abcd-efgh' })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/calendar/apple/connect',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('connects a cal.com account with an API key', async () => {
+    const fetchMock = mockFetchOnce({
+      data: { connected: true, connectionId: 'y' },
+    })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useConnectCalcomCalendar(), {
+      wrapper: Wrapper,
+    })
+    result.current.mutate({ email: 'me@cal.com', apiKey: 'cal_live_key' })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/calendar/calcom/connect',
+      expect.objectContaining({ method: 'POST' }),
     )
   })
 

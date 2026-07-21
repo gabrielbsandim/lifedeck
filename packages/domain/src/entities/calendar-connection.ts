@@ -8,9 +8,14 @@ export type CalendarConnectionProps = {
   provider: CalendarProviderName
   accountEmail: string | null
   isDefault: boolean
+  // The primary credential used to authenticate requests: an OAuth access token
+  // (Google), a CalDAV app-specific password (Apple), or an API key (cal.com).
   accessToken: string
-  refreshToken: string
-  tokenExpiresAt: Date
+  // OAuth refresh token; null for providers that use a static, non-expiring
+  // credential (Apple app password, cal.com API key).
+  refreshToken: string | null
+  // When the access token expires; null when the credential never expires.
+  tokenExpiresAt: Date | null
   calendarId: string
   syncToken: string | null
   channelId: string | null
@@ -28,8 +33,8 @@ export class CalendarConnection {
     ownerId: EntityId
     provider: CalendarProviderName
     accessToken: string
-    refreshToken: string
-    tokenExpiresAt: Date
+    refreshToken?: string | null
+    tokenExpiresAt?: Date | null
     calendarId?: string
     accountEmail?: string | null
     isDefault?: boolean
@@ -42,8 +47,8 @@ export class CalendarConnection {
       accountEmail: input.accountEmail ?? null,
       isDefault: input.isDefault ?? false,
       accessToken: guard.notEmpty(input.accessToken, 'Access token'),
-      refreshToken: guard.notEmpty(input.refreshToken, 'Refresh token'),
-      tokenExpiresAt: input.tokenExpiresAt,
+      refreshToken: input.refreshToken ?? null,
+      tokenExpiresAt: input.tokenExpiresAt ?? null,
       calendarId: input.calendarId ?? 'primary',
       syncToken: null,
       channelId: null,
@@ -70,7 +75,7 @@ export class CalendarConnection {
     return this.props.accessToken
   }
 
-  get refreshToken(): string {
+  get refreshToken(): string | null {
     return this.props.refreshToken
   }
 
@@ -106,11 +111,23 @@ export class CalendarConnection {
     return this.props.ownerId === userId
   }
 
+  // Only OAuth connections (a non-null expiry) ever need a refresh; a static
+  // credential (null expiry) never does.
   needsRefresh(now: Date, skewMs = 60_000): boolean {
-    return this.props.tokenExpiresAt.getTime() - skewMs <= now.getTime()
+    return (
+      this.props.tokenExpiresAt !== null &&
+      this.props.tokenExpiresAt.getTime() - skewMs <= now.getTime()
+    )
   }
 
-  refreshAccess(accessToken: string, tokenExpiresAt: Date, now: Date): void {
+  // Replaces the primary credential. For OAuth this is a refreshed access token
+  // with a new expiry; for a static credential (reconnect with a rotated app
+  // password / API key) the expiry is null.
+  refreshAccess(
+    accessToken: string,
+    tokenExpiresAt: Date | null,
+    now: Date,
+  ): void {
     this.props.accessToken = guard.notEmpty(accessToken, 'Access token')
     this.props.tokenExpiresAt = tokenExpiresAt
     this.props.updatedAt = now

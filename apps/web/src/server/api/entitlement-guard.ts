@@ -25,3 +25,15 @@ export async function requireEntitlement(
   }
   return null
 }
+
+// Some capabilities (Apple/cal.com calendars) are Premium-only on top of the
+// calendarSync entitlement; this gates them on the plan tier directly.
+export async function requirePremium(
+  userId: string,
+): Promise<NextResponse | null> {
+  const { plan } = await getContainer().entitlements.for(userId)
+  if (plan !== 'premium') {
+    return fail('FORBIDDEN', 'This calendar requires the Premium plan.', 403)
+  }
+  return null
+}

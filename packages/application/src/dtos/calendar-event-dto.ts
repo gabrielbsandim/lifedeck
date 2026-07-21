@@ -83,7 +83,7 @@ export const calendarEventViewSchema = z.object({
   recurring: z.boolean(),
   seriesId: z.string().nullable(),
   occurrenceStart: z.string().datetime().nullable(),
-  source: z.enum(['local', 'google']),
+  source: z.enum(['local', 'google', 'apple', 'calcom']),
   externalId: z.string().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

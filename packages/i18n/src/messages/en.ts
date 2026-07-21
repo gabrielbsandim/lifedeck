@@ -164,6 +164,21 @@ export const en: Messages = {
       error: 'Could not find slots. Please try again.',
       close: 'Close',
     },
+    connect: {
+      connectApple: 'Connect Apple',
+      connectCalcom: 'Connect cal.com',
+      appleEmail: 'Apple ID email',
+      applePassword: 'App-specific password',
+      applePasswordHint:
+        'Create one at appleid.apple.com under Sign-In and Security.',
+      calcomEmail: 'cal.com email',
+      calcomApiKey: 'cal.com API key',
+      calcomReadOnly: 'cal.com bookings are imported read-only.',
+      connect: 'Connect',
+      connecting: 'Connecting…',
+      connectError: 'Could not connect. Check your details and try again.',
+      cancel: 'Cancel',
+    },
   },
   billing: {
     title: 'Plan and billing',

@@ -23,7 +23,7 @@ import { CalendarWeekStrip } from '@/components/calendar/calendar-week-strip'
 import { EventEditorDialog } from '@/components/calendar/event-editor-dialog'
 import { EventDetailSheet } from '@/components/calendar/event-detail-sheet'
 import { FindTimeDialog } from '@/components/calendar/find-time-dialog'
-import { GoogleCalendarsManager } from '@/components/calendar/google-calendars-manager'
+import { CalendarConnectionsManager } from '@/components/calendar/calendar-connections-manager'
 
 type Mode = 'agenda' | 'month'
 
@@ -184,7 +184,7 @@ export function CalendarScreen() {
         </button>
       )}
 
-      <GoogleCalendarsManager enabled={available} />
+      <CalendarConnectionsManager enabled={available} premium={canFindTime} />
 
       {/* ───────── Mobile ───────── */}
       <div className="relative lg:hidden">

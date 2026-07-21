@@ -1,4 +1,4 @@
-export const CALENDAR_PROVIDERS = ['google'] as const
+export const CALENDAR_PROVIDERS = ['google', 'apple', 'calcom'] as const
 
 export type CalendarProviderName = (typeof CALENDAR_PROVIDERS)[number]
 

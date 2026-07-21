@@ -4,6 +4,7 @@ import {
   makeBringTaskToToday,
   makeChangePassword,
   makeConnectGoogleCalendar,
+  makeConnectCalendarWithCredentials,
   makeListCalendarConnections,
   makeDisconnectCalendar,
   makeSetDefaultCalendar,
@@ -188,6 +189,8 @@ import {
   AsaasPaymentGateway,
   StripePaymentGateway,
   GoogleCalendarProvider,
+  AppleCalendarProvider,
+  CalcomCalendarProvider,
   OutboxJobQueue,
   QStashJobScheduler,
   NoopJobScheduler,
@@ -306,6 +309,9 @@ type Container = {
   findFreeSlots: ReturnType<typeof makeFindFreeSlots>
   getCalendarEvent: ReturnType<typeof makeGetCalendarEvent>
   connectGoogleCalendar: ReturnType<typeof makeConnectGoogleCalendar>
+  connectCalendarWithCredentials: ReturnType<
+    typeof makeConnectCalendarWithCredentials
+  >
   listCalendarConnections: ReturnType<typeof makeListCalendarConnections>
   disconnectCalendar: ReturnType<typeof makeDisconnectCalendar>
   setDefaultCalendar: ReturnType<typeof makeSetDefaultCalendar>
@@ -363,6 +369,8 @@ type Services = {
   fileStorage: FileStorage
   usageMeter: UsageMeter
   googleCalendar: CalendarProvider & { authUrl(state: string): string }
+  appleCalendar: CalendarProvider
+  calcomCalendar: CalendarProvider
   messaging: MessagingChannel
   conversations: ConversationStore
   whatsappSession: WhatsappSessionWindow
@@ -405,6 +413,8 @@ function build(
     fileStorage,
     usageMeter,
     googleCalendar,
+    appleCalendar,
+    calcomCalendar,
     messaging,
     conversations,
     whatsappSession,
@@ -463,9 +473,17 @@ function build(
   const calendarProviders: CalendarProviderRegistry = {
     get(provider) {
       if (provider === 'google') return googleCalendar
+      if (provider === 'apple') return appleCalendar
+      if (provider === 'calcom') return calcomCalendar
       throw new Error(`No calendar provider registered for "${provider}".`)
     },
   }
+  const connectCalendarWithCredentials = makeConnectCalendarWithCredentials({
+    calendarConnections,
+    providers: calendarProviders,
+    ids,
+    clock,
+  })
   const pullCalendarChanges = makePullCalendarChanges({
     calendarConnections,
     calendarEvents,
@@ -991,6 +1009,7 @@ function build(
       ids,
       clock,
     }),
+    connectCalendarWithCredentials,
     listCalendarConnections: makeListCalendarConnections({
       calendarConnections,
     }),
@@ -1144,6 +1163,12 @@ export function getContainer(): Container {
         fileStorage: new VercelBlobStorage(),
         usageMeter: createUsageMeter(),
         googleCalendar: buildGoogleCalendarProvider(),
+        appleCalendar: new AppleCalendarProvider({
+          baseUrl: process.env.APPLE_CALDAV_BASE_URL?.trim() || undefined,
+        }),
+        calcomCalendar: new CalcomCalendarProvider({
+          apiBaseUrl: process.env.CALCOM_API_BASE_URL?.trim() || undefined,
+        }),
         messaging: createMessagingChannel(),
         conversations: createConversationStore(),
         whatsappSession: createWhatsappSessionWindow(),

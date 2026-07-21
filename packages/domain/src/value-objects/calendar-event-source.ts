@@ -1,4 +1,9 @@
-export const CALENDAR_EVENT_SOURCES = ['local', 'google'] as const
+export const CALENDAR_EVENT_SOURCES = [
+  'local',
+  'google',
+  'apple',
+  'calcom',
+] as const
 
 export type CalendarEventSource = (typeof CALENDAR_EVENT_SOURCES)[number]
 

@@ -19,8 +19,8 @@ function fromPrisma(record: {
   accountEmail: string | null
   isDefault: boolean
   accessToken: string
-  refreshToken: string
-  tokenExpiresAt: Date
+  refreshToken: string | null
+  tokenExpiresAt: Date | null
   calendarId: string
   syncToken: string | null
   channelId: string | null
@@ -36,7 +36,9 @@ function fromPrisma(record: {
     accountEmail: record.accountEmail,
     isDefault: record.isDefault,
     accessToken: decryptToken(record.accessToken),
-    refreshToken: decryptToken(record.refreshToken),
+    refreshToken: record.refreshToken
+      ? decryptToken(record.refreshToken)
+      : null,
     tokenExpiresAt: record.tokenExpiresAt,
     calendarId: record.calendarId,
     syncToken: record.syncToken,
@@ -56,7 +58,9 @@ export class PrismaCalendarConnectionRepository
   async save(connection: CalendarConnection): Promise<void> {
     const record = toCalendarConnectionRecord(connection)
     const accessToken = encryptToken(record.accessToken)
-    const refreshToken = encryptToken(record.refreshToken)
+    const refreshToken = record.refreshToken
+      ? encryptToken(record.refreshToken)
+      : null
     await this.prisma.calendarConnection.upsert({
       where: { id: record.id },
       create: { ...record, accessToken, refreshToken },
