@@ -283,6 +283,85 @@ export type Messages = {
     payNow: string
     activatedTitle: string
     activatedBody: string
+    promo: {
+      heroBadge: string
+      heroTitleTop: string
+      heroTitleBottom: string
+      heroLead: string
+      heroTrust: string
+      waToday: string
+      waStatus: string
+      waPlaceholder: string
+      waBrief: string
+      waBriefOffer: string
+      waReply: string
+      plansEyebrow: string
+      plansTitle: string
+      plansSub: string
+      tagFree: string
+      tagPro: string
+      tagPremium: string
+      freeForever: string
+      freeCta: string
+      billedMonthly: string
+      perDay: string
+      moreThanFree: string
+      moreThanPro: string
+      freeBullets: string[]
+      proBullets: string[]
+      premiumBullets: string[]
+      showEyebrow: string
+      showTitle: string
+      showSub: string
+      showBriefTitle: string
+      showBriefSub: string
+      showBriefMsg: string
+      showFindTitle: string
+      showFindSub: string
+      showFindMsg: string
+      showFindSlots: string
+      showHabitTitle: string
+      showHabitSub: string
+      showHabitName: string
+      showHabitDays: string
+      showHabitInRow: string
+      showHabitToday: string
+      showNudgeTitle: string
+      showNudgeSub: string
+      showNudgeMsg: string
+      showNudgeYes: string
+      showNudgeNo: string
+      compareEyebrow: string
+      compareTitle: string
+      colFeature: string
+      groupOrg: string
+      groupAssistant: string
+      groupCalendar: string
+      groupAi: string
+      cellOneHabit: string
+      cellUnlimited: string
+      cellSample: string
+      cellFull: string
+      cellBasic: string
+      cellHigh: string
+      cellMax: string
+      rowAiLimits: string
+      compareCheckins: string
+      faqEyebrow: string
+      faqTitle: string
+      faq1Title: string
+      faq1Body: string
+      faq2Title: string
+      faq2Body: string
+      faq3Title: string
+      faq3Body: string
+      faq4Title: string
+      faq4Body: string
+      founderNote: string
+      finalTitle: string
+      finalBody: string
+      footerLine: string
+    }
   }
   notifications: {
     title: string
