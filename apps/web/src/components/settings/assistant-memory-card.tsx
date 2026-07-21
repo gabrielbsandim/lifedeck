@@ -202,14 +202,14 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
             <HourSelect
               value={quietStart}
               onChange={setQuietStart}
-              label={`${m.quietHours} ${m.quietTo}`}
+              label={`${m.quietHours} ${m.rangeStart}`}
               unsetLabel={m.hourUnset}
             />
             <span className="text-ink-500 text-xs">{m.quietTo}</span>
             <HourSelect
               value={quietEnd}
               onChange={setQuietEnd}
-              label={`${m.quietHours} ${m.quietTo}`}
+              label={`${m.quietHours} ${m.rangeEnd}`}
               unsetLabel={m.hourUnset}
             />
           </div>
@@ -220,17 +220,20 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
             <HourSelect
               value={workStart}
               onChange={setWorkStart}
-              label={`${m.workHours} ${m.quietTo}`}
+              label={`${m.workHours} ${m.rangeStart}`}
               unsetLabel={m.hourUnset}
             />
             <span className="text-ink-500 text-xs">{m.quietTo}</span>
             <HourSelect
               value={workEnd}
               onChange={setWorkEnd}
-              label={`${m.workHours} ${m.quietTo}`}
+              label={`${m.workHours} ${m.rangeEnd}`}
               unsetLabel={m.hourUnset}
             />
           </div>
+          {workStart !== null && workEnd !== null && workStart >= workEnd && (
+            <p className="text-xs text-amber-600">{m.workHoursInvalid}</p>
+          )}
         </div>
       </div>
 

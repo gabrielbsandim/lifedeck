@@ -61,6 +61,13 @@ export function fromGoogleRecurrence(
     return null
   }
 
+  // The domain rule has no occurrence count; a COUNT-bounded series cannot be
+  // modelled, so degrade it to a plain, non-recurring event rather than let it
+  // round-trip into an open-ended (infinite) series.
+  if (fields.has('COUNT')) {
+    return null
+  }
+
   const rule: RecurrenceRule = {
     freq,
     interval: parseInterval(fields.get('INTERVAL')),

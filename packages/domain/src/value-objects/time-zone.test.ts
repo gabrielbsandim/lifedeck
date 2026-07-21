@@ -7,6 +7,7 @@ import {
   zoneOffset,
   zonedInstant,
   zonedIso,
+  zonedWallTimeToInstant,
   zonedWeekday,
 } from '@/value-objects/time-zone'
 
@@ -96,6 +97,42 @@ describe('time zone', () => {
     expect(
       zonedInstant('2026-07-18', 9, 'America/New_York').toISOString(),
     ).toBe('2026-07-18T13:00:00.000Z')
+  })
+
+  it('converges on a DST-transition day (the second pass corrects)', () => {
+    // 2026-03-08 is US spring-forward: 02:00 EST jumps to 03:00 EDT. The
+    // provisional instant is first sampled at the EST offset, so only the
+    // second pass lands 09:00 EDT (-04:00) correctly at 13:00 UTC.
+    expect(
+      zonedInstant('2026-03-08', 9, 'America/New_York').toISOString(),
+    ).toBe('2026-03-08T13:00:00.000Z')
+    // 2026-11-01 is fall-back: 09:00 is EST (-05:00) → 14:00 UTC.
+    expect(
+      zonedInstant('2026-11-01', 9, 'America/New_York').toISOString(),
+    ).toBe('2026-11-01T14:00:00.000Z')
+  })
+
+  it('resolves a full-precision wall time to an instant', () => {
+    // 09:30:15 in Sao Paulo (UTC-3) is 12:30:15 UTC.
+    expect(
+      zonedWallTimeToInstant(
+        '2026-07-18',
+        9,
+        30,
+        15,
+        'America/Sao_Paulo',
+      ).toISOString(),
+    ).toBe('2026-07-18T12:30:15.000Z')
+    // Half-hour offset zone keeps minutes and seconds.
+    expect(
+      zonedWallTimeToInstant(
+        '2026-07-18',
+        14,
+        15,
+        0,
+        'Asia/Kolkata',
+      ).toISOString(),
+    ).toBe('2026-07-18T08:45:00.000Z')
   })
 
   it('round-trips through civilHour and falls back to UTC for junk zones', () => {

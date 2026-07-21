@@ -168,10 +168,9 @@ export type Messages = {
       noResults: string
       book: string
       booking: string
-      booked: string
       defaultTitle: string
       error: string
-      close: string
+      bookError: string
     }
     connect: {
       connectApple: string
@@ -328,6 +327,9 @@ export type Messages = {
     quietHours: string
     workHours: string
     quietTo: string
+    rangeStart: string
+    rangeEnd: string
+    workHoursInvalid: string
     hourUnset: string
     dailyBrief: string
     dailyBriefHint: string

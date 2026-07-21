@@ -110,9 +110,27 @@ export function zonedInstant(
   hour: number,
   timeZone: string,
 ): Date {
+  return zonedWallTimeToInstant(date, hour, 0, 0, timeZone)
+}
+
+/**
+ * The UTC instant whose wall clock in `timeZone` is `hour:minute:second` on the
+ * civil date `date` (`YYYY-MM-DD`). The full-precision form of `zonedInstant`,
+ * used to turn a CalDAV `TZID`-qualified DATE-TIME into an absolute instant. Two
+ * passes converge even across a DST change — the offset is sampled at the
+ * provisional instant, then re-sampled after the first correction.
+ */
+export function zonedWallTimeToInstant(
+  date: string,
+  hour: number,
+  minute: number,
+  second: number,
+  timeZone: string,
+): Date {
   const zone = isTimeZone(timeZone) ? timeZone : DEFAULT_TIME_ZONE
   const baseMs =
-    Date.parse(`${date}T00:00:00.000Z`) + Math.round(hour * 60) * 60_000
+    Date.parse(`${date}T00:00:00.000Z`) +
+    Math.round((hour * 3600 + minute * 60 + second) * 1000)
   let instant = baseMs
   for (let pass = 0; pass < 2; pass += 1) {
     const offsetMinutes = offsetToMinutes(zoneOffset(new Date(instant), zone))

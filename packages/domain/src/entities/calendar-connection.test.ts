@@ -129,6 +129,29 @@ describe('CalendarConnection', () => {
     )
   })
 
+  it('repoints at a new calendar and clears the now-stale sync token', () => {
+    const connection = build()
+    const later = new Date('2026-06-24T12:00:00.000Z')
+    connection.setSyncToken('sync-1', NOW)
+    connection.setCalendarId('https://caldav/other.ics', later)
+    expect(connection.calendarId).toBe('https://caldav/other.ics')
+    // A sync token is only valid for the collection that issued it.
+    expect(connection.syncToken).toBeNull()
+    expect(connection.toJSON().updatedAt).toEqual(later)
+  })
+
+  it('keeps the sync token when the calendar target is unchanged', () => {
+    const connection = build()
+    connection.setSyncToken('sync-1', NOW)
+    connection.setCalendarId(connection.calendarId, NOW)
+    expect(connection.syncToken).toBe('sync-1')
+  })
+
+  it('rejects an empty calendar id', () => {
+    const connection = build()
+    expect(() => connection.setCalendarId('  ', NOW)).toThrow(ValidationError)
+  })
+
   it('exposes a null watch channel before one is registered', () => {
     const connection = build()
     expect(connection.channelId).toBeNull()

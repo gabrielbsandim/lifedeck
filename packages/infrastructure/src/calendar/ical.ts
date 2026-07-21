@@ -1,11 +1,14 @@
+import { isTimeZone, zonedWallTimeToInstant } from '@lifedeck/domain'
 import type { RecurrenceRule } from '@lifedeck/domain'
 import { fromGoogleRecurrence, toGoogleRecurrence } from '@/calendar/rrule'
 
 // A minimal RFC 5545 (iCalendar) reader/writer for the Apple CalDAV adapter.
 // It covers the fields life-deck syncs (UID, SUMMARY, DESCRIPTION, LOCATION,
 // DTSTART/DTEND, RRULE, RECURRENCE-ID, STATUS, LAST-MODIFIED) for the common
-// cases. Known limitation: a DATE-TIME carrying a TZID (not a UTC "Z" time) is
-// read as UTC wall-clock, since no VTIMEZONE table is parsed.
+// cases. A DATE-TIME is resolved to an absolute instant from its "Z" (UTC) or
+// its `TZID` (an IANA zone name, which iCloud uses). Known limitation: a TZID
+// that names a custom VTIMEZONE (not an IANA zone) or a floating time with no
+// zone is read as UTC, since no VTIMEZONE table is parsed.
 
 export type ParsedEvent = {
   uid: string | null
@@ -50,7 +53,7 @@ function unescapeText(value: string): string {
 function escapeText(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
-    .replace(/\n/g, '\\n')
+    .replace(/\r\n|\r|\n/g, '\\n')
     .replace(/,/g, '\\,')
     .replace(/;/g, '\\;')
 }
@@ -79,13 +82,24 @@ function parseDate(prop: Prop): { date: Date; allDay: boolean } {
     const iso = `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`
     return { date: new Date(`${iso}T00:00:00.000Z`), allDay: true }
   }
-  const match = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?$/)
+  const match = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/)
   if (!match) {
     return { date: new Date(value), allDay: false }
   }
-  const [, y, mo, d, h, mi, s] = match
+  const [, y, mo, d, h, mi, s, z] = match
+  const isoDate = `${y}-${mo}-${d}`
+  const tzid = prop.params.TZID
+  // A trailing "Z" is UTC; a TZID names the zone the wall clock is in. Resolve
+  // an IANA-named TZID to an absolute instant so iCloud's local times land
+  // right; a floating time (no "Z", no resolvable TZID) falls back to UTC.
+  if (!z && tzid && isTimeZone(tzid)) {
+    return {
+      date: zonedWallTimeToInstant(isoDate, +h!, +mi!, +s!, tzid),
+      allDay: false,
+    }
+  }
   return {
-    date: new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}.000Z`),
+    date: new Date(`${isoDate}T${h}:${mi}:${s}.000Z`),
     allDay: false,
   }
 }
@@ -161,19 +175,36 @@ function stamp(date: Date, allDay: boolean): string {
     : `${iso.slice(0, 19).replace(/[-:]/g, '')}Z`
 }
 
-// Fold a content line to <=75 octets per RFC 5545 (CRLF + a leading space).
+function octets(value: string): number {
+  return Buffer.byteLength(value, 'utf8')
+}
+
+// Fold a content line to <=75 octets per RFC 5545 (CRLF + a leading space on
+// each continuation). Splits on code-point boundaries — never inside a
+// multi-byte character — and measures octets, so an emoji at the boundary is
+// not cut into lone surrogates.
 function foldLine(line: string): string {
-  if (line.length <= 75) {
+  if (octets(line) <= 75) {
     return line
   }
-  const parts: string[] = [line.slice(0, 75)]
-  let rest = line.slice(75)
-  while (rest.length > 74) {
-    parts.push(` ${rest.slice(0, 74)}`)
-    rest = rest.slice(74)
+  const parts: string[] = []
+  let chunk = ''
+  // The first line may use 75 octets; a continuation spends one on its leading
+  // space, leaving 74 for content.
+  let limit = 75
+  for (const ch of line) {
+    if (octets(chunk) + octets(ch) > limit) {
+      parts.push(chunk)
+      chunk = ch
+      limit = 74
+    } else {
+      chunk += ch
+    }
   }
-  parts.push(` ${rest}`)
-  return parts.join('\r\n')
+  parts.push(chunk)
+  return parts
+    .map((part, index) => (index === 0 ? part : ` ${part}`))
+    .join('\r\n')
 }
 
 export type BuildCalendarInput = {
@@ -208,7 +239,15 @@ export function buildCalendar(input: BuildCalendarInput): string {
       ? [`DESCRIPTION:${escapeText(input.description)}`]
       : []),
     ...(input.location ? [`LOCATION:${escapeText(input.location)}`] : []),
-    ...(input.recurrence ? toGoogleRecurrence(input.recurrence) : []),
+    ...(input.recurrence
+      ? toGoogleRecurrence(input.recurrence).map(line =>
+          // For an all-day (DATE) DTSTART, RFC 5545 requires a matching DATE
+          // UNTIL, not the DATE-TIME form the shared mapper emits.
+          input.allDay
+            ? line.replace(/UNTIL=(\d{8})T\d{6}Z/, 'UNTIL=$1')
+            : line,
+        )
+      : []),
     'END:VEVENT',
     'END:VCALENDAR',
   ]

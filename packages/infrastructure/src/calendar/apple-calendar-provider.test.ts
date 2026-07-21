@@ -143,6 +143,42 @@ describe('AppleCalendarProvider', () => {
     expect(init.method).toBe('PUT')
     expect(init.body).toContain('BEGIN:VCALENDAR')
     expect(init.body).toContain('SUMMARY:Lunch')
+    // A brand-new resource is created only if absent (no blind overwrite).
+    expect(init.headers['if-none-match']).toBe('*')
+    expect(init.headers['if-match']).toBeUndefined()
+  })
+
+  it('writes an override to its series resource with an If-Match guard', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(davResponse('', { status: 204, etag: '"e3"' }))
+    vi.stubGlobal('fetch', fetchMock)
+    const event = {
+      // An occurrence-override externalId carries a "::recurrenceId" suffix; the
+      // PUT must target the series resource href, never the composite key.
+      externalId: 'https://dav.test/c/r1.ics::2026-07-27T09:00:00.000Z',
+      etag: '"old"',
+      toJSON: () => ({
+        id: 'r1',
+        title: 'Moved',
+        description: null,
+        location: null,
+        startsAt: new Date('2026-07-27T10:00:00.000Z'),
+        endsAt: new Date('2026-07-27T10:15:00.000Z'),
+        allDay: false,
+        recurrence: null,
+        updatedAt: new Date('2026-07-19T10:00:00.000Z'),
+      }),
+    } as unknown as CalendarEvent
+
+    const result = await provider.pushEvent(connection, event)
+
+    expect(result.externalId).toBe('https://dav.test/c/r1.ics')
+    const [url, init] = fetchMock.mock.calls[0]!
+    expect(url).toBe('https://dav.test/c/r1.ics')
+    // Only overwrite the version we last synced.
+    expect(init.headers['if-match']).toBe('"old"')
+    expect(init.headers['if-none-match']).toBeUndefined()
   })
 
   it('maps an occurrence override to a linked event', async () => {
@@ -155,6 +191,40 @@ describe('AppleCalendarProvider', () => {
       recurringEventExternalId: 'https://dav.test/c/r1.ics',
     })
     expect(page.events[0]?.externalId).toContain('::')
+  })
+
+  it('maps a cancelled series master to a deletion', async () => {
+    const ics =
+      'BEGIN:VCALENDAR\nBEGIN:VEVENT\nUID:c1\nSUMMARY:Cancelled\nDTSTART:20260720T150000Z\nDTEND:20260720T160000Z\nSTATUS:CANCELLED\nEND:VEVENT\nEND:VCALENDAR'
+    const body = `<multistatus><response><href>/c/c1.ics</href><propstat><prop><getetag>"e"</getetag><C:calendar-data>${ics}</C:calendar-data></prop></propstat></response><sync-token>t</sync-token></multistatus>`
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(davResponse(body)))
+    const page = await provider.listChanges(connection)
+    expect(page.events[0]).toMatchObject({
+      deleted: true,
+      cancelledOccurrence: false,
+    })
+  })
+
+  it('maps a cancelled occurrence override to a cancelled occurrence', async () => {
+    const ics =
+      'BEGIN:VCALENDAR\nBEGIN:VEVENT\nUID:r1\nSUMMARY:Skip\nRECURRENCE-ID:20260727T090000Z\nDTSTART:20260727T100000Z\nDTEND:20260727T101500Z\nSTATUS:CANCELLED\nEND:VEVENT\nEND:VCALENDAR'
+    const body = `<multistatus><response><href>/c/r1.ics</href><propstat><prop><getetag>"e"</getetag><C:calendar-data>${ics}</C:calendar-data></prop></propstat></response><sync-token>t</sync-token></multistatus>`
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(davResponse(body)))
+    const page = await provider.listChanges(connection)
+    // A cancelled single occurrence removes that instance, not the whole series.
+    expect(page.events[0]).toMatchObject({
+      cancelledOccurrence: true,
+      deleted: false,
+    })
+  })
+
+  it('unescapes XML entities in the sync token', async () => {
+    const ics =
+      'BEGIN:VCALENDAR\nBEGIN:VEVENT\nUID:e\nSUMMARY:E\nDTSTART:20260720T150000Z\nDTEND:20260720T160000Z\nEND:VEVENT\nEND:VCALENDAR'
+    const body = `<multistatus><response><href>/c/e.ics</href><propstat><prop><getetag>"e"</getetag><C:calendar-data>${ics}</C:calendar-data></prop></propstat></response><sync-token>tok&amp;2</sync-token></multistatus>`
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(davResponse(body)))
+    const page = await provider.listChanges(connection)
+    expect(page.nextSyncToken).toBe('tok&2')
   })
 
   it('surfaces a server error', async () => {

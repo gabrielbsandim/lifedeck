@@ -30,5 +30,12 @@ describe('useFindTime', () => {
       '/api/v1/calendar/find-time',
       expect.objectContaining({ method: 'POST' }),
     )
+    // The serialized body carries the requested duration and window verbatim.
+    const init = fetchMock.mock.calls[0]![1] as RequestInit
+    expect(JSON.parse(init.body as string)).toEqual({
+      durationMin: 60,
+      from: '2026-07-20T00:00:00.000Z',
+      to: '2026-07-21T00:00:00.000Z',
+    })
   })
 })

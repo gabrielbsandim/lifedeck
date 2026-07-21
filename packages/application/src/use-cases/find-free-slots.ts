@@ -112,28 +112,27 @@ export function makeFindFreeSlots({
       return []
     }
 
-    // Candidate windows: each civil day's work span, minus quiet hours, clipped
-    // to the requested range and the not-in-the-past floor.
+    // Candidate windows: each civil day's work span (kept anchored to the true
+    // work-hour boundary so slot starts align to clean local times), minus quiet
+    // hours, with the end clipped to the requested range.
     const windows: TimeInterval[] = []
     for (const day of eachCivilDay(
       new Date(rangeStart),
       new Date(rangeEnd),
       timezone,
     )) {
-      const clippedStart = Math.max(
-        zonedInstant(day, workStart, timezone).getTime(),
-        rangeStart,
-      )
-      const clippedEnd = Math.min(
+      const windowStart = zonedInstant(day, workStart, timezone).getTime()
+      const windowEnd = Math.min(
         zonedInstant(day, workEnd, timezone).getTime(),
         rangeEnd,
       )
-      if (clippedEnd <= clippedStart) {
+      // Skip a day whose work window is empty or already entirely in the past.
+      if (windowEnd <= windowStart || windowEnd <= rangeStart) {
         continue
       }
       windows.push(
         ...subtractIntervals(
-          [{ start: new Date(clippedStart), end: new Date(clippedEnd) }],
+          [{ start: new Date(windowStart), end: new Date(windowEnd) }],
           quietBlocksForDay(profile, day, timezone),
         ),
       )
@@ -154,6 +153,10 @@ export function makeFindFreeSlots({
         start: new Date(event.startsAt),
         end: new Date(event.endsAt),
       }))
+    // The not-in-the-past (and not-before-`from`) floor: block everything up to
+    // rangeStart so no proposed slot starts before it, while the work window
+    // itself stays anchored to its clean local boundary.
+    busy.push({ start: new Date(0), end: new Date(rangeStart) })
 
     const slots = computeFreeSlots({
       windows,

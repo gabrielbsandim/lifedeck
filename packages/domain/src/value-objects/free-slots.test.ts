@@ -135,14 +135,29 @@ describe('findFreeSlots', () => {
     expect(starts(slots)).toEqual(['09:00', '09:30', '10:00'])
   })
 
-  it('snaps the first slot up to the granularity grid', () => {
+  it('snaps a mid-grid gap start up to the window grid', () => {
+    // A busy head pushes the first gap to 09:07; the grid is anchored to the
+    // window start (09:00), so the first slot rounds up to 09:30.
     const slots = findFreeSlots({
-      windows: [iv('09:07', '11:00')],
-      busy: [],
+      windows: [iv('09:00', '11:00')],
+      busy: [iv('09:00', '09:07')],
       durationMin: 60,
       granularityMin: 30,
     })
     expect(starts(slots)).toEqual(['09:30', '10:00'])
+  })
+
+  it('aligns the grid to the window start, not the UTC epoch', () => {
+    // A window that starts at a non-:00/:30 UTC time (e.g. 09:00 in a UTC+05:30
+    // zone) must still yield slots on the window's own hourly rhythm, not the
+    // epoch grid (which would push the first slot to 04:00Z / 09:30 local).
+    const slots = findFreeSlots({
+      windows: [iv('03:30', '06:30')],
+      busy: [],
+      durationMin: 60,
+      granularityMin: 60,
+    })
+    expect(starts(slots)).toEqual(['03:30', '04:30', '05:30'])
   })
 
   it('guards against non-positive parameters', () => {

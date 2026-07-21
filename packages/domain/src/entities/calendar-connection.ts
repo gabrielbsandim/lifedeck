@@ -138,6 +138,18 @@ export class CalendarConnection {
     this.props.updatedAt = now
   }
 
+  // Repoints the connection at a (possibly different) calendar collection, e.g.
+  // when the account is reconnected. Clears the sync cursor when the target
+  // changes, since a sync token is only valid for the collection that issued it.
+  setCalendarId(calendarId: string, now: Date): void {
+    const target = guard.notEmpty(calendarId, 'Calendar id')
+    if (target !== this.props.calendarId) {
+      this.props.syncToken = null
+    }
+    this.props.calendarId = target
+    this.props.updatedAt = now
+  }
+
   markDefault(isDefault: boolean, now: Date): void {
     this.props.isDefault = isDefault
     this.props.updatedAt = now

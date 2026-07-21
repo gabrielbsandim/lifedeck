@@ -115,6 +115,14 @@ describe('fromGoogleRecurrence', () => {
     ).not.toHaveProperty('until')
   })
 
+  it('drops a COUNT-bounded series to a non-recurring event', () => {
+    // The domain rule cannot express an occurrence count; degrading to null
+    // avoids a bounded series round-tripping into an open-ended (infinite) one.
+    expect(
+      fromGoogleRecurrence(['RRULE:FREQ=WEEKLY;COUNT=10'], '2026-01-01'),
+    ).toBeNull()
+  })
+
   it('skips malformed segments without a key', () => {
     expect(
       fromGoogleRecurrence(['RRULE:;FREQ=DAILY;=WE;INTERVAL=0'], '2026-01-01'),

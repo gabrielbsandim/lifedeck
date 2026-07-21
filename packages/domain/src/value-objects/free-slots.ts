@@ -73,8 +73,14 @@ export function subtractIntervals(
     .sort((a, b) => a.start.getTime() - b.start.getTime())
 }
 
-function ceilToStep(ms: number, stepMs: number): number {
-  return Math.ceil(ms / stepMs) * stepMs
+// Round `ms` up to the next point on a `stepMs` grid anchored at `anchorMs`
+// (not the UTC epoch), so slot starts align to the window's own local boundary
+// (e.g. 09:00, 09:30) rather than drifting in zones with a fractional offset.
+function ceilToStep(ms: number, stepMs: number, anchorMs: number): number {
+  if (ms <= anchorMs) {
+    return anchorMs
+  }
+  return anchorMs + Math.ceil((ms - anchorMs) / stepMs) * stepMs
 }
 
 export type FindFreeSlotsParams = {
@@ -106,15 +112,27 @@ export function findFreeSlots({
   const durationMs = durationMin * MINUTE_MS
   const stepMs = granularityMin * MINUTE_MS
   const slots: TimeInterval[] = []
-  for (const gap of subtractIntervals(windows, busy)) {
-    const gapEnd = gap.end.getTime()
-    let start = ceilToStep(gap.start.getTime(), stepMs)
-    while (start + durationMs <= gapEnd) {
-      slots.push({ start: new Date(start), end: new Date(start + durationMs) })
-      if (slots.length >= maxResults) {
-        return slots
+  const merged = mergeIntervals(busy)
+  // Process windows earliest-first so slots come out globally sorted, and align
+  // each window's slot grid to that window's own start.
+  const sortedWindows = [...windows].sort(
+    (a, b) => a.start.getTime() - b.start.getTime(),
+  )
+  for (const window of sortedWindows) {
+    const anchorMs = window.start.getTime()
+    for (const gap of subtractFromWindow(window, merged)) {
+      const gapEnd = gap.end.getTime()
+      let start = ceilToStep(gap.start.getTime(), stepMs, anchorMs)
+      while (start + durationMs <= gapEnd) {
+        slots.push({
+          start: new Date(start),
+          end: new Date(start + durationMs),
+        })
+        if (slots.length >= maxResults) {
+          return slots
+        }
+        start += stepMs
       }
-      start += stepMs
     }
   }
   return slots

@@ -198,6 +198,15 @@ export function CalendarConnectionsManager({
                     ? t.disconnectConfirm
                     : t.disconnectCalendar}
                 </button>
+                {confirmingId === connection.id && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingId(null)}
+                    className="text-ink-500 text-xs hover:underline"
+                  >
+                    {c.cancel}
+                  </button>
+                )}
               </div>
             </li>
           ))}

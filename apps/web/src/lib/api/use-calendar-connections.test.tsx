@@ -71,6 +71,11 @@ describe('useCalendarConnections', () => {
       '/api/v1/calendar/apple/connect',
       expect.objectContaining({ method: 'POST' }),
     )
+    const init = fetchMock.mock.calls[0]![1] as RequestInit
+    expect(JSON.parse(init.body as string)).toEqual({
+      email: 'me@icloud.com',
+      appPassword: 'abcd-efgh',
+    })
   })
 
   it('connects a cal.com account with an API key', async () => {
@@ -87,6 +92,11 @@ describe('useCalendarConnections', () => {
       '/api/v1/calendar/calcom/connect',
       expect.objectContaining({ method: 'POST' }),
     )
+    const init = fetchMock.mock.calls[0]![1] as RequestInit
+    expect(JSON.parse(init.body as string)).toEqual({
+      email: 'me@cal.com',
+      apiKey: 'cal_live_key',
+    })
   })
 
   it('sets a calendar as default', async () => {

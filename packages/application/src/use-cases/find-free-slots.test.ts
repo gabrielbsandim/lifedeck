@@ -222,6 +222,24 @@ describe('findFreeSlots', () => {
     expect(slots[0]?.startsAt).toBe('2026-07-20T12:00:00.000Z')
   })
 
+  it('aligns slots to local work hours in a half-hour-offset zone', async () => {
+    const { findFreeSlots } = await setup({
+      timezone: 'Asia/Kolkata', // UTC+05:30
+      now: new Date('2026-07-20T00:00:00.000Z'), // 05:30 local, before work
+    })
+    const slots = await findFreeSlots(ID.user, {
+      durationMin: 60,
+      granularityMin: 60,
+      workDayStart: 9,
+      workDayEnd: 12,
+      from: '2026-07-20T00:00:00.000Z',
+      to: '2026-07-20T23:59:00.000Z',
+    })
+    // 09:00/10:00/11:00 local (UTC+05:30) are 03:30/04:30/05:30 UTC — the grid
+    // follows the local hour, not the UTC :00 grid.
+    expect(startHours(slots)).toEqual(['03:30', '04:30', '05:30'])
+  })
+
   it('clamps the scan (and events query) to the max range', async () => {
     const listSpy = vi.fn().mockResolvedValue([])
     const { findFreeSlots } = await setup({

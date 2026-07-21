@@ -101,7 +101,41 @@ describe('CalcomCalendarProvider', () => {
     })
     expect(page.events[1]).toMatchObject({ externalId: 'bk-2', deleted: true })
     expect(fetchMock.mock.calls[0]![0]).toBe(
-      'https://cal.test/v2/bookings?take=100',
+      'https://cal.test/v2/bookings?take=100&skip=0',
+    )
+  })
+
+  it('pages through bookings beyond the first 100', async () => {
+    const fullPage = Array.from({ length: 100 }, (_, i) => ({
+      uid: `bk-${i}`,
+      start: '2026-07-20T15:00:00.000Z',
+      end: '2026-07-20T15:30:00.000Z',
+      status: 'accepted',
+    }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ data: fullPage }))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: [
+            {
+              uid: 'bk-100',
+              start: '2026-07-21T15:00:00.000Z',
+              end: '2026-07-21T15:30:00.000Z',
+              status: 'accepted',
+            },
+          ],
+        }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const page = await provider.listChanges(connection)
+
+    // A full first page triggers a second fetch; a short page stops the loop.
+    expect(page.events).toHaveLength(101)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[1]![0]).toBe(
+      'https://cal.test/v2/bookings?take=100&skip=100',
     )
   })
 

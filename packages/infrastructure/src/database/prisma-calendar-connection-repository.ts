@@ -55,6 +55,22 @@ export class PrismaCalendarConnectionRepository
 {
   constructor(private readonly prisma: PrismaClient) {}
 
+  // Map a row to the domain, isolating a decrypt failure (a rotated
+  // CALENDAR_TOKEN_KEY or a corrupt ciphertext) to that single row instead of
+  // letting it throw out of a list query and break sync for every user.
+  private toDomain(
+    row: Parameters<typeof fromPrisma>[0],
+  ): CalendarConnection | null {
+    try {
+      return toDomainCalendarConnection(fromPrisma(row))
+    } catch {
+      console.warn(
+        `[lifedeck] skipping calendar connection ${row.id}: token could not be decrypted`,
+      )
+      return null
+    }
+  }
+
   async save(connection: CalendarConnection): Promise<void> {
     const record = toCalendarConnectionRecord(connection)
     const accessToken = encryptToken(record.accessToken)
@@ -84,14 +100,14 @@ export class PrismaCalendarConnectionRepository
     const row = await this.prisma.calendarConnection.findUnique({
       where: { id: id as string },
     })
-    return row ? toDomainCalendarConnection(fromPrisma(row)) : null
+    return row ? this.toDomain(row) : null
   }
 
   async findByChannelId(channelId: string): Promise<CalendarConnection | null> {
     const row = await this.prisma.calendarConnection.findFirst({
       where: { channelId },
     })
-    return row ? toDomainCalendarConnection(fromPrisma(row)) : null
+    return row ? this.toDomain(row) : null
   }
 
   async findDefaultByOwner(
@@ -103,7 +119,7 @@ export class PrismaCalendarConnectionRepository
       where: { ownerId: ownerId as string },
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
     })
-    return row ? toDomainCalendarConnection(fromPrisma(row)) : null
+    return row ? this.toDomain(row) : null
   }
 
   async listByOwner(ownerId: EntityId): Promise<CalendarConnection[]> {
@@ -111,12 +127,16 @@ export class PrismaCalendarConnectionRepository
       where: { ownerId: ownerId as string },
       orderBy: { createdAt: 'asc' },
     })
-    return rows.map(row => toDomainCalendarConnection(fromPrisma(row)))
+    return rows
+      .map(row => this.toDomain(row))
+      .filter((c): c is CalendarConnection => c !== null)
   }
 
   async listAll(): Promise<CalendarConnection[]> {
     const rows = await this.prisma.calendarConnection.findMany()
-    return rows.map(row => toDomainCalendarConnection(fromPrisma(row)))
+    return rows
+      .map(row => this.toDomain(row))
+      .filter((c): c is CalendarConnection => c !== null)
   }
 
   async delete(id: EntityId): Promise<void> {

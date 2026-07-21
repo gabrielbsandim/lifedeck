@@ -81,7 +81,12 @@ export function FindTimeDialog({
                   key={option}
                   type="button"
                   aria-pressed={active}
-                  onClick={() => setDurationMin(option)}
+                  onClick={() => {
+                    setDurationMin(option)
+                    // Drop slots found for the previous duration so a user can't
+                    // book an old-length block after changing the duration.
+                    findTime.reset()
+                  }}
                   className={cn(
                     'h-10 rounded-xl border px-4 text-sm font-semibold transition',
                     active
@@ -136,6 +141,9 @@ export function FindTimeDialog({
                 </li>
               ))}
             </ul>
+            {book.isError && (
+              <p className="text-sm text-red-600">{t.bookError}</p>
+            )}
           </div>
         )}
       </div>

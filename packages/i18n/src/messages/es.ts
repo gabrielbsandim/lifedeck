@@ -161,10 +161,9 @@ export const es: Messages = {
         'No hay huecos libres en ese rango. Prueba una duración menor.',
       book: 'Agendar',
       booking: 'Agendando…',
-      booked: 'Agendado',
       defaultTitle: 'Concentración',
       error: 'No se pudieron buscar huecos. Inténtalo de nuevo.',
-      close: 'Cerrar',
+      bookError: 'No se pudo agendar ese hueco. Inténtalo de nuevo.',
     },
     connect: {
       connectApple: 'Conectar Apple',
@@ -346,6 +345,10 @@ export const es: Messages = {
     quietHours: 'Horas de silencio',
     workHours: 'Horario laboral',
     quietTo: 'a',
+    rangeStart: 'inicio',
+    rangeEnd: 'fin',
+    workHoursInvalid:
+      'Pon el inicio antes del fin; el horario laboral nocturno aún no está disponible.',
     hourUnset: 'Sin definir',
     dailyBrief: 'Resumen diario',
     dailyBriefHint: 'Un mensaje de buenos días con tu día, por WhatsApp.',

@@ -159,10 +159,9 @@ export const en: Messages = {
       noResults: 'No open slots in that window. Try a shorter duration.',
       book: 'Schedule',
       booking: 'Scheduling…',
-      booked: 'Scheduled',
       defaultTitle: 'Focus time',
       error: 'Could not find slots. Please try again.',
-      close: 'Close',
+      bookError: 'Could not schedule that slot. Please try again.',
     },
     connect: {
       connectApple: 'Connect Apple',
@@ -340,6 +339,10 @@ export const en: Messages = {
     quietHours: 'Quiet hours',
     workHours: 'Working hours',
     quietTo: 'to',
+    rangeStart: 'start',
+    rangeEnd: 'end',
+    workHoursInvalid:
+      "Set the start earlier than the end; overnight working hours aren't supported yet.",
     hourUnset: 'Not set',
     dailyBrief: 'Daily brief',
     dailyBriefHint: 'A good-morning message with your day, on WhatsApp.',

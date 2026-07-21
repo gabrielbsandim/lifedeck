@@ -104,6 +104,68 @@ describe('connectCalendarWithCredentials', () => {
     expect(stored[0]?.accessToken).toBe('password-2')
   })
 
+  it('re-points at the resolved calendar when reconnecting the same account', async () => {
+    const { calendarConnections, connect, apple } = setup()
+    await connect(OWNER_ID, {
+      provider: 'apple',
+      accountEmail: 'me@icloud.com',
+      secret: 'password-1',
+    })
+    // The second connect resolves the same account but a different calendar.
+    vi.mocked(apple.connectWithCredentials!).mockResolvedValueOnce({
+      accountEmail: 'me@icloud.com',
+      calendarId: 'https://dav/work/',
+    })
+    await connect(OWNER_ID, {
+      provider: 'apple',
+      accountEmail: 'me@icloud.com',
+      secret: 'password-2',
+    })
+    const stored = await calendarConnections.listByOwner(asEntityId(OWNER_ID))
+    expect(stored).toHaveLength(1)
+    expect(stored[0]?.calendarId).toBe('https://dav/work/')
+    expect(stored[0]?.accessToken).toBe('password-2')
+  })
+
+  it('does not default a second writable connection when one already exists', async () => {
+    const { calendarConnections, connect, apple } = setup()
+    await connect(OWNER_ID, {
+      provider: 'apple',
+      accountEmail: 'me@icloud.com',
+      secret: 'password-1',
+    })
+    // A different account under the same writable provider.
+    vi.mocked(apple.connectWithCredentials!).mockResolvedValueOnce({
+      accountEmail: 'other@icloud.com',
+      calendarId: 'https://dav/other/',
+    })
+    await connect(OWNER_ID, {
+      provider: 'apple',
+      accountEmail: 'other@icloud.com',
+      secret: 'password-2',
+    })
+    const stored = await calendarConnections.listByOwner(asEntityId(OWNER_ID))
+    expect(stored).toHaveLength(2)
+    expect(
+      stored.find(c => c.accountEmail === 'me@icloud.com')?.isDefault,
+    ).toBe(true)
+    expect(
+      stored.find(c => c.accountEmail === 'other@icloud.com')?.isDefault,
+    ).toBe(false)
+  })
+
+  it('stores the adapter-resolved account email, not the typed one', async () => {
+    const { calendarConnections, connect } = setup()
+    // cal.com resolves the canonical email from its API, ignoring what was typed.
+    await connect(OWNER_ID, {
+      provider: 'calcom',
+      accountEmail: 'typed@cal.com',
+      secret: 'cal_live_key',
+    })
+    const [stored] = await calendarConnections.listByOwner(asEntityId(OWNER_ID))
+    expect(stored?.accountEmail).toBe('me@cal.com')
+  })
+
   it('never makes a read-only provider the default', async () => {
     const { calendarConnections, connect } = setup()
     await connect(OWNER_ID, {

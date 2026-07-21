@@ -16,6 +16,9 @@ const DEFAULT_API_BASE = 'https://api.cal.com/v2'
 // cal.com's v2 API pins behaviour to a dated version header.
 const API_VERSION = '2024-08-13'
 const READ_ONLY = 'cal.com calendars are read-only.'
+// Bookings are paged; cap total pages so a misbehaving response can't loop.
+const PAGE_SIZE = 100
+const MAX_PAGES = 20
 
 export type CalcomCalendarConfig = {
   apiBaseUrl?: string
@@ -103,17 +106,25 @@ export class CalcomCalendarProvider implements CalendarProvider {
 
   async listChanges(connection: CalendarConnection): Promise<CalendarSyncPage> {
     // No incremental cursor: re-list the bookings each sweep. Dedup upstream is
-    // by externalId + last-writer-wins, so a full list is idempotent.
-    const result = await this.api<{ data?: CalcomBooking[] }>(
-      'GET',
-      '/bookings?take=100',
-      connection.accessToken,
-    )
+    // by externalId + last-writer-wins, so a full list is idempotent. Page
+    // through with skip/take so accounts with >100 bookings sync fully; a page
+    // cap backstops a runaway response.
     const events: ExternalCalendarEvent[] = []
-    for (const booking of result.data ?? []) {
-      const event = toExternalEvent(booking)
-      if (event) {
-        events.push(event)
+    for (let page = 0; page < MAX_PAGES; page += 1) {
+      const result = await this.api<{ data?: CalcomBooking[] }>(
+        'GET',
+        `/bookings?take=${PAGE_SIZE}&skip=${page * PAGE_SIZE}`,
+        connection.accessToken,
+      )
+      const batch = result.data ?? []
+      for (const booking of batch) {
+        const event = toExternalEvent(booking)
+        if (event) {
+          events.push(event)
+        }
+      }
+      if (batch.length < PAGE_SIZE) {
+        break
       }
     }
     return { events, nextSyncToken: null }

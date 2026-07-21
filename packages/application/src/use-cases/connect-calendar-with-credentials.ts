@@ -59,7 +59,11 @@ export function makeConnectCalendarWithCredentials({
         connection.accountEmail === resolved.accountEmail,
     )
     if (match) {
-      match.refreshAccess(input.secret, null, clock.now())
+      const now = clock.now()
+      match.refreshAccess(input.secret, null, now)
+      // Re-point at whatever calendar the adapter resolved this time; it may
+      // differ from the one stored on the original connection.
+      match.setCalendarId(resolved.calendarId, now)
       await calendarConnections.save(match)
       return { connected: true, connectionId: match.id as string }
     }

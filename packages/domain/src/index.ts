@@ -107,6 +107,7 @@ export {
   zoneOffset,
   zonedIso,
   zonedInstant,
+  zonedWallTimeToInstant,
   zonedWeekday,
 } from '@/value-objects/time-zone'
 export {

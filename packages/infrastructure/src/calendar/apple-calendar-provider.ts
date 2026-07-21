@@ -33,8 +33,15 @@ function tag(xml: string, name: string): string | null {
   return match ? match[1]!.trim() : null
 }
 
+// A WebDAV text value with any XML entities resolved (hrefs, etags, and sync
+// tokens can carry "&amp;" etc.).
+function tagText(xml: string, name: string): string | null {
+  const value = tag(xml, name)
+  return value === null ? null : unescapeXml(value)
+}
+
 function firstHref(xml: string): string | null {
-  return tag(xml, 'href')
+  return tagText(xml, 'href')
 }
 
 function responses(xml: string): string[] {
@@ -139,12 +146,12 @@ export class AppleCalendarProvider implements CalendarProvider {
         }
         continue
       }
-      const etag = tag(response, 'getetag')
+      const etag = tagText(response, 'getetag')
       for (const parsed of parseCalendarEvents(unescapeXml(data))) {
         events.push(toExternalEvent(parsed, externalId, etag))
       }
     }
-    return { events, nextSyncToken: tag(report.body, 'sync-token') }
+    return { events, nextSyncToken: tagText(report.body, 'sync-token') }
   }
 
   async pushEvent(
@@ -153,12 +160,17 @@ export class AppleCalendarProvider implements CalendarProvider {
   ): Promise<{ externalId: string; etag: string | null }> {
     const props = event.toJSON()
     const auth = this.authOf(connection)
+    // An occurrence-override externalId is "<resourceHref>::<recurrenceId>";
+    // the whole series lives in one resource, so write to the href, never the
+    // composite key (which is not a valid CalDAV path).
+    const existingHref = event.externalId
+      ? event.externalId.split('::')[0]!
+      : null
     // Reuse the resource URL for an already-synced event; otherwise mint one
     // from the stable event id under the calendar collection.
     const uid = props.id
     const resourceUrl =
-      event.externalId ??
-      absolute(`${uid}.ics`, ensureSlash(connection.calendarId))
+      existingHref ?? absolute(`${uid}.ics`, ensureSlash(connection.calendarId))
     const ics = buildCalendar({
       uid,
       summary: props.title,
@@ -173,6 +185,11 @@ export class AppleCalendarProvider implements CalendarProvider {
     const response = await this.request('PUT', resourceUrl, auth, {
       body: ics,
       contentType: 'text/calendar; charset=utf-8',
+      // A brand-new resource must not clobber an existing one at that path;
+      // an update must only overwrite the version we last synced, so a
+      // concurrent server-side edit isn't silently lost.
+      ifNoneMatch: existingHref ? undefined : '*',
+      ifMatch: existingHref && event.etag ? event.etag : undefined,
     })
     return { externalId: resourceUrl, etag: response.etag }
   }
@@ -215,11 +232,23 @@ export class AppleCalendarProvider implements CalendarProvider {
     method: string,
     url: string,
     auth: string,
-    options: { depth?: string; body?: string; contentType?: string },
+    options: {
+      depth?: string
+      body?: string
+      contentType?: string
+      ifMatch?: string
+      ifNoneMatch?: string
+    },
   ): Promise<{ body: string; url: string; etag: string | null }> {
     const headers: Record<string, string> = { authorization: auth }
     if (options.depth) {
       headers.depth = options.depth
+    }
+    if (options.ifMatch) {
+      headers['if-match'] = options.ifMatch
+    }
+    if (options.ifNoneMatch) {
+      headers['if-none-match'] = options.ifNoneMatch
     }
     if (options.body !== undefined) {
       headers['content-type'] =

@@ -160,10 +160,9 @@ export const pt: Messages = {
       noResults: 'Nenhum horário livre nesse período. Tente uma duração menor.',
       book: 'Agendar',
       booking: 'Agendando…',
-      booked: 'Agendado',
       defaultTitle: 'Foco',
       error: 'Não foi possível buscar horários. Tente novamente.',
-      close: 'Fechar',
+      bookError: 'Não foi possível agendar esse horário. Tente novamente.',
     },
     connect: {
       connectApple: 'Conectar Apple',
@@ -345,6 +344,10 @@ export const pt: Messages = {
     quietHours: 'Horário de silêncio',
     workHours: 'Horário de trabalho',
     quietTo: 'até',
+    rangeStart: 'início',
+    rangeEnd: 'fim',
+    workHoursInvalid:
+      'Defina o início antes do fim; horário de trabalho que vira a noite ainda não é suportado.',
     hourUnset: 'Não definido',
     dailyBrief: 'Resumo diário',
     dailyBriefHint: 'Uma mensagem de bom dia com o seu dia, no WhatsApp.',
