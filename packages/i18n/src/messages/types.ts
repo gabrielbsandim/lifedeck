@@ -237,9 +237,15 @@ export type Messages = {
     compareSharing: string
     compareAnalytics: string
     compareAi: string
+    compareMemory: string
+    compareHabits: string
     compareAssistant: string
+    compareBrief: string
     compareCalendar: string
     compareReminders: string
+    compareNudges: string
+    compareFindTime: string
+    compareAllCalendars: string
     compareStrongerAi: string
     compareHigherLimits: string
     eqApprox: string

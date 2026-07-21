@@ -8,11 +8,43 @@ describe('compareRows', () => {
   const rows = compareRows(en)
 
   it('lists every comparison feature with a localized label', () => {
-    expect(rows).toHaveLength(9)
+    expect(rows).toHaveLength(15)
     for (const row of rows) {
       expect(row.label.length).toBeGreaterThan(0)
     }
     expect(rows[0]!.label).toBe(en.billing.compareDailyLists)
+  })
+
+  it('keeps assistant memory baseline and caps habits on free', () => {
+    const memory = rows.find(r => r.label === en.billing.compareMemory)!
+    expect([memory.free, memory.pro, memory.premium]).toEqual([
+      true,
+      true,
+      true,
+    ])
+    const habits = rows.find(r => r.label === en.billing.compareHabits)!
+    expect(habits.free).toBe('sample')
+    expect(habits.pro).toBe(true)
+  })
+
+  it('reserves nudges, find-me-time and extra calendars for premium', () => {
+    for (const key of [
+      'compareNudges',
+      'compareFindTime',
+      'compareAllCalendars',
+    ] as const) {
+      const row = rows.find(r => r.label === en.billing[key])!
+      expect(row.free).toBe(false)
+      expect(row.pro).toBe(false)
+      expect(row.premium).toBe(true)
+    }
+  })
+
+  it('unlocks the daily brief on paid plans', () => {
+    const row = rows.find(r => r.label === en.billing.compareBrief)!
+    expect(row.free).toBe(false)
+    expect(row.pro).toBe(true)
+    expect(row.premium).toBe(true)
   })
 
   it('grants the free-tier features to every plan', () => {
