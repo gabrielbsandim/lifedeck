@@ -118,6 +118,21 @@ describe('listHabits', () => {
       doneToday: true,
       scheduledToday: true,
     })
+    // The trailing week ends today (2026-07-20) with the two logged days done.
+    expect(views[0]?.recentDays).toHaveLength(7)
+    expect(views[0]?.recentDays.at(-1)).toEqual({
+      date: '2026-07-20',
+      done: true,
+      scheduled: true,
+    })
+    expect(views[0]?.recentDays.at(-2)).toEqual({
+      date: '2026-07-19',
+      done: true,
+      scheduled: true,
+    })
+    expect(views[0]?.recentDays.slice(0, 5).every(day => !day.done)).toBe(true)
+    // Gym is Tue/Thu, so most trailing days are simply not scheduled.
+    expect(views[1]?.recentDays.filter(day => day.scheduled)).toHaveLength(2)
     expect(views[1]).toMatchObject({
       currentStreak: 0,
       doneToday: false,

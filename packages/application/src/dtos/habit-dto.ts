@@ -49,6 +49,17 @@ export const habitViewSchema = z.object({
   currentStreak: z.number(),
   doneToday: z.boolean(),
   scheduledToday: z.boolean(),
+  // The trailing week ending today (oldest first, last entry is today), so the
+  // client can draw a 7-day completion bar without re-querying the log.
+  recentDays: z
+    .array(
+      z.object({
+        date: z.string().date(),
+        done: z.boolean(),
+        scheduled: z.boolean(),
+      }),
+    )
+    .length(7),
 })
 
 export type HabitView = z.infer<typeof habitViewSchema>

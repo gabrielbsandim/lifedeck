@@ -81,6 +81,8 @@ export const en: Messages = {
     streak: 'streak',
     markDone: 'Mark done',
     done: 'Done today',
+    today: 'Today',
+    weekAria: 'Last 7 days',
     paused: 'Paused',
     pause: 'Pause',
     resume: 'Resume',

@@ -31,6 +31,36 @@ function describeCadence(
   return t.daily
 }
 
+// The trailing-week bar: a filled segment for each completed day, a dashed
+// outline for a scheduled-but-unfinished day, and a faint slot for days the
+// cadence never expected. Mirrors the "12 dias seguidos" streak card shown on
+// the plans page so what we promise there is exactly what habits deliver.
+function WeekBar({
+  days,
+  label,
+}: {
+  days: HabitView['recentDays']
+  label: string
+}) {
+  return (
+    <div className="flex flex-1 items-center gap-1.5" aria-label={label}>
+      {days.map(day => (
+        <span
+          key={day.date}
+          title={day.date}
+          className={
+            day.done
+              ? 'bg-brand-500 h-6 flex-1 rounded-md'
+              : day.scheduled
+                ? 'border-brand-300 bg-brand-50 h-6 flex-1 rounded-md border border-dashed'
+                : 'bg-line h-6 flex-1 rounded-md'
+          }
+        />
+      ))}
+    </div>
+  )
+}
+
 export function HabitsManager() {
   const { messages, locale } = useI18n()
   const t = messages.habits
@@ -119,69 +149,82 @@ export function HabitsManager() {
               ) : (
                 <li
                   key={habit.id}
-                  className="border-line flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3"
+                  className="border-line flex flex-col gap-3 rounded-xl border bg-white px-4 py-3.5"
                 >
-                  <button
-                    type="button"
-                    aria-label={t.markDone}
-                    aria-pressed={habit.doneToday}
-                    onClick={() =>
-                      logHabit.mutate({
-                        id: habit.id,
-                        input: { done: !habit.doneToday },
-                      })
-                    }
-                    className={
-                      habit.doneToday
-                        ? 'bg-brand-600 flex h-8 w-8 items-center justify-center rounded-full text-sm text-white'
-                        : 'border-line text-ink-400 flex h-8 w-8 items-center justify-center rounded-full border bg-white text-sm'
-                    }
-                  >
-                    ✓
-                  </button>
-                  <div className="flex-1">
-                    <p
-                      className={
-                        habit.active
-                          ? 'text-ink-800 text-sm font-medium'
-                          : 'text-ink-400 text-sm font-medium line-through'
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p
+                          className={
+                            habit.active
+                              ? 'text-ink-800 truncate text-sm font-medium'
+                              : 'text-ink-400 truncate text-sm font-medium line-through'
+                          }
+                        >
+                          {habit.title}
+                        </p>
+                        {habit.currentStreak > 0 && (
+                          <span className="bg-brand-50 text-brand-700 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold">
+                            <span aria-hidden>🔥</span>
+                            {habit.currentStreak}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-ink-500 text-xs">
+                        {describeCadence(habit.cadence, locale, t)}
+                        {!habit.active && ` · ${t.paused}`}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="h-9 px-3"
+                      onClick={() =>
+                        updateHabit.mutate({
+                          id: habit.id,
+                          input: { active: !habit.active },
+                        })
                       }
                     >
-                      {habit.title}
-                    </p>
-                    <p className="text-ink-500 text-xs">
-                      {describeCadence(habit.cadence, locale, t)}
-                      {habit.currentStreak > 0 &&
-                        ` · 🔥 ${habit.currentStreak} ${t.streak}`}
-                      {!habit.active && ` · ${t.paused}`}
-                    </p>
+                      {habit.active ? t.pause : t.resume}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-9 px-3"
+                      onClick={() => setEditingId(habit.id)}
+                    >
+                      {t.edit}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-danger h-9 px-3"
+                      onClick={() => deleteHabit.mutate(habit.id)}
+                    >
+                      {t.delete}
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    className="h-9 px-3"
-                    onClick={() =>
-                      updateHabit.mutate({
-                        id: habit.id,
-                        input: { active: !habit.active },
-                      })
-                    }
-                  >
-                    {habit.active ? t.pause : t.resume}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="h-9 px-3"
-                    onClick={() => setEditingId(habit.id)}
-                  >
-                    {t.edit}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-danger h-9 px-3"
-                    onClick={() => deleteHabit.mutate(habit.id)}
-                  >
-                    {t.delete}
-                  </Button>
+
+                  <div className="flex items-center gap-3">
+                    <WeekBar days={habit.recentDays} label={t.weekAria} />
+                    <button
+                      type="button"
+                      aria-label={t.markDone}
+                      aria-pressed={habit.doneToday}
+                      onClick={() =>
+                        logHabit.mutate({
+                          id: habit.id,
+                          input: { done: !habit.doneToday },
+                        })
+                      }
+                      className={
+                        habit.doneToday
+                          ? 'bg-brand-600 inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium text-white'
+                          : 'border-line text-ink-600 inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-white px-3.5 py-1.5 text-sm font-medium'
+                      }
+                    >
+                      <span aria-hidden>✓</span>
+                      {t.today}
+                    </button>
+                  </div>
                 </li>
               ),
             )}

@@ -81,6 +81,8 @@ export const pt: Messages = {
     streak: 'de sequência',
     markDone: 'Marcar feito',
     done: 'Feito hoje',
+    today: 'Hoje',
+    weekAria: 'Últimos 7 dias',
     paused: 'Pausado',
     pause: 'Pausar',
     resume: 'Retomar',

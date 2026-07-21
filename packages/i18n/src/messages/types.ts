@@ -92,6 +92,8 @@ export type Messages = {
     streak: string
     markDone: string
     done: string
+    today: string
+    weekAria: string
     paused: string
     pause: string
     resume: string
