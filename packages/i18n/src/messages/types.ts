@@ -387,22 +387,12 @@ export type Messages = {
     settingHint: string
     useDetected: string
   }
-  weatherLocation: {
-    settingLabel: string
-    settingHint: string
-    placeholder: string
-    save: string
-    clear: string
-    checking: string
-    found: string
-    notFound: string
-    couldntCheck: string
-  }
   assistantMemory: {
     settingLabel: string
     settingHint: string
     home: string
     homePlaceholder: string
+    homeHint: string
     work: string
     workPlaceholder: string
     wakeHour: string

@@ -107,8 +107,6 @@ import {
   makeSetCarryOverMode,
   makeSetReminderPreferences,
   makeSetTimezone,
-  makeSetWeatherLocation,
-  makePreviewWeatherLocation,
   makeSetAssistantProfile,
   makeSetAvatar,
   makeRemoveAvatar,
@@ -255,8 +253,6 @@ type Container = {
   setCarryOverMode: ReturnType<typeof makeSetCarryOverMode>
   setReminderPreferences: ReturnType<typeof makeSetReminderPreferences>
   setTimezone: ReturnType<typeof makeSetTimezone>
-  setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
-  previewWeatherLocation: ReturnType<typeof makePreviewWeatherLocation>
   setAssistantProfile: ReturnType<typeof makeSetAssistantProfile>
   setAvatar: ReturnType<typeof makeSetAvatar>
   removeAvatar: ReturnType<typeof makeRemoveAvatar>
@@ -723,7 +719,6 @@ function build(
     clock,
   })
   const weatherProvider = new OpenMeteoWeatherProvider()
-  const setWeatherLocation = makeSetWeatherLocation({ users })
   const setAssistantProfile = makeSetAssistantProfile({ users })
   const proactiveDailyCap = Number(process.env.PROACTIVE_DAILY_CAP?.trim()) || 3
   const proactiveSendGuard = createProactiveSendGuard(proactiveDailyCap)
@@ -812,7 +807,6 @@ function build(
     updateCalendarOccurrence,
     deleteCalendarOccurrence,
     deleteCalendarEvent,
-    setWeatherLocation,
     setAssistantProfile,
     createHabit,
     listHabits,
@@ -887,11 +881,7 @@ function build(
     setCarryOverMode: makeSetCarryOverMode({ users }),
     setReminderPreferences: makeSetReminderPreferences({ users }),
     setTimezone: makeSetTimezone({ users }),
-    setWeatherLocation,
     setAssistantProfile,
-    previewWeatherLocation: makePreviewWeatherLocation({
-      weather: weatherProvider,
-    }),
     setAvatar: makeSetAvatar({ users, fileStorage }),
     removeAvatar: makeRemoveAvatar({ users, fileStorage }),
     createRecurringTask: makeCreateRecurringTask({

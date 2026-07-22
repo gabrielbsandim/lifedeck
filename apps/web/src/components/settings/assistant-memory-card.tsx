@@ -9,8 +9,10 @@ import { SectionCard, Toggle } from '@/components/settings/settings-ui'
 
 type PersonDraft = { name: string; relationship: string }
 
+// Shared with the rest of the app's inputs: 40px tall, lightly rounded, with a
+// clear brand focus ring instead of the faint, over-rounded pill this used to be.
 const INPUT_CLASS =
-  'border-line text-ink-700 focus:border-brand-300 h-[42px] min-w-0 flex-1 rounded-xl border bg-white px-3.5 text-sm outline-none'
+  'border-line text-ink-800 focus-visible:border-brand-600 h-10 min-w-0 flex-1 rounded-lg border bg-white px-3 text-sm outline-none'
 
 // A whole-hour <select> for a nullable local hour (0-23); the blank option maps
 // back to null so the user can leave a routine unset.
@@ -35,7 +37,7 @@ function HourSelect({
       onChange={event =>
         onChange(event.target.value === '' ? null : Number(event.target.value))
       }
-      className="border-line text-ink-700 focus:border-brand-300 h-[42px] rounded-xl border bg-white px-3 text-sm outline-none"
+      className="border-line text-ink-800 focus-visible:border-brand-600 h-10 rounded-lg border bg-white px-3 text-sm outline-none"
     >
       <option value="">{unsetLabel}</option>
       {Array.from({ length: 24 }, (_, hour) => (
@@ -172,6 +174,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
             onChange={event => setHome(event.target.value)}
             className={INPUT_CLASS}
           />
+          <span className="text-ink-500 text-xs">{m.homeHint}</span>
         </label>
         <label className="flex flex-col gap-1">
           <FieldLabel>{m.work}</FieldLabel>

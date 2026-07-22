@@ -426,24 +426,13 @@ export const es: Messages = {
       'Detectada desde tu dispositivo. Tus listas diarias, resumen y rachas usan esta zona.',
     useDetected: 'Usar la zona del dispositivo',
   },
-  weatherLocation: {
-    settingLabel: 'Ubicación predeterminada del clima',
-    settingHint:
-      'El asistente de WhatsApp la usa cuando preguntas por el clima sin indicar un lugar.',
-    placeholder: 'ej.: Lisboa',
-    save: 'Guardar',
-    clear: 'Borrar',
-    checking: 'Verificando…',
-    found: 'Encontrada',
-    notFound: 'Ciudad no encontrada. Revisa la ortografía.',
-    couldntCheck: 'No se pudo verificar ahora — puedes guardar igualmente.',
-  },
   assistantMemory: {
     settingLabel: 'Lo que el asistente recuerda',
     settingHint:
       'El asistente usa esto para personalizar su ayuda. Todo es opcional y puedes borrarlo cuando quieras.',
     home: 'Casa',
     homePlaceholder: 'ej.: Lisboa',
+    homeHint: 'Se usa para el clima por defecto y para tu resumen diario.',
     work: 'Trabajo',
     workPlaceholder: 'ej.: centro de São Paulo',
     wakeHour: 'Hora habitual de despertar',

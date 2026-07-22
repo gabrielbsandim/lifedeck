@@ -9,7 +9,6 @@ import {
 } from 'react'
 import Link from 'next/link'
 import { Avatar, Badge, Button, cn } from '@lifedeck/ui'
-import type { WeatherLocationResolution } from '@lifedeck/application'
 import type { SessionUser } from '@/lib/api/use-session'
 import { useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
@@ -19,10 +18,8 @@ import {
   useRemoveAvatar,
   useRenameUser,
   useSetCarryOverMode,
-  usePreviewWeatherLocation,
   useSetReminderPreferences,
   useSetTimezone,
-  useSetWeatherLocation,
   useSignOut,
   useUploadAvatar,
 } from '@/lib/api/use-account'
@@ -251,64 +248,9 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
   const setCarryOverMode = useSetCarryOverMode()
   const setReminders = useSetReminderPreferences()
   const setTimezone = useSetTimezone()
-  const setWeatherLocation = useSetWeatherLocation()
-  const previewWeatherLocation = usePreviewWeatherLocation()
 
   const timeZones = useMemo(() => listTimeZones(user.timezone), [user.timezone])
   const detectedZone = browserTimeZone()
-
-  const [weatherLocation, setWeatherLocationDraft] = useState(
-    user.weatherLocation ?? '',
-  )
-  // Holds the last geocoder check tied to the exact text it ran on, so a stale
-  // result never shows against a since-edited value.
-  const [weatherPreview, setWeatherPreview] = useState<{
-    for: string
-    result: WeatherLocationResolution
-  } | null>(null)
-  const savedWeatherLocation = user.weatherLocation ?? ''
-  const trimmedWeatherLocation = weatherLocation.trim()
-  const weatherLocationDirty = trimmedWeatherLocation !== savedWeatherLocation
-
-  const checkWeatherLocation = () => {
-    if (trimmedWeatherLocation === '' || !weatherLocationDirty) {
-      setWeatherPreview(null)
-      return
-    }
-    previewWeatherLocation.mutate(trimmedWeatherLocation, {
-      onSuccess: result =>
-        setWeatherPreview({ for: trimmedWeatherLocation, result }),
-      onError: () => setWeatherPreview(null),
-    })
-  }
-  const previewForCurrent =
-    weatherPreview && weatherPreview.for === trimmedWeatherLocation
-      ? weatherPreview.result
-      : null
-  const weatherLocationNotFound =
-    previewForCurrent !== null &&
-    !previewForCurrent.ok &&
-    previewForCurrent.reason === 'not_found'
-  const weatherLocationUnverifiable =
-    previewForCurrent !== null &&
-    !previewForCurrent.ok &&
-    previewForCurrent.reason === 'unavailable'
-  const saveWeatherLocation = () => {
-    if (!weatherLocationDirty || weatherLocationNotFound) return
-    // Save the canonical name the geocoder confirmed ("Lisbon, Portugal") rather
-    // than the raw draft ("lisboa") whenever a matching preview exists, so what
-    // we persist is what the user saw confirmed.
-    const confirmed = previewForCurrent?.ok
-      ? previewForCurrent.location
-      : trimmedWeatherLocation
-    if (confirmed === '') {
-      setWeatherLocation.mutate(null)
-    } else {
-      setWeatherLocation.mutate(confirmed)
-      setWeatherLocationDraft(confirmed)
-    }
-    setWeatherPreview(null)
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -392,81 +334,6 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
         )}
         <p className="text-ink-500 text-xs leading-relaxed">
           {messages.timezone.settingHint}
-        </p>
-      </SectionCard>
-
-      <SectionCard className="flex flex-col gap-2.5">
-        <span className="text-ink-900 text-sm font-semibold">
-          {messages.weatherLocation.settingLabel}
-        </span>
-        <form
-          className="flex max-w-md flex-wrap items-center gap-2"
-          onSubmit={event => {
-            event.preventDefault()
-            saveWeatherLocation()
-          }}
-        >
-          <input
-            type="text"
-            value={weatherLocation}
-            maxLength={160}
-            onChange={event => {
-              setWeatherLocationDraft(event.target.value)
-              setWeatherPreview(null)
-            }}
-            onBlur={checkWeatherLocation}
-            disabled={setWeatherLocation.isPending}
-            placeholder={messages.weatherLocation.placeholder}
-            aria-label={messages.weatherLocation.settingLabel}
-            className="border-line text-ink-700 focus:border-brand-300 h-[42px] min-w-0 flex-1 rounded-xl border bg-white px-3.5 text-sm outline-none"
-          />
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={
-              !weatherLocationDirty ||
-              weatherLocationNotFound ||
-              setWeatherLocation.isPending
-            }
-          >
-            {messages.weatherLocation.save}
-          </Button>
-        </form>
-        {weatherLocationDirty && previewWeatherLocation.isPending && (
-          <p className="text-ink-500 text-xs">
-            {messages.weatherLocation.checking}
-          </p>
-        )}
-        {!previewWeatherLocation.isPending && previewForCurrent?.ok && (
-          <p className="text-xs font-medium text-emerald-600">
-            {messages.weatherLocation.found}: {previewForCurrent.location}
-          </p>
-        )}
-        {!previewWeatherLocation.isPending && weatherLocationNotFound && (
-          <p className="text-xs font-medium text-red-600">
-            {messages.weatherLocation.notFound}
-          </p>
-        )}
-        {!previewWeatherLocation.isPending && weatherLocationUnverifiable && (
-          <p className="text-ink-500 text-xs">
-            {messages.weatherLocation.couldntCheck}
-          </p>
-        )}
-        {savedWeatherLocation !== '' && (
-          <button
-            type="button"
-            onClick={() => {
-              setWeatherLocationDraft('')
-              setWeatherLocation.mutate(null)
-            }}
-            disabled={setWeatherLocation.isPending}
-            className="text-brand-600 self-start text-[13px] font-semibold"
-          >
-            {messages.weatherLocation.clear}
-          </button>
-        )}
-        <p className="text-ink-500 text-xs leading-relaxed">
-          {messages.weatherLocation.settingHint}
         </p>
       </SectionCard>
 

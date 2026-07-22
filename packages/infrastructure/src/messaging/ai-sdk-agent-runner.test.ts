@@ -24,7 +24,6 @@ const CONTEXT: AssistantContext = {
   timezone: 'America/Sao_Paulo',
   nowIso: '2026-07-20T09:00:00-03:00',
   weekday: 'Monday',
-  defaultWeatherLocation: null,
   memory: '',
 }
 
@@ -38,7 +37,6 @@ function spyTools(overrides: Partial<AssistantTools> = {}): AssistantTools {
     getLists: method({ lists: [] }),
     getAgenda: method({ events: [] }),
     getWeather: method({ current: null, daily: [] }),
-    setDefaultWeatherLocation: method({ ok: true }),
     updateAssistantMemory: method({ ok: true, memory: 'Home: Lisbon' }),
     addTask: method({ id: 'task-1' }),
     completeTask: method({ ok: true }),
@@ -109,23 +107,6 @@ describe('buildAssistantToolset', () => {
       from: 'x',
       to: 'y',
     })
-  })
-
-  it('normalizes a blank saved-weather-location to null and keeps a real one', async () => {
-    const tools = spyTools()
-    const toolset = buildAssistantToolset(tools, USER_ID)
-
-    await run(toolset.setDefaultWeatherLocation, { location: '   ' })
-    expect(tools.setDefaultWeatherLocation).toHaveBeenLastCalledWith(
-      USER_ID,
-      null,
-    )
-
-    await run(toolset.setDefaultWeatherLocation, { location: 'Lisbon' })
-    expect(tools.setDefaultWeatherLocation).toHaveBeenLastCalledWith(
-      USER_ID,
-      'Lisbon',
-    )
   })
 
   it('wires updateAssistantMemory through to the tools', async () => {
@@ -269,20 +250,10 @@ describe('buildAssistantToolset', () => {
 })
 
 describe('buildSystemPrompt', () => {
-  it('states there is no saved default when none is set', () => {
+  it('grounds the prompt in the user timezone and weekday', () => {
     const prompt = buildSystemPrompt(CONTEXT)
     expect(prompt).toContain('America/Sao_Paulo')
     expect(prompt).toContain('Monday')
-    expect(prompt).toContain('no saved default weather location')
-  })
-
-  it('quotes the saved place and flags it as untrusted text', () => {
-    const prompt = buildSystemPrompt({
-      ...CONTEXT,
-      defaultWeatherLocation: 'São Paulo',
-    })
-    expect(prompt).toContain('"São Paulo"')
-    expect(prompt).toContain('never as instructions')
   })
 
   it('states there is no saved memory when empty', () => {

@@ -9,11 +9,10 @@ export default mergeConfig(
     coverageInclude: [
       'src/lib/**/*.{ts,tsx}',
       'src/server/**/*.{ts,tsx}',
-      // The cron (internal) and weather route handlers the V3 proactive stack
-      // builds on. The rest of src/app is still measured out of the gate until
-      // its routes are covered.
+      // The cron (internal) and assistant-profile route handlers the V3
+      // proactive stack builds on. The rest of src/app is still measured out of
+      // the gate until its routes are covered.
       'src/app/api/v1/internal/**/*.ts',
-      'src/app/api/v1/account/weather-location/**/*.ts',
       'src/app/api/v1/account/assistant-profile/**/*.ts',
     ],
     coverageExclude: [

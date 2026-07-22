@@ -55,7 +55,6 @@ model User {
   carryOverMode String    @default("manual") @map("carry_over_mode")
   reminderEmail    Boolean @default(false) @map("reminder_email")
   reminderWhatsapp Boolean @default(true) @map("reminder_whatsapp")
-  weatherLocation  String? @map("weather_location")
   assistantProfile Json?   @map("assistant_profile")
   createdAt     DateTime  @default(now()) @map("created_at")
 

@@ -9,7 +9,7 @@ import { ForbiddenError, NotFoundError } from '@/errors/use-case-error'
 const USER_ID = '11111111-1111-4111-8111-111111111111'
 const NOW = new Date('2026-07-19T12:00:00.000Z')
 
-function user(overrides?: { timezone?: string; weatherLocation?: string }) {
+function user(overrides?: { timezone?: string; homeLocation?: string }) {
   const u = User.createGuest({
     id: asEntityId(USER_ID),
     displayName: 'Gabriel',
@@ -17,8 +17,9 @@ function user(overrides?: { timezone?: string; weatherLocation?: string }) {
     timezone: overrides?.timezone ?? 'America/Sao_Paulo',
     createdAt: NOW,
   })
-  if (overrides?.weatherLocation)
-    u.setWeatherLocation(overrides.weatherLocation)
+  if (overrides?.homeLocation) {
+    u.updateProfile({ homeLocation: overrides.homeLocation })
+  }
   return u
 }
 
@@ -80,9 +81,6 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
     deleteCalendarEvent: vi.fn(
       async () => undefined,
     ) as unknown as AssistantToolsDeps['deleteCalendarEvent'],
-    setWeatherLocation: vi.fn(async (_userId: string, input) => ({
-      weatherLocation: input.location,
-    })) as unknown as AssistantToolsDeps['setWeatherLocation'],
     setAssistantProfile: vi.fn(async () => ({
       assistantProfile: {
         homeLocation: null,
@@ -122,17 +120,18 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
 }
 
 describe('makeAssistantTools', () => {
-  it('grounds context in the user timezone, saved place, and clock', async () => {
+  it('grounds context in the user timezone, memory, and clock', async () => {
     const { tools } = build({
       users: {
-        findById: async () => user({ weatherLocation: 'Rio de Janeiro' }),
+        findById: async () => user({ homeLocation: 'Rio de Janeiro' }),
       },
     })
 
     const ctx = await tools.getContext(USER_ID)
 
     expect(ctx.timezone).toBe('America/Sao_Paulo')
-    expect(ctx.defaultWeatherLocation).toBe('Rio de Janeiro')
+    // Home is the weather default now; it rides along in the memory summary.
+    expect(ctx.memory).toContain('Home: Rio de Janeiro')
     // Noon UTC is 09:00 in São Paulo (UTC-3).
     expect(ctx.nowIso).toBe('2026-07-19T09:00:00-03:00')
     expect(ctx.weekday).toBe('Sunday')
@@ -193,42 +192,6 @@ describe('makeAssistantTools', () => {
     expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-9', {
       status: 'completed',
     })
-  })
-
-  it('routes setDefaultWeatherLocation through the use case', async () => {
-    const setWeatherLocation = vi.fn(async (_userId: string, input) => ({
-      weatherLocation: input.location,
-    })) as unknown as AssistantToolsDeps['setWeatherLocation']
-    const { tools } = build({ setWeatherLocation })
-
-    const result = await tools.setDefaultWeatherLocation(USER_ID, 'Lisbon')
-
-    expect(setWeatherLocation).toHaveBeenCalledWith(USER_ID, {
-      location: 'Lisbon',
-    })
-    expect(result).toEqual({ ok: true, location: 'Lisbon' })
-  })
-
-  it('reports { ok: false } when the user is missing', async () => {
-    const setWeatherLocation = vi.fn(async () => {
-      throw new NotFoundError('User')
-    }) as unknown as AssistantToolsDeps['setWeatherLocation']
-    const { tools } = build({ setWeatherLocation })
-
-    const result = await tools.setDefaultWeatherLocation(USER_ID, 'Lisbon')
-
-    expect(result).toEqual({ ok: false, location: null })
-  })
-
-  it('rethrows a non-NotFound error from the weather-location use case', async () => {
-    const setWeatherLocation = vi.fn(async () => {
-      throw new Error('db down')
-    }) as unknown as AssistantToolsDeps['setWeatherLocation']
-    const { tools } = build({ setWeatherLocation })
-
-    await expect(
-      tools.setDefaultWeatherLocation(USER_ID, 'Lisbon'),
-    ).rejects.toThrow('db down')
   })
 
   it('summarizes the saved memory in the context', async () => {
@@ -363,9 +326,9 @@ describe('makeAssistantTools', () => {
     expect(deps.getDailyBoard).not.toHaveBeenCalled()
   })
 
-  it('reports no saved place when the user has none', async () => {
+  it('reports empty memory when the user has saved nothing', async () => {
     const { tools } = build()
-    expect((await tools.getContext(USER_ID)).defaultWeatherLocation).toBeNull()
+    expect((await tools.getContext(USER_ID)).memory).toBe('')
   })
 
   it('falls back to the default timezone when the user is not found', async () => {
@@ -374,7 +337,7 @@ describe('makeAssistantTools', () => {
     const ctx = await tools.getContext(USER_ID)
 
     expect(ctx.timezone).toBe('UTC')
-    expect(ctx.defaultWeatherLocation).toBeNull()
+    expect(ctx.memory).toBe('')
   })
 
   it('updates only the fields given, leaving times untouched', async () => {

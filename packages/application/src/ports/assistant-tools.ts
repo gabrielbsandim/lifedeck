@@ -58,11 +58,6 @@ export type AssistantContext = {
   /** Weekday of the current instant in the user's zone, e.g. Saturday. */
   weekday: string
   /**
-   * The place the user saved for weather questions, or null if none. Lets the
-   * assistant answer "weather tomorrow?" without asking where every time.
-   */
-  defaultWeatherLocation: string | null
-  /**
    * A compact, one-fact-per-line summary of the durable assistant memory (home,
    * work, routine, people, notes), or an empty string when nothing is saved.
    * The user's own words: the prompt must frame it as untrusted data.
@@ -139,12 +134,6 @@ export interface AssistantTools {
   // Read-only weather lookup for any place, up to the provider's ~16-day
   // horizon. Not scoped to the user: the place and dates come from the query.
   getWeather(query: WeatherQuery): Promise<WeatherLookup>
-  // Save (or clear, with null) the user's default place for weather questions,
-  // so later "weather tomorrow?" asks need no location.
-  setDefaultWeatherLocation(
-    userId: string,
-    location: string | null,
-  ): Promise<{ ok: boolean; location: string | null }>
   // Save a durable fact the user shared (home, work, routine, family member, a
   // lasting preference) so later turns can personalize. Returns the refreshed
   // memory summary so the assistant can confirm what it now knows.

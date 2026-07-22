@@ -24,7 +24,6 @@ export class PrismaUserRepository implements UserRepository {
         carryOverMode: record.carryOverMode,
         reminderEmail: record.reminderEmail,
         reminderWhatsapp: record.reminderWhatsapp,
-        weatherLocation: record.weatherLocation,
         assistantProfile,
       },
     })

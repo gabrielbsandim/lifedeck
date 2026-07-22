@@ -418,24 +418,13 @@ export const en: Messages = {
       'Detected from your device. Your daily lists, digest and streaks use this zone.',
     useDetected: 'Use device time zone',
   },
-  weatherLocation: {
-    settingLabel: 'Default weather location',
-    settingHint:
-      'The WhatsApp assistant uses this when you ask about the weather without naming a place.',
-    placeholder: 'e.g. Lisbon',
-    save: 'Save',
-    clear: 'Clear',
-    checking: 'Checking…',
-    found: 'Found',
-    notFound: 'City not found. Check the spelling.',
-    couldntCheck: "Couldn't check right now — you can still save.",
-  },
   assistantMemory: {
     settingLabel: 'What the assistant remembers',
     settingHint:
       'The assistant uses these to personalize its help. Everything here is optional and you can clear it anytime.',
     home: 'Home',
     homePlaceholder: 'e.g. Lisbon',
+    homeHint: 'Used for weather by default and for your daily brief.',
     work: 'Work',
     workPlaceholder: 'e.g. downtown São Paulo',
     wakeHour: 'Usual wake-up time',

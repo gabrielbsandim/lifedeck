@@ -20,7 +20,6 @@ export type UserRecord = {
   carryOverMode: string
   reminderEmail: boolean
   reminderWhatsapp: boolean
-  weatherLocation: string | null
   // Stored JSON; read leniently (unknown -> sanitized profile), written as the
   // concrete AssistantProfile shape.
   assistantProfile: unknown
@@ -43,7 +42,6 @@ export function toDomainUser(record: UserRecord): User {
       : 'manual',
     reminderEmail: record.reminderEmail,
     reminderWhatsapp: record.reminderWhatsapp,
-    weatherLocation: record.weatherLocation,
     assistantProfile: sanitizeAssistantProfile(record.assistantProfile),
     createdAt: record.createdAt,
   })
@@ -64,7 +62,6 @@ export function toUserRecord(user: User): UserRecord {
     carryOverMode: props.carryOverMode,
     reminderEmail: props.reminderEmail,
     reminderWhatsapp: props.reminderWhatsapp,
-    weatherLocation: props.weatherLocation,
     assistantProfile: props.assistantProfile satisfies AssistantProfile,
     createdAt: props.createdAt,
   }

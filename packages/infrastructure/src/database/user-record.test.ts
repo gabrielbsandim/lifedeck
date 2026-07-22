@@ -18,7 +18,6 @@ const RECORD: UserRecord = {
   carryOverMode: 'manual',
   reminderEmail: false,
   reminderWhatsapp: true,
-  weatherLocation: 'Mogi das Cruzes',
   assistantProfile: {
     homeLocation: 'Lisbon',
     workLocation: null,
@@ -57,13 +56,6 @@ describe('user-record mapping', () => {
     expect(record.emailVerified).toBeNull()
     expect(record.isGuest).toBe(true)
     expect(record.avatarUrl).toBeNull()
-  })
-
-  it('round-trips a null weather location', () => {
-    const record = toUserRecord(
-      toDomainUser({ ...RECORD, weatherLocation: null }),
-    )
-    expect(record.weatherLocation).toBeNull()
   })
 
   it('round-trips a populated assistant profile', () => {

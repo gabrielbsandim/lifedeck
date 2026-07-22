@@ -5,12 +5,10 @@ import {
   useDeleteAccount,
   useRenameUser,
   useRemoveAvatar,
-  usePreviewWeatherLocation,
   useSetCarryOverMode,
   useSetAssistantProfile,
   useSetReminderPreferences,
   useSetTimezone,
-  useSetWeatherLocation,
   useSignOut,
   useSyncTimezone,
   useUploadAvatar,
@@ -36,7 +34,6 @@ const USER = {
   carryOverMode: 'manual' as const,
   reminderEmail: false,
   reminderWhatsapp: true,
-  weatherLocation: null,
   assistantProfile: {
     homeLocation: null,
     workLocation: null,
@@ -101,21 +98,6 @@ describe('account hooks', () => {
     )
   })
 
-  it('saves the default weather location via PATCH', async () => {
-    const fetchMock = mockFetchOnce({
-      data: { ...USER, weatherLocation: 'Mogi das Cruzes' },
-    })
-    const { Wrapper } = createWrapper()
-    const { result } = renderHook(() => useSetWeatherLocation(), {
-      wrapper: Wrapper,
-    })
-    await result.current.mutateAsync('Mogi das Cruzes')
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/v1/account/weather-location',
-      expect.objectContaining({ method: 'PATCH' }),
-    )
-  })
-
   it('saves the assistant profile via PATCH', async () => {
     const fetchMock = mockFetchOnce({
       data: {
@@ -135,36 +117,6 @@ describe('account hooks', () => {
       '/api/v1/account/assistant-profile',
       expect.objectContaining({ method: 'PATCH' }),
     )
-  })
-
-  it('previews a weather location via POST and returns the resolution', async () => {
-    const fetchMock = mockFetchOnce({
-      data: { ok: true, location: 'Lisbon, Portugal' },
-    })
-    const { Wrapper } = createWrapper()
-    const { result } = renderHook(() => usePreviewWeatherLocation(), {
-      wrapper: Wrapper,
-    })
-    const resolution = await result.current.mutateAsync('lisbon')
-    expect(resolution).toEqual({ ok: true, location: 'Lisbon, Portugal' })
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/v1/account/weather-location/preview',
-      expect.objectContaining({ method: 'POST' }),
-    )
-  })
-
-  it('clears the default weather location with null', async () => {
-    const fetchMock = mockFetchOnce({
-      data: { ...USER, weatherLocation: null },
-    })
-    const { Wrapper } = createWrapper()
-    const { result } = renderHook(() => useSetWeatherLocation(), {
-      wrapper: Wrapper,
-    })
-    await result.current.mutateAsync(null)
-    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toEqual({
-      location: null,
-    })
   })
 
   it('uploads an avatar via POST with the image content-type', async () => {

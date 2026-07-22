@@ -27,7 +27,6 @@ import type { makeUpdateCalendarEvent } from '@/use-cases/update-calendar-event'
 import type { makeUpdateCalendarOccurrence } from '@/use-cases/update-calendar-occurrence'
 import type { makeDeleteCalendarOccurrence } from '@/use-cases/delete-calendar-occurrence'
 import type { makeDeleteCalendarEvent } from '@/use-cases/delete-calendar-event'
-import type { makeSetWeatherLocation } from '@/use-cases/set-weather-location'
 import type { makeSetAssistantProfile } from '@/use-cases/set-assistant-profile'
 import type { makeCreateHabit } from '@/use-cases/create-habit'
 import type { makeListHabits } from '@/use-cases/list-habits'
@@ -61,7 +60,6 @@ export type AssistantToolsDeps = {
   updateCalendarOccurrence: ReturnType<typeof makeUpdateCalendarOccurrence>
   deleteCalendarOccurrence: ReturnType<typeof makeDeleteCalendarOccurrence>
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
-  setWeatherLocation: ReturnType<typeof makeSetWeatherLocation>
   setAssistantProfile: ReturnType<typeof makeSetAssistantProfile>
   createHabit: ReturnType<typeof makeCreateHabit>
   listHabits: ReturnType<typeof makeListHabits>
@@ -91,7 +89,6 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     updateCalendarOccurrence,
     deleteCalendarOccurrence,
     deleteCalendarEvent,
-    setWeatherLocation,
     setAssistantProfile,
     createHabit,
     listHabits,
@@ -117,7 +114,6 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
         timezone,
         nowIso: zonedIso(now, timezone),
         weekday: zonedWeekday(now, timezone),
-        defaultWeatherLocation: user?.weatherLocation ?? null,
         memory: user ? summarizeAssistantProfile(user.assistantProfile) : '',
       }
     },
@@ -178,17 +174,6 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     },
     async getWeather(query) {
       return weather.getForecast(query)
-    },
-    async setDefaultWeatherLocation(userId, location) {
-      // Route through the same validated use case the REST API uses, so there
-      // is one path. A missing user surfaces the defensive { ok: false }.
-      try {
-        const view = await setWeatherLocation(userId, { location })
-        return { ok: true, location: view.weatherLocation }
-      } catch (error) {
-        if (error instanceof NotFoundError) return { ok: false, location: null }
-        throw error
-      }
     },
     async updateAssistantMemory(userId, update) {
       // Same single validated path as the settings screen; a missing user is a

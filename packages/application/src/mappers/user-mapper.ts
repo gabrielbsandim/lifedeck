@@ -16,7 +16,6 @@ export function toUserView(user: User): UserView {
     carryOverMode: props.carryOverMode,
     reminderEmail: props.reminderEmail,
     reminderWhatsapp: props.reminderWhatsapp,
-    weatherLocation: props.weatherLocation,
     assistantProfile: {
       homeLocation: props.assistantProfile.homeLocation,
       workLocation: props.assistantProfile.workLocation,

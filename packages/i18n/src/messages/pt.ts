@@ -425,24 +425,13 @@ export const pt: Messages = {
       'Detectado pelo seu dispositivo. Suas listas diárias, resumo e sequências usam este fuso.',
     useDetected: 'Usar o fuso do dispositivo',
   },
-  weatherLocation: {
-    settingLabel: 'Local padrão do tempo',
-    settingHint:
-      'O assistente do WhatsApp usa este local quando você pergunta sobre o tempo sem dizer a cidade.',
-    placeholder: 'ex.: Mogi das Cruzes',
-    save: 'Salvar',
-    clear: 'Limpar',
-    checking: 'Verificando…',
-    found: 'Encontrado',
-    notFound: 'Cidade não encontrada. Verifique a grafia.',
-    couldntCheck: 'Não deu para verificar agora — você ainda pode salvar.',
-  },
   assistantMemory: {
     settingLabel: 'O que o assistente lembra',
     settingHint:
       'O assistente usa isto para personalizar a ajuda. Tudo aqui é opcional e você pode limpar quando quiser.',
     home: 'Casa',
     homePlaceholder: 'ex.: Mogi das Cruzes',
+    homeHint: 'Usada para o tempo por padrão e para o seu resumo diário.',
     work: 'Trabalho',
     workPlaceholder: 'ex.: centro de São Paulo',
     wakeHour: 'Horário que costuma acordar',

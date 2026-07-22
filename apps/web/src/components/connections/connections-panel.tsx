@@ -1,11 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { QRCodeSVG } from 'qrcode.react'
-import { Button } from '@lifedeck/ui'
+import { Button, cn } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
-import { useCalendarConnections } from '@/lib/api/use-calendar-connections'
+import {
+  useCalendarConnections,
+  useDisconnectCalendar,
+} from '@/lib/api/use-calendar-connections'
 import {
   useStartWhatsappPairing,
   useWhatsappChannel,
@@ -62,11 +66,15 @@ function Row({
 function CalendarConnect() {
   const { messages } = useI18n()
   const t = messages.getStarted
+  const cal = messages.calendar
   const session = useSession()
   const user = session.data
   const entitled = Boolean(user?.entitlements?.includes('calendarSync'))
   const connections = useCalendarConnections(Boolean(user?.features?.calendar))
-  const connected = (connections.data?.length ?? 0) > 0
+  const disconnect = useDisconnectCalendar()
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const list = connections.data ?? []
+  const connected = list.length > 0
 
   return (
     <Row
@@ -76,9 +84,59 @@ function CalendarConnect() {
       body={t.calendarBody}
     >
       {connected ? (
-        <span className="w-fit rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-          {t.calendarConnected}
-        </span>
+        <div className="flex flex-col gap-2">
+          <ul className="divide-line flex flex-col divide-y">
+            {list.map(connection => (
+              <li
+                key={connection.id}
+                className="flex items-center justify-between gap-2 py-2"
+              >
+                <span className="text-ink-700 min-w-0 truncate text-sm">
+                  {connection.accountEmail ?? cal.googleAccount}
+                </span>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirmingId === connection.id) {
+                        disconnect.mutate(connection.id)
+                        setConfirmingId(null)
+                      } else {
+                        setConfirmingId(connection.id)
+                      }
+                    }}
+                    disabled={disconnect.isPending}
+                    className={cn(
+                      'text-xs hover:underline disabled:opacity-50',
+                      confirmingId === connection.id
+                        ? 'font-medium text-red-700'
+                        : 'text-red-600',
+                    )}
+                  >
+                    {confirmingId === connection.id
+                      ? cal.disconnectConfirm
+                      : cal.disconnectCalendar}
+                  </button>
+                  {confirmingId === connection.id && (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingId(null)}
+                      className="text-ink-500 text-xs hover:underline"
+                    >
+                      {cal.connect.cancel}
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <a
+            href="/api/v1/calendar/google/connect"
+            className="text-brand-600 self-start text-[13px] font-semibold"
+          >
+            {cal.addAnotherCalendar}
+          </a>
+        </div>
       ) : entitled ? (
         <a
           href="/api/v1/calendar/google/connect"

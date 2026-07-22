@@ -18,24 +18,6 @@ import {
 
 const MAX_DISPLAY_NAME_LENGTH = 80
 const MAX_AVATAR_URL_LENGTH = 2048
-const MAX_WEATHER_LOCATION_LENGTH = 160
-
-// A free-text place name the user saves so the assistant can answer "what's the
-// weather tomorrow?" without asking where every time. Trimmed; blank clears it.
-function normalizeWeatherLocation(value: string | null): string | null {
-  if (value === null) {
-    return null
-  }
-  const trimmed = value.trim()
-  if (trimmed === '') {
-    return null
-  }
-  return guard.maxLength(
-    trimmed,
-    MAX_WEATHER_LOCATION_LENGTH,
-    'Weather location',
-  )
-}
 
 function normalizeAvatarUrl(value: string): string {
   const trimmed = value.trim()
@@ -69,7 +51,6 @@ export type UserProps = {
   carryOverMode: CarryOverMode
   reminderEmail: boolean
   reminderWhatsapp: boolean
-  weatherLocation: string | null
   assistantProfile: AssistantProfile
   createdAt: Date
 }
@@ -104,7 +85,6 @@ export class User {
       // linked, verified number), email is opt-in.
       reminderEmail: false,
       reminderWhatsapp: true,
-      weatherLocation: null,
       assistantProfile: { ...EMPTY_ASSISTANT_PROFILE },
       createdAt: input.createdAt,
     })
@@ -189,14 +169,6 @@ export class User {
     if (input.whatsapp !== undefined) {
       this.props.reminderWhatsapp = input.whatsapp
     }
-  }
-
-  get weatherLocation(): string | null {
-    return this.props.weatherLocation
-  }
-
-  setWeatherLocation(value: string | null): void {
-    this.props.weatherLocation = normalizeWeatherLocation(value)
   }
 
   get assistantProfile(): AssistantProfile {

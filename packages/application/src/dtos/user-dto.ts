@@ -63,22 +63,6 @@ export const reminderPreferencesSchema = z.object({
 
 export type ReminderPreferencesInput = z.infer<typeof reminderPreferencesSchema>
 
-// null (or a blank string, which the domain normalizes away) clears the saved
-// default place used for weather questions.
-export const weatherLocationSchema = z.object({
-  location: z.string().max(160).nullable(),
-})
-
-export type WeatherLocationInput = z.infer<typeof weatherLocationSchema>
-
-export const weatherLocationPreviewSchema = z.object({
-  location: z.string().trim().min(1).max(160),
-})
-
-export type WeatherLocationPreviewInput = z.infer<
-  typeof weatherLocationPreviewSchema
->
-
 const assistantPersonInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
   relationship: z.string().trim().max(60).nullish(),
@@ -135,7 +119,6 @@ export const userViewSchema = z.object({
   carryOverMode: z.enum(['manual', 'auto']),
   reminderEmail: z.boolean(),
   reminderWhatsapp: z.boolean(),
-  weatherLocation: z.string().nullable(),
   assistantProfile: assistantProfileViewSchema,
   plan: z.enum(['free', 'pro', 'premium']).optional(),
   entitlements: z
