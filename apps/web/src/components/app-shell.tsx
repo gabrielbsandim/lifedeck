@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import { MobileTabBar } from '@/components/mobile-tab-bar'
+import { RequireAuth } from '@/components/require-auth'
 
 // Keep this a server component: importing from the @lifedeck/ui barrel here would
 // pull its client-only components (framer-motion) into the RSC graph and break
@@ -20,7 +21,9 @@ export function AppShell({
     <>
       <AppSidebar />
       <div className="lg:pl-56">
-        <main className={mainClass}>{children}</main>
+        <main className={mainClass}>
+          <RequireAuth>{children}</RequireAuth>
+        </main>
       </div>
       <MobileTabBar />
     </>
