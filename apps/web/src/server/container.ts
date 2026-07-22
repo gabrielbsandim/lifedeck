@@ -28,6 +28,7 @@ import {
   makeUpdateHabit,
   makeDeleteHabit,
   makeLogHabit,
+  makeEnqueueReminderBackfill,
   makeReconcileCalendars,
   makeRenewCalendarChannels,
   makeStartWhatsappPairing,
@@ -316,6 +317,7 @@ type Container = {
   disconnectCalendar: ReturnType<typeof makeDisconnectCalendar>
   setDefaultCalendar: ReturnType<typeof makeSetDefaultCalendar>
   pullCalendarChanges: ReturnType<typeof makePullCalendarChanges>
+  enqueueReminderBackfill: ReturnType<typeof makeEnqueueReminderBackfill>
   pushCalendarEvent: ReturnType<typeof makePushCalendarEvent>
   watchGoogleCalendar: ReturnType<typeof makeWatchGoogleCalendar>
   handleCalendarNotification: ReturnType<typeof makeHandleCalendarNotification>
@@ -560,6 +562,11 @@ function build(
     jobQueue,
     clock,
   })
+  const enqueueReminderBackfill = makeEnqueueReminderBackfill({
+    calendarConnections,
+    jobQueue,
+    clock,
+  })
   const renewCalendarChannels = makeRenewCalendarChannels({
     calendarConnections,
     jobQueue,
@@ -587,7 +594,9 @@ function build(
         await sendNudge(String(payload.userId))
       },
       [CALENDAR_PULL_JOB]: async payload => {
-        await pullCalendarChanges(String(payload.userId))
+        await pullCalendarChanges(String(payload.userId), {
+          force: payload.force === true,
+        })
       },
       [CALENDAR_PUSH_JOB]: async payload => {
         await pushCalendarEvent(String(payload.userId), String(payload.eventId))
@@ -1034,6 +1043,7 @@ function build(
     }),
     googleCalendarAuthUrl: (state: string) => googleCalendar.authUrl(state),
     runScheduledFanOut,
+    enqueueReminderBackfill,
     startWhatsappPairing: makeStartWhatsappPairing({
       channelIdentities,
       codes,

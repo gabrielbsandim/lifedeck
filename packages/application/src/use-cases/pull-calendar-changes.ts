@@ -60,7 +60,13 @@ export function makePullCalendarChanges({
 
   return async function pullCalendarChanges(
     ownerId: string,
+    options: { force?: boolean } = {},
   ): Promise<CalendarPullResult> {
+    // A forced pull ignores the stored sync cursor (so every event comes back,
+    // not just recent deltas) and re-applies reminder offsets even to events
+    // that have not otherwise changed. Used to backfill reminders onto events
+    // that synced before reminder capture existed, on reconnect and on demand.
+    const force = options.force === true
     const owner = asEntityId(ownerId)
     const connections = await calendarConnections.listByOwner(owner)
     if (connections.length === 0) {
@@ -92,6 +98,11 @@ export function makePullCalendarChanges({
           clock.now(),
         )
         await calendarConnections.save(connection)
+      }
+
+      // Drop the cursor so the provider returns a full window, not just deltas.
+      if (force) {
+        connection.setSyncToken(null, clock.now())
       }
 
       const page = await provider.listChanges(connection)
@@ -134,28 +145,36 @@ export function makePullCalendarChanges({
       // one occurrence during expansion.
       if (external.recurringEventExternalId) {
         if (existing) {
-          if (external.updatedAt.getTime() <= existing.updatedAt.getTime()) {
+          const isNewer =
+            external.updatedAt.getTime() > existing.updatedAt.getTime()
+          if (!isNewer && !force) {
             return false
           }
-          existing.update(
-            {
-              title: external.title,
-              description: external.description,
-              location: external.location,
-              startsAt: external.startsAt,
-              endsAt: external.endsAt,
-              allDay: external.allDay,
-              reminders: external.reminders,
-              cancelled: external.cancelledOccurrence,
-            },
-            clock.now(),
-          )
-          existing.linkToExternal(
-            external.externalId,
-            external.etag,
-            clock.now(),
-            connection.id,
-          )
+          if (isNewer) {
+            existing.update(
+              {
+                title: external.title,
+                description: external.description,
+                location: external.location,
+                startsAt: external.startsAt,
+                endsAt: external.endsAt,
+                allDay: external.allDay,
+                reminders: external.reminders,
+                cancelled: external.cancelledOccurrence,
+              },
+              clock.now(),
+            )
+            existing.linkToExternal(
+              external.externalId,
+              external.etag,
+              clock.now(),
+              connection.id,
+            )
+          } else {
+            // Forced backfill of an unchanged event: refresh only the reminder
+            // offsets, leaving local content edits untouched.
+            existing.update({ reminders: external.reminders }, clock.now())
+          }
           await calendarEvents.save(existing)
           // A cancelled instance must not remind; an edited (moved) one should.
           if (!external.cancelledOccurrence) {
@@ -200,30 +219,37 @@ export function makePullCalendarChanges({
 
       if (existing) {
         // Last-writer-wins: only adopt the remote change when it is newer
-        // than what we hold locally.
-        if (external.updatedAt.getTime() <= existing.updatedAt.getTime()) {
+        // than what we hold locally. A forced backfill still runs, but only to
+        // refresh reminder offsets, never to overwrite newer local content.
+        const isNewer =
+          external.updatedAt.getTime() > existing.updatedAt.getTime()
+        if (!isNewer && !force) {
           return false
         }
-        existing.update(
-          {
-            title: external.title,
-            description: external.description,
-            location: external.location,
-            startsAt: external.startsAt,
-            endsAt: external.endsAt,
-            allDay: external.allDay,
-            reminders: external.reminders,
-            recurrence: external.recurrence,
-          },
-          clock.now(),
-        )
-        // Re-tag legacy events with their connection while re-syncing.
-        existing.linkToExternal(
-          external.externalId,
-          external.etag,
-          clock.now(),
-          connection.id,
-        )
+        if (isNewer) {
+          existing.update(
+            {
+              title: external.title,
+              description: external.description,
+              location: external.location,
+              startsAt: external.startsAt,
+              endsAt: external.endsAt,
+              allDay: external.allDay,
+              reminders: external.reminders,
+              recurrence: external.recurrence,
+            },
+            clock.now(),
+          )
+          // Re-tag legacy events with their connection while re-syncing.
+          existing.linkToExternal(
+            external.externalId,
+            external.etag,
+            clock.now(),
+            connection.id,
+          )
+        } else {
+          existing.update({ reminders: external.reminders }, clock.now())
+        }
         await calendarEvents.save(existing)
         await armReminders(existing)
         return true

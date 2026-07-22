@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       },
     )
     await getContainer()
-      .pullCalendarChanges(auth.userId)
+      .pullCalendarChanges(auth.userId, { force: true })
       .catch(() => undefined)
     return ok(result, 201)
   } catch (error) {

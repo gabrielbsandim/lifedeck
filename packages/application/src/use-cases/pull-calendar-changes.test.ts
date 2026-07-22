@@ -144,6 +144,88 @@ describe('pullCalendarChanges', () => {
     expect(thirty?.runAt.toISOString()).toBe('2026-06-25T08:30:00.000Z')
   })
 
+  it('force backfills reminders onto an unchanged event without clobbering content', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    // The local copy is newer than the remote, so a normal pull would skip it.
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId('dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'Dentist (local edit)',
+        startsAt: new Date('2026-06-25T09:00:00.000Z'),
+        endsAt: new Date('2026-06-25T10:00:00.000Z'),
+        source: 'google',
+        externalId: 'g-1',
+        now: NOW,
+      }),
+    )
+    const enqueue = vi.fn().mockResolvedValue(undefined)
+    const provider = providerWith({
+      // Remote is older (default updatedAt) but carries a reminder offset.
+      events: [external({ title: 'From Google', reminders: [15] })],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    const result = await pull(OWNER_ID, { force: true })
+
+    expect(result.applied).toBe(1)
+    const stored = await calendarEvents.findByExternalId(
+      asEntityId(OWNER_ID),
+      'g-1',
+    )
+    // Reminder imported, but the newer local title is preserved.
+    expect(stored?.reminders).toEqual([15])
+    expect(stored?.toJSON().title).toBe('Dentist (local edit)')
+    const reminders = enqueue.mock.calls
+      .map(call => call[0])
+      .filter(job => job.type === REMINDER_JOB)
+    expect(reminders.map(job => job.payload.minutesBefore)).toEqual([15])
+  })
+
+  it('leaves an unchanged event untouched without force', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId('dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'Dentist',
+        startsAt: new Date('2026-06-25T09:00:00.000Z'),
+        endsAt: new Date('2026-06-25T10:00:00.000Z'),
+        source: 'google',
+        externalId: 'g-1',
+        now: NOW,
+      }),
+    )
+    const enqueue = vi.fn().mockResolvedValue(undefined)
+    const provider = providerWith({
+      events: [external({ reminders: [15] })],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    expect((await pull(OWNER_ID)).applied).toBe(0)
+    expect(enqueue.mock.calls.some(call => call[0].type === REMINDER_JOB)).toBe(
+      false,
+    )
+  })
+
   it('does not arm reminders for a cancelled occurrence', async () => {
     const calendarConnections = await withConnection()
     const calendarEvents = new InMemoryCalendarEventRepository()

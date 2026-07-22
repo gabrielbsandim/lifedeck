@@ -61,7 +61,9 @@ export async function GET(request: Request) {
         userId,
         `${url.origin}/api/v1/webhooks/google`,
       )
-      await container.pullCalendarChanges(userId)
+      // Force a full pull on connect so reminders are captured and armed even
+      // for events that predate this connection's reminder support.
+      await container.pullCalendarChanges(userId, { force: true })
     } catch {
       // sync set-up will be retried by the periodic reconcile
     }

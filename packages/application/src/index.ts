@@ -316,6 +316,7 @@ export {
 export type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
 export { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 export { makeReconcileCalendars } from '@/use-cases/reconcile-calendars'
+export { makeEnqueueReminderBackfill } from '@/use-cases/enqueue-reminder-backfill'
 export { makeRenewCalendarChannels } from '@/use-cases/renew-calendar-channels'
 export { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
 export type { MessagingChannel } from '@/ports/messaging-channel'

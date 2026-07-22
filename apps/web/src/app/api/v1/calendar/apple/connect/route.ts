@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     // Seed the new calendar's events immediately; a failure here is non-fatal
     // (the periodic reconcile will catch up).
     await getContainer()
-      .pullCalendarChanges(auth.userId)
+      .pullCalendarChanges(auth.userId, { force: true })
       .catch(() => undefined)
     return ok(result, 201)
   } catch (error) {
