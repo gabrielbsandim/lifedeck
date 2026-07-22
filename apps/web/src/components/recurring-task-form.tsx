@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from 'react'
 import type { CreateRecurringTaskInput } from '@lifedeck/application'
-import { Button, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { todayIso } from '@/lib/api/dates'
 
@@ -29,8 +28,11 @@ export function weekdayLabels(locale: string): string[] {
   )
 }
 
-const fieldClass =
-  'border-line text-ink-800 focus-visible:border-brand-600 h-11 rounded-xl border bg-white px-3.5 text-sm outline-none'
+const inputClass =
+  'border-line text-ink-800 focus-visible:border-brand-600 h-12 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none'
+
+const stepperButtonClass =
+  'border-line text-brand-700 flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-lg leading-none'
 
 type RecurringTaskFormProps = {
   initial?: { title: string; rule: CreateRecurringTaskInput['rule'] }
@@ -46,6 +48,7 @@ export function RecurringTaskForm({
   onCancel,
 }: RecurringTaskFormProps) {
   const { messages, locale } = useI18n()
+  const t = messages.recurring
   const labels = weekdayLabels(locale)
 
   const [draft, setDraft] = useState<Draft>(() => ({
@@ -89,135 +92,155 @@ export function RecurringTaskForm({
     onSubmit({ title, rule })
   }
 
+  const frequencies: { value: Frequency; label: string }[] = [
+    { value: 'daily', label: t.daily },
+    { value: 'weekly', label: t.weekly },
+    { value: 'monthly', label: t.monthly },
+  ]
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-line bg-bg flex flex-col gap-4 rounded-2xl border p-4"
+      className="border-line flex flex-col gap-3.5 rounded-2xl border bg-white p-5 shadow-sm"
     >
-      <TextField
+      <input
         value={draft.title}
         onChange={event => patch({ title: event.target.value })}
-        placeholder={messages.recurring.titlePlaceholder}
-        aria-label={messages.recurring.titlePlaceholder}
+        placeholder={t.titlePlaceholder}
+        aria-label={t.titlePlaceholder}
         maxLength={280}
+        className={inputClass}
       />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.recurring.frequency}
-          </span>
-          <select
-            value={draft.freq}
-            onChange={event => patch({ freq: event.target.value as Frequency })}
-            className={fieldClass}
-          >
-            <option value="daily">{messages.recurring.daily}</option>
-            <option value="weekly">{messages.recurring.weekly}</option>
-            <option value="monthly">{messages.recurring.monthly}</option>
-          </select>
-        </label>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-xl bg-[oklch(0.97_0.005_265)] p-1">
+          {frequencies.map(frequency => {
+            const active = draft.freq === frequency.value
+            return (
+              <button
+                key={frequency.value}
+                type="button"
+                onClick={() => patch({ freq: frequency.value })}
+                aria-pressed={active}
+                className={
+                  active
+                    ? 'text-ink-900 rounded-lg bg-white px-4 py-2 text-[13px] font-semibold shadow-sm'
+                    : 'text-ink-500 rounded-lg px-4 py-2 text-[13px] font-semibold'
+                }
+              >
+                {frequency.label}
+              </button>
+            )
+          })}
+        </div>
 
+        <div className="border-line flex items-center gap-2.5 rounded-xl border bg-[oklch(0.985_0.004_265)] px-3 py-1.5">
+          <span className="text-ink-500 text-[13px]">{t.interval}</span>
+          <button
+            type="button"
+            aria-label="-"
+            onClick={() => patch({ interval: Math.max(1, draft.interval - 1) })}
+            className={stepperButtonClass}
+          >
+            −
+          </button>
+          <span className="text-ink-900 min-w-4 text-center text-[15px] font-bold">
+            {draft.interval}
+          </span>
+          <button
+            type="button"
+            aria-label="+"
+            onClick={() => patch({ interval: draft.interval + 1 })}
+            className={stepperButtonClass}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {draft.freq === 'weekly' && (
+        <div className="flex max-w-md gap-1.5">
+          {labels.map((label, day) => {
+            const active = draft.byWeekday.includes(day)
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => toggleWeekday(day)}
+                aria-pressed={active}
+                className={
+                  active
+                    ? 'border-brand-500 bg-brand-50 text-brand-700 h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
+                    : 'border-line text-ink-600 h-10 flex-1 rounded-xl border-[1.5px] bg-white text-xs font-semibold'
+                }
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {draft.freq === 'monthly' && (
         <label className="flex flex-col gap-1.5">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.recurring.interval}
+          <span className="text-ink-500 px-0.5 text-xs font-semibold uppercase tracking-wide">
+            {t.monthday}
           </span>
           <input
             type="number"
             min={1}
-            value={draft.interval}
+            max={31}
+            value={draft.byMonthday}
             onChange={event =>
-              patch({ interval: Number(event.target.value) || 1 })
+              patch({ byMonthday: Number(event.target.value) || 1 })
             }
-            className={`${fieldClass} w-20`}
+            className={`${inputClass} w-24`}
           />
         </label>
-
-        {draft.freq === 'monthly' && (
-          <label className="flex flex-col gap-1.5">
-            <span className="text-ink-700 text-sm font-medium">
-              {messages.recurring.monthday}
-            </span>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              value={draft.byMonthday}
-              onChange={event =>
-                patch({ byMonthday: Number(event.target.value) || 1 })
-              }
-              className={`${fieldClass} w-20`}
-            />
-          </label>
-        )}
-      </div>
-
-      {draft.freq === 'weekly' && (
-        <div className="flex flex-col gap-1.5">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.recurring.weekdays}
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {labels.map((label, day) => {
-              const active = draft.byWeekday.includes(day)
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleWeekday(day)}
-                  aria-pressed={active}
-                  className={
-                    active
-                      ? 'bg-brand-600 rounded-lg px-3 py-1.5 text-sm font-medium text-white'
-                      : 'border-line text-ink-700 rounded-lg border bg-white px-3 py-1.5 text-sm'
-                  }
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
       )}
 
       <div className="flex flex-wrap gap-3">
         <label className="flex flex-col gap-1.5">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.recurring.startDate}
+          <span className="text-ink-500 px-0.5 text-xs font-semibold uppercase tracking-wide">
+            {t.startDate}
           </span>
           <input
             type="date"
             value={draft.startDate}
             onChange={event => patch({ startDate: event.target.value })}
-            className={fieldClass}
+            className={inputClass}
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-ink-700 text-sm font-medium">
-            {messages.recurring.until}
+          <span className="text-ink-500 px-0.5 text-xs font-semibold uppercase tracking-wide">
+            {t.until}
           </span>
           <input
             type="date"
             value={draft.until}
             min={draft.startDate}
             onChange={event => patch({ until: event.target.value })}
-            className={fieldClass}
+            className={inputClass}
           />
         </label>
       </div>
 
       <div className="flex gap-2">
-        <Button
+        <button
           type="submit"
-          isLoading={isPending}
-          disabled={!draft.title.trim()}
+          disabled={!draft.title.trim() || isPending}
+          className="bg-brand-600 hover:bg-brand-700 flex h-11 items-center rounded-xl px-6 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {messages.recurring.save}
-        </Button>
+          {t.save}
+        </button>
         {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel}>
-            {messages.recurring.cancel}
-          </Button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border-line text-ink-700 hover:bg-bg flex h-11 items-center rounded-xl border bg-white px-5 text-sm font-semibold"
+          >
+            {t.cancel}
+          </button>
         )}
       </div>
     </form>

@@ -62,11 +62,15 @@ export const es: Messages = {
     edit: 'Editar',
     delete: 'Eliminar',
     back: 'Volver a hoy',
+    emptyTitle: 'Aún no se repite nada',
+    emptyBody:
+      'Crea tareas que vuelven solas — diarias, semanales o mensuales.',
+    emptyCta: 'Crear tarea recurrente',
   },
   habits: {
     manage: 'Hábitos',
     title: 'Hábitos',
-    subtitle: 'Crea rachas y deja que el asistente te recuerde.',
+    subtitle: 'Crea rachas y deja que el asistente te recuerde por WhatsApp.',
     add: 'Añadir hábito',
     empty: 'Aún no hay hábitos.',
     titlePlaceholder: 'Hábito, p. ej. Meditar',
@@ -88,10 +92,18 @@ export const es: Messages = {
     cancel: 'Cancelar',
     edit: 'Editar',
     delete: 'Eliminar',
-    upsellTitle: 'Registra más hábitos',
+    upsellTitle: 'Hábitos ilimitados en Pro',
     upsellBody:
-      'El plan gratis incluye un hábito. Mejora tu plan para hábitos ilimitados y recordatorios proactivos.',
-    upsellCta: 'Mejorar plan',
+      'El plan gratis incluye 1 hábito. Pásate a Pro para crear los que quieras y activar el check-in por WhatsApp.',
+    upsellCta: 'Ver planes',
+    emptyTitle: 'Empieza una racha',
+    emptyBody:
+      'Los pequeños hábitos diarios se vuelven grandes logros. Crea el primero.',
+    emptyCta: 'Crear hábito',
+    freePlan: 'PLAN GRATIS',
+    checkDo: 'Marcar como hecho',
+    checkDone: 'Hecho hoy',
+    streakAria: 'Racha actual',
   },
   nav: {
     today: 'Hoy',

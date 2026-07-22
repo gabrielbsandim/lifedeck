@@ -73,6 +73,9 @@ export type Messages = {
     edit: string
     delete: string
     back: string
+    emptyTitle: string
+    emptyBody: string
+    emptyCta: string
   }
   habits: {
     manage: string
@@ -102,6 +105,13 @@ export type Messages = {
     upsellTitle: string
     upsellBody: string
     upsellCta: string
+    emptyTitle: string
+    emptyBody: string
+    emptyCta: string
+    freePlan: string
+    checkDo: string
+    checkDone: string
+    streakAria: string
   }
   nav: {
     today: string

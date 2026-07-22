@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from 'react'
 import type { CreateHabitInput } from '@lifedeck/application'
-import { Button, TextField } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { weekdayLabels } from '@/components/recurring-task-form'
 
@@ -16,8 +15,8 @@ type Draft = {
   checkinHour: number | null
 }
 
-const fieldClass =
-  'border-line text-ink-800 focus-visible:border-brand-600 h-11 rounded-xl border bg-white px-3.5 text-sm outline-none'
+const inputClass =
+  'border-line text-ink-800 focus-visible:border-brand-600 h-12 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none'
 
 function initialDraft(initial?: HabitFormProps['initial']): Draft {
   const cadence = initial?.cadence
@@ -92,19 +91,22 @@ export function HabitForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-line bg-bg flex flex-col gap-4 rounded-2xl border p-4"
+      className="border-line flex flex-col gap-3.5 rounded-2xl border bg-white p-5 shadow-sm"
     >
-      <TextField
+      <input
         value={draft.title}
         onChange={event => patch({ title: event.target.value })}
         placeholder={t.titlePlaceholder}
         aria-label={t.titlePlaceholder}
         maxLength={120}
+        className={inputClass}
       />
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-ink-700 text-sm font-medium">{t.cadence}</span>
-        <div className="flex flex-wrap gap-1.5">
+        <span className="text-ink-500 px-0.5 text-xs font-semibold uppercase tracking-wide">
+          {t.cadence}
+        </span>
+        <div className="flex max-w-md gap-1 rounded-xl bg-[oklch(0.97_0.005_265)] p-1">
           {kinds.map(kind => {
             const active = draft.kind === kind.value
             return (
@@ -115,8 +117,8 @@ export function HabitForm({
                 aria-pressed={active}
                 className={
                   active
-                    ? 'bg-brand-600 rounded-lg px-3 py-1.5 text-sm font-medium text-white'
-                    : 'border-line text-ink-700 rounded-lg border bg-white px-3 py-1.5 text-sm'
+                    ? 'text-ink-900 flex-1 rounded-lg bg-white py-2 text-[12.5px] font-semibold shadow-sm'
+                    : 'text-ink-500 flex-1 rounded-lg py-2 text-[12.5px] font-semibold'
                 }
               >
                 {kind.label}
@@ -127,7 +129,7 @@ export function HabitForm({
       </div>
 
       {draft.kind === 'weekdays' && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex max-w-md gap-1.5">
           {labels.map((label, day) => {
             const active = draft.weekdays.includes(day)
             return (
@@ -138,8 +140,8 @@ export function HabitForm({
                 aria-pressed={active}
                 className={
                   active
-                    ? 'bg-brand-600 rounded-lg px-3 py-1.5 text-sm font-medium text-white'
-                    : 'border-line text-ink-700 rounded-lg border bg-white px-3 py-1.5 text-sm'
+                    ? 'border-brand-500 bg-brand-50 text-brand-700 h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
+                    : 'border-line text-ink-600 h-10 flex-1 rounded-xl border-[1.5px] bg-white text-xs font-semibold'
                 }
               >
                 {label}
@@ -150,28 +152,36 @@ export function HabitForm({
       )}
 
       {draft.kind === 'times_per_week' && (
-        <label className="flex items-center gap-2">
-          <input
-            type="number"
-            min={1}
-            max={7}
-            value={draft.count}
-            onChange={event =>
-              patch({
-                count: Math.min(
-                  7,
-                  Math.max(1, Number(event.target.value) || 1),
-                ),
-              })
-            }
-            className={`${fieldClass} w-20`}
-          />
-          <span className="text-ink-600 text-sm">{t.timesPerWeekUnit}</span>
-        </label>
+        <div className="border-line flex max-w-xs items-center justify-between rounded-xl border bg-[oklch(0.985_0.004_265)] px-3.5 py-2">
+          <span className="text-ink-700 text-sm">{t.timesPerWeekUnit}</span>
+          <div className="flex items-center gap-3.5">
+            <button
+              type="button"
+              aria-label="-"
+              onClick={() => patch({ count: Math.max(1, draft.count - 1) })}
+              className="border-line text-brand-700 flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-lg leading-none"
+            >
+              −
+            </button>
+            <span className="text-ink-900 min-w-5 text-center text-base font-bold">
+              {draft.count}
+            </span>
+            <button
+              type="button"
+              aria-label="+"
+              onClick={() => patch({ count: Math.min(7, draft.count + 1) })}
+              className="border-line text-brand-700 flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-lg leading-none"
+            >
+              +
+            </button>
+          </div>
+        </div>
       )}
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-ink-700 text-sm font-medium">{t.checkin}</span>
+        <span className="text-ink-500 px-0.5 text-xs font-semibold uppercase tracking-wide">
+          {t.checkin}
+        </span>
         <select
           value={draft.checkinHour === null ? '' : String(draft.checkinHour)}
           onChange={event =>
@@ -180,7 +190,7 @@ export function HabitForm({
                 event.target.value === '' ? null : Number(event.target.value),
             })
           }
-          className={fieldClass}
+          className={inputClass}
         >
           <option value="">{t.checkinNone}</option>
           {Array.from({ length: 24 }, (_, hour) => (
@@ -193,13 +203,21 @@ export function HabitForm({
       </label>
 
       <div className="flex gap-2">
-        <Button type="submit" isLoading={isPending} disabled={!canSubmit}>
+        <button
+          type="submit"
+          disabled={!canSubmit || isPending}
+          className="bg-brand-600 hover:bg-brand-700 flex h-11 items-center rounded-xl px-6 text-sm font-semibold text-white disabled:opacity-50"
+        >
           {t.save}
-        </Button>
+        </button>
         {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border-line text-ink-700 hover:bg-bg flex h-11 items-center rounded-xl border bg-white px-5 text-sm font-semibold"
+          >
             {t.cancel}
-          </Button>
+          </button>
         )}
       </div>
     </form>
