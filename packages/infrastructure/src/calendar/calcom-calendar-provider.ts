@@ -66,6 +66,8 @@ function toExternalEvent(booking: CalcomBooking): ExternalCalendarEvent | null {
     allDay: false,
     // Bookings are single meetings, never an RRULE series.
     recurrence: null,
+    // cal.com owns its own booking reminders; we import none.
+    reminders: [],
     updatedAt: new Date(booking.updatedAt ?? start),
     recurringEventExternalId: null,
     originalStartsAt: null,

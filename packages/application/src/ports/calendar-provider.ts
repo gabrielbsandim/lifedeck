@@ -15,6 +15,10 @@ export type ExternalCalendarEvent = {
   endsAt: Date
   allDay: boolean
   recurrence: RecurrenceRule | null
+  // Minutes-before offsets the remote calendar carries for this event, so a
+  // synced event fires the same lead-time reminders a locally created one does.
+  // Empty when the provider has no reminder data.
+  reminders: number[]
   updatedAt: Date
   // `deleted` removes a top-level event's row. Occurrence overrides never delete
   // a row: `recurringEventExternalId` links them to the series master and

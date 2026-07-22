@@ -233,6 +233,57 @@ describe('GoogleCalendarProvider', () => {
       expect(page.events[2]?.title).toBe('(no title)')
     })
 
+    it('maps explicit reminder overrides to sorted, deduped minute offsets', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          items: [
+            googleEvent({
+              reminders: {
+                useDefault: false,
+                overrides: [
+                  { method: 'popup', minutes: 30 },
+                  { method: 'email', minutes: 30 },
+                  { method: 'popup', minutes: 10 },
+                ],
+              },
+            }),
+          ],
+          defaultReminders: [{ method: 'popup', minutes: 60 }],
+          nextSyncToken: 'sync-1',
+        }),
+      )
+      const page = await provider().listChanges(connection())
+      // Overrides win over the calendar default; popup/email at 30 collapse to one.
+      expect(page.events[0]?.reminders).toEqual([10, 30])
+    })
+
+    it('falls back to the calendar default reminders when useDefault is set', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          items: [googleEvent({ reminders: { useDefault: true } })],
+          defaultReminders: [
+            { method: 'popup', minutes: 15 },
+            { method: 'email', minutes: 1440 },
+          ],
+          nextSyncToken: 'sync-1',
+        }),
+      )
+      const page = await provider().listChanges(connection())
+      expect(page.events[0]?.reminders).toEqual([15, 1440])
+    })
+
+    it('carries no reminders when the event opts out of defaults', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          items: [googleEvent({ reminders: { useDefault: false } })],
+          defaultReminders: [{ method: 'popup', minutes: 15 }],
+          nextSyncToken: 'sync-1',
+        }),
+      )
+      const page = await provider().listChanges(connection())
+      expect(page.events[0]?.reminders).toEqual([])
+    })
+
     it('maps a recurring master into a recurrence rule', async () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({

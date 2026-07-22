@@ -45,6 +45,36 @@ type GoogleEvent = {
   recurrence?: string[]
   recurringEventId?: string
   originalStartTime?: GoogleSlot
+  reminders?: { useDefault?: boolean; overrides?: GoogleReminder[] }
+}
+
+type GoogleReminder = { method?: string; minutes?: number }
+
+// The most reminders the domain accepts per event; Google can in theory list
+// more, so cap before handing them over to avoid a validation throw.
+const MAX_REMINDERS = 5
+
+// Fold Google's reminder settings into plain minutes-before offsets: explicit
+// overrides win, otherwise the calendar's defaults apply when `useDefault` is
+// set. The delivery method (popup/email) is irrelevant here, we own the channel,
+// so distinct methods at the same minute collapse to one offset.
+function mapReminders(
+  reminders: GoogleEvent['reminders'],
+  defaults: GoogleReminder[],
+): number[] {
+  if (!reminders) {
+    return []
+  }
+  const source =
+    reminders.overrides && reminders.overrides.length > 0
+      ? reminders.overrides
+      : reminders.useDefault
+        ? defaults
+        : []
+  const minutes = source
+    .map(entry => entry.minutes)
+    .filter((value): value is number => typeof value === 'number' && value >= 0)
+  return [...new Set(minutes)].sort((a, b) => a - b).slice(0, MAX_REMINDERS)
 }
 
 function parseSlot(slot: GoogleSlot | undefined): Date | null {
@@ -57,7 +87,10 @@ function parseSlot(slot: GoogleSlot | undefined): Date | null {
   return null
 }
 
-function toExternalEvent(item: GoogleEvent): ExternalCalendarEvent {
+function toExternalEvent(
+  item: GoogleEvent,
+  defaultReminders: GoogleReminder[],
+): ExternalCalendarEvent {
   const originalStartsAt = parseSlot(item.originalStartTime)
   const isOccurrence = Boolean(item.recurringEventId)
   // A cancelled single instance arrives without start/end, so fall back to its
@@ -84,6 +117,7 @@ function toExternalEvent(item: GoogleEvent): ExternalCalendarEvent {
           item.recurrence,
           startsAt.toISOString().slice(0, 10),
         ),
+    reminders: mapReminders(item.reminders, defaultReminders),
     updatedAt: item.updated ? new Date(item.updated) : new Date(0),
     recurringEventExternalId: item.recurringEventId ?? null,
     originalStartsAt,
@@ -337,17 +371,21 @@ export class GoogleCalendarProvider implements CalendarProvider {
         items?: GoogleEvent[]
         nextPageToken?: string
         nextSyncToken?: string
+        defaultReminders?: GoogleReminder[]
       }>(
         'GET',
         `/calendars/${encodeURIComponent(connection.calendarId)}/events?${params.toString()}`,
         connection.accessToken,
       )
+      // Google returns the calendar's default reminders once at the top of every
+      // page; events with `reminders.useDefault` inherit these.
+      const defaultReminders = page.defaultReminders ?? []
       for (const item of page.items ?? []) {
         // Exceptions to a recurring series (edited or cancelled instances) carry
         // recurringEventId; we store them as occurrence overrides so expansion
         // can move or hide that single instance. The series master arrives as a
         // separate item with its RRULE.
-        events.push(toExternalEvent(item))
+        events.push(toExternalEvent(item, defaultReminders))
       }
       pageToken = page.nextPageToken
       nextSyncToken = page.nextSyncToken ?? nextSyncToken

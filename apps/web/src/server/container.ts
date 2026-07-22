@@ -488,6 +488,7 @@ function build(
     calendarConnections,
     calendarEvents,
     providers: calendarProviders,
+    jobQueue,
     ids,
     clock,
   })

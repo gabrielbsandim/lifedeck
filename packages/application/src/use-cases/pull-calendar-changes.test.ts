@@ -4,6 +4,7 @@ import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { InMemoryCalendarConnectionRepository } from '@/testing/in-memory-calendar-connection-repository'
 import { makePullCalendarChanges } from '@/use-cases/pull-calendar-changes'
+import { REMINDER_JOB } from '@/use-cases/reminder-jobs'
 import type {
   CalendarProvider,
   CalendarSyncPage,
@@ -34,6 +35,7 @@ function external(
     endsAt: new Date('2026-06-25T10:00:00.000Z'),
     allDay: false,
     recurrence: null,
+    reminders: [],
     updatedAt: new Date('2026-06-24T09:00:00.000Z'),
     recurringEventExternalId: null,
     originalStartsAt: null,
@@ -93,6 +95,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -109,6 +112,68 @@ describe('pullCalendarChanges', () => {
       asEntityId(OWNER_ID),
     )
     expect(connection?.syncToken).toBe('sync-2')
+  })
+
+  it('arms reminder jobs for a synced event that carries reminders', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const enqueue = vi.fn().mockResolvedValue(undefined)
+    const provider = providerWith({
+      events: [external({ reminders: [10, 30] })],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    await pull(OWNER_ID)
+
+    const reminders = enqueue.mock.calls
+      .map(call => call[0])
+      .filter(job => job.type === REMINDER_JOB)
+    expect(
+      reminders.map(job => job.payload.minutesBefore).sort((a, b) => a - b),
+    ).toEqual([10, 30])
+    // The event starts 2026-06-25T09:00Z, so the 30-min reminder fires at 08:30.
+    const thirty = reminders.find(job => job.payload.minutesBefore === 30)
+    expect(thirty?.runAt.toISOString()).toBe('2026-06-25T08:30:00.000Z')
+  })
+
+  it('does not arm reminders for a cancelled occurrence', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const enqueue = vi.fn().mockResolvedValue(undefined)
+    const provider = providerWith({
+      events: [
+        external({
+          externalId: 'g-master_20260715T180000Z',
+          recurringEventExternalId: 'g-master',
+          originalStartsAt: new Date('2026-07-15T18:00:00.000Z'),
+          cancelledOccurrence: true,
+          reminders: [10],
+        }),
+      ],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    await pull(OWNER_ID)
+
+    expect(enqueue.mock.calls.some(call => call[0].type === REMINDER_JOB)).toBe(
+      false,
+    )
   })
 
   it('stores a cancelled occurrence as an override, not a deletion', async () => {
@@ -131,6 +196,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -182,6 +248,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -220,6 +287,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -261,6 +329,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -297,6 +366,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -318,6 +388,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -341,6 +412,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -389,6 +461,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -432,6 +505,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -488,6 +562,7 @@ describe('pullCalendarChanges', () => {
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })
@@ -503,6 +578,7 @@ describe('pullCalendarChanges', () => {
       providers: {
         get: () => providerWith({ events: [], nextSyncToken: null }),
       },
+      jobQueue: { enqueue: vi.fn() },
       ids,
       clock: { now: () => NOW },
     })

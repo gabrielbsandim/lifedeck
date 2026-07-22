@@ -12,11 +12,14 @@ import type {
   CalendarProviderRegistry,
   ExternalCalendarEvent,
 } from '@/ports/calendar-provider'
+import type { JobQueue } from '@/ports/job-queue'
+import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
   calendarEvents: CalendarEventRepository
   providers: CalendarProviderRegistry
+  jobQueue: JobQueue
   ids: IdGenerator
   clock: Clock
 }
@@ -29,9 +32,32 @@ export function makePullCalendarChanges({
   calendarConnections,
   calendarEvents,
   providers,
+  jobQueue,
   ids,
   clock,
 }: Dependencies) {
+  // Arm a reminder job for each of the event's offsets whose fire time is still
+  // in the future, mirroring create/update-calendar-event. deliverReminder
+  // dedups against already-delivered notifications, so re-arming on every sync
+  // that applies a change never double-delivers.
+  async function armReminders(event: CalendarEvent): Promise<void> {
+    const startsAt = event.startsAt.getTime()
+    for (const minutesBefore of event.reminders) {
+      const fireAt = startsAt - minutesBefore * MINUTE_MS
+      if (fireAt > clock.now().getTime()) {
+        await jobQueue.enqueue({
+          type: REMINDER_JOB,
+          payload: {
+            eventId: event.id as string,
+            userId: event.ownerId as string,
+            minutesBefore,
+          },
+          runAt: new Date(fireAt),
+        })
+      }
+    }
+  }
+
   return async function pullCalendarChanges(
     ownerId: string,
   ): Promise<CalendarPullResult> {
@@ -119,6 +145,7 @@ export function makePullCalendarChanges({
               startsAt: external.startsAt,
               endsAt: external.endsAt,
               allDay: external.allDay,
+              reminders: external.reminders,
               cancelled: external.cancelledOccurrence,
             },
             clock.now(),
@@ -130,6 +157,10 @@ export function makePullCalendarChanges({
             connection.id,
           )
           await calendarEvents.save(existing)
+          // A cancelled instance must not remind; an edited (moved) one should.
+          if (!external.cancelledOccurrence) {
+            await armReminders(existing)
+          }
           return true
         }
         const override = CalendarEvent.create({
@@ -141,6 +172,7 @@ export function makePullCalendarChanges({
           startsAt: external.startsAt,
           endsAt: external.endsAt,
           allDay: external.allDay,
+          reminders: external.reminders,
           recurrenceMasterExternalId: external.recurringEventExternalId,
           originalStartsAt: external.originalStartsAt,
           cancelled: external.cancelledOccurrence,
@@ -152,6 +184,9 @@ export function makePullCalendarChanges({
         })
         override.markSynced(external.etag, clock.now())
         await calendarEvents.save(override)
+        if (!external.cancelledOccurrence) {
+          await armReminders(override)
+        }
         return true
       }
 
@@ -177,6 +212,7 @@ export function makePullCalendarChanges({
             startsAt: external.startsAt,
             endsAt: external.endsAt,
             allDay: external.allDay,
+            reminders: external.reminders,
             recurrence: external.recurrence,
           },
           clock.now(),
@@ -189,6 +225,7 @@ export function makePullCalendarChanges({
           connection.id,
         )
         await calendarEvents.save(existing)
+        await armReminders(existing)
         return true
       }
 
@@ -201,6 +238,7 @@ export function makePullCalendarChanges({
         startsAt: external.startsAt,
         endsAt: external.endsAt,
         allDay: external.allDay,
+        reminders: external.reminders,
         recurrence: external.recurrence,
         source: connection.provider,
         connectionId: connection.id,
@@ -210,6 +248,7 @@ export function makePullCalendarChanges({
       })
       created.markSynced(external.etag, clock.now())
       await calendarEvents.save(created)
+      await armReminders(created)
       return true
     }
   }
