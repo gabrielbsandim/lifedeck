@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getContainer } from '@/server/container'
-import { handleError, ok } from '@/server/api/respond'
+import { handleError, okSession } from '@/server/api/respond'
 import { enforceAuthRateLimit } from '@/server/api/auth-guard'
 import {
   SESSION_COOKIE,
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const user = await getContainer().signInWithEmail(body)
     const token = await createSessionToken(user.id, new Date())
 
-    const response = ok(user)
+    const response = okSession(user, token)
     response.cookies.set(
       SESSION_COOKIE,
       token,

@@ -68,12 +68,34 @@ export function parseSessionCookie(request: Request): string | null {
   return null
 }
 
+// Native clients have no cookie jar, so they send the same session JWT as a
+// Bearer token. API keys (tk_live_...) are a different scheme owned by the
+// API-key authenticator, so they are deliberately ignored here.
+export function parseSessionBearer(request: Request): string | null {
+  const authorization = request.headers.get('authorization')
+  if (!authorization?.startsWith('Bearer ')) {
+    return null
+  }
+  const token = authorization.slice('Bearer '.length).trim()
+  if (!token || token.startsWith('tk_live_')) {
+    return null
+  }
+  return token
+}
+
 export async function getUserIdFromRequest(
   request: Request,
 ): Promise<string | null> {
-  const token = parseSessionCookie(request)
-  if (!token) {
-    return null
+  const cookieToken = parseSessionCookie(request)
+  if (cookieToken) {
+    const userId = await readSessionToken(cookieToken)
+    if (userId) {
+      return userId
+    }
   }
-  return readSessionToken(token)
+  const bearerToken = parseSessionBearer(request)
+  if (bearerToken) {
+    return readSessionToken(bearerToken)
+  }
+  return null
 }

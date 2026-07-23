@@ -1,0 +1,11 @@
+{
+  "extends": "@lifedeck/config/tsconfig/library.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "noEmit": true,
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["src", "vitest.config.ts", "tsup.config.ts"]
+}

@@ -22,6 +22,7 @@
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
     "@lifedeck/application": "workspace:*",
+    "@lifedeck/client": "workspace:*",
     "@lifedeck/domain": "workspace:*",
     "@lifedeck/i18n": "workspace:*",
     "@lifedeck/infrastructure": "workspace:*",

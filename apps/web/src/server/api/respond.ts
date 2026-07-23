@@ -21,6 +21,17 @@ export function ok<T>(data: T, status = 200): NextResponse {
   return NextResponse.json({ data }, { status })
 }
 
+// Session-issuing endpoints return the signed token alongside the payload so
+// native clients (no cookie jar) can persist it and send it as a Bearer header.
+// The web ignores the sibling `token` and keeps reading the httpOnly cookie.
+export function okSession<T>(
+  data: T,
+  token: string,
+  status = 200,
+): NextResponse {
+  return NextResponse.json({ data, token }, { status })
+}
+
 export function okPage<T>(
   page: { items: T[]; nextCursor: string | null },
   status = 200,
