@@ -48,3 +48,28 @@ body {
     transform: scale(1);
   }
 }
+
+/* The assistant chat: a card sliding up as it lands, and the typing dots. */
+@keyframes ld-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ld-typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}

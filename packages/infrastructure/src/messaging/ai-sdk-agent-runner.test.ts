@@ -303,7 +303,7 @@ describe('AiSdkAgentRunner.run', () => {
       message: 'what is on today?',
       history: [],
     })
-    expect(reply).toEqual({ text: 'assistant reply' })
+    expect(reply).toEqual({ text: 'assistant reply', actions: [] })
 
     const call = genCall()
     expect(call.model).toBe('flash-model')
@@ -313,6 +313,53 @@ describe('AiSdkAgentRunner.run', () => {
       role: 'user',
       content: 'what is on today?',
     })
+  })
+
+  it('surfaces card-worthy tool results as actions, dropping the rest', async () => {
+    generateTextMock.mockResolvedValue({
+      text: 'Added it',
+      steps: [
+        {
+          toolResults: [
+            { toolName: 'getLists', input: {}, output: { lists: [] } },
+            {
+              toolName: 'addTask',
+              input: { title: 'Buy milk' },
+              output: { id: 't1', added: true },
+            },
+          ],
+        },
+        {
+          toolResults: [
+            {
+              toolName: 'addEvent',
+              input: { title: 'Lunch', startsAt: '2026-06-24T12:00:00-03:00' },
+              output: { id: 'e1', added: true },
+            },
+          ],
+        },
+      ],
+    } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'add buy milk and schedule lunch',
+      history: [],
+    })
+
+    expect(reply.text).toBe('Added it')
+    expect(reply.actions).toEqual([
+      {
+        tool: 'addTask',
+        input: { title: 'Buy milk' },
+        result: { id: 't1', added: true },
+      },
+      {
+        tool: 'addEvent',
+        input: { title: 'Lunch', startsAt: '2026-06-24T12:00:00-03:00' },
+        result: { id: 'e1', added: true },
+      },
+    ])
   })
 
   it('selects the pro model when the pro tier is requested', async () => {

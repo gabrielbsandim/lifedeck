@@ -649,6 +649,52 @@ export type Messages = {
     error: string
     backToToday: string
   }
+  assistant: {
+    name: string
+    statusOnline: string
+    statusTyping: string
+    newConversation: string
+    welcomeTitle: string
+    welcomeBody: string
+    inputPlaceholder: string
+    send: string
+    attach: string
+    recordAudio: string
+    // Suggestion chips shown on an empty thread: concrete example requests the
+    // user can tap to send as-is, teaching what the assistant can do. Each is
+    // both the visible label and the message sent.
+    chips: {
+      addTask: string
+      scheduleEvent: string
+      today: string
+      createList: string
+      createHabit: string
+      freeTime: string
+    }
+    // Inline "receipt" cards rendered from the assistant's tool actions.
+    cards: {
+      taskAdded: string
+      eventScheduled: string
+      habitCreated: string
+      listCreated: string
+      today: string
+      tasks: string
+      events: string
+      noEvents: string
+      freeSlot: string
+      openList: string
+      openDay: string
+      bookSlot: string
+    }
+    errorTitle: string
+    retry: string
+    planBadge: string
+    lockedTitle: string
+    lockedBody: string
+    quotaTitle: string
+    quotaBody: string
+    upgrade: string
+  }
   auth: {
     createAccount: string
     createAccountSubtitle: string

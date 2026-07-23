@@ -19,6 +19,7 @@ vi.mock('@upstash/ratelimit', () => ({
 }))
 
 import {
+  checkAssistantRateLimit,
   checkAuthRateLimit,
   checkGenerateRateLimit,
   checkGuestSessionRateLimit,
@@ -74,6 +75,12 @@ describe('rate limit', () => {
     const result = await checkGuestSessionRateLimit('guest:1.2.3.4')
     expect(result.ok).toBe(true)
     expect(result.limit).toBe(5)
+  })
+
+  it('allows assistant chat turns when Upstash is not configured', async () => {
+    const result = await checkAssistantRateLimit('assistant:abc')
+    expect(result.ok).toBe(true)
+    expect(result.limit).toBe(15)
   })
 
   it('prefers the platform x-real-ip over a spoofable x-forwarded-for', () => {

@@ -46,6 +46,12 @@ const GUEST_LIMIT: LimiterConfig = {
   prefix: 'lifedeck/ratelimit/guest',
 }
 
+const ASSISTANT_LIMIT: LimiterConfig = {
+  requests: 15,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/assistant',
+}
+
 export type RateLimitResult = {
   ok: boolean
   limit: number
@@ -142,6 +148,12 @@ export function checkGuestSessionRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
   return check(GUEST_LIMIT, identifier)
+}
+
+export function checkAssistantRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(ASSISTANT_LIMIT, identifier)
 }
 
 export function clientIp(request: Request): string {

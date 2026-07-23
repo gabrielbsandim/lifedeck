@@ -34,6 +34,7 @@ import {
   makeStartWhatsappPairing,
   makeGetWhatsappChannel,
   makeHandleInboundWhatsApp,
+  makeHandleInAppMessage,
   makeHandleCalendarNotification,
   makePullCalendarChanges,
   makePushCalendarEvent,
@@ -329,6 +330,7 @@ type Container = {
   startWhatsappPairing: ReturnType<typeof makeStartWhatsappPairing>
   getWhatsappChannel: ReturnType<typeof makeGetWhatsappChannel>
   handleInboundWhatsApp: ReturnType<typeof makeHandleInboundWhatsApp>
+  handleInAppMessage: ReturnType<typeof makeHandleInAppMessage>
   entitlements: EntitlementService
 }
 
@@ -1059,6 +1061,20 @@ function build(
         info: (message, meta) => log('info', message, meta),
       },
       whatsappSession,
+    }),
+    handleInAppMessage: makeHandleInAppMessage({
+      entitlements: entitlementService,
+      consumeCredits,
+      refundCredits,
+      agent,
+      conversations,
+      transcriber,
+      visionReader,
+      logger: {
+        error: (message, meta) => log('error', message, meta),
+        warn: (message, meta) => log('warn', message, meta),
+        info: (message, meta) => log('info', message, meta),
+      },
     }),
     entitlements: entitlementService,
   }

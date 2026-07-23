@@ -341,10 +341,16 @@ export {
   type InboundWhatsappResult,
   type InboundWhatsappAction,
 } from '@/use-cases/handle-inbound-whatsapp'
+export {
+  makeHandleInAppMessage,
+  type InAppMessage,
+  type InAppAssistantResult,
+} from '@/use-cases/handle-in-app-message'
 export type {
   AgentRunner,
   AgentRunInput,
   AgentReply,
+  AgentAction,
   AgentModelTier,
 } from '@/ports/agent-runner'
 export type {

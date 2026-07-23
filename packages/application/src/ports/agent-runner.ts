@@ -18,8 +18,23 @@ export type AgentRunInput = {
   entitlements?: Entitlement[]
 }
 
+// A card-worthy action the assistant took this turn: a tool it ran that the
+// client renders as an inline "receipt" card (task added, event scheduled, list
+// created, the day's overview, weather, a free slot). The client maps it by
+// `tool` name, reading display data from `input` (the arguments the model
+// passed, e.g. a task title or event time — mutation results only carry an id)
+// and richer payloads from `result` (the tool's return value, e.g. the day's
+// tasks or a weather lookup). Non-card tools (lookups, deletes) are omitted. The
+// WhatsApp channel ignores this; only the in-app chat renders it.
+export type AgentAction = {
+  tool: string
+  input: unknown
+  result: unknown
+}
+
 export type AgentReply = {
   text: string
+  actions?: AgentAction[]
 }
 
 export interface AgentRunner {

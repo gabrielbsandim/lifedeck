@@ -4,6 +4,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import type { Entitlement } from '@lifedeck/domain'
 import type {
+  AgentAction,
   AgentReply,
   AgentRunInput,
   AgentRunner,
@@ -12,6 +13,39 @@ import type {
 } from '@lifedeck/application'
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
+
+// Tools whose result the in-app chat renders as an inline card. Lookups used
+// only to resolve ids (getLists, getAgenda, getHabits) and plain mutations
+// (complete/delete/rename) are omitted — the assistant's sentence covers those.
+const CARD_TOOLS = new Set<string>([
+  'addTask',
+  'addEvent',
+  'addHabit',
+  'createList',
+  'getToday',
+  'getWeather',
+  'findTime',
+])
+
+type ToolResultLike = { toolName: string; input: unknown; output: unknown }
+
+// Pulls the card-worthy tool results out of a multi-step generation so the chat
+// UI can show a receipt for each action the assistant took this turn. Both the
+// input (a task title, an event time) and the output (a day's tasks, a weather
+// lookup) are kept, since a mutation's return value is only an id.
+function collectActions(
+  steps: ReadonlyArray<{ toolResults?: readonly unknown[] }> = [],
+): AgentAction[] {
+  const actions: AgentAction[] = []
+  for (const step of steps) {
+    for (const tr of (step.toolResults ?? []) as ToolResultLike[]) {
+      if (CARD_TOOLS.has(tr.toolName)) {
+        actions.push({ tool: tr.toolName, input: tr.input, result: tr.output })
+      }
+    }
+  }
+  return actions
+}
 
 // Tools that require a plan entitlement to be exposed to the model. A tool not
 // listed here is part of the baseline WhatsApp assistant and always available.
@@ -514,14 +548,14 @@ export class AiSdkAgentRunner implements AgentRunner {
       })),
       userMessage,
     ]
-    const { text } = await generateText({
+    const result = await generateText({
       model: input.model === 'pro' ? this.proModel : this.flashModel,
       system: await this.systemPromptFor(input.userId),
       messages,
       tools: gateTools(this.toolsFor(input.userId), input.entitlements ?? []),
       stopWhen: stepCountIs(5),
     })
-    return { text }
+    return { text: result.text, actions: collectActions(result.steps) }
   }
 }
 
