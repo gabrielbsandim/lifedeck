@@ -29,14 +29,45 @@ const REFRESH_KEYS: Record<string, readonly (readonly unknown[])[]> = {
   addEvent: [['calendar-events'], ['daily-board']],
 }
 
+// One outbound turn: text, a photo, or a voice note (never more than one). Text
+// goes as JSON; media goes as multipart so the raw bytes reach the same agent.
+export type AssistantSendInput = {
+  text?: string
+  image?: Blob
+  audio?: Blob
+  locale?: string
+}
+
+function sendMessage(input: AssistantSendInput): Promise<AssistantReply> {
+  if (input.image || input.audio) {
+    const form = new FormData()
+    if (input.locale) {
+      form.append('locale', input.locale)
+    }
+    if (input.text) {
+      form.append('text', input.text)
+    }
+    if (input.image) {
+      form.append('image', input.image, 'photo')
+    }
+    if (input.audio) {
+      form.append('audio', input.audio, 'note')
+    }
+    return apiRequest<AssistantReply>('/api/v1/assistant/chat', {
+      method: 'POST',
+      body: form,
+    })
+  }
+  return apiRequest<AssistantReply>('/api/v1/assistant/chat', {
+    method: 'POST',
+    body: JSON.stringify({ text: input.text, locale: input.locale }),
+  })
+}
+
 export function useSendAssistantMessage() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: { text: string; locale?: string }) =>
-      apiRequest<AssistantReply>('/api/v1/assistant/chat', {
-        method: 'POST',
-        body: JSON.stringify(input),
-      }),
+    mutationFn: sendMessage,
     onSuccess: reply => {
       // Refresh only the screens the assistant's actions actually touched, so a
       // task it added shows up on Today without a manual reload.

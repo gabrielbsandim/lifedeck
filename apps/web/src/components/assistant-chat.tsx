@@ -14,14 +14,18 @@ import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useSendAssistantMessage,
   type AssistantAction,
+  type AssistantSendInput,
 } from '@/lib/api/use-assistant'
 import { CalendarIcon, CheckIcon, SparkleIcon } from '@/components/icons'
 
 // One entry in the visible thread. User turns and the assistant's words are
-// text; a card is a receipt for a tool the assistant ran; error and upsell are
-// system states rendered inline like the assistant is speaking.
+// text; a photo or a voice note is a media turn; a card is a receipt for a tool
+// the assistant ran; error and upsell are system states rendered inline like the
+// assistant is speaking.
 type ChatItem =
   | { id: string; kind: 'user'; text: string }
+  | { id: string; kind: 'user-image'; url: string }
+  | { id: string; kind: 'user-voice' }
   | { id: string; kind: 'assistant'; text: string }
   | { id: string; kind: 'card'; action: AssistantAction }
   | { id: string; kind: 'error' }
@@ -56,7 +60,16 @@ export function AssistantChat() {
   const [items, setItems] = useState<ChatItem[]>([])
   const [input, setInput] = useState('')
   const [locked, setLocked] = useState(false)
-  const lastUserText = useRef('')
+  const [recording, setRecording] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+  const lastTurn = useRef<
+    { input: AssistantSendInput; optimistic: ChatItem }[]
+  >([])
+  const fileInput = useRef<HTMLInputElement>(null)
+  const recorder = useRef<MediaRecorder | null>(null)
+  const chunks = useRef<Blob[]>([])
+  const shouldSend = useRef(false)
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
   const bottom = useRef<HTMLDivElement>(null)
 
   const isEmpty = items.length === 0
@@ -67,20 +80,23 @@ export function AssistantChat() {
     bottom.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' })
   }, [items, pending])
 
-  const dispatch = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim()
-      if (!trimmed || pending) {
+  // Send one turn (text, image, or voice) and fold the reply into the thread.
+  // `optimistic` is the user bubble to show immediately; on a retry it is already
+  // in the thread, so pass null to skip re-adding it.
+  const runTurn = useCallback(
+    async (payload: AssistantSendInput, optimistic: ChatItem | null) => {
+      if (pending) {
         return
       }
-      lastUserText.current = trimmed
-      setItems(prev => [
-        ...prev.filter(item => item.kind !== 'error'),
-        { id: nextId(), kind: 'user', text: trimmed },
-      ])
-      setInput('')
+      if (optimistic) {
+        lastTurn.current = [{ input: payload, optimistic }]
+      }
+      setItems(prev => {
+        const cleaned = prev.filter(item => item.kind !== 'error')
+        return optimistic ? [...cleaned, optimistic] : cleaned
+      })
       try {
-        const reply = await send.mutateAsync({ text: trimmed, locale })
+        const reply = await send.mutateAsync(payload)
         setItems(prev => {
           const next = [...prev]
           if (reply.text.trim()) {
@@ -110,8 +126,101 @@ export function AssistantChat() {
         setItems(prev => [...prev, { id: nextId(), kind: 'error' }])
       }
     },
-    [locale, pending, send],
+    [pending, send],
   )
+
+  const dispatch = useCallback(
+    (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed) {
+        return
+      }
+      setInput('')
+      void runTurn(
+        { text: trimmed, locale },
+        { id: nextId(), kind: 'user', text: trimmed },
+      )
+    },
+    [locale, runTurn],
+  )
+
+  function sendImage(file: File) {
+    void runTurn(
+      { image: file, locale },
+      { id: nextId(), kind: 'user-image', url: URL.createObjectURL(file) },
+    )
+  }
+
+  function onPickImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) {
+      sendImage(file)
+    }
+  }
+
+  function retry() {
+    const last = lastTurn.current[0]
+    if (last) {
+      void runTurn(last.input, null)
+    }
+  }
+
+  function clearTimer() {
+    if (timer.current) {
+      clearInterval(timer.current)
+      timer.current = null
+    }
+  }
+
+  async function startRecording() {
+    if (pending || locked || !navigator.mediaDevices?.getUserMedia) {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        window.alert(t.micUnavailable)
+      }
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const rec = new MediaRecorder(stream)
+      chunks.current = []
+      shouldSend.current = false
+      rec.ondataavailable = event => {
+        if (event.data.size > 0) {
+          chunks.current.push(event.data)
+        }
+      }
+      rec.onstop = () => {
+        stream.getTracks().forEach(track => track.stop())
+        clearTimer()
+        setRecording(false)
+        const blob = new Blob(chunks.current, {
+          type: rec.mimeType || 'audio/webm',
+        })
+        if (shouldSend.current && blob.size > 0) {
+          void runTurn(
+            { audio: blob, locale },
+            { id: nextId(), kind: 'user-voice' },
+          )
+        }
+      }
+      rec.start()
+      recorder.current = rec
+      setRecording(true)
+      setElapsed(0)
+      timer.current = setInterval(() => setElapsed(prev => prev + 1), 1000)
+    } catch {
+      window.alert(t.micUnavailable)
+    }
+  }
+
+  function stopRecording(shouldDeliver: boolean) {
+    shouldSend.current = shouldDeliver
+    recorder.current?.stop()
+    recorder.current = null
+  }
+
+  useEffect(() => () => clearTimer(), [])
 
   function onSubmit() {
     void dispatch(input)
@@ -130,7 +239,8 @@ export function AssistantChat() {
     setLocked(false)
   }
 
-  const canSend = input.trim().length > 0 && !pending && !locked
+  const hasText = input.trim().length > 0
+  const canSend = hasText && !pending && !locked
 
   return (
     <div className="flex min-h-[calc(100dvh-9rem)] flex-col">
@@ -194,6 +304,32 @@ export function AssistantChat() {
               </div>
             )
           }
+          if (item.kind === 'user-image') {
+            // A background-image div (not <img>) sidesteps next/no-img-element
+            // for what is only an outbound thumbnail of the user's own upload.
+            return (
+              <div key={item.id} className="flex justify-end">
+                <div
+                  role="img"
+                  aria-label={t.photo}
+                  className="h-48 w-48 max-w-[70%] rounded-2xl rounded-br-sm bg-cover bg-center"
+                  style={{ backgroundImage: `url(${item.url})` }}
+                />
+              </div>
+            )
+          }
+          if (item.kind === 'user-voice') {
+            return (
+              <div key={item.id} className="flex justify-end">
+                <div className="bg-brand-600 flex max-w-[78%] items-center gap-2.5 rounded-2xl rounded-br-sm px-3.5 py-2.5 text-white">
+                  <MicIcon />
+                  <span className="text-[12.5px] opacity-90">
+                    {t.voiceMessage}
+                  </span>
+                </div>
+              </div>
+            )
+          }
           if (item.kind === 'assistant') {
             return (
               <AssistantRow key={item.id}>
@@ -223,7 +359,7 @@ export function AssistantChat() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => void dispatch(lastUserText.current)}
+                  onClick={retry}
                   className="bg-brand-600 hover:bg-brand-700 mt-2.5 h-9 rounded-[11px] px-4 text-[13.5px] font-semibold text-white"
                 >
                   {t.retry}
@@ -262,29 +398,93 @@ export function AssistantChat() {
 
       {/* Input */}
       <div className="bg-bg/95 sticky bottom-24 z-10 -mx-4 mt-3 px-4 py-3 backdrop-blur sm:-mx-5 sm:px-5 lg:bottom-4">
-        <div className="flex items-center gap-2.5">
-          <input
-            value={input}
-            onChange={event => setInput(event.target.value)}
-            onKeyDown={onKeyDown}
-            disabled={locked}
-            placeholder={t.inputPlaceholder}
-            aria-label={t.inputPlaceholder}
-            className="border-line text-ink-800 focus:border-brand-500 h-12 flex-1 rounded-full border-[1.5px] bg-white px-5 text-[14.5px] outline-none disabled:opacity-60"
-          />
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={!canSend}
-            aria-label={t.send}
-            className="bg-brand-600 enabled:hover:bg-brand-700 flex h-12 w-12 flex-none items-center justify-center rounded-full text-white transition disabled:opacity-40"
-          >
-            <SendIcon />
-          </button>
-        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*"
+          onChange={onPickImage}
+          className="hidden"
+          aria-hidden
+          tabIndex={-1}
+        />
+        {recording ? (
+          <div className="flex h-12 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => stopRecording(false)}
+              aria-label={t.cancel}
+              className="hover:bg-[var(--color-danger)]/10 flex h-11 w-11 flex-none items-center justify-center rounded-full text-[var(--color-danger)]"
+            >
+              <TrashIcon />
+            </button>
+            <span
+              className="h-2.5 w-2.5 flex-none rounded-full bg-[var(--color-danger)]"
+              style={{ animation: 'ld-typing 1.2s infinite ease-in-out' }}
+            />
+            <span className="text-ink-700 flex-1 text-[14px] font-semibold tabular-nums">
+              {t.recording} {formatElapsed(elapsed)}
+            </span>
+            <button
+              type="button"
+              onClick={() => stopRecording(true)}
+              aria-label={t.sendAudio}
+              className="bg-brand-600 hover:bg-brand-700 flex h-12 w-12 flex-none items-center justify-center rounded-full text-white"
+            >
+              <SendIcon />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={pending || locked}
+              aria-label={t.attach}
+              className="text-ink-500 hover:bg-ink-50 flex h-11 w-11 flex-none items-center justify-center rounded-full disabled:opacity-40"
+            >
+              <ImageIcon />
+            </button>
+            <input
+              value={input}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={onKeyDown}
+              disabled={locked}
+              placeholder={t.inputPlaceholder}
+              aria-label={t.inputPlaceholder}
+              className="border-line text-ink-800 focus:border-brand-500 h-12 flex-1 rounded-full border-[1.5px] bg-white px-5 text-[14.5px] outline-none disabled:opacity-60"
+            />
+            {hasText ? (
+              <button
+                type="button"
+                onClick={onSubmit}
+                disabled={!canSend}
+                aria-label={t.send}
+                className="bg-brand-600 enabled:hover:bg-brand-700 flex h-12 w-12 flex-none items-center justify-center rounded-full text-white transition disabled:opacity-40"
+              >
+                <SendIcon />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void startRecording()}
+                disabled={pending || locked}
+                aria-label={t.recordAudio}
+                className="bg-brand-50 text-brand-700 hover:bg-brand-100 flex h-12 w-12 flex-none items-center justify-center rounded-full disabled:opacity-40"
+              >
+                <MicIcon />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
+}
+
+function formatElapsed(seconds: number): string {
+  const mm = Math.floor(seconds / 60)
+  const ss = seconds % 60
+  return `${mm}:${ss.toString().padStart(2, '0')}`
 }
 
 function AssistantRow({
@@ -674,6 +874,60 @@ function SendIcon() {
       strokeLinejoin="round"
     >
       <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  )
+}
+
+function MicIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+      <path d="M19 10a7 7 0 0 1-14 0M12 19v3" />
+    </svg>
+  )
+}
+
+function ImageIcon() {
+  return (
+    <svg
+      width="21"
+      height="21"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <circle cx="8.5" cy="8.5" r="1.6" />
+      <path d="M21 15l-5-5L5 21" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
     </svg>
   )
 }

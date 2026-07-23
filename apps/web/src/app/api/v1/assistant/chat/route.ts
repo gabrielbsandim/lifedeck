@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { InAppMessage } from '@lifedeck/application'
 import { getContainer } from '@/server/container'
 import { fail, handleError, ok } from '@/server/api/respond'
 import { getUserIdFromRequest } from '@/server/session/session'
@@ -7,13 +8,80 @@ import {
   rateLimitHeaders,
 } from '@/server/api/rate-limit'
 
-// The in-app assistant chat: one text turn in, the assistant's reply plus any
-// action cards out. Media (voice/image) is a later slice; the web chat is text
-// first, mirroring how the WhatsApp assistant is driven.
-const bodySchema = z.object({
+// The in-app assistant chat: one turn in (text, a photo, or a voice note), the
+// assistant's reply plus any action cards out. Text comes as JSON; media comes
+// as multipart/form-data so the raw bytes stream straight through to the same
+// agent the WhatsApp assistant uses.
+const textSchema = z.object({
   text: z.string().trim().min(1).max(4000),
   locale: z.enum(['en', 'pt', 'es']).optional(),
 })
+
+const LOCALES = new Set(['en', 'pt', 'es'])
+// A voice note or photo is small; anything larger is a mistake or abuse, and
+// the model would reject it anyway. Refuse before buffering the whole upload.
+const MAX_MEDIA_BYTES = 12 * 1024 * 1024
+
+function parseLocale(value: unknown): 'en' | 'pt' | 'es' | undefined {
+  return typeof value === 'string' && LOCALES.has(value)
+    ? (value as 'en' | 'pt' | 'es')
+    : undefined
+}
+
+async function toMessage(
+  userId: string,
+  request: Request,
+): Promise<InAppMessage> {
+  const contentType = request.headers.get('content-type') ?? ''
+  if (!contentType.includes('multipart/form-data')) {
+    const { text, locale } = textSchema.parse(await request.json())
+    return { userId, kind: 'text', text, locale }
+  }
+
+  const form = await request.formData()
+  const locale = parseLocale(form.get('locale'))
+  const image = form.get('image')
+  const audio = form.get('audio')
+  const file =
+    image instanceof File && image.size > 0
+      ? { kind: 'image' as const, file: image }
+      : audio instanceof File && audio.size > 0
+        ? { kind: 'audio' as const, file: audio }
+        : null
+
+  if (file) {
+    if (file.file.size > MAX_MEDIA_BYTES) {
+      throw new z.ZodError([
+        {
+          code: 'too_big',
+          maximum: MAX_MEDIA_BYTES,
+          type: 'array',
+          inclusive: true,
+          path: [file.kind],
+          message: 'File is too large.',
+        },
+      ])
+    }
+    const payload = {
+      data: await file.file.arrayBuffer(),
+      mimeType: file.file.type || 'application/octet-stream',
+    }
+    return file.kind === 'image'
+      ? { userId, kind: 'image', image: payload, locale }
+      : { userId, kind: 'audio', audio: payload, locale }
+  }
+
+  const text = form.get('text')
+  return textSchema
+    .pick({ text: true })
+    .transform(({ text: value }) => ({
+      userId,
+      kind: 'text' as const,
+      text: value,
+      locale,
+    }))
+    .parse({ text })
+}
 
 export async function POST(request: Request) {
   try {
@@ -27,14 +95,9 @@ export async function POST(request: Request) {
         headers: rateLimitHeaders(rate),
       })
     }
-    const { text, locale } = bodySchema.parse(await request.json())
+    const message = await toMessage(userId, request)
     const container = getContainer()
-    const result = await container.handleInAppMessage({
-      userId,
-      kind: 'text',
-      text,
-      locale,
-    })
+    const result = await container.handleInAppMessage(message)
     switch (result.status) {
       case 'reply':
         return ok({ text: result.text, actions: result.actions })

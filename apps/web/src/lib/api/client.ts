@@ -28,10 +28,14 @@ async function apiFetch(
 ): Promise<ApiSuccess<unknown> | ApiPageSuccess<unknown>> {
   const { headers, ...rest } = init
   const language = browserLanguage()
+  // FormData sets its own multipart content-type (with the boundary); forcing
+  // application/json here would corrupt the upload, so let the browser own it.
+  const isForm =
+    typeof FormData !== 'undefined' && init.body instanceof FormData
   const response = await fetch(path, {
     credentials: 'include',
     headers: {
-      'content-type': 'application/json',
+      ...(isForm ? {} : { 'content-type': 'application/json' }),
       ...(language ? { 'accept-language': language } : {}),
       ...headers,
     },

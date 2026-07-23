@@ -36,6 +36,24 @@ describe('useSendAssistantMessage', () => {
     )
   })
 
+  it('sends media as multipart form data', async () => {
+    const fetchMock = mockFetchOnce({ data: { text: 'Got it.', actions: [] } })
+    const { Wrapper } = createWrapper()
+
+    const { result } = renderHook(() => useSendAssistantMessage(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync({
+      image: new Blob([new Uint8Array([1, 2])], { type: 'image/png' }),
+      locale: 'en',
+    })
+
+    const body = fetchMock.mock.calls[0]?.[1]?.body
+    expect(body).toBeInstanceOf(FormData)
+    expect((body as FormData).get('image')).toBeInstanceOf(File)
+    expect((body as FormData).get('locale')).toBe('en')
+  })
+
   it('refreshes only the screens the taken actions touched', async () => {
     const reply = {
       text: 'Done.',

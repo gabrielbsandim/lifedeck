@@ -715,6 +715,12 @@ export const pt: Messages = {
     send: 'Enviar',
     attach: 'Anexar imagem',
     recordAudio: 'Gravar áudio',
+    cancel: 'Cancelar',
+    sendAudio: 'Enviar áudio',
+    recording: 'Gravando',
+    voiceMessage: 'Mensagem de voz',
+    photo: 'Foto',
+    micUnavailable: 'Não consegui acessar o microfone.',
     chips: {
       addTask: 'Comprar leite amanhã',
       scheduleEvent: 'Agendar dentista sexta às 15h',

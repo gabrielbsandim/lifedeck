@@ -73,6 +73,44 @@ describe('AssistantChat', () => {
     expect(await screen.findByText('On it.')).toBeInTheDocument()
   })
 
+  it('shows the mic when the field is empty and the send button once typing', () => {
+    renderChat()
+    expect(screen.getByLabelText(en.assistant.recordAudio)).toBeInTheDocument()
+
+    type('hello')
+    expect(screen.getByLabelText(en.assistant.send)).toBeInTheDocument()
+    expect(
+      screen.queryByLabelText(en.assistant.recordAudio),
+    ).not.toBeInTheDocument()
+  })
+
+  it('sends an attached image and renders its bubble', async () => {
+    const original = URL.createObjectURL
+    URL.createObjectURL = () => 'blob:mock'
+    try {
+      mockFetchOnce({ data: { text: 'Nice photo.', actions: [] } })
+      const { container } = renderChat()
+
+      const fileInput = container.querySelector(
+        'input[type="file"]',
+      ) as HTMLInputElement
+      fireEvent.change(fileInput, {
+        target: {
+          files: [
+            new File([new Uint8Array([1])], 'p.png', { type: 'image/png' }),
+          ],
+        },
+      })
+
+      expect(await screen.findByText('Nice photo.')).toBeInTheDocument()
+      expect(
+        screen.getByRole('img', { name: en.assistant.photo }),
+      ).toBeInTheDocument()
+    } finally {
+      URL.createObjectURL = original
+    }
+  })
+
   it('shows an error with a retry when the request fails', async () => {
     mockFetchOnce(
       { error: { code: 'INTERNAL_ERROR', message: 'boom' } },

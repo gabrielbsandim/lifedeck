@@ -90,6 +90,20 @@ describe('apiRequest', () => {
     expect(headers['accept-language']).toBeUndefined()
   })
 
+  it('lets FormData own its content-type instead of forcing json', async () => {
+    const fetchMock = mockFetch({ ok: true, body: { data: null } })
+    const form = new FormData()
+    form.append('text', 'hi')
+
+    await apiRequest('/api/v1/thing', { method: 'POST', body: form })
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+      string,
+      string
+    >
+    expect(headers['content-type']).toBeUndefined()
+  })
+
   it('passes through method and body', async () => {
     const fetchMock = mockFetch({ ok: true, body: { data: null } })
 

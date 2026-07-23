@@ -28,6 +28,13 @@ function jsonRequest(body: unknown): Request {
   })
 }
 
+function formRequest(form: FormData): Request {
+  return new Request('https://app.test/api/v1/assistant/chat', {
+    method: 'POST',
+    body: form,
+  })
+}
+
 beforeEach(() => {
   getUserIdFromRequest.mockResolvedValue('user-1')
   checkAssistantRateLimit.mockResolvedValue({
@@ -63,6 +70,70 @@ describe('assistant chat route', () => {
       text: 'buy milk',
       locale: 'pt',
     })
+  })
+
+  it('sends an attached image as an image turn', async () => {
+    const form = new FormData()
+    form.append(
+      'image',
+      new File([new Uint8Array([1, 2, 3])], 'photo.jpg', {
+        type: 'image/jpeg',
+      }),
+    )
+    form.append('locale', 'pt')
+
+    const response = await POST(formRequest(form))
+
+    expect(response.status).toBe(200)
+    expect(handleInAppMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        kind: 'image',
+        locale: 'pt',
+        image: expect.objectContaining({ mimeType: 'image/jpeg' }),
+      }),
+    )
+  })
+
+  it('sends a recorded audio blob as an audio turn', async () => {
+    const form = new FormData()
+    form.append(
+      'audio',
+      new File([new Uint8Array([9, 9])], 'note.webm', { type: 'audio/webm' }),
+    )
+
+    const response = await POST(formRequest(form))
+
+    expect(response.status).toBe(200)
+    expect(handleInAppMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'audio',
+        audio: expect.objectContaining({ mimeType: 'audio/webm' }),
+      }),
+    )
+  })
+
+  it('falls back to the text field of a multipart form', async () => {
+    const form = new FormData()
+    form.append('text', 'buy milk')
+
+    const response = await POST(formRequest(form))
+
+    expect(response.status).toBe(200)
+    expect(handleInAppMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'text', text: 'buy milk' }),
+    )
+  })
+
+  it('rejects an oversized upload with 422', async () => {
+    const big = new Uint8Array(13 * 1024 * 1024)
+    const form = new FormData()
+    form.append('image', new File([big], 'huge.jpg', { type: 'image/jpeg' }))
+
+    const response = await POST(formRequest(form))
+
+    expect(response.status).toBe(422)
+    expect(handleInAppMessage).not.toHaveBeenCalled()
   })
 
   it('rejects an unauthenticated request with 401', async () => {

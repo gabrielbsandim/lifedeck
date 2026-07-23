@@ -718,6 +718,12 @@ export const es: Messages = {
     send: 'Enviar',
     attach: 'Adjuntar imagen',
     recordAudio: 'Grabar audio',
+    cancel: 'Cancelar',
+    sendAudio: 'Enviar audio',
+    recording: 'Grabando',
+    voiceMessage: 'Mensaje de voz',
+    photo: 'Foto',
+    micUnavailable: 'No pude acceder al micrófono.',
     chips: {
       addTask: 'Comprar leche mañana',
       scheduleEvent: 'Agendar dentista el viernes a las 15h',

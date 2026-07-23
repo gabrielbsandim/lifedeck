@@ -660,6 +660,12 @@ export type Messages = {
     send: string
     attach: string
     recordAudio: string
+    cancel: string
+    sendAudio: string
+    recording: string
+    voiceMessage: string
+    photo: string
+    micUnavailable: string
     // Suggestion chips shown on an empty thread: concrete example requests the
     // user can tap to send as-is, teaching what the assistant can do. Each is
     // both the visible label and the message sent.

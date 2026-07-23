@@ -704,6 +704,12 @@ export const en: Messages = {
     send: 'Send',
     attach: 'Attach image',
     recordAudio: 'Record audio',
+    cancel: 'Cancel',
+    sendAudio: 'Send audio',
+    recording: 'Recording',
+    voiceMessage: 'Voice message',
+    photo: 'Photo',
+    micUnavailable: 'Could not access the microphone.',
     chips: {
       addTask: 'Buy milk tomorrow',
       scheduleEvent: 'Schedule dentist Friday at 3pm',
