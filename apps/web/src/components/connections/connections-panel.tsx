@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { QRCodeSVG } from 'qrcode.react'
-import { Button, cn } from '@lifedeck/ui'
+import { Button } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import {
@@ -87,46 +87,48 @@ function CalendarConnect() {
         <div className="flex flex-col gap-2">
           <ul className="divide-line flex flex-col divide-y">
             {list.map(connection => (
-              <li
-                key={connection.id}
-                className="flex items-center justify-between gap-2 py-2"
-              >
-                <span className="text-ink-700 min-w-0 truncate text-sm">
-                  {connection.accountEmail ?? cal.googleAccount}
-                </span>
-                <div className="flex shrink-0 items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirmingId === connection.id) {
-                        disconnect.mutate(connection.id)
-                        setConfirmingId(null)
-                      } else {
-                        setConfirmingId(connection.id)
-                      }
-                    }}
-                    disabled={disconnect.isPending}
-                    className={cn(
-                      'text-xs hover:underline disabled:opacity-50',
-                      confirmingId === connection.id
-                        ? 'font-medium text-red-700'
-                        : 'text-red-600',
-                    )}
-                  >
-                    {confirmingId === connection.id
-                      ? cal.disconnectConfirm
-                      : cal.disconnectCalendar}
-                  </button>
-                  {confirmingId === connection.id && (
+              <li key={connection.id} className="flex flex-col gap-2 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-ink-700 min-w-0 flex-1 truncate text-sm">
+                    {connection.accountEmail ?? cal.googleAccount}
+                  </span>
+                  {confirmingId !== connection.id && (
                     <button
                       type="button"
-                      onClick={() => setConfirmingId(null)}
-                      className="text-ink-500 text-xs hover:underline"
+                      onClick={() => setConfirmingId(connection.id)}
+                      className="shrink-0 text-xs font-medium text-red-600 hover:underline"
                     >
-                      {cal.connect.cancel}
+                      {cal.disconnectCalendar}
                     </button>
                   )}
                 </div>
+                {confirmingId === connection.id && (
+                  <div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5">
+                    <p className="text-xs text-red-700">
+                      {cal.disconnectConfirm}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          disconnect.mutate(connection.id)
+                          setConfirmingId(null)
+                        }}
+                        disabled={disconnect.isPending}
+                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {cal.disconnectCalendar}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingId(null)}
+                        className="text-ink-600 px-2 text-xs font-medium hover:underline"
+                      >
+                        {cal.connect.cancel}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

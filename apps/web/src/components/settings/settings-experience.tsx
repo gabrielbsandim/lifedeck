@@ -10,6 +10,7 @@ import { useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import type { Messages } from '@lifedeck/i18n'
 import {
+  CalendarIcon,
   ChartIcon,
   CheckSquareIcon,
   ChevronRightIcon,
@@ -295,6 +296,14 @@ function MobileHub({
 
       <SettingsGroup title={messages.settings.hubTools}>
         <HubRowGroup>
+          {user.features?.calendar && (
+            <HubRow
+              icon={<CalendarIcon size={16} />}
+              iconClassName="bg-brand-500"
+              label={messages.nav.calendar}
+              href="/calendar"
+            />
+          )}
           <HubRow
             icon={<ChartIcon size={16} />}
             iconClassName="bg-violet-500"

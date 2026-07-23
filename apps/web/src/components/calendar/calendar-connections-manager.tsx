@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { Button, cn } from '@lifedeck/ui'
+import { Button } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useCalendarConnections,
@@ -148,66 +148,68 @@ export function CalendarConnectionsManager({
       {list.length > 0 && (
         <ul className="flex flex-col divide-y divide-[color:var(--line,#e5e7eb)]">
           {list.map(connection => (
-            <li
-              key={connection.id}
-              className="flex items-center justify-between gap-2 py-2"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-ink-700 text-sm">
-                  {connection.accountEmail ?? t.googleAccount}
-                </span>
-                <span className="text-ink-400 text-xs">
-                  {PROVIDER_LABEL[connection.provider] ?? connection.provider}
-                </span>
-                {connection.isDefault && (
-                  <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                    {t.defaultCalendar}
+            <li key={connection.id} className="flex flex-col gap-2 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="text-ink-700 truncate text-sm">
+                    {connection.accountEmail ?? t.googleAccount}
                   </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {!connection.isDefault && (
-                  <button
-                    type="button"
-                    onClick={() => setDefault.mutate(connection.id)}
-                    disabled={setDefault.isPending}
-                    className="text-ink-600 text-xs hover:underline disabled:opacity-50"
-                  >
-                    {t.makeDefault}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirmingId === connection.id) {
-                      disconnect.mutate(connection.id)
-                      setConfirmingId(null)
-                    } else {
-                      setConfirmingId(connection.id)
-                    }
-                  }}
-                  disabled={disconnect.isPending}
-                  className={cn(
-                    'text-xs hover:underline disabled:opacity-50',
-                    confirmingId === connection.id
-                      ? 'font-medium text-red-700'
-                      : 'text-red-600',
+                  <span className="text-ink-400 shrink-0 text-xs">
+                    {PROVIDER_LABEL[connection.provider] ?? connection.provider}
+                  </span>
+                  {connection.isDefault && (
+                    <span className="shrink-0 rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                      {t.defaultCalendar}
+                    </span>
                   )}
-                >
-                  {confirmingId === connection.id
-                    ? t.disconnectConfirm
-                    : t.disconnectCalendar}
-                </button>
-                {confirmingId === connection.id && (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmingId(null)}
-                    className="text-ink-500 text-xs hover:underline"
-                  >
-                    {c.cancel}
-                  </button>
+                </div>
+                {confirmingId !== connection.id && (
+                  <div className="flex shrink-0 items-center gap-3">
+                    {!connection.isDefault && (
+                      <button
+                        type="button"
+                        onClick={() => setDefault.mutate(connection.id)}
+                        disabled={setDefault.isPending}
+                        className="text-ink-600 text-xs hover:underline disabled:opacity-50"
+                      >
+                        {t.makeDefault}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingId(connection.id)}
+                      className="text-xs font-medium text-red-600 hover:underline"
+                    >
+                      {t.disconnectCalendar}
+                    </button>
+                  </div>
                 )}
               </div>
+              {confirmingId === connection.id && (
+                <div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5">
+                  <p className="text-xs text-red-700">{t.disconnectConfirm}</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        disconnect.mutate(connection.id)
+                        setConfirmingId(null)
+                      }}
+                      disabled={disconnect.isPending}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {t.disconnectCalendar}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingId(null)}
+                      className="text-ink-600 px-2 text-xs font-medium hover:underline"
+                    >
+                      {c.cancel}
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>
