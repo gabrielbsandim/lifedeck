@@ -40,7 +40,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/node": "22.10.2"
+      "@types/node": "22.10.2",
+      "@types/react": "19.2.0"
     },
     "auditConfig": {
       "ignoreGhsas": [

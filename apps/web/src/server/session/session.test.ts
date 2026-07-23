@@ -5,6 +5,7 @@ import {
   SESSION_TTL_SECONDS,
   createSessionToken,
   getUserIdFromRequest,
+  parseSessionBearer,
   parseSessionCookie,
   readSessionToken,
   sessionCookieOptions,
@@ -16,6 +17,12 @@ const ISSUED_AT = new Date('2026-06-21T10:00:00.000Z')
 function requestWithCookie(cookie: string): Request {
   return new Request('https://lifedeck.app/api/v1/sessions/me', {
     headers: { cookie },
+  })
+}
+
+function requestWithAuthorization(authorization: string): Request {
+  return new Request('https://lifedeck.app/api/v1/sessions/me', {
+    headers: { authorization },
   })
 }
 
@@ -76,6 +83,38 @@ describe('session', () => {
   it('returns null from a request without a session', async () => {
     const request = new Request('https://lifedeck.app/api/v1/sessions/me')
     expect(await getUserIdFromRequest(request)).toBeNull()
+  })
+
+  it('reads the user id from a Bearer session token', async () => {
+    const token = await createSessionToken(USER_ID, ISSUED_AT)
+    const request = requestWithAuthorization(`Bearer ${token}`)
+    expect(await getUserIdFromRequest(request)).toBe(USER_ID)
+  })
+
+  it('falls back to the Bearer token when the cookie is invalid', async () => {
+    const token = await createSessionToken(USER_ID, ISSUED_AT)
+    const request = new Request('https://lifedeck.app/api/v1/sessions/me', {
+      headers: {
+        cookie: `${SESSION_COOKIE}=not.a.jwt`,
+        authorization: `Bearer ${token}`,
+      },
+    })
+    expect(await getUserIdFromRequest(request)).toBe(USER_ID)
+  })
+
+  it('ignores an API key sent as a Bearer token', () => {
+    const request = requestWithAuthorization('Bearer tk_live_abc123')
+    expect(parseSessionBearer(request)).toBeNull()
+  })
+
+  it('ignores a non-Bearer authorization header', () => {
+    const request = requestWithAuthorization('Basic dXNlcjpwYXNz')
+    expect(parseSessionBearer(request)).toBeNull()
+  })
+
+  it('returns null for an empty Bearer token', () => {
+    const request = requestWithAuthorization('Bearer ')
+    expect(parseSessionBearer(request)).toBeNull()
   })
 
   it('builds hardened cookie options', () => {

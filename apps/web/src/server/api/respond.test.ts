@@ -2,13 +2,22 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ValidationError } from '@lifedeck/domain'
 import { ForbiddenError, NotFoundError } from '@lifedeck/application'
-import { fail, handleError, ok, okPage } from '@/server/api/respond'
+import { fail, handleError, ok, okPage, okSession } from '@/server/api/respond'
 
 describe('respond helpers', () => {
   it('wraps data with the given status', async () => {
     const response = ok({ id: 1 }, 201)
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toEqual({ data: { id: 1 } })
+  })
+
+  it('wraps data with a sibling session token', async () => {
+    const response = okSession({ id: 1 }, 'jwt-token', 201)
+    expect(response.status).toBe(201)
+    await expect(response.json()).resolves.toEqual({
+      data: { id: 1 },
+      token: 'jwt-token',
+    })
   })
 
   it('wraps a page with its items and next cursor', async () => {

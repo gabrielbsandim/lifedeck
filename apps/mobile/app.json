@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Lifedeck",
+    "slug": "lifedeck",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "lifedeck",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lifedeck.app"
+    },
+    "android": {
+      "package": "com.lifedeck.app"
+    },
+    "web": {
+      "output": "static",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { getContainer } from '@/server/container'
-import { fail, handleError, ok } from '@/server/api/respond'
+import { fail, handleError, okSession } from '@/server/api/respond'
 import {
   checkGuestSessionRateLimit,
   clientIp,
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const user = await getContainer().createGuestUser(body)
     const token = await createSessionToken(user.id, new Date())
 
-    const response = ok(user, 201)
+    const response = okSession(user, token, 201)
     response.cookies.set(
       SESSION_COOKIE,
       token,
