@@ -226,3 +226,40 @@ One PR-sized phase at a time:
 - **Push notifications** (Expo Notifications) — deferred to V4.1.
 - **Offline.** V4 assumes an online thin client; React Query cache only. No
   offline-first sync.
+
+---
+
+## 11. Progress log
+
+As of 2026-07-23 (branch `v4`), roughly 25% of the effort is done — the
+foundation is in place; screen parity (V4-4) and the chat (V4-5) are the bulk of
+what remains.
+
+- **V4-0 — done.** `apps/mobile` on Expo SDK 57 (RN 0.86, React 19.2), Expo
+  Router + NativeWind, Metro wired for the pnpm monorepo. Design tokens mirrored
+  from `styles.css` to `src/theme/palette.json` (oklch converted to sRGB hex so
+  RN can parse them). Tab shell (Today / Lists / Generate / Profile) with
+  placeholder screens. Support fixes: pinned `typescript` in `@lifedeck/config`
+  and an `@types/react` override to keep the workspace on one version.
+- **V4-1 — done.** Backend is additive: `getUserIdFromRequest` also accepts the
+  session JWT via `Authorization: Bearer`; `okSession` returns the token as a
+  sibling of `data` from the guest and sign-in routes (web keeps using the
+  cookie). App stores the token in SecureStore and boots a guest session through
+  `SessionGate` (onboarding overlay). Covered by new session/respond tests.
+- **V4-2 — done, scoped to the transport.** `packages/client` holds the shared
+  `createApiClient` factory + `ApiError` (100%/95.8% covered). Web and mobile
+  both consume it; the web's 21+ importers are unchanged. **Hook migration was
+  deliberately deferred to V4-4** — auth hooks are platform-coupled (cookie vs
+  token), so the data hooks move per screen as they are ported (the "extraction
+  noise" fallback in section 10).
+- **V4-3 — core primitives done.** Rebuilt in `apps/mobile/src/components/ui`:
+  Button, Card, Badge, TextField, Skeleton, EmptyState, Avatar, ProgressBar
+  (same prop APIs; web-only pseudo classes dropped, `Animated` used instead of
+  reanimated for the skeleton pulse). Remaining `@lifedeck/ui` primitives
+  (Dialog→Modal, Tabs, Toast, TaskCheckbox, PasswordField, Celebration, Logo)
+  are built on demand during V4-4.
+- **Not yet validated on a real device/emulator.** Everything passes
+  typecheck/lint/tests/package builds; the first `expo start` against the
+  deployed backend (Bearer reaching `/sessions/me`) is still ahead.
+
+Next: **V4-4**, starting with the read-heavy screens (Today, Lists, Habits).
