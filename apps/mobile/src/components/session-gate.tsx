@@ -3,9 +3,9 @@
 // spinner; with no session it shows the guest onboarding (name → Start),
 // mirroring the web onboarding-card; once authenticated it renders nothing.
 import { useState } from 'react'
-import { ActivityIndicator, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Text, View } from 'react-native'
 import { getCalendars } from 'expo-localization'
-import { Button } from '@/components/ui/button'
+import { Button, TextField } from '@/components/ui'
 import { useCreateGuest, useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { colors } from '@/theme/tokens'
@@ -49,16 +49,21 @@ export function SessionGate() {
         <Text className="text-ink-900 text-2xl font-bold">{t.title}</Text>
         <Text className="text-ink-500 text-sm">{t.subtitle}</Text>
       </View>
-      <TextInput
+      <TextField
         value={name}
         onChangeText={setName}
         placeholder={t.namePlaceholder}
         autoFocus
         returnKeyType="go"
         onSubmitEditing={onStart}
-        className="border-line text-ink-800 bg-surface h-12 rounded-xl border px-3.5 text-base"
       />
-      <Button title={t.start} onPress={onStart} disabled={!canStart} />
+      <Button
+        onPress={onStart}
+        disabled={!canStart}
+        isLoading={createGuest.isPending}
+      >
+        {t.start}
+      </Button>
       {createGuest.isError ? (
         <Text className="text-danger text-sm">{messages.common.error}</Text>
       ) : null}
