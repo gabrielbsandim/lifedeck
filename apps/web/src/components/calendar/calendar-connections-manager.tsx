@@ -33,6 +33,25 @@ function GoogleGlyph() {
   )
 }
 
+function Chevron({ dir }: { dir: 'up' | 'down' }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-ink-400 shrink-0"
+      aria-hidden
+    >
+      <path d={dir === 'down' ? 'M6 9l6 6 6-6' : 'M6 15l6-6 6 6'} />
+    </svg>
+  )
+}
+
 export function CalendarConnectionsManager({
   enabled = true,
   premium = false,
@@ -52,7 +71,12 @@ export function CalendarConnectionsManager({
   const [form, setForm] = useState<'apple' | 'calcom' | null>(null)
   const [email, setEmail] = useState('')
   const [secret, setSecret] = useState('')
+  // Once at least one calendar is connected the card collapses to a compact
+  // summary so it stops taking a big slice of the calendar screen; the user
+  // expands it to manage connections.
+  const [expanded, setExpanded] = useState(false)
   const list = connections.data ?? []
+  const connected = list.length > 0
 
   const pending = connectApple.isPending || connectCalcom.isPending
   const error = connectApple.isError || connectCalcom.isError
@@ -75,12 +99,48 @@ export function CalendarConnectionsManager({
     }
   }
 
+  if (connected && !expanded) {
+    const primary = list.find(item => item.isDefault) ?? list[0]
+    return (
+      <section className="border-line rounded-xl border">
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-between gap-2 p-4 text-left"
+        >
+          <span className="flex min-w-0 items-center gap-2.5">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+            <span className="text-ink-900 shrink-0 text-sm font-semibold">
+              {t.connectedCalendars}
+            </span>
+            <span className="text-ink-500 min-w-0 truncate text-xs">
+              {primary?.accountEmail ?? t.googleAccount}
+              {list.length > 1 ? ` +${list.length - 1}` : ''}
+            </span>
+          </span>
+          <Chevron dir="down" />
+        </button>
+      </section>
+    )
+  }
+
   return (
     <section className="border-line flex flex-col gap-3 rounded-xl border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-ink-900 text-sm font-semibold">
-          {t.connectedCalendars}
-        </h2>
+        {connected ? (
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="text-ink-900 flex items-center gap-1.5 text-sm font-semibold"
+          >
+            {t.connectedCalendars}
+            <Chevron dir="up" />
+          </button>
+        ) : (
+          <h2 className="text-ink-900 text-sm font-semibold">
+            {t.connectedCalendars}
+          </h2>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <a href="/api/v1/calendar/google/connect" className={linkClass}>
             <GoogleGlyph />
