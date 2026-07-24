@@ -413,6 +413,8 @@ export const pt: Messages = {
     empty: 'Nenhuma notificação ainda.',
     markAllRead: 'Marcar tudo como lido',
     assigned: 'Atribuída a você: {task}',
+    reminder: 'Lembrete: {event}',
+    generic: 'Notificação',
     open: 'Notificações',
   },
   carryOver: {

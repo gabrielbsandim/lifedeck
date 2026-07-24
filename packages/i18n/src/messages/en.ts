@@ -406,6 +406,8 @@ export const en: Messages = {
     empty: 'No notifications yet.',
     markAllRead: 'Mark all read',
     assigned: 'Assigned to you: {task}',
+    reminder: 'Reminder: {event}',
+    generic: 'Notification',
     open: 'Notifications',
   },
   carryOver: {

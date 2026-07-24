@@ -414,6 +414,8 @@ export const es: Messages = {
     empty: 'Aún no hay notificaciones.',
     markAllRead: 'Marcar todo como leído',
     assigned: 'Asignada a ti: {task}',
+    reminder: 'Recordatorio: {event}',
+    generic: 'Notificación',
     open: 'Notificaciones',
   },
   carryOver: {

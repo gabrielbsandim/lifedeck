@@ -376,6 +376,8 @@ export type Messages = {
     empty: string
     markAllRead: string
     assigned: string
+    reminder: string
+    generic: string
     open: string
   }
   carryOver: {
