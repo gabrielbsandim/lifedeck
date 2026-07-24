@@ -1,4 +1,4 @@
-import { HabitLog, asEntityId } from '@lifedeck/domain'
+import { HabitLog, ValidationError, asEntityId } from '@lifedeck/domain'
 import { logHabitSchema, type HabitView } from '@/dtos/habit-dto'
 import { buildHabitViews, habitToday } from '@/shared/habit-view'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -37,6 +37,12 @@ export function makeLogHabit({
 
     const today = await habitToday(users, clock, userId)
     const targetDate = date ?? today
+    // A habit can only be marked for a day that has happened. Backfilling a past
+    // day is allowed (a forgotten check-in); a future day never is. Civil dates
+    // are YYYY-MM-DD, so a lexical compare is a date compare.
+    if (targetDate > today) {
+      throw new ValidationError('Cannot log a habit for a future date.')
+    }
     const markDone = done ?? true
 
     if (markDone) {

@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { User } from '@lifedeck/domain'
+import { Habit, HabitLog, User, asEntityId } from '@lifedeck/domain'
+import type { HabitCadence } from '@lifedeck/domain'
 import { makeGetAnalytics } from '@/use-cases/get-analytics'
 import { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
+import { InMemoryHabitRepository } from '@/testing/in-memory-habit-repository'
+import { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { FixedClock, ID } from '@/testing/fakes'
 
 const NOW = new Date('2026-06-22T15:00:00.000Z')
+const EARLY = new Date('2026-01-01T00:00:00.000Z')
 
 function build(
   rows: { date: string; total: number; completed: number }[] = [],
@@ -25,7 +29,64 @@ function build(
       }),
     )
   }
-  return makeGetAnalytics({ analytics, users, clock: new FixedClock(NOW) })
+  return makeGetAnalytics({
+    analytics,
+    habits: new InMemoryHabitRepository(),
+    habitLogs: new InMemoryHabitLogRepository(),
+    users,
+    clock: new FixedClock(NOW),
+  })
+}
+
+let habitCounter = 0
+
+async function buildWithHabits(
+  seeds: {
+    cadence: HabitCadence
+    active?: boolean
+    dates: string[]
+    createdAt?: Date
+  }[],
+) {
+  const habits = new InMemoryHabitRepository()
+  const habitLogs = new InMemoryHabitLogRepository()
+  for (const seed of seeds) {
+    habitCounter += 1
+    const id = asEntityId(
+      `00000000-0000-4000-8000-${String(habitCounter).padStart(12, '0')}`,
+    )
+    const habit = Habit.create({
+      id,
+      ownerId: asEntityId(ID.user),
+      title: `Habit ${habitCounter}`,
+      cadence: seed.cadence,
+      createdAt: seed.createdAt ?? EARLY,
+    })
+    if (seed.active === false) {
+      habit.setActive(false)
+    }
+    await habits.save(habit)
+    for (const date of seed.dates) {
+      habitCounter += 1
+      await habitLogs.save(
+        HabitLog.create({
+          id: asEntityId(
+            `11111111-0000-4000-8000-${String(habitCounter).padStart(12, '0')}`,
+          ),
+          habitId: id,
+          date,
+          createdAt: NOW,
+        }),
+      )
+    }
+  }
+  return makeGetAnalytics({
+    analytics: new FakeAnalyticsRepository([], { total: 0, completed: 0 }),
+    habits,
+    habitLogs,
+    users: new InMemoryUserRepository(),
+    clock: new FixedClock(NOW),
+  })
 }
 
 describe('getAnalytics', () => {
@@ -108,5 +169,68 @@ describe('getAnalytics', () => {
     expect(view.to).toBe('2026-06-23')
     expect(view.from).toBe('2026-06-17')
     expect(view.days.at(-1)?.date).toBe('2026-06-23')
+  })
+
+  it('reports empty habit analytics when there are no habits', async () => {
+    const view = await build()(ID.user, { days: 7 })
+    expect(view.habits).toEqual({
+      active: 0,
+      completions: 0,
+      bestStreak: 0,
+      consistency: 0,
+      items: [],
+    })
+  })
+
+  it('summarizes a daily habit over the window', async () => {
+    const getAnalytics = await buildWithHabits([
+      {
+        cadence: { kind: 'daily' },
+        dates: ['2026-06-20', '2026-06-21', '2026-06-22'],
+      },
+    ])
+    const view = await getAnalytics(ID.user, { days: 7 })
+
+    expect(view.habits.active).toBe(1)
+    expect(view.habits.completions).toBe(3)
+    expect(view.habits.bestStreak).toBe(3)
+    // 7-day window, all days expected; 3 of 7 done.
+    expect(view.habits.items[0]?.expected).toBe(7)
+    expect(view.habits.consistency).toBeCloseTo(3 / 7)
+  })
+
+  it('excludes paused habits and ranks by streak', async () => {
+    const getAnalytics = await buildWithHabits([
+      { cadence: { kind: 'daily' }, dates: ['2026-06-22'] },
+      {
+        cadence: { kind: 'daily' },
+        dates: ['2026-06-20', '2026-06-21', '2026-06-22'],
+      },
+      { cadence: { kind: 'daily' }, active: false, dates: ['2026-06-22'] },
+    ])
+    const view = await getAnalytics(ID.user, { days: 7 })
+
+    expect(view.habits.active).toBe(2)
+    expect(view.habits.items.map(item => item.currentStreak)).toEqual([3, 1])
+  })
+
+  it('counts completions only within the window but streaks beyond it', async () => {
+    const getAnalytics = await buildWithHabits([
+      {
+        cadence: { kind: 'daily' },
+        // An unbroken run 2026-06-10..2026-06-22 (13 days), reaching back before
+        // the 7-day window and up to today.
+        dates: Array.from({ length: 13 }, (_, index) => {
+          const day = 10 + index
+          return `2026-06-${String(day).padStart(2, '0')}`
+        }),
+      },
+    ])
+    const view = await getAnalytics(ID.user, { days: 7 })
+
+    // Window is 2026-06-16..2026-06-22 (7 days), all completed.
+    expect(view.habits.completions).toBe(7)
+    // Streak counts the unbroken run through today, past the window edge.
+    expect(view.habits.bestStreak).toBe(13)
   })
 })

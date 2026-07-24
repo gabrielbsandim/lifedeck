@@ -42,6 +42,7 @@ export {
   isHabitScheduledOn,
   weekdayOfCivilDate,
   computeHabitStreak,
+  expectedHabitCompletions,
   type HabitCadence,
   type HabitCadenceKind,
 } from '@/value-objects/habit-cadence'

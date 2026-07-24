@@ -43,18 +43,23 @@ function weekdayInitial(locale: string, date: string): string {
 // The trailing-week bar promoted to the card hero: one tall cell per day, filled
 // with a check when done, dashed when scheduled-but-missed, faint when the
 // cadence never asked for it. Today gets a ring and a bolder label so the eye
-// lands on the day that's still actionable.
+// lands on the day that's still actionable. Every cell is a button: tapping it
+// toggles that day's completion, so a forgotten check-in can be backfilled.
 function WeekBar({
   days,
   locale,
   label,
+  toggleLabel,
+  onToggle,
 }: {
   days: HabitView['recentDays']
   locale: string
   label: string
+  toggleLabel: string
+  onToggle: (date: string, done: boolean) => void
 }) {
   return (
-    <div className="flex gap-1.5" aria-label={label}>
+    <div className="flex gap-1.5" role="group" aria-label={label}>
       {days.map((day, index) => {
         const isToday = index === days.length - 1
         const cell = day.done
@@ -67,9 +72,13 @@ function WeekBar({
             key={day.date}
             className="flex flex-1 flex-col items-center gap-1.5"
           >
-            <div
+            <button
+              type="button"
               title={day.date}
-              className={`flex h-11 w-full items-center justify-center rounded-xl ${cell} ${
+              aria-label={`${toggleLabel} ${day.date}`}
+              aria-pressed={day.done}
+              onClick={() => onToggle(day.date, !day.done)}
+              className={`flex h-11 w-full items-center justify-center rounded-xl transition hover:brightness-95 ${cell} ${
                 isToday
                   ? 'ring-brand-300 ring-offset-surface ring-2 ring-offset-2'
                   : ''
@@ -90,7 +99,7 @@ function WeekBar({
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               )}
-            </div>
+            </button>
             <span
               className={
                 isToday
@@ -115,6 +124,7 @@ function HabitCard({
   onToggleActive,
   onDelete,
   onToggleDone,
+  onToggleDay,
 }: {
   habit: HabitView
   locale: string
@@ -123,6 +133,7 @@ function HabitCard({
   onToggleActive: () => void
   onDelete: () => void
   onToggleDone: () => void
+  onToggleDay: (date: string, done: boolean) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -200,7 +211,13 @@ function HabitCard({
       </div>
 
       <div className="my-4">
-        <WeekBar days={habit.recentDays} locale={locale} label={t.weekAria} />
+        <WeekBar
+          days={habit.recentDays}
+          locale={locale}
+          label={t.weekAria}
+          toggleLabel={t.toggleDay}
+          onToggle={onToggleDay}
+        />
       </div>
 
       <button
@@ -523,6 +540,9 @@ export function HabitsManager() {
                     id: habit.id,
                     input: { done: !habit.doneToday },
                   })
+                }
+                onToggleDay={(date, done) =>
+                  logHabit.mutate({ id: habit.id, input: { date, done } })
                 }
               />
             ),

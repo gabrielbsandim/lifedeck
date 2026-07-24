@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ValidationError } from '@/shared/domain-error'
 import {
   computeHabitStreak,
+  expectedHabitCompletions,
   isHabitScheduledOn,
   validateHabitCadence,
   weekdayOfCivilDate,
@@ -197,6 +198,43 @@ describe('computeHabitStreak', () => {
           '2026-07-19',
         ),
       ).toBe(1)
+    })
+  })
+
+  describe('expectedHabitCompletions', () => {
+    it('counts every day for a daily cadence', () => {
+      // 2026-07-13 .. 2026-07-19 inclusive is 7 days.
+      expect(
+        expectedHabitCompletions({ kind: 'daily' }, '2026-07-13', '2026-07-19'),
+      ).toBe(7)
+    })
+
+    it('counts only the listed weekdays', () => {
+      // Mon (1) and Wed (3) over the week 07-13..07-19: 07-13 and 07-15.
+      expect(
+        expectedHabitCompletions(
+          { kind: 'weekdays', weekdays: [1, 3] },
+          '2026-07-13',
+          '2026-07-19',
+        ),
+      ).toBe(2)
+    })
+
+    it('prorates times_per_week over the range', () => {
+      // Two full weeks (14 days) at 3x/week -> 6.
+      expect(
+        expectedHabitCompletions(
+          { kind: 'times_per_week', count: 3 },
+          '2026-07-06',
+          '2026-07-19',
+        ),
+      ).toBe(6)
+    })
+
+    it('is zero for an inverted range', () => {
+      expect(
+        expectedHabitCompletions({ kind: 'daily' }, '2026-07-20', '2026-07-19'),
+      ).toBe(0)
     })
   })
 })

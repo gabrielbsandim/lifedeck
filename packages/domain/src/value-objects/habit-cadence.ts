@@ -160,3 +160,38 @@ export function computeHabitStreak(
   }
   return streak
 }
+
+// How many completions the cadence expects across the inclusive civil-date range
+// `[from, to]`: the denominator for an adherence/consistency rate. `daily` expects
+// every day, `weekdays` expects only its listed days, and `times_per_week` expects
+// `count` per seven-day span (rounded over the whole range). An empty or inverted
+// range expects nothing. The caller clamps `from` to the habit's creation so a new
+// habit is not judged against days before it existed.
+export function expectedHabitCompletions(
+  cadence: HabitCadence,
+  from: string,
+  to: string,
+): number {
+  if (from > to) {
+    return 0
+  }
+  const totalDays =
+    Math.round(
+      (new Date(`${to}T00:00:00.000Z`).getTime() -
+        new Date(`${from}T00:00:00.000Z`).getTime()) /
+        MS_PER_DAY,
+    ) + 1
+  if (cadence.kind === 'daily') {
+    return totalDays
+  }
+  if (cadence.kind === 'times_per_week') {
+    return Math.round((totalDays / 7) * cadence.count)
+  }
+  let count = 0
+  for (let cursor = from; cursor <= to; cursor = addDays(cursor, 1)) {
+    if (cadence.weekdays.includes(weekdayOfCivilDate(cursor))) {
+      count += 1
+    }
+  }
+  return count
+}

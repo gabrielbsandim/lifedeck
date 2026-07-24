@@ -103,6 +103,7 @@ export const en: Messages = {
     checkDo: 'Mark as done',
     checkDone: 'Done today',
     streakAria: 'Current streak',
+    toggleDay: 'Toggle this day',
   },
   nav: {
     today: 'Today',
@@ -640,6 +641,13 @@ export const en: Messages = {
     tasksDone: 'Tasks done',
     empty: 'No completed tasks in this window yet.',
     backToToday: 'Back to today',
+    habitsTitle: 'Habits',
+    consistency: 'Consistency',
+    activeHabits: 'Active habits',
+    checkIns: 'Check-ins',
+    bestStreak: 'Best streak',
+    habitsEmpty: 'Track a habit to see its analytics here.',
+    expectedOf: 'of',
   },
   status: {
     title: 'System status',

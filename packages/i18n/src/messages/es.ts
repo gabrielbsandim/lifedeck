@@ -104,6 +104,7 @@ export const es: Messages = {
     checkDo: 'Marcar como hecho',
     checkDone: 'Hecho hoy',
     streakAria: 'Racha actual',
+    toggleDay: 'Alternar este día',
   },
   nav: {
     today: 'Hoy',
@@ -655,6 +656,13 @@ export const es: Messages = {
     tasksDone: 'Tareas hechas',
     empty: 'Aún no hay tareas completadas en este periodo.',
     backToToday: 'Volver a hoy',
+    habitsTitle: 'Hábitos',
+    consistency: 'Consistencia',
+    activeHabits: 'Hábitos activos',
+    checkIns: 'Registros',
+    bestStreak: 'Mejor racha',
+    habitsEmpty: 'Registra un hábito para ver sus análisis aquí.',
+    expectedOf: 'de',
   },
   status: {
     title: 'Estado del sistema',

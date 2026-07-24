@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Habit, User, asEntityId } from '@lifedeck/domain'
+import { Habit, User, ValidationError, asEntityId } from '@lifedeck/domain'
 import { makeLogHabit } from '@/use-cases/log-habit'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryHabitRepository } from '@/testing/in-memory-habit-repository'
@@ -65,13 +65,30 @@ describe('logHabit', () => {
     expect(logs).toHaveLength(1)
   })
 
-  it('accepts an explicit date', async () => {
+  it('accepts an explicit past date (backfilling a forgotten day)', async () => {
     const { habitLogs, logHabit } = await setup()
 
     await logHabit(ID.user, HABIT, { date: '2026-07-19' })
 
     const logs = await habitLogs.listByHabitsSince([HABIT], '2026-07-01')
     expect(logs.map(log => log.date)).toEqual(['2026-07-19'])
+  })
+
+  it('backfilling yesterday extends the streak through today', async () => {
+    const { logHabit } = await setup()
+
+    await logHabit(ID.user, HABIT)
+    const view = await logHabit(ID.user, HABIT, { date: '2026-07-19' })
+
+    expect(view.currentStreak).toBe(2)
+  })
+
+  it('rejects logging a future date', async () => {
+    const { logHabit } = await setup()
+
+    await expect(
+      logHabit(ID.user, HABIT, { date: '2026-07-21' }),
+    ).rejects.toBeInstanceOf(ValidationError)
   })
 
   it('un-marks a day when done is false', async () => {

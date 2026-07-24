@@ -156,6 +156,109 @@ function StatCard({
   )
 }
 
+function StreakBadge({ streak, label }: { streak: number; label: string }) {
+  return (
+    <span
+      className="inline-flex h-6 flex-none items-center gap-1 rounded-full px-2 text-[12px] font-extrabold"
+      style={{
+        background: 'oklch(0.72 0.17 60 / 0.14)',
+        color: 'oklch(0.55 0.15 55)',
+      }}
+      title={label}
+    >
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden
+      >
+        <path d="M12 2c1 3 3 4 3 7a3 3 0 0 1-6 0c0-1 .3-1.7.8-2.6C9 8 7.5 9.6 7.5 12.5A4.5 4.5 0 0 0 12 22a6 6 0 0 0 6-6c0-4.5-3.5-6.5-6-14z" />
+      </svg>
+      {streak}
+    </span>
+  )
+}
+
+function HabitsSection({
+  habits,
+  t,
+}: {
+  habits: AnalyticsView['habits']
+  t: ReturnType<typeof useI18n>['messages']['analytics']
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-ink-900 text-lg font-bold tracking-[-0.01em]">
+        {t.habitsTitle}
+      </h2>
+      {habits.active === 0 ? (
+        <Card className="text-ink-500 p-6 text-center text-sm">
+          {t.habitsEmpty}
+        </Card>
+      ) : (
+        <>
+          <Card className="flex flex-col gap-5 p-5 sm:p-6">
+            <div className="flex flex-col gap-1">
+              <span className="text-ink-500 text-sm">{t.consistency}</span>
+              <span className="text-brand-700 text-[40px] font-extrabold leading-none tracking-[-0.03em]">
+                {Math.round(habits.consistency * 100)}%
+              </span>
+            </div>
+            <ul className="flex flex-col gap-4">
+              {habits.items.map(item => {
+                const pct =
+                  item.expected > 0
+                    ? Math.min(
+                        100,
+                        Math.round((item.completions / item.expected) * 100),
+                      )
+                    : 0
+                return (
+                  <li key={item.id} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-ink-800 min-w-0 truncate text-sm font-semibold">
+                        {item.title}
+                      </span>
+                      <div className="flex flex-none items-center gap-2">
+                        <span className="text-ink-500 text-[12.5px] tabular-nums">
+                          {item.completions} {t.expectedOf} {item.expected}
+                        </span>
+                        {item.currentStreak > 0 && (
+                          <StreakBadge
+                            streak={item.currentStreak}
+                            label={t.bestStreak}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-line h-2 w-full overflow-hidden rounded-full">
+                      <div
+                        className="to-brand-600 h-full rounded-full bg-gradient-to-r from-violet-500 transition-[width] duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </Card>
+
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard label={t.activeHabits} value={String(habits.active)} />
+            <StatCard label={t.checkIns} value={String(habits.completions)} />
+            <StatCard
+              label={t.bestStreak}
+              value={String(habits.bestStreak)}
+              accent
+            />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export function AnalyticsScreen() {
   const { messages, locale } = useI18n()
   const [range, setRange] = useState<RangeKey>('weekly')
@@ -251,6 +354,11 @@ export function AnalyticsScreen() {
                   value={String(analytics.data.totalCompleted)}
                 />
               </div>
+
+              <HabitsSection
+                habits={analytics.data.habits}
+                t={messages.analytics}
+              />
             </>
           )
         })()

@@ -112,6 +112,7 @@ export type Messages = {
     checkDo: string
     checkDone: string
     streakAria: string
+    toggleDay: string
   }
   nav: {
     today: string
@@ -599,6 +600,13 @@ export type Messages = {
     tasksDone: string
     empty: string
     backToToday: string
+    habitsTitle: string
+    consistency: string
+    activeHabits: string
+    checkIns: string
+    bestStreak: string
+    habitsEmpty: string
+    expectedOf: string
   }
   status: {
     title: string
