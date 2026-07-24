@@ -85,6 +85,7 @@ describe('V2 calendar reminder happy path', () => {
       sendProactiveMessage: makeSendProactiveMessage({
         channelIdentities,
         messaging,
+        logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
       }),
       jobQueue,
       ids,

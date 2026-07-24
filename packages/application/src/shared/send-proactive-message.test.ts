@@ -32,6 +32,7 @@ async function setup(options: {
   const sendText = vi.fn().mockResolvedValue(undefined)
   const sendTemplate = vi.fn().mockResolvedValue(undefined)
   const sendButtons = vi.fn().mockResolvedValue(undefined)
+  const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn() }
   const send = makeSendProactiveMessage({
     channelIdentities,
     messaging: { sendText, sendTemplate, sendButtons, fetchMedia: vi.fn() },
@@ -42,8 +43,9 @@ async function setup(options: {
             markActive: vi.fn(),
             isOpen: async () => options.windowOpen ?? false,
           },
+    logger,
   })
-  return { send, sendText, sendTemplate, sendButtons }
+  return { send, sendText, sendTemplate, sendButtons, logger }
 }
 
 describe('sendProactiveMessage', () => {
@@ -90,17 +92,23 @@ describe('sendProactiveMessage', () => {
   })
 
   it('does nothing when the window is closed and no template is given', async () => {
-    const { send, sendText, sendTemplate } = await setup({ windowOpen: false })
+    const { send, sendText, sendTemplate, logger } = await setup({
+      windowOpen: false,
+    })
 
     const result = await send(USER_ID, { text: 'Bom dia!' })
 
     expect(result).toEqual({ delivered: false })
     expect(sendText).not.toHaveBeenCalled()
     expect(sendTemplate).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith(
+      'proactive_send_skipped',
+      expect.objectContaining({ reason: 'window_closed_no_template' }),
+    )
   })
 
   it('skips a user with no verified WhatsApp number', async () => {
-    const { send, sendText } = await setup({
+    const { send, sendText, logger } = await setup({
       verified: false,
       windowOpen: true,
     })
@@ -109,6 +117,10 @@ describe('sendProactiveMessage', () => {
 
     expect(result).toEqual({ delivered: false })
     expect(sendText).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith(
+      'proactive_send_skipped',
+      expect.objectContaining({ reason: 'no_verified_whatsapp' }),
+    )
   })
 
   it('skips a user with no linked number at all', async () => {
@@ -116,13 +128,33 @@ describe('sendProactiveMessage', () => {
     expect(await send(USER_ID, { text: 'Hi' })).toEqual({ delivered: false })
   })
 
-  it('swallows a send failure and reports not delivered', async () => {
-    const { send, sendText } = await setup({ windowOpen: true })
-    sendText.mockRejectedValueOnce(new Error('meta down'))
+  it('swallows a send failure but logs it as a real failure', async () => {
+    const { send, sendText, logger } = await setup({ windowOpen: true })
+    sendText.mockRejectedValueOnce(new Error('account restricted'))
 
     const result = await send(USER_ID, { text: 'Hi' })
 
     expect(result).toEqual({ delivered: false })
+    expect(logger.warn).toHaveBeenCalledWith(
+      'proactive_send_failed',
+      expect.objectContaining({ error: 'account restricted' }),
+    )
+  })
+
+  it('logs a closed-window template failure, even when not thrown as an Error', async () => {
+    const { send, sendTemplate, logger } = await setup({ windowOpen: false })
+    // Meta rejects an unapproved template / restricted account; some clients
+    // reject with a bare value rather than an Error.
+    sendTemplate.mockRejectedValueOnce('template_rejected')
+
+    const result = await send(USER_ID, { text: 'Hi', template: TEMPLATE })
+
+    expect(result).toEqual({ delivered: false })
+    expect(logger.warn).toHaveBeenCalledWith('proactive_send_failed', {
+      userId: USER_ID,
+      window: 'closed',
+      error: 'template_rejected',
+    })
   })
 
   it('treats a missing session window as closed', async () => {

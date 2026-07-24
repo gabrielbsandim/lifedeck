@@ -508,6 +508,11 @@ function build(
     channelIdentities,
     messaging,
     whatsappSession,
+    logger: {
+      error: (message, meta) => log('error', message, meta),
+      warn: (message, meta) => log('warn', message, meta),
+      info: (message, meta) => log('info', message, meta),
+    },
   })
   const reminderTemplateName = process.env.WHATSAPP_REMINDER_TEMPLATE?.trim()
   const deliverReminder = makeDeliverReminder({

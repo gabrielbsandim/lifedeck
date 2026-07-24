@@ -98,6 +98,7 @@ async function setup(options: {
   const sendText = vi.fn().mockResolvedValue(undefined)
   const sendProactiveMessage = makeSendProactiveMessage({
     channelIdentities,
+    logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
     messaging: {
       sendText,
       sendTemplate,
