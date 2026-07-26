@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
-import { User, type Entitlement } from '@lifedeck/domain'
+import { User, asEntityId, type Entitlement } from '@lifedeck/domain'
 import { makeSendDailyBrief } from '@/use-cases/send-daily-brief'
 import type { DailyBoardView } from '@/use-cases/get-daily-board'
 import type { CalendarEventView } from '@/dtos/calendar-event-dto'
 import type { WeatherLookup } from '@/ports/weather-provider'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
+import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 import { FixedClock, ID } from '@/testing/fakes'
+
+const NOTIFICATION_ID = '11111111-1111-4111-8111-111111111111'
 
 // 12:00 UTC; the user sits in UTC so "today" is 2026-06-22 there.
 const NOW = new Date('2026-06-22T12:00:00.000Z')
@@ -52,6 +55,7 @@ async function setup(options?: {
   board?: DailyBoardView
   briefTemplate?: { name: string; language: string }
   cap?: number
+  delivered?: boolean
 }) {
   const users = new InMemoryUserRepository()
   const user = User.createGuest({
@@ -74,8 +78,11 @@ async function setup(options?: {
   })
   await users.save(user)
 
-  const sendProactiveMessage = vi.fn().mockResolvedValue({ delivered: true })
+  const sendProactiveMessage = vi
+    .fn()
+    .mockResolvedValue({ delivered: options?.delivered ?? true })
   const getForecast = vi.fn().mockResolvedValue(options?.weather ?? okWeather())
+  const notifications = new InMemoryNotificationRepository()
 
   const sendDailyBrief = makeSendDailyBrief({
     users,
@@ -101,11 +108,13 @@ async function setup(options?: {
     },
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
+    notifications,
+    ids: { generate: () => asEntityId(NOTIFICATION_ID) },
     clock: new FixedClock(NOW),
     briefTemplate: options?.briefTemplate,
   })
 
-  return { sendDailyBrief, sendProactiveMessage, getForecast }
+  return { sendDailyBrief, sendProactiveMessage, getForecast, notifications }
 }
 
 describe('sendDailyBrief', () => {
@@ -123,7 +132,7 @@ describe('sendDailyBrief', () => {
     expect(message.template).toBeUndefined()
   })
 
-  it('sends the daily_brief template with the composed text as its param', async () => {
+  it('sends the daily_brief template with a single-line param', async () => {
     const { sendDailyBrief, sendProactiveMessage } = await setup({
       briefTemplate: { name: 'daily_brief', language: 'pt_BR' },
     })
@@ -132,8 +141,31 @@ describe('sendDailyBrief', () => {
 
     const [, message] = sendProactiveMessage.mock.calls[0]!
     expect(message.template.name).toBe('daily_brief')
-    expect(message.template.language).toBe('en')
-    expect(message.template.params).toEqual([message.text])
+    expect(message.template.language).toBe('en_US')
+    // WhatsApp rejects a body param containing a line break, so the template
+    // carries the compact summary rather than the bulleted brief.
+    const [param] = message.template.params
+    expect(param).not.toContain('\n')
+    expect(param).toContain('1 task pending')
+    expect(param).toContain('1 event')
+  })
+
+  it('keeps an undelivered brief in the notification bell', async () => {
+    const { sendDailyBrief, notifications } = await setup({ delivered: false })
+
+    expect(await sendDailyBrief(ID.user)).toEqual({ sent: false })
+
+    const [stored] = await notifications.listByUser(asEntityId(ID.user), 10)
+    expect(stored?.toJSON().type).toBe('daily-brief')
+    expect(stored?.toJSON().data.text).toContain('Good morning')
+  })
+
+  it('does not duplicate a delivered brief in the bell', async () => {
+    const { sendDailyBrief, notifications } = await setup()
+
+    await sendDailyBrief(ID.user)
+
+    expect(await notifications.listByUser(asEntityId(ID.user), 10)).toEqual([])
   })
 
   it('does not send when the brief is disabled', async () => {

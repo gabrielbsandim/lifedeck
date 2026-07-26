@@ -1,10 +1,13 @@
 import {
+  Notification,
   asEntityId,
   civilDate,
   toMessageLanguage,
   zonedIso,
 } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
+import type { IdGenerator } from '@/ports/id-generator'
+import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { WeatherProvider } from '@/ports/weather-provider'
@@ -15,8 +18,10 @@ import type { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import {
   composeDailyBrief,
+  composeDailyBriefParam,
   type DailyBriefWeather,
 } from '@/shared/daily-brief-text'
+import { DAILY_BRIEF_JOB } from '@/use-cases/enqueue-daily-briefs'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -33,6 +38,8 @@ type Dependencies = {
   weather: WeatherProvider
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
+  notifications: Pick<NotificationRepository, 'save'>
+  ids: IdGenerator
   clock: Clock
   briefTemplate?: BriefTemplate
 }
@@ -55,6 +62,8 @@ export function makeSendDailyBrief({
   weather,
   sendProactiveMessage,
   sendGuard,
+  notifications,
+  ids,
   clock,
   briefTemplate,
 }: Dependencies) {
@@ -125,7 +134,8 @@ export function makeSendDailyBrief({
       }
     }
 
-    const text = composeDailyBrief(toMessageLanguage(user.locale), {
+    const language = toMessageLanguage(user.locale)
+    const briefData = {
       dateLabel: formatBriefDate(now, user.locale, timezone),
       pendingTitles,
       doneCount,
@@ -133,7 +143,8 @@ export function makeSendDailyBrief({
       carriedOver: board.carryOver.length,
       events: todayEvents,
       weather: weatherData,
-    })
+    }
+    const text = composeDailyBrief(language, briefData)
 
     const { delivered } = await sendProactiveMessage(userId, {
       text,
@@ -144,10 +155,28 @@ export function makeSendDailyBrief({
               user.locale,
               briefTemplate.language,
             ),
-            params: [text],
+            // A template body param must be a single line, so the fallback send
+            // carries the compact version, not the full bulleted brief.
+            params: [composeDailyBriefParam(language, briefData)],
           }
         : undefined,
     })
+
+    // WhatsApp is best-effort: outside the 24h window, with no approved template
+    // configured, the send is skipped and the brief would simply vanish. Keep it
+    // in the app's notification bell so the day's summary is never lost, the way
+    // reminders already do. Only on failure, so a delivered brief is not echoed.
+    if (!delivered) {
+      await notifications.save(
+        Notification.create({
+          id: ids.generate(),
+          userId: asEntityId(userId),
+          type: DAILY_BRIEF_JOB,
+          data: { date: today, text },
+          createdAt: now,
+        }),
+      )
+    }
 
     return { sent: delivered }
   }

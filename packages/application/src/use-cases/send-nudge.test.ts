@@ -5,7 +5,8 @@ import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryNudgeLogRepository } from '@/testing/in-memory-nudge-log-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
-import { FixedClock, SequentialIdGenerator, ID } from '@/testing/fakes'
+import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { FixedClock, ID } from '@/testing/fakes'
 
 // Noon UTC; the user sits in UTC so "today" is 2026-07-20 there.
 const NOW = new Date('2026-07-20T12:00:00.000Z')
@@ -35,6 +36,7 @@ async function setup(options?: {
   seedLogs?: { key: string; date: string }[]
   cap?: number
   nudgeTemplate?: { name: string; language: string }
+  delivered?: boolean
 }) {
   const users = new InMemoryUserRepository()
   const user = User.createGuest({
@@ -71,8 +73,11 @@ async function setup(options?: {
     })
   }
 
-  const sendProactiveMessage = vi.fn().mockResolvedValue({ delivered: true })
+  const sendProactiveMessage = vi
+    .fn()
+    .mockResolvedValue({ delivered: options?.delivered ?? true })
   const conversations = new InMemoryConversationStore()
+  const notifications = new InMemoryNotificationRepository()
   const sendNudge = makeSendNudge({
     users,
     entitlements: {
@@ -86,13 +91,22 @@ async function setup(options?: {
     nudgeLogs,
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
+    notifications,
     conversations,
-    ids: new SequentialIdGenerator([NUDGE_LOG_ID]),
+    // One fixed id for both the nudge log and any fallback notification: they
+    // live in separate stores, so there is nothing to collide with.
+    ids: { generate: () => NUDGE_LOG_ID },
     clock: new FixedClock(NOW),
     nudgeTemplate: options?.nudgeTemplate,
   })
 
-  return { sendNudge, sendProactiveMessage, nudgeLogs, conversations }
+  return {
+    sendNudge,
+    sendProactiveMessage,
+    nudgeLogs,
+    conversations,
+    notifications,
+  }
 }
 
 describe('sendNudge', () => {
@@ -128,8 +142,10 @@ describe('sendNudge', () => {
 
     const [, message] = sendProactiveMessage.mock.calls[0]!
     expect(message.template.name).toBe('nudge')
-    expect(message.template.language).toBe('en')
-    expect(message.template.params).toEqual([message.text])
+    expect(message.template.language).toBe('en_US')
+    // The task and its age, not the whole sentence: the template body carries
+    // its own copy around the variables.
+    expect(message.template.params).toEqual(['Call dentist', '4'])
   })
 
   it('does not nudge a non-premium user', async () => {
@@ -188,5 +204,20 @@ describe('sendNudge', () => {
     expect(await sendNudge('00000000-0000-4000-8000-000000000000')).toEqual({
       sent: false,
     })
+  })
+
+  it('falls back to the notification bell and still applies the cooldown', async () => {
+    const { sendNudge, notifications, nudgeLogs } = await setup({
+      delivered: false,
+    })
+
+    expect(await sendNudge(ID.user)).toEqual({ sent: false })
+
+    const [stored] = await notifications.listByUser(ID.user, 10)
+    expect(stored?.toJSON().type).toBe('nudge')
+    expect(stored?.toJSON().data.taskTitle).toBe('Call dentist')
+    // Recorded even though WhatsApp did not deliver, so the same task is not
+    // nudged again tomorrow for a user we can only reach in-app.
+    expect(await nudgeLogs.hasSentOn(ID.user, '2026-07-20')).toBe(true)
   })
 })

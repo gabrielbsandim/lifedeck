@@ -377,6 +377,9 @@ export type Messages = {
     markAllRead: string
     assigned: string
     reminder: string
+    dailyBrief: string
+    habitCheckin: string
+    nudge: string
     generic: string
     open: string
   }

@@ -184,7 +184,7 @@ describe('deliverReminder', () => {
       user: { email: 'gab@example.com', verified: true },
     })
     await deliver(EVENT_ID, OWNER_ID, 30)
-    expect(sendTemplate.mock.calls[0]?.[1]?.language).toBe('en')
+    expect(sendTemplate.mock.calls[0]?.[1]?.language).toBe('en_US')
   })
 
   it('skips the whatsapp template when no template is configured', async () => {

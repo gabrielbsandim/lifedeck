@@ -69,6 +69,58 @@ describe('NotificationBell', () => {
     expect(screen.getByText(/Jul 28.*3:30/)).toBeInTheDocument()
   })
 
+  it('shows an undelivered brief with its full text', async () => {
+    stubApi([
+      {
+        ...REMINDER,
+        type: 'daily-brief',
+        data: { date: '2026-07-28', text: '☀️ Good morning!\n\n1/2 done' },
+      },
+    ])
+    renderBell()
+
+    fireEvent.click(screen.getByLabelText(en.notifications.open))
+
+    expect(
+      await screen.findByText(en.notifications.dailyBrief),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/1\/2 done/)).toBeInTheDocument()
+  })
+
+  it('names the habit of an undelivered check-in', async () => {
+    stubApi([
+      {
+        ...REMINDER,
+        type: 'habit-checkin',
+        data: { habitId: 'h1', habitTitle: 'Meditate', text: 'Did you?' },
+      },
+    ])
+    renderBell()
+
+    fireEvent.click(screen.getByLabelText(en.notifications.open))
+
+    expect(
+      await screen.findByText('Habit check-in: Meditate'),
+    ).toBeInTheDocument()
+  })
+
+  it('names the task of an undelivered nudge', async () => {
+    stubApi([
+      {
+        ...REMINDER,
+        type: 'nudge',
+        data: { taskId: 't1', taskTitle: 'Call dentist', text: 'Still there?' },
+      },
+    ])
+    renderBell()
+
+    fireEvent.click(screen.getByLabelText(en.notifications.open))
+
+    expect(
+      await screen.findByText('Still pending: Call dentist'),
+    ).toBeInTheDocument()
+  })
+
   it('falls back to a generic label for an unknown type', async () => {
     stubApi([{ ...REMINDER, type: 'mystery', data: {} }])
     renderBell()

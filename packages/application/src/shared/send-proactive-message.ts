@@ -7,6 +7,7 @@ import type {
   MessagingChannel,
 } from '@/ports/messaging-channel'
 import type { WhatsappSessionWindow } from '@/ports/whatsapp-session'
+import { toTemplateParams } from '@/shared/template-param'
 
 export type ProactiveMessage = {
   // Free-form text, sent while WhatsApp's 24h customer-service window is open
@@ -76,7 +77,13 @@ export function makeSendProactiveMessage({
         return { delivered: true }
       }
       if (message.template) {
-        await messaging.sendTemplate(identity.address, message.template)
+        // Flatten here rather than in each caller: a multi-line body param is
+        // rejected by WhatsApp, and the rejection lands in this catch as an
+        // opaque provider error long after the copy was written.
+        await messaging.sendTemplate(identity.address, {
+          ...message.template,
+          params: toTemplateParams(message.template.params),
+        })
         return { delivered: true }
       }
       // Outside WhatsApp's 24h window a free-form message is not allowed, so with

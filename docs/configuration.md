@@ -148,8 +148,7 @@ for production.
 | `WHATSAPP_ACCESS_TOKEN` | Send token (permanent/System User). | Meta App → WhatsApp → token (use a System User so it doesn't expire). |
 | `WHATSAPP_APP_SECRET` | App Secret (validates the webhook signature). | Meta App → Settings → Basic → App Secret. |
 | `WHATSAPP_VERIFY_TOKEN` | Token for the webhook GET handshake. | You set it; paste the same value into the webhook config on Meta. |
-| `WHATSAPP_REMINDER_TEMPLATE` | Name of the utility reminder template. | Meta → WhatsApp Manager → Message Templates (approved). Without it, reminders are in-app only. |
-| `WHATSAPP_TEMPLATE_LANGUAGE` | Template language. | E.g. `pt_BR`. |
+| _(templates)_ | Not env vars. | The approved template names live in `apps/web/src/server/whatsapp-templates.ts`; see `docs/whatsapp.md` for their bodies and languages. |
 | `GEMINI_PRO_MODEL_ID` | Pro model for long text (Premium tier; reuses `GEMINI_API_KEY`). | Optional. Default `gemini-3-pro-preview`. |
 
 ### WhatsApp via Abracode gateway (alternative transport)

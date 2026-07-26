@@ -218,6 +218,10 @@ import {
   prisma,
 } from '@lifedeck/infrastructure'
 import { createRedisHealthProbe } from '@/server/api/redis-health-probe'
+import {
+  WHATSAPP_TEMPLATES,
+  whatsappTemplate,
+} from '@/server/whatsapp-templates'
 import { log } from '@/server/api/logger'
 import { SITE_NAME, siteUrl } from '@/lib/site'
 
@@ -514,7 +518,6 @@ function build(
       info: (message, meta) => log('info', message, meta),
     },
   })
-  const reminderTemplateName = process.env.WHATSAPP_REMINDER_TEMPLATE?.trim()
   const deliverReminder = makeDeliverReminder({
     calendarEvents,
     notifications,
@@ -524,12 +527,7 @@ function build(
     jobQueue,
     ids,
     clock,
-    reminderTemplate: reminderTemplateName
-      ? {
-          name: reminderTemplateName,
-          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
-        }
-      : undefined,
+    reminderTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.reminder),
   })
   const watchGoogleCalendar = makeWatchGoogleCalendar({
     calendarConnections,
@@ -729,7 +727,6 @@ function build(
   const setAssistantProfile = makeSetAssistantProfile({ users })
   const proactiveDailyCap = Number(process.env.PROACTIVE_DAILY_CAP?.trim()) || 3
   const proactiveSendGuard = createProactiveSendGuard(proactiveDailyCap)
-  const briefTemplateName = process.env.WHATSAPP_TEMPLATE_DAILY_BRIEF?.trim()
   const sendDailyBrief = makeSendDailyBrief({
     users,
     entitlements: entitlementService,
@@ -738,13 +735,10 @@ function build(
     weather: weatherProvider,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
+    notifications,
+    ids,
     clock,
-    briefTemplate: briefTemplateName
-      ? {
-          name: briefTemplateName,
-          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
-        }
-      : undefined,
+    briefTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.dailyBrief),
   })
 
   const createHabit = makeCreateHabit({
@@ -758,8 +752,6 @@ function build(
   const updateHabit = makeUpdateHabit({ habits, habitLogs, users, clock })
   const deleteHabit = makeDeleteHabit({ habits })
   const logHabit = makeLogHabit({ habits, habitLogs, users, ids, clock })
-  const checkinTemplateName =
-    process.env.WHATSAPP_TEMPLATE_HABIT_CHECKIN?.trim()
   const sendHabitCheckin = makeSendHabitCheckin({
     habits,
     habitLogs,
@@ -767,15 +759,11 @@ function build(
     entitlements: entitlementService,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
+    notifications,
+    ids,
     clock,
-    checkinTemplate: checkinTemplateName
-      ? {
-          name: checkinTemplateName,
-          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
-        }
-      : undefined,
+    checkinTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.habitCheckin),
   })
-  const nudgeTemplateName = process.env.WHATSAPP_TEMPLATE_NUDGE?.trim()
   const sendNudge = makeSendNudge({
     users,
     entitlements: entitlementService,
@@ -783,15 +771,11 @@ function build(
     nudgeLogs,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
+    notifications,
     conversations,
     ids,
     clock,
-    nudgeTemplate: nudgeTemplateName
-      ? {
-          name: nudgeTemplateName,
-          language: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'pt_BR',
-        }
-      : undefined,
+    nudgeTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.nudge),
   })
 
   const assistantTools = makeAssistantTools({

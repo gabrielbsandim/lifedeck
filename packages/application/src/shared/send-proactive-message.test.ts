@@ -164,4 +164,18 @@ describe('sendProactiveMessage', () => {
 
     expect(sendTemplate).toHaveBeenCalledWith(ADDRESS, TEMPLATE)
   })
+
+  it('flattens a multi-line template param, which WhatsApp rejects', async () => {
+    const { send, sendTemplate } = await setup({ windowOpen: false })
+
+    await send(USER_ID, {
+      text: 'Hi',
+      template: { ...TEMPLATE, params: ['Today\n• Buy milk'] },
+    })
+
+    expect(sendTemplate).toHaveBeenCalledWith(ADDRESS, {
+      ...TEMPLATE,
+      params: ['Today • Buy milk'],
+    })
+  })
 })

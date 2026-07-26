@@ -40,6 +40,24 @@ function describe(
       subtitle: data.listTitle,
     }
   }
+  // Proactive assistant messages that WhatsApp could not deliver (window closed,
+  // no number linked). They carry the full composed text, so the bell is where
+  // the user still gets their morning brief or check-in.
+  if (notification.type === 'daily-brief') {
+    return { title: t.dailyBrief, subtitle: data.text }
+  }
+  if (notification.type === 'habit-checkin') {
+    return {
+      title: t.habitCheckin.replace('{habit}', data.habitTitle ?? ''),
+      subtitle: data.text,
+    }
+  }
+  if (notification.type === 'nudge') {
+    return {
+      title: t.nudge.replace('{task}', data.taskTitle ?? ''),
+      subtitle: data.text,
+    }
+  }
   return { title: t.generic }
 }
 
@@ -237,7 +255,9 @@ export function NotificationBell() {
                             </span>
                           </span>
                           {rendered.subtitle && (
-                            <span className="text-ink-500 text-xs">
+                            // pre-line: an undelivered brief keeps the line
+                            // breaks it was composed with.
+                            <span className="text-ink-500 whitespace-pre-line text-xs">
                               {rendered.subtitle}
                             </span>
                           )}

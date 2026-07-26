@@ -13,12 +13,14 @@ import { InMemoryHabitRepository } from '@/testing/in-memory-habit-repository'
 import { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
+import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 import { FixedClock, ID } from '@/testing/fakes'
 
 // Noon UTC on Monday 2026-07-20; the user sits in UTC so "today" is that date.
 const NOW = new Date('2026-07-20T12:00:00.000Z')
 const HABIT = asEntityId('11111111-1111-4111-8111-111111111111')
 const LOG = asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+const NOTIFICATION_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
 async function setup(options?: {
   active?: boolean
@@ -29,6 +31,7 @@ async function setup(options?: {
   checkinTemplate?: { name: string; language: string }
   cap?: number
   ownerId?: EntityId
+  delivered?: boolean
 }) {
   const habits = new InMemoryHabitRepository()
   const habitLogs = new InMemoryHabitLogRepository()
@@ -63,7 +66,10 @@ async function setup(options?: {
     )
   }
 
-  const sendProactiveMessage = vi.fn().mockResolvedValue({ delivered: true })
+  const sendProactiveMessage = vi
+    .fn()
+    .mockResolvedValue({ delivered: options?.delivered ?? true })
+  const notifications = new InMemoryNotificationRepository()
   const sendHabitCheckin = makeSendHabitCheckin({
     habits,
     habitLogs,
@@ -76,11 +82,13 @@ async function setup(options?: {
     },
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
+    notifications,
+    ids: { generate: () => asEntityId(NOTIFICATION_ID) },
     clock: new FixedClock(NOW),
     checkinTemplate: options?.checkinTemplate,
   })
 
-  return { sendHabitCheckin, sendProactiveMessage }
+  return { sendHabitCheckin, sendProactiveMessage, notifications }
 }
 
 describe('sendHabitCheckin', () => {
@@ -104,7 +112,7 @@ describe('sendHabitCheckin', () => {
 
     const [, message] = sendProactiveMessage.mock.calls[0]!
     expect(message.template.name).toBe('habit_checkin')
-    expect(message.template.language).toBe('en')
+    expect(message.template.language).toBe('en_US')
     expect(message.template.params).toEqual(['Meditate'])
   })
 
@@ -166,5 +174,25 @@ describe('sendHabitCheckin', () => {
     expect(await sendHabitCheckin(ID.user, HABIT)).toEqual({ sent: true })
     expect(await sendHabitCheckin(ID.user, HABIT)).toEqual({ sent: false })
     expect(sendProactiveMessage).toHaveBeenCalledOnce()
+  })
+
+  it('keeps an undelivered check-in in the notification bell', async () => {
+    const { sendHabitCheckin, notifications } = await setup({
+      delivered: false,
+    })
+
+    expect(await sendHabitCheckin(ID.user, HABIT)).toEqual({ sent: false })
+
+    const [stored] = await notifications.listByUser(ID.user, 10)
+    expect(stored?.toJSON().type).toBe('habit-checkin')
+    expect(stored?.toJSON().data.habitTitle).toBe('Meditate')
+  })
+
+  it('does not duplicate a delivered check-in in the bell', async () => {
+    const { sendHabitCheckin, notifications } = await setup()
+
+    await sendHabitCheckin(ID.user, HABIT)
+
+    expect(await notifications.listByUser(ID.user, 10)).toEqual([])
   })
 })

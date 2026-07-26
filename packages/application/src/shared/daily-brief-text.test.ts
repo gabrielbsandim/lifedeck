@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   composeDailyBrief,
+  composeDailyBriefParam,
   type DailyBriefData,
 } from '@/shared/daily-brief-text'
 
@@ -121,5 +122,61 @@ describe('composeDailyBrief', () => {
     )
     expect(composeDailyBrief('es', data())).toContain('☀️ Buenos días!')
     expect(composeDailyBrief('es', data())).toContain('Sin tareas para hoy.')
+  })
+})
+
+describe('composeDailyBriefParam', () => {
+  const full = () => ({
+    ...data(),
+    pendingTitles: ['Buy milk', 'Call dentist'],
+    doneCount: 1,
+    totalCount: 3,
+    events: [
+      { time: '09:00', title: 'Standup' },
+      { time: '15:00', title: 'Dentist' },
+    ],
+    weather: {
+      location: 'Lisbon, Portugal',
+      tempMinC: 12,
+      tempMaxC: 20,
+      precipitationProbabilityPct: 30,
+    },
+  })
+
+  it('stays on one line, as a WhatsApp template param must', () => {
+    const param = composeDailyBriefParam('en', full())
+
+    expect(param).not.toContain('\n')
+    expect(param).toBe(
+      'Today • Mon, Jul 20 • 2 tasks pending • 2 events (09:00…) • 12–20°C, rain 30%',
+    )
+  })
+
+  it('reports a finished day by its counts', () => {
+    expect(
+      composeDailyBriefParam('en', {
+        ...full(),
+        pendingTitles: [],
+        doneCount: 3,
+        events: [],
+        weather: null,
+      }),
+    ).toBe('Today • Mon, Jul 20 • 3/3 done')
+  })
+
+  it('says there is nothing when the day is empty', () => {
+    expect(composeDailyBriefParam('pt', data())).toBe(
+      'Hoje • Mon, Jul 20 • nada pendente',
+    )
+  })
+
+  it('names a single event with its time', () => {
+    expect(
+      composeDailyBriefParam('en', {
+        ...full(),
+        events: [{ time: '09:00', title: 'Standup' }],
+        weather: null,
+      }),
+    ).toContain('1 event (09:00)')
   })
 })

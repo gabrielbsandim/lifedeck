@@ -1,4 +1,5 @@
 import {
+  Notification,
   asEntityId,
   civilDate,
   civilHour,
@@ -9,6 +10,7 @@ import type { Clock } from '@/ports/clock'
 import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { IdGenerator } from '@/ports/id-generator'
+import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { NudgeLogRepository } from '@/ports/nudge-log-repository'
 import type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
@@ -16,6 +18,7 @@ import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
 import type { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import { composeNudge, nudgeButtonLabels } from '@/shared/nudge-text'
+import { NUDGE_JOB } from '@/use-cases/enqueue-nudges'
 
 const DAY_MS = 86_400_000
 // A pending task carried this many civil days is stale enough to nudge about.
@@ -35,6 +38,7 @@ type Dependencies = {
   nudgeLogs: NudgeLogRepository
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
+  notifications: Pick<NotificationRepository, 'save'>
   // Records the nudge as an assistant turn so a "Yes, reschedule" reply (tapped
   // button or typed) reaches the assistant with the task already in context.
   conversations: Pick<ConversationStore, 'append'>
@@ -68,6 +72,7 @@ export function makeSendNudge({
   nudgeLogs,
   sendProactiveMessage,
   sendGuard,
+  notifications,
   conversations,
   ids,
   clock,
@@ -154,19 +159,44 @@ export function makeSendNudge({
               user.locale,
               nudgeTemplate.language,
             ),
-            params: [text],
+            // The task and its age, not the whole composed sentence: a template
+            // body must carry its own static copy around the variables.
+            params: [candidate.task.title, String(candidate.days)],
           }
         : undefined,
     })
 
+    // Same fallback as the brief/check-in: with WhatsApp unavailable the nudge
+    // lands in the in-app notification bell instead of disappearing.
+    if (!delivered) {
+      await notifications.save(
+        Notification.create({
+          id: ids.generate(),
+          userId: asEntityId(userId),
+          type: NUDGE_JOB,
+          data: {
+            taskId: candidate.task.id,
+            taskTitle: candidate.task.title,
+            text,
+          },
+          createdAt: now,
+        }),
+      )
+    }
+
+    // Recorded either way: the user was nudged about this task today through one
+    // channel or the other, so the cooldown applies. Recording only on a WhatsApp
+    // send would re-nudge the same task every day for anyone we can only reach
+    // in-app.
+    await nudgeLogs.record({
+      id: ids.generate(),
+      userId: asEntityId(userId),
+      key,
+      date: today,
+      createdAt: now,
+    })
+
     if (delivered) {
-      await nudgeLogs.record({
-        id: ids.generate(),
-        userId: asEntityId(userId),
-        key,
-        date: today,
-        createdAt: now,
-      })
       // Best-effort: the reply context is a nicety, not worth failing the send.
       try {
         await conversations.append(userId, [
