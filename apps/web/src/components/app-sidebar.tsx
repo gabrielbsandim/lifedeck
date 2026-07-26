@@ -160,7 +160,7 @@ export function AppSidebar() {
               aria-current={active ? 'page' : undefined}
               className={
                 active
-                  ? 'bg-brand-50 text-brand-700 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold'
+                  ? 'bg-brand-50 text-brand-accent-strong flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold'
                   : 'text-ink-600 hover:bg-bg hover:text-ink-800 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium'
               }
             >

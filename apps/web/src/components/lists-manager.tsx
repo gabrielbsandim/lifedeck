@@ -111,7 +111,7 @@ function ListSummaryCard({ list, index }: { list: ListView; index: number }) {
   return (
     <Link
       href={`/lists/${list.id}`}
-      className="border-line hover:border-brand-300 block rounded-2xl border bg-white p-4 shadow-[0_1px_2px_rgba(70,60,90,0.05)] transition active:scale-[0.99]"
+      className="border-line hover:border-brand-300 bg-surface block rounded-2xl border p-4 shadow-[0_1px_2px_rgba(70,60,90,0.05)] transition active:scale-[0.99]"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -128,7 +128,7 @@ function ListSummaryCard({ list, index }: { list: ListView; index: number }) {
         <div className="bg-bg h-1.5 flex-1 overflow-hidden rounded-full">
           <div
             className={`h-full rounded-full transition-[width] duration-500 ${
-              pct === 100 ? 'bg-emerald-500' : 'bg-brand-600'
+              pct === 100 ? 'bg-success' : 'bg-brand-600'
             }`}
             style={{ width: `${pct}%` }}
           />
@@ -210,7 +210,7 @@ export function ListsManager() {
           {creating ? (
             <form
               onSubmit={submit}
-              className="border-line flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-[0_1px_2px_rgba(70,60,90,0.05)]"
+              className="border-line bg-surface flex flex-col gap-3 rounded-2xl border p-4 shadow-[0_1px_2px_rgba(70,60,90,0.05)]"
             >
               <TextField
                 autoFocus
@@ -244,7 +244,7 @@ export function ListsManager() {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="border-brand-300 bg-brand-50/50 text-brand-600 hover:bg-brand-50 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed text-sm font-semibold transition-colors"
+              className="border-brand-300 bg-brand-50/50 text-brand-accent hover:bg-brand-50 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed text-sm font-semibold transition-colors"
             >
               <PlusIcon size={18} />
               {messages.lists.newList}

@@ -25,7 +25,7 @@ import { SegmentedControl } from '@/components/settings/settings-ui'
 import { CheckIcon, CloseIcon } from '@/components/icons'
 
 const inputCls =
-  'border-line text-ink-800 focus:border-brand-300 h-[46px] w-full rounded-xl border bg-white px-3.5 text-[15px] outline-none'
+  'border-line text-ink-800 focus:border-brand-300 h-[46px] w-full rounded-xl border bg-surface px-3.5 text-[15px] outline-none'
 
 type Phase = 'form' | 'pix' | 'card'
 
@@ -182,9 +182,9 @@ export function CheckoutDialog({
         type="button"
         aria-label={t.close}
         onClick={onClose}
-        className="bg-ink-900/45 absolute inset-0"
+        className="bg-scrim/45 absolute inset-0"
       />
-      <div className="relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-6 shadow-[0_24px_64px_rgba(20,10,60,0.3)] [animation:ld-slide-in_0.2s_cubic-bezier(0.2,0,0,1)]">
+      <div className="bg-surface relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-3xl p-6 shadow-[0_24px_64px_rgba(20,10,60,0.3)] [animation:ld-slide-in_0.2s_cubic-bezier(0.2,0,0,1)]">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-ink-900 text-lg font-bold">
             {success

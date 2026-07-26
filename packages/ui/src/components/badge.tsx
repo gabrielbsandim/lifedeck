@@ -11,7 +11,7 @@ export type BadgeProps = {
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
   neutral: 'bg-bg text-ink-600',
-  brand: 'bg-brand-50 text-brand-700',
+  brand: 'bg-brand-50 text-brand-accent-strong',
   success: 'bg-success/15 text-success',
   shared: 'bg-violet-500/15 text-violet-500',
 }

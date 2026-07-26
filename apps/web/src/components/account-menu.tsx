@@ -24,15 +24,15 @@ export function AccountMenu() {
       {registered ? (
         <Link
           href="/settings"
-          className="border-line text-ink-700 hover:bg-bg flex items-center gap-2 rounded-full border bg-white py-1 pl-1 pr-3 text-sm font-medium transition"
+          className="border-line text-ink-700 hover:bg-bg bg-surface flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-medium transition"
         >
           <span className="relative">
             <Avatar name={user.displayName} src={user.avatarUrl} size="sm" />
             <span
               className={
                 user.isEmailVerified
-                  ? 'ring-bg absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2'
-                  : 'ring-bg absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2'
+                  ? 'ring-bg bg-success absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2'
+                  : 'ring-bg bg-warning absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2'
               }
               aria-hidden
             />
@@ -43,7 +43,7 @@ export function AccountMenu() {
         <button
           type="button"
           onClick={() => setAuthOpen(true)}
-          className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+          className="text-brand-accent hover:text-brand-accent-strong text-sm font-medium"
         >
           {messages.auth.createAccount}
         </button>

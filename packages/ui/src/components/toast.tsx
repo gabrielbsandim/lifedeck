@@ -19,7 +19,7 @@ export function Toast({ children, tone = 'success', className }: ToastProps) {
     <div
       role="status"
       className={cn(
-        'border-line flex items-center gap-2.5 rounded-xl border bg-white px-3.5 py-3 shadow-lg',
+        'border-line bg-surface flex items-center gap-2.5 rounded-xl border px-3.5 py-3 shadow-lg',
         className,
       )}
     >

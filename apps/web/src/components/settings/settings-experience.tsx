@@ -72,7 +72,7 @@ function sectionCatalog(messages: Messages): Record<SectionKey, SectionMeta> {
       key: 'preferencias',
       label: messages.settings.preferences,
       icon: <SlidersIcon size={16} />,
-      iconClass: 'bg-ink-500',
+      iconClass: 'bg-tile',
     },
     seguranca: {
       key: 'seguranca',
@@ -90,7 +90,7 @@ function sectionCatalog(messages: Messages): Record<SectionKey, SectionMeta> {
       key: 'conta',
       label: messages.settings.account,
       icon: <UserIcon size={16} />,
-      iconClass: 'bg-ink-500',
+      iconClass: 'bg-tile',
     },
   }
 }
@@ -171,7 +171,7 @@ function DesktopNav({
             className={cn(
               'flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-left text-sm transition-colors',
               isActive
-                ? 'bg-brand-50 text-brand-700 font-semibold'
+                ? 'bg-brand-50 text-brand-accent-strong font-semibold'
                 : 'text-ink-600 hover:bg-bg font-medium',
             )}
           >
@@ -220,7 +220,7 @@ function MobileHub({
       <button
         type="button"
         onClick={() => onSelect('perfil')}
-        className="border-line flex items-center gap-3 rounded-2xl border bg-white p-3.5 text-left shadow-sm transition-transform active:scale-[0.99]"
+        className="border-line bg-surface flex items-center gap-3 rounded-2xl border p-3.5 text-left shadow-sm transition-transform active:scale-[0.99]"
       >
         <span className="from-brand-600 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br to-violet-500 text-lg font-semibold text-white">
           {initials}
@@ -263,7 +263,7 @@ function MobileHub({
           <button
             type="button"
             onClick={() => onSelect('plano')}
-            className="border-line flex items-center gap-3 rounded-2xl border bg-white p-3.5 text-left shadow-sm"
+            className="border-line bg-surface flex items-center gap-3 rounded-2xl border p-3.5 text-left shadow-sm"
           >
             <span className="from-brand-600 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br to-violet-500">
               <DeckGlyph size={22} className="text-white" />
@@ -324,7 +324,7 @@ function MobileHub({
           />
           <HubRow
             icon={<CodeIcon size={16} />}
-            iconClassName="bg-ink-700"
+            iconClassName="bg-tile-strong"
             label={messages.nav.developers}
             href="/developers"
           />
@@ -335,7 +335,7 @@ function MobileHub({
         <HubRowGroup>
           <HubRow
             icon={<UserIcon size={16} />}
-            iconClassName="bg-ink-500"
+            iconClassName="bg-tile"
             label={messages.settings.account}
             onClick={() => onSelect('conta')}
           />

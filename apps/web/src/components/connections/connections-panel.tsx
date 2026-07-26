@@ -42,13 +42,13 @@ function Row({
   children?: React.ReactNode
 }) {
   return (
-    <div className="border-line flex flex-col gap-3 rounded-xl border bg-white p-4">
+    <div className="border-line bg-surface flex flex-col gap-3 rounded-xl border p-4">
       <div className="flex items-start gap-3">
         <span
           className={
             done
-              ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600'
-              : 'bg-brand-100 text-brand-600 flex h-9 w-9 shrink-0 items-center justify-center rounded-full'
+              ? 'bg-success-soft text-success flex h-9 w-9 shrink-0 items-center justify-center rounded-full'
+              : 'bg-brand-100 text-brand-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-full'
           }
         >
           {done ? <CheckSquareIcon size={18} /> : icon}
@@ -96,15 +96,15 @@ function CalendarConnect() {
                     <button
                       type="button"
                       onClick={() => setConfirmingId(connection.id)}
-                      className="shrink-0 text-xs font-medium text-red-600 hover:underline"
+                      className="text-danger shrink-0 text-xs font-medium hover:underline"
                     >
                       {cal.disconnectCalendar}
                     </button>
                   )}
                 </div>
                 {confirmingId === connection.id && (
-                  <div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5">
-                    <p className="text-xs text-red-700">
+                  <div className="border-danger-line bg-danger-soft flex flex-col gap-2 rounded-lg border p-2.5">
+                    <p className="text-danger-fg text-xs">
                       {cal.disconnectConfirm}
                     </p>
                     <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ function CalendarConnect() {
                           setConfirmingId(null)
                         }}
                         disabled={disconnect.isPending}
-                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                        className="bg-danger hover:bg-danger/90 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                       >
                         {cal.disconnectCalendar}
                       </button>
@@ -134,7 +134,7 @@ function CalendarConnect() {
           </ul>
           <a
             href="/api/v1/calendar/google/connect"
-            className="text-brand-600 self-start text-[13px] font-semibold"
+            className="text-brand-accent self-start text-[13px] font-semibold"
           >
             {cal.addAnotherCalendar}
           </a>
@@ -149,7 +149,7 @@ function CalendarConnect() {
       ) : (
         <Link
           href="/settings/billing"
-          className="border-brand-300 text-brand-700 hover:bg-brand-50 inline-flex h-9 w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold sm:w-fit"
+          className="border-brand-300 text-brand-accent-strong hover:bg-brand-50 inline-flex h-9 w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold sm:w-fit"
         >
           {t.calendarUpgrade}
         </Link>
@@ -197,7 +197,7 @@ function WhatsappConnect() {
                 href={deepLink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="bg-success hover:bg-success/90 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white"
               >
                 <WhatsappGlyph />
                 {t.waOpen}
@@ -208,7 +208,7 @@ function WhatsappConnect() {
                 <span className="bg-line h-px flex-1" />
               </div>
               <div className="flex flex-col items-center gap-2 py-1">
-                <div className="border-line rounded-xl border bg-white p-3">
+                <div className="border-line bg-surface rounded-xl border p-3">
                   <QRCodeSVG value={deepLink} size={148} marginSize={0} />
                 </div>
                 <p className="text-ink-500 max-w-56 text-center text-xs">
@@ -261,7 +261,7 @@ function WhatsappConnect() {
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2.5">
-      <span className="bg-brand-100 text-brand-700 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold">
+      <span className="bg-brand-100 text-brand-accent-strong mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold">
         {n}
       </span>
       <span>{children}</span>

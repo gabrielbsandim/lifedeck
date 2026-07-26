@@ -12,7 +12,7 @@ import {
 
 const tabClass = (active: boolean) =>
   `flex flex-1 flex-col items-center justify-center gap-1 py-1.5 text-[11px] font-medium transition-colors ${
-    active ? 'text-brand-600' : 'text-ink-400'
+    active ? 'text-brand-accent' : 'text-ink-400'
   }`
 
 export function MobileTabBar() {
@@ -30,7 +30,7 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label={messages.nav.menu}
-      className="border-line fixed inset-x-0 bottom-0 z-30 border-t bg-white/90 backdrop-blur-lg lg:hidden"
+      className="border-line bg-surface/90 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-lg lg:hidden"
     >
       <div className="mx-auto flex max-w-2xl items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)] pt-1">
         <Link
@@ -66,7 +66,7 @@ export function MobileTabBar() {
           <span
             className={
               pathname.startsWith('/generate')
-                ? 'text-brand-600'
+                ? 'text-brand-accent'
                 : 'text-ink-400'
             }
           >

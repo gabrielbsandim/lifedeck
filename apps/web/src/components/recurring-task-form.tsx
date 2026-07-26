@@ -29,10 +29,10 @@ export function weekdayLabels(locale: string): string[] {
 }
 
 const inputClass =
-  'border-line text-ink-800 focus-visible:border-brand-600 h-12 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none'
+  'border-line text-ink-800 focus-visible:border-brand-600 h-12 rounded-xl border-[1.5px] bg-surface px-3.5 text-sm outline-none'
 
 const stepperButtonClass =
-  'border-line text-brand-700 flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-lg leading-none'
+  'border-line text-brand-accent-strong flex h-8 w-8 items-center justify-center rounded-lg border bg-surface text-lg leading-none'
 
 type RecurringTaskFormProps = {
   initial?: { title: string; rule: CreateRecurringTaskInput['rule'] }
@@ -101,7 +101,7 @@ export function RecurringTaskForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-line flex flex-col gap-3.5 rounded-2xl border bg-white p-5 shadow-sm"
+      className="border-line bg-surface flex flex-col gap-3.5 rounded-2xl border p-5 shadow-sm"
     >
       <input
         value={draft.title}
@@ -113,7 +113,7 @@ export function RecurringTaskForm({
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-1 rounded-xl bg-[oklch(0.97_0.005_265)] p-1">
+        <div className="bg-muted flex gap-1 rounded-xl p-1">
           {frequencies.map(frequency => {
             const active = draft.freq === frequency.value
             return (
@@ -124,7 +124,7 @@ export function RecurringTaskForm({
                 aria-pressed={active}
                 className={
                   active
-                    ? 'text-ink-900 rounded-lg bg-white px-4 py-2 text-[13px] font-semibold shadow-sm'
+                    ? 'text-ink-900 bg-surface rounded-lg px-4 py-2 text-[13px] font-semibold shadow-sm'
                     : 'text-ink-500 rounded-lg px-4 py-2 text-[13px] font-semibold'
                 }
               >
@@ -134,7 +134,7 @@ export function RecurringTaskForm({
           })}
         </div>
 
-        <div className="border-line flex items-center gap-2.5 rounded-xl border bg-[oklch(0.985_0.004_265)] px-3 py-1.5">
+        <div className="border-line bg-bg flex items-center gap-2.5 rounded-xl border px-3 py-1.5">
           <span className="text-ink-500 text-[13px]">{t.interval}</span>
           <button
             type="button"
@@ -170,8 +170,8 @@ export function RecurringTaskForm({
                 aria-pressed={active}
                 className={
                   active
-                    ? 'border-brand-500 bg-brand-50 text-brand-700 h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
-                    : 'border-line text-ink-600 h-10 flex-1 rounded-xl border-[1.5px] bg-white text-xs font-semibold'
+                    ? 'border-brand-500 bg-brand-50 text-brand-accent-strong h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
+                    : 'border-line text-ink-600 bg-surface h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
                 }
               >
                 {label}
@@ -237,7 +237,7 @@ export function RecurringTaskForm({
           <button
             type="button"
             onClick={onCancel}
-            className="border-line text-ink-700 hover:bg-bg flex h-11 items-center rounded-xl border bg-white px-5 text-sm font-semibold"
+            className="border-line text-ink-700 hover:bg-bg bg-surface flex h-11 items-center rounded-xl border px-5 text-sm font-semibold"
           >
             {t.cancel}
           </button>

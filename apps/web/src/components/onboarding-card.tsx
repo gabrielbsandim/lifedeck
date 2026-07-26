@@ -61,7 +61,7 @@ export function OnboardingCard() {
       <button
         type="button"
         onClick={() => setSignInOpen(true)}
-        className="text-brand-600 hover:text-brand-700 mt-4 text-sm font-medium"
+        className="text-brand-accent hover:text-brand-accent-strong mt-4 text-sm font-medium"
       >
         {messages.auth.haveAccount}
       </button>

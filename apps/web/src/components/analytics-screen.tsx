@@ -201,7 +201,7 @@ function HabitsSection({
           <Card className="flex flex-col gap-5 p-5 sm:p-6">
             <div className="flex flex-col gap-1">
               <span className="text-ink-500 text-sm">{t.consistency}</span>
-              <span className="text-brand-700 text-[40px] font-extrabold leading-none tracking-[-0.03em]">
+              <span className="text-brand-accent-strong text-[40px] font-extrabold leading-none tracking-[-0.03em]">
                 {Math.round(habits.consistency * 100)}%
               </span>
             </div>
@@ -274,7 +274,7 @@ export function AnalyticsScreen() {
         <p className="text-ink-500 text-sm">{messages.analytics.subtitle}</p>
       </header>
 
-      <div className="border-line flex gap-[3px] rounded-[14px] border bg-white p-[3px]">
+      <div className="border-line bg-surface flex gap-[3px] rounded-[14px] border p-[3px]">
         {TABS.map(tab => {
           const active = tab === range
           return (
@@ -317,7 +317,7 @@ export function AnalyticsScreen() {
                     {messages.analytics.completionRate}
                   </span>
                   <div className="flex items-end gap-3">
-                    <span className="text-brand-700 text-[40px] font-extrabold leading-none tracking-[-0.03em]">
+                    <span className="text-brand-accent-strong text-[40px] font-extrabold leading-none tracking-[-0.03em]">
                       {Math.round(rate * 100)}%
                     </span>
                     {(() => {

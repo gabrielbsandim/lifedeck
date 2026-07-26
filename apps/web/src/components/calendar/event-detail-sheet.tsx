@@ -68,7 +68,7 @@ export function EventDetailSheet({
   return (
     <div
       onClick={onClose}
-      className="bg-ink-900/30 fixed inset-0 z-50 flex items-end justify-center p-4 backdrop-blur-sm"
+      className="bg-scrim/30 fixed inset-0 z-50 flex items-end justify-center p-4 backdrop-blur-sm"
     >
       <motion.div
         role="dialog"
@@ -78,7 +78,7 @@ export function EventDetailSheet({
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="w-full max-w-md rounded-t-[24px] bg-white p-5 shadow-lg outline-none"
+        className="bg-surface w-full max-w-md rounded-t-[24px] p-5 shadow-lg outline-none"
       >
         <div
           aria-hidden
@@ -160,7 +160,7 @@ export function EventDetailSheet({
           <button
             type="button"
             onClick={onEdit}
-            className="border-line text-ink-700 flex h-12 flex-1 items-center justify-center gap-2 rounded-[14px] border bg-white text-[15px] font-semibold"
+            className="border-line text-ink-700 bg-surface flex h-12 flex-1 items-center justify-center gap-2 rounded-[14px] border text-[15px] font-semibold"
           >
             <svg
               width="16"

@@ -71,7 +71,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
     return (
       <Card className="flex flex-col items-center gap-3 p-8 text-center">
         <p className="text-ink-500 text-sm">{messages.common.error}</p>
-        <Link href="/lists" className="text-brand-600 text-sm font-medium">
+        <Link href="/lists" className="text-brand-accent text-sm font-medium">
           {messages.lists.back}
         </Link>
       </Card>
@@ -149,7 +149,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
       <header className="mb-1 flex flex-col gap-2">
         <Link
           href="/lists"
-          className="text-brand-600 hover:text-brand-700 flex w-fit items-center gap-1 text-sm font-medium"
+          className="text-brand-accent hover:text-brand-accent-strong flex w-fit items-center gap-1 text-sm font-medium"
         >
           <ChevronLeftIcon size={16} />
           {messages.lists.back}
@@ -177,7 +177,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
                 setListTitle(list.data.title)
                 setEditingTitle(true)
               }}
-              className="hover:text-brand-600 min-w-0 flex-1 truncate text-left text-2xl font-semibold tracking-tight transition"
+              className="hover:text-brand-accent min-w-0 flex-1 truncate text-left text-2xl font-semibold tracking-tight transition"
               title={messages.recurring.edit}
             >
               {list.data.title}
@@ -285,17 +285,17 @@ export function StandaloneListView({ listId }: { listId: string }) {
         </div>
       </Dialog>
 
-      <div className="border-line relative flex flex-col gap-2 rounded-2xl border bg-white p-4 shadow-sm">
+      <div className="border-line bg-surface relative flex flex-col gap-2 rounded-2xl border p-4 shadow-sm">
         <Celebration active={allDone} />
         <div className="flex items-baseline justify-between">
           <span className="text-ink-700 text-sm font-semibold">
             {progressLabel}
           </span>
-          <span className="text-brand-700 text-[19px] font-extrabold">
+          <span className="text-brand-accent-strong text-[19px] font-extrabold">
             {pct}%
           </span>
         </div>
-        <div className="h-[7px] overflow-hidden rounded-full bg-[oklch(0.955_0.005_265)]">
+        <div className="bg-line h-[7px] overflow-hidden rounded-full">
           <div
             className="from-brand-600 h-full rounded-full bg-gradient-to-r to-violet-500 transition-[width] duration-500"
             style={{ width: `${pct}%` }}
@@ -310,7 +310,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
           placeholder={messages.task.add}
           aria-label={messages.task.add}
           maxLength={280}
-          className="border-line text-ink-800 focus:border-brand-600 h-12 min-w-0 flex-1 rounded-[14px] border-[1.5px] bg-white px-4 text-base outline-none sm:text-sm"
+          className="border-line text-ink-800 focus:border-brand-600 bg-surface h-12 min-w-0 flex-1 rounded-[14px] border-[1.5px] px-4 text-base outline-none sm:text-sm"
         />
         <button
           type="submit"
@@ -328,7 +328,7 @@ export function StandaloneListView({ listId }: { listId: string }) {
           description={messages.task.emptyHint}
         />
       ) : (
-        <div className="border-line overflow-hidden rounded-[18px] border bg-white shadow-sm">
+        <div className="border-line bg-surface overflow-hidden rounded-[18px] border shadow-sm">
           <TaskDragList
             items={rows}
             getId={task => task.id}

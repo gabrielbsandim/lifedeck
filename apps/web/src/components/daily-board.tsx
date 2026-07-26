@@ -187,7 +187,7 @@ export function DailyBoard({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <LogoMark size={20} title={messages.app.name} />
-            <p className="text-brand-600 text-sm font-medium">
+            <p className="text-brand-accent text-sm font-medium">
               {messages.app.name}
             </p>
           </div>
@@ -251,7 +251,7 @@ export function DailyBoard({
               <button
                 type="button"
                 onClick={() => onDateChange(today)}
-                className="text-brand-600 hover:bg-brand-50 ml-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-colors"
+                className="text-brand-accent hover:bg-brand-50 ml-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-colors"
               >
                 {messages.home.goToToday}
               </button>
@@ -266,7 +266,7 @@ export function DailyBoard({
         onClose={() => setShareOpen(false)}
       />
 
-      <div className="border-line relative flex items-center gap-3.5 overflow-hidden rounded-[18px] border bg-white p-4 shadow-sm sm:gap-[18px] sm:p-5">
+      <div className="border-line bg-surface relative flex items-center gap-3.5 overflow-hidden rounded-[18px] border p-4 shadow-sm sm:gap-[18px] sm:p-5">
         <Celebration active={allDone} />
         <span className="relative flex h-[66px] w-[66px] flex-none items-center justify-center sm:h-[74px] sm:w-[74px]">
           <svg viewBox="0 0 72 72" className="h-full w-full">
@@ -294,7 +294,7 @@ export function DailyBoard({
               }}
             />
           </svg>
-          <span className="text-brand-700 absolute text-[15px] font-extrabold tracking-tight sm:text-base">
+          <span className="text-brand-accent-strong absolute text-[15px] font-extrabold tracking-tight sm:text-base">
             {pct}%
           </span>
         </span>
@@ -316,7 +316,7 @@ export function DailyBoard({
           type="button"
           onClick={() => setShareOpen(true)}
           aria-label={messages.list.share}
-          className="bg-brand-50 text-brand-700 flex h-10 w-10 flex-none items-center justify-center rounded-full transition-transform active:scale-95 lg:hidden"
+          className="bg-brand-50 text-brand-accent-strong flex h-10 w-10 flex-none items-center justify-center rounded-full transition-transform active:scale-95 lg:hidden"
         >
           <ShareIcon size={17} />
         </button>
@@ -332,7 +332,7 @@ export function DailyBoard({
 
       {carryOver.length > 0 && (
         <div className="bg-brand-50 border-brand-100 rounded-2xl border p-4 sm:px-[18px]">
-          <p className="text-brand-700 mb-2 text-[13px] font-bold">
+          <p className="text-brand-accent-strong mb-2 text-[13px] font-bold">
             {messages.carryOver.pendingTitle}
           </p>
           <ul className="flex flex-col">
@@ -351,7 +351,7 @@ export function DailyBoard({
                 </div>
                 <button
                   type="button"
-                  className="text-brand-700 flex h-8 flex-none items-center rounded-full bg-white px-3 text-[12.5px] font-semibold shadow-sm transition-transform active:scale-95 disabled:opacity-60"
+                  className="text-brand-accent-strong bg-surface flex h-8 flex-none items-center rounded-full px-3 text-[12.5px] font-semibold shadow-sm transition-transform active:scale-95 disabled:opacity-60"
                   disabled={
                     bringTask.isPending && bringTask.variables === item.task.id
                   }
@@ -372,7 +372,7 @@ export function DailyBoard({
           placeholder={messages.task.add}
           aria-label={messages.task.add}
           maxLength={280}
-          className="border-line text-ink-800 focus:border-brand-600 h-12 min-w-0 flex-1 rounded-[14px] border-[1.5px] bg-white px-4 text-base outline-none sm:text-sm"
+          className="border-line text-ink-800 focus:border-brand-600 bg-surface h-12 min-w-0 flex-1 rounded-[14px] border-[1.5px] px-4 text-base outline-none sm:text-sm"
         />
         <button
           type="submit"
@@ -390,7 +390,7 @@ export function DailyBoard({
           description={messages.task.emptyHint}
         />
       ) : (
-        <div className="border-line overflow-hidden rounded-[18px] border bg-white shadow-sm">
+        <div className="border-line bg-surface overflow-hidden rounded-[18px] border shadow-sm">
           <TaskDragList
             items={rows}
             getId={task => task.id}

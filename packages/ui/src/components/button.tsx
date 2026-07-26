@@ -12,7 +12,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
     'bg-brand-600 text-white hover:bg-brand-500 focus-visible:ring-brand-500',
   ghost:
-    'bg-transparent text-brand-600 hover:bg-brand-50 focus-visible:ring-brand-300',
+    'bg-transparent text-brand-accent hover:bg-brand-50 focus-visible:ring-brand-300',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

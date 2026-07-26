@@ -59,7 +59,7 @@ function listTimeZones(current: string): string[] {
 }
 
 const inputClass =
-  'border-line text-ink-800 focus:border-brand-300 h-[42px] w-full rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none'
+  'border-line text-ink-800 focus:border-brand-300 h-[42px] w-full rounded-xl border-[1.5px] bg-surface px-3.5 text-sm outline-none'
 
 const fieldLabelClass = 'text-ink-700 text-[13px] font-semibold'
 
@@ -133,7 +133,7 @@ export function ProfileSection({ user }: { user: SessionUser }) {
             type="button"
             onClick={() => photoInput.current?.click()}
             disabled={uploadAvatar.isPending}
-            className="border-line text-ink-700 hover:bg-bg h-9 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold disabled:opacity-50"
+            className="border-line text-ink-700 hover:bg-bg bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold disabled:opacity-50"
           >
             {messages.auth.changePhoto}
           </button>
@@ -168,7 +168,7 @@ export function ProfileSection({ user }: { user: SessionUser }) {
                 !name.trim() ||
                 name.trim() === user.displayName
               }
-              className="bg-brand-50 text-brand-700 h-[42px] shrink-0 rounded-xl px-4 text-[13px] font-semibold disabled:opacity-50"
+              className="bg-brand-50 text-brand-accent-strong h-[42px] shrink-0 rounded-xl px-4 text-[13px] font-semibold disabled:opacity-50"
             >
               {rename.isSuccess ? messages.auth.saved : messages.auth.rename}
             </button>
@@ -195,7 +195,7 @@ export function ProfileSection({ user }: { user: SessionUser }) {
                       resend.mutate()
                       setVerifying(true)
                     }}
-                    className="text-brand-600 shrink-0 text-[13px] font-semibold"
+                    className="text-brand-accent shrink-0 text-[13px] font-semibold"
                   >
                     {messages.auth.verifyEmail}
                   </button>
@@ -314,7 +314,7 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
           onChange={event => setTimezone.mutate(event.target.value)}
           disabled={setTimezone.isPending}
           aria-label={messages.timezone.settingLabel}
-          className="border-line text-ink-700 focus:border-brand-300 h-[42px] w-full max-w-md rounded-xl border bg-white px-3.5 text-sm outline-none"
+          className="border-line text-ink-700 focus:border-brand-300 bg-surface h-[42px] w-full max-w-md rounded-xl border px-3.5 text-sm outline-none"
         >
           {timeZones.map(zone => (
             <option key={zone} value={zone}>
@@ -327,7 +327,7 @@ export function PreferencesSection({ user }: { user: SessionUser }) {
             type="button"
             onClick={() => setTimezone.mutate(detectedZone)}
             disabled={setTimezone.isPending}
-            className="text-brand-600 self-start text-[13px] font-semibold"
+            className="text-brand-accent self-start text-[13px] font-semibold"
           >
             {messages.timezone.useDetected}
           </button>
@@ -454,7 +454,7 @@ export function PlanSection() {
         </div>
         <Link
           href="/settings/billing"
-          className="border-brand-300 text-brand-700 hover:bg-brand-50 h-9 shrink-0 rounded-[11px] border px-4 text-[13px] font-semibold leading-9"
+          className="border-brand-300 text-brand-accent-strong hover:bg-brand-50 h-9 shrink-0 rounded-[11px] border px-4 text-[13px] font-semibold leading-9"
         >
           {isPaid ? messages.billing.changePlan : messages.billing.seePlans}
         </Link>
@@ -481,7 +481,7 @@ export function PlanSection() {
               <button
                 type="button"
                 onClick={() => setConfirmingCancel(false)}
-                className="border-line text-ink-700 h-9 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold"
+                className="border-line text-ink-700 bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold"
               >
                 {messages.auth.cancel}
               </button>
@@ -523,7 +523,7 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
         <a
           href="/api/v1/account/export"
           download="lifedeck-export.json"
-          className="border-line text-ink-700 hover:bg-bg h-9 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold leading-9"
+          className="border-line text-ink-700 hover:bg-bg bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold leading-9"
         >
           {messages.auth.exportData}
         </a>
@@ -537,7 +537,7 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
           type="button"
           onClick={() => signOut.mutate(undefined, { onSuccess: onSignedOut })}
           disabled={signOut.isPending}
-          className="border-line text-ink-700 hover:bg-bg h-9 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold disabled:opacity-50"
+          className="border-line text-ink-700 hover:bg-bg bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold disabled:opacity-50"
         >
           {messages.auth.signOut}
         </button>
@@ -567,7 +567,7 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
             <button
               type="button"
               onClick={() => setConfirmingDelete(false)}
-              className="border-line text-ink-700 h-9 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold"
+              className="border-line text-ink-700 bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold"
             >
               {messages.auth.cancel}
             </button>
@@ -577,7 +577,7 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
             type="button"
             onClick={() => setConfirmingDelete(true)}
             className={cn(
-              'border-danger/40 text-danger h-9 shrink-0 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold',
+              'border-danger/40 text-danger bg-surface h-9 shrink-0 rounded-[10px] border px-3.5 text-[13px] font-semibold',
             )}
           >
             {messages.auth.deleteAccount}

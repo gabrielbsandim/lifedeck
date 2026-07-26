@@ -91,7 +91,7 @@ export function FindTimeDialog({
                     'h-10 rounded-xl border px-4 text-sm font-semibold transition',
                     active
                       ? 'border-brand-600 bg-brand-600 text-white'
-                      : 'border-line text-ink-700 bg-white',
+                      : 'border-line text-ink-700 bg-surface',
                   )}
                 >
                   {t.minutes.replace('{count}', String(option))}
@@ -110,7 +110,7 @@ export function FindTimeDialog({
           {findTime.isPending ? t.searching : t.search}
         </Button>
 
-        {findTime.isError && <p className="text-sm text-red-600">{t.error}</p>}
+        {findTime.isError && <p className="text-danger text-sm">{t.error}</p>}
 
         {findTime.isSuccess && slots.length === 0 && (
           <p className="text-ink-500 text-sm">{t.noResults}</p>
@@ -125,7 +125,7 @@ export function FindTimeDialog({
               {slots.map(slot => (
                 <li
                   key={slot.startsAt}
-                  className="border-line flex items-center justify-between gap-3 rounded-xl border bg-white px-3.5 py-2.5"
+                  className="border-line bg-surface flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5"
                 >
                   <span className="text-ink-800 text-sm capitalize">
                     {formatSlot(slot.startsAt)}
@@ -142,7 +142,7 @@ export function FindTimeDialog({
               ))}
             </ul>
             {book.isError && (
-              <p className="text-sm text-red-600">{t.bookError}</p>
+              <p className="text-danger text-sm">{t.bookError}</p>
             )}
           </div>
         )}

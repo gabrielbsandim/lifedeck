@@ -43,7 +43,7 @@ function SubtaskCheckbox({
         'flex h-5 w-5 flex-none items-center justify-center rounded-md border-2 transition-colors duration-150',
         checked
           ? 'border-brand-600 bg-brand-600'
-          : 'border-ink-500/40 bg-white',
+          : 'border-ink-500/40 bg-surface',
       )}
     >
       <svg
@@ -101,7 +101,7 @@ function SubtaskAddForm({
         placeholder={messages.subtask.add}
         aria-label={messages.subtask.add}
         maxLength={280}
-        className="border-line text-ink-700 focus-visible:border-brand-600 min-w-0 flex-1 rounded-md border bg-white px-2 py-1 text-base outline-none sm:text-sm"
+        className="border-line text-ink-700 focus-visible:border-brand-600 bg-surface min-w-0 flex-1 rounded-md border px-2 py-1 text-base outline-none sm:text-sm"
       />
     </form>
   )
@@ -202,7 +202,7 @@ function ManageRow({
       ref={containerRef}
       style={style}
       className={cn(
-        'border-line flex items-center gap-2 rounded-xl border bg-white py-2 pl-1 pr-2',
+        'border-line bg-surface flex items-center gap-2 rounded-xl border py-2 pl-1 pr-2',
         overlay
           ? 'shadow-[0_12px_28px_-12px_rgba(70,50,120,0.45)]'
           : 'shadow-[0_1px_2px_rgba(70,60,90,0.05)]',
@@ -238,7 +238,7 @@ function ManageRow({
           }}
           aria-label={messages.subtask.rename}
           maxLength={280}
-          className="border-line text-ink-800 focus-visible:border-brand-600 min-w-0 flex-1 rounded-md border bg-white px-2 py-1 text-base outline-none sm:text-sm"
+          className="border-line text-ink-800 focus-visible:border-brand-600 bg-surface min-w-0 flex-1 rounded-md border px-2 py-1 text-base outline-none sm:text-sm"
         />
       ) : (
         <button

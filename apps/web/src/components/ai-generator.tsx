@@ -156,10 +156,10 @@ export function AiGenerator() {
             }
             aria-label={t.listTitleLabel}
             maxLength={120}
-            className="border-line text-ink-900 focus:border-brand-600 h-12 rounded-[14px] border-[1.5px] bg-white px-4 text-base font-semibold outline-none"
+            className="border-line text-ink-900 focus:border-brand-600 bg-surface h-12 rounded-[14px] border-[1.5px] px-4 text-base font-semibold outline-none"
           />
 
-          <div className="border-line overflow-hidden rounded-2xl border bg-white">
+          <div className="border-line bg-surface overflow-hidden rounded-2xl border">
             {draft.tasks.map((task, index) => (
               <div
                 key={index}
@@ -193,7 +193,7 @@ export function AiGenerator() {
             <button
               type="button"
               onClick={addTask}
-              className="text-brand-600 flex h-[46px] w-full items-center justify-center gap-1.5 text-[13.5px] font-semibold"
+              className="text-brand-accent flex h-[46px] w-full items-center justify-center gap-1.5 text-[13.5px] font-semibold"
             >
               <PlusIcon size={14} strokeWidth={2.4} />
               {t.addTask}
@@ -214,7 +214,7 @@ export function AiGenerator() {
             type="button"
             onClick={() => setDraft(null)}
             disabled={save.isPending}
-            className="text-brand-600 h-11 text-sm font-semibold"
+            className="text-brand-accent h-11 text-sm font-semibold"
           >
             {t.regenerate}
           </button>
@@ -263,8 +263,8 @@ export function AiGenerator() {
                     className={cn(
                       'h-11 truncate rounded-[13px] border-[1.5px] px-1 text-[13px] font-semibold transition-colors active:scale-[0.96]',
                       active
-                        ? 'border-brand-600 bg-brand-50 text-brand-700'
-                        : 'border-line text-ink-700 bg-white',
+                        ? 'border-brand-600 bg-brand-50 text-brand-accent-strong'
+                        : 'border-line text-ink-700 bg-surface',
                     )}
                   >
                     {categoryLabel(value)}
@@ -278,7 +278,7 @@ export function AiGenerator() {
             <p className="text-ink-700 px-0.5 pb-2 text-[13px] font-semibold">
               {t.scale}
             </p>
-            <div className="border-line flex gap-[3px] rounded-[13px] border bg-white p-[3px]">
+            <div className="border-line bg-surface flex gap-[3px] rounded-[13px] border p-[3px]">
               {SCALES.map(value => {
                 const active = scale === value
                 return (
@@ -310,7 +310,7 @@ export function AiGenerator() {
               placeholder={t.descriptionPlaceholder}
               maxLength={2000}
               required
-              className="border-line text-ink-800 focus:border-brand-600 min-h-[110px] w-full resize-none rounded-[14px] border-[1.5px] bg-white px-3.5 py-3 text-sm leading-[1.45] outline-none"
+              className="border-line text-ink-800 focus:border-brand-600 bg-surface min-h-[110px] w-full resize-none rounded-[14px] border-[1.5px] px-3.5 py-3 text-sm leading-[1.45] outline-none"
             />
           </div>
 

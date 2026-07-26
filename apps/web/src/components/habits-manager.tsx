@@ -103,7 +103,7 @@ function WeekBar({
             <span
               className={
                 isToday
-                  ? 'text-brand-700 text-[11px] font-bold'
+                  ? 'text-brand-accent-strong text-[11px] font-bold'
                   : 'text-ink-400 text-[11px]'
               }
             >
@@ -139,7 +139,7 @@ function HabitCard({
 
   return (
     <div
-      className={`border-line relative flex flex-col rounded-2xl border bg-white p-4 shadow-sm ${
+      className={`border-line bg-surface relative flex flex-col rounded-2xl border p-4 shadow-sm ${
         habit.active ? '' : 'opacity-70'
       }`}
     >
@@ -228,7 +228,7 @@ function HabitCard({
         className={
           habit.doneToday
             ? 'bg-brand-600 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white shadow-sm'
-            : 'border-line text-ink-700 hover:border-brand-300 flex h-12 w-full items-center justify-center gap-2 rounded-xl border bg-white text-sm font-semibold'
+            : 'border-line text-ink-700 hover:border-brand-300 bg-surface flex h-12 w-full items-center justify-center gap-2 rounded-xl border text-sm font-semibold'
         }
       >
         {habit.doneToday && (
@@ -260,7 +260,7 @@ function HabitCard({
           />
           <div
             role="menu"
-            className="border-line absolute right-4 top-14 z-20 min-w-[168px] overflow-hidden rounded-2xl border bg-white shadow-lg"
+            className="border-line bg-surface absolute right-4 top-14 z-20 min-w-[168px] overflow-hidden rounded-2xl border shadow-lg"
           >
             <button
               type="button"
@@ -427,7 +427,7 @@ export function HabitsManager() {
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="border-brand-300 text-brand-600 hover:bg-brand-50 flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed bg-[oklch(0.97_0.02_280_/_0.5)] text-sm font-semibold"
+          className="border-brand-300 text-brand-accent hover:bg-brand-50 bg-brand-50/50 flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed text-sm font-semibold"
         >
           <svg
             width="17"
@@ -453,7 +453,7 @@ export function HabitsManager() {
       )}
 
       {list.isError && (
-        <div className="border-line flex flex-col items-center gap-3 rounded-2xl border bg-white py-8 text-center">
+        <div className="border-line bg-surface flex flex-col items-center gap-3 rounded-2xl border py-8 text-center">
           <p className="text-ink-500 text-sm">{messages.common.error}</p>
           <button
             type="button"
@@ -466,8 +466,8 @@ export function HabitsManager() {
       )}
 
       {list.isSuccess && habits.length === 0 && !adding && (
-        <div className="border-line flex flex-col items-center gap-3 rounded-2xl border bg-white px-6 py-11 text-center">
-          <span className="bg-brand-50 text-brand-600 flex h-16 w-16 items-center justify-center rounded-full">
+        <div className="border-line bg-surface flex flex-col items-center gap-3 rounded-2xl border px-6 py-11 text-center">
+          <span className="bg-brand-50 text-brand-accent flex h-16 w-16 items-center justify-center rounded-full">
             <svg
               width="30"
               height="30"

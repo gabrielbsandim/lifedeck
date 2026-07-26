@@ -36,7 +36,7 @@ export function CalendarAgenda({
 
   if (populated.length === 0) {
     return (
-      <div className="border-line/80 text-ink-500 rounded-[14px] border border-dashed bg-white px-5 py-7 text-center text-sm">
+      <div className="border-line/80 text-ink-500 bg-surface rounded-[14px] border border-dashed px-5 py-7 text-center text-sm">
         {t.noEventsDay}
       </div>
     )
@@ -58,7 +58,7 @@ export function CalendarAgenda({
               <span
                 className={
                   isToday
-                    ? 'text-brand-600 text-2xl font-extrabold leading-tight tracking-tight'
+                    ? 'text-brand-accent text-2xl font-extrabold leading-tight tracking-tight'
                     : 'text-ink-800 text-2xl font-extrabold leading-tight tracking-tight'
                 }
               >
@@ -71,7 +71,7 @@ export function CalendarAgenda({
                   key={event.id}
                   type="button"
                   onClick={() => onSelectEvent(event)}
-                  className="border-line flex w-full items-stretch gap-3 rounded-[14px] border bg-white px-3.5 py-3 text-left shadow-sm transition active:scale-[0.99]"
+                  className="border-line bg-surface flex w-full items-stretch gap-3 rounded-[14px] border px-3.5 py-3 text-left shadow-sm transition active:scale-[0.99]"
                 >
                   <span
                     className="w-1 flex-none rounded-full"

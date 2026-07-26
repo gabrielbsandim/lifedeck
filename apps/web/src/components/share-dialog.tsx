@@ -69,7 +69,7 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
                 aria-pressed={active}
                 className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
                   active
-                    ? 'text-brand-700 bg-white shadow-sm'
+                    ? 'text-brand-accent-strong bg-surface shadow-sm'
                     : 'text-ink-500 hover:text-ink-700'
                 }`}
               >
@@ -84,7 +84,7 @@ export function ShareDialog({ listId, open, onClose }: ShareDialogProps) {
         {link ? (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <div className="border-line text-ink-600 flex h-10 min-w-0 flex-1 items-center truncate rounded-xl border bg-white px-3 text-xs">
+              <div className="border-line text-ink-600 bg-surface flex h-10 min-w-0 flex-1 items-center truncate rounded-xl border px-3 text-xs">
                 {shareUrl(link.token)}
               </div>
               <Button className="h-10 shrink-0 px-4" onClick={copyLink}>

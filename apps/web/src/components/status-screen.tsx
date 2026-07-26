@@ -41,7 +41,7 @@ export function StatusScreen() {
           <Logo withWordmark size={26} />
           <Link
             href="/"
-            className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            className="text-brand-accent hover:text-brand-accent-strong text-sm font-medium"
           >
             {messages.status.backToApp}
           </Link>

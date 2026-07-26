@@ -92,13 +92,16 @@ export function ApiKeysManager() {
         <div className="flex flex-wrap gap-4">
           <Link
             href="/docs"
-            className="text-brand-600 text-sm font-medium"
+            className="text-brand-accent text-sm font-medium"
             target="_blank"
             rel="noopener noreferrer"
           >
             {t.docsLink} →
           </Link>
-          <Link href="/status" className="text-brand-600 text-sm font-medium">
+          <Link
+            href="/status"
+            className="text-brand-accent text-sm font-medium"
+          >
             {messages.status.title} →
           </Link>
         </div>
@@ -110,7 +113,7 @@ export function ApiKeysManager() {
             {t.createdTitle}
           </span>
           <p className="text-ink-500 text-xs">{t.createdHint}</p>
-          <code className="bg-ink-900 overflow-x-auto rounded-lg px-3 py-2 text-xs text-white">
+          <code className="bg-inverse overflow-x-auto rounded-lg px-3 py-2 text-xs text-white">
             {created.secret}
           </code>
           <div className="flex gap-2">
@@ -148,7 +151,7 @@ export function ApiKeysManager() {
                       key={scope}
                       className={
                         checked
-                          ? 'border-brand-300 bg-brand-50 text-brand-700 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium'
+                          ? 'border-brand-300 bg-brand-50 text-brand-accent-strong flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium'
                           : 'border-line text-ink-600 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium'
                       }
                     >

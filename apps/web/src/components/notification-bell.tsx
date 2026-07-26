@@ -90,9 +90,9 @@ function relativeTime(iso: string, locale: string): string {
 function NotificationIcon({ type }: { type: string }) {
   const tint =
     type === 'event-reminder'
-      ? 'bg-brand-100 text-brand-600'
+      ? 'bg-brand-100 text-brand-accent'
       : type === 'task-assigned'
-        ? 'bg-violet-100 text-violet-500'
+        ? 'bg-violet-soft text-violet-500'
         : 'bg-line text-ink-500'
   return (
     <span
@@ -194,7 +194,7 @@ export function NotificationBell() {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="border-line absolute right-0 z-40 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-2xl border bg-white shadow-lg">
+          <div className="border-line bg-surface absolute right-0 z-40 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-2xl border shadow-lg">
             <div className="border-line flex items-center justify-between border-b px-4 py-3">
               <span className="text-ink-800 text-sm font-semibold">
                 {t.title}
@@ -203,7 +203,7 @@ export function NotificationBell() {
                 <button
                   type="button"
                   onClick={() => markAll.mutate()}
-                  className="text-brand-600 hover:text-brand-700 text-xs font-medium"
+                  className="text-brand-accent hover:text-brand-accent-strong text-xs font-medium"
                 >
                   {t.markAllRead}
                 </button>
@@ -223,7 +223,7 @@ export function NotificationBell() {
                         type="button"
                         onClick={() => !item.isRead && markOne.mutate(item.id)}
                         className={`border-line flex w-full items-start gap-3 border-b px-4 py-3 text-left last:border-b-0 ${
-                          item.isRead ? 'bg-white' : 'bg-brand-50'
+                          item.isRead ? 'bg-surface' : 'bg-brand-50'
                         }`}
                       >
                         <NotificationIcon type={item.type} />

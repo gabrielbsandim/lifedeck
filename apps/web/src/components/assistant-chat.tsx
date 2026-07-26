@@ -262,7 +262,7 @@ export function AssistantChat() {
           <button
             type="button"
             onClick={reset}
-            className="border-line text-ink-600 hover:bg-ink-50 flex h-9 items-center gap-1.5 rounded-[10px] border bg-white px-3.5 text-[13px] font-semibold"
+            className="border-line text-ink-600 hover:bg-ink-50 bg-surface flex h-9 items-center gap-1.5 rounded-[10px] border px-3.5 text-[13px] font-semibold"
           >
             {t.newConversation}
           </button>
@@ -285,7 +285,7 @@ export function AssistantChat() {
                   key={chip}
                   type="button"
                   onClick={() => void dispatch(chip)}
-                  className="border-brand-200 text-brand-700 hover:bg-brand-50 h-9 rounded-full border bg-white px-4 text-[13.5px] font-semibold"
+                  className="border-brand-200 text-brand-accent-strong hover:bg-brand-50 bg-surface h-9 rounded-full border px-4 text-[13.5px] font-semibold"
                 >
                   {chip}
                 </button>
@@ -451,7 +451,7 @@ export function AssistantChat() {
               disabled={locked}
               placeholder={t.inputPlaceholder}
               aria-label={t.inputPlaceholder}
-              className="border-line text-ink-800 focus:border-brand-500 h-12 flex-1 rounded-full border-[1.5px] bg-white px-5 text-[14.5px] outline-none disabled:opacity-60"
+              className="border-line text-ink-800 focus:border-brand-500 bg-surface h-12 flex-1 rounded-full border-[1.5px] px-5 text-[14.5px] outline-none disabled:opacity-60"
             />
             {hasText ? (
               <button
@@ -469,7 +469,7 @@ export function AssistantChat() {
                 onClick={() => void startRecording()}
                 disabled={pending || locked}
                 aria-label={t.recordAudio}
-                className="bg-brand-50 text-brand-700 hover:bg-brand-100 flex h-12 w-12 flex-none items-center justify-center rounded-full disabled:opacity-40"
+                className="bg-brand-50 text-brand-accent-strong hover:bg-brand-100 flex h-12 w-12 flex-none items-center justify-center rounded-full disabled:opacity-40"
               >
                 <MicIcon />
               </button>
@@ -506,7 +506,7 @@ function AssistantRow({
       >
         {tone === 'danger' ? <AlertIcon /> : <SparkleIcon size={16} />}
       </span>
-      <div className="border-line max-w-[78%] rounded-2xl rounded-bl-sm border bg-white px-3.5 py-2.5 shadow-sm">
+      <div className="border-line bg-surface max-w-[78%] rounded-2xl rounded-bl-sm border px-3.5 py-2.5 shadow-sm">
         {children}
       </div>
     </div>
@@ -538,7 +538,7 @@ function ActionCard({
         <SparkleIcon size={16} />
       </span>
       <div
-        className="border-line w-full min-w-0 max-w-[80%] overflow-hidden rounded-2xl border bg-white shadow-md"
+        className="border-line bg-surface w-full min-w-0 max-w-[80%] overflow-hidden rounded-2xl border shadow-md"
         style={{ animation: 'ld-up 0.28s cubic-bezier(0.2,0,0,1)' }}
       >
         {children}
@@ -600,7 +600,7 @@ function ActionCard({
     return shell(
       <>
         <div className="px-3.5 pt-3.5">
-          <div className="text-brand-700 text-[11px] font-bold tracking-[0.05em]">
+          <div className="text-brand-accent-strong text-[11px] font-bold tracking-[0.05em]">
             {c.today}
           </div>
         </div>
@@ -713,13 +713,13 @@ function CardHeadline({
 }) {
   const tints: Record<typeof tint, string> = {
     success: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
-    brand: 'bg-brand-100 text-brand-600',
+    brand: 'bg-brand-100 text-brand-accent',
     warning: 'bg-[var(--color-warning)]/18 text-[var(--color-warning)]',
-    violet: 'bg-violet-100 text-violet-500',
+    violet: 'bg-violet-soft text-violet-500',
   }
   const labelTints: Record<typeof tint, string> = {
     success: 'text-[var(--color-success)]',
-    brand: 'text-brand-600',
+    brand: 'text-brand-accent',
     warning: 'text-[var(--color-warning)]',
     violet: 'text-violet-500',
   }
@@ -764,7 +764,7 @@ function CardButton({
     <button
       type="button"
       onClick={onClick}
-      className="border-line text-brand-600 hover:bg-brand-50 h-11 w-full border-t text-[13.5px] font-semibold"
+      className="border-line text-brand-accent hover:bg-brand-50 h-11 w-full border-t text-[13.5px] font-semibold"
     >
       {label}
     </button>

@@ -176,8 +176,8 @@ export function CalendarScreen() {
           className={cn(
             'rounded-xl border px-4 py-3 text-left text-sm',
             notice === 'connected'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border-red-200 bg-red-50 text-red-800',
+              ? 'border-success-line bg-success-soft text-success-fg'
+              : 'border-danger-line bg-danger-soft text-danger-fg',
           )}
         >
           {notice === 'connected' ? t.googleConnected : t.googleError}
@@ -197,7 +197,7 @@ export function CalendarScreen() {
               <button
                 type="button"
                 onClick={() => setFindingTime(true)}
-                className="border-line text-ink-500 flex h-[30px] items-center gap-1.5 rounded-full border bg-white px-3 text-xs font-bold"
+                className="border-line text-ink-500 bg-surface flex h-[30px] items-center gap-1.5 rounded-full border px-3 text-xs font-bold"
               >
                 <ClockIcon size={13} />
                 {t.findTime.title}
@@ -206,7 +206,7 @@ export function CalendarScreen() {
             <button
               type="button"
               onClick={goToday}
-              className="border-line text-ink-500 h-[30px] rounded-full border bg-white px-3 text-xs font-bold"
+              className="border-line text-ink-500 bg-surface h-[30px] rounded-full border px-3 text-xs font-bold"
             >
               {t.today}
             </button>
@@ -214,7 +214,7 @@ export function CalendarScreen() {
         </div>
 
         <div className="mb-2.5 flex gap-2">
-          <div className="border-line flex flex-1 gap-[3px] rounded-xl border bg-white p-[3px]">
+          <div className="border-line bg-surface flex flex-1 gap-[3px] rounded-xl border p-[3px]">
             {(['agenda', 'month'] as const).map(option => {
               const active = mode === option
               return (
@@ -239,7 +239,7 @@ export function CalendarScreen() {
             type="button"
             aria-label={t.previous}
             onClick={() => stepBy(mode === 'agenda' ? 'week' : 'month', -1)}
-            className="border-line text-ink-500 flex h-10 w-[38px] flex-none items-center justify-center rounded-xl border bg-white"
+            className="border-line text-ink-500 bg-surface flex h-10 w-[38px] flex-none items-center justify-center rounded-xl border"
           >
             <Chevron dir="left" />
           </button>
@@ -247,7 +247,7 @@ export function CalendarScreen() {
             type="button"
             aria-label={t.next}
             onClick={() => stepBy(mode === 'agenda' ? 'week' : 'month', 1)}
-            className="border-line text-ink-500 flex h-10 w-[38px] flex-none items-center justify-center rounded-xl border bg-white"
+            className="border-line text-ink-500 bg-surface flex h-10 w-[38px] flex-none items-center justify-center rounded-xl border"
           >
             <Chevron dir="right" />
           </button>
@@ -321,7 +321,7 @@ export function CalendarScreen() {
               <button
                 type="button"
                 onClick={() => setFindingTime(true)}
-                className="border-line text-ink-700 hover:bg-bg flex h-10 items-center gap-2 rounded-[13px] border bg-white px-4 text-sm font-semibold"
+                className="border-line text-ink-700 hover:bg-bg bg-surface flex h-10 items-center gap-2 rounded-[13px] border px-4 text-sm font-semibold"
               >
                 <ClockIcon size={16} />
                 {t.findTime.title}
@@ -347,14 +347,14 @@ export function CalendarScreen() {
               type="button"
               aria-label={t.previous}
               onClick={() => stepBy('month', -1)}
-              className="border-line text-ink-500 flex h-9 w-9 items-center justify-center rounded-[10px] border bg-white"
+              className="border-line text-ink-500 bg-surface flex h-9 w-9 items-center justify-center rounded-[10px] border"
             >
               <Chevron dir="left" />
             </button>
             <button
               type="button"
               onClick={goToday}
-              className="border-line text-ink-700 h-9 rounded-[10px] border bg-white px-3.5 text-sm font-semibold"
+              className="border-line text-ink-700 bg-surface h-9 rounded-[10px] border px-3.5 text-sm font-semibold"
             >
               {t.today}
             </button>
@@ -362,7 +362,7 @@ export function CalendarScreen() {
               type="button"
               aria-label={t.next}
               onClick={() => stepBy('month', 1)}
-              className="border-line text-ink-500 flex h-9 w-9 items-center justify-center rounded-[10px] border bg-white"
+              className="border-line text-ink-500 bg-surface flex h-9 w-9 items-center justify-center rounded-[10px] border"
             >
               <Chevron dir="right" />
             </button>

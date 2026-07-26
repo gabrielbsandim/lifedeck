@@ -16,7 +16,7 @@ type Draft = {
 }
 
 const inputClass =
-  'border-line text-ink-800 focus-visible:border-brand-600 h-12 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none'
+  'border-line text-ink-800 focus-visible:border-brand-600 h-12 rounded-xl border-[1.5px] bg-surface px-3.5 text-sm outline-none'
 
 function initialDraft(initial?: HabitFormProps['initial']): Draft {
   const cadence = initial?.cadence
@@ -91,7 +91,7 @@ export function HabitForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-line flex flex-col gap-3.5 rounded-2xl border bg-white p-5 shadow-sm"
+      className="border-line bg-surface flex flex-col gap-3.5 rounded-2xl border p-5 shadow-sm"
     >
       <input
         value={draft.title}
@@ -106,7 +106,7 @@ export function HabitForm({
         <span className="text-ink-500 px-0.5 text-xs font-semibold uppercase tracking-wide">
           {t.cadence}
         </span>
-        <div className="flex max-w-md gap-1 rounded-xl bg-[oklch(0.97_0.005_265)] p-1">
+        <div className="bg-muted flex max-w-md gap-1 rounded-xl p-1">
           {kinds.map(kind => {
             const active = draft.kind === kind.value
             return (
@@ -117,7 +117,7 @@ export function HabitForm({
                 aria-pressed={active}
                 className={
                   active
-                    ? 'text-ink-900 flex-1 rounded-lg bg-white py-2 text-[12.5px] font-semibold shadow-sm'
+                    ? 'text-ink-900 bg-surface flex-1 rounded-lg py-2 text-[12.5px] font-semibold shadow-sm'
                     : 'text-ink-500 flex-1 rounded-lg py-2 text-[12.5px] font-semibold'
                 }
               >
@@ -140,8 +140,8 @@ export function HabitForm({
                 aria-pressed={active}
                 className={
                   active
-                    ? 'border-brand-500 bg-brand-50 text-brand-700 h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
-                    : 'border-line text-ink-600 h-10 flex-1 rounded-xl border-[1.5px] bg-white text-xs font-semibold'
+                    ? 'border-brand-500 bg-brand-50 text-brand-accent-strong h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
+                    : 'border-line text-ink-600 bg-surface h-10 flex-1 rounded-xl border-[1.5px] text-xs font-semibold'
                 }
               >
                 {label}
@@ -152,14 +152,14 @@ export function HabitForm({
       )}
 
       {draft.kind === 'times_per_week' && (
-        <div className="border-line flex max-w-xs items-center justify-between rounded-xl border bg-[oklch(0.985_0.004_265)] px-3.5 py-2">
+        <div className="border-line bg-bg flex max-w-xs items-center justify-between rounded-xl border px-3.5 py-2">
           <span className="text-ink-700 text-sm">{t.timesPerWeekUnit}</span>
           <div className="flex items-center gap-3.5">
             <button
               type="button"
               aria-label="-"
               onClick={() => patch({ count: Math.max(1, draft.count - 1) })}
-              className="border-line text-brand-700 flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-lg leading-none"
+              className="border-line text-brand-accent-strong bg-surface flex h-8 w-8 items-center justify-center rounded-lg border text-lg leading-none"
             >
               −
             </button>
@@ -170,7 +170,7 @@ export function HabitForm({
               type="button"
               aria-label="+"
               onClick={() => patch({ count: Math.min(7, draft.count + 1) })}
-              className="border-line text-brand-700 flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-lg leading-none"
+              className="border-line text-brand-accent-strong bg-surface flex h-8 w-8 items-center justify-center rounded-lg border text-lg leading-none"
             >
               +
             </button>
@@ -214,7 +214,7 @@ export function HabitForm({
           <button
             type="button"
             onClick={onCancel}
-            className="border-line text-ink-700 hover:bg-bg flex h-11 items-center rounded-xl border bg-white px-5 text-sm font-semibold"
+            className="border-line text-ink-700 hover:bg-bg bg-surface flex h-11 items-center rounded-xl border px-5 text-sm font-semibold"
           >
             {t.cancel}
           </button>

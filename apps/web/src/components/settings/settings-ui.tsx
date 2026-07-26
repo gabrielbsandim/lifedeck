@@ -113,7 +113,7 @@ export function SegmentedControl<T extends string>({
             className={cn(
               'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[10px] text-[13px] font-semibold transition-colors disabled:opacity-50',
               active
-                ? 'text-brand-700 bg-white shadow-sm'
+                ? 'text-brand-accent-strong bg-surface shadow-sm'
                 : 'text-ink-500 bg-transparent',
             )}
           >
@@ -144,7 +144,7 @@ export function SubpageHeader({
         type="button"
         onClick={onBack}
         aria-label={backLabel}
-        className="text-brand-600 flex h-9 w-9 items-center justify-center"
+        className="text-brand-accent flex h-9 w-9 items-center justify-center"
       >
         <ChevronLeftIcon size={22} />
       </button>
@@ -179,7 +179,7 @@ export function HubRow({
       <span
         className={cn(
           'flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-lg text-white',
-          iconClassName ?? 'bg-ink-500',
+          iconClassName ?? 'bg-tile',
         )}
       >
         {icon}

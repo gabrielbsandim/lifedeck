@@ -89,7 +89,7 @@ function SubtaskSection({
                 'flex h-5 w-5 flex-none items-center justify-center rounded-[7px] border-2 transition-colors',
                 completed
                   ? 'border-brand-600 bg-brand-600'
-                  : 'border-ink-500/40 bg-white',
+                  : 'border-ink-500/40 bg-surface',
               )}
             >
               <svg
@@ -230,7 +230,7 @@ export function TaskSheet({
             type="button"
             aria-label={messages.share.close}
             onClick={onClose}
-            className="bg-ink-900/40 absolute inset-0"
+            className="bg-scrim/40 absolute inset-0"
           />
           <motion.div
             ref={panelRef}
@@ -241,7 +241,7 @@ export function TaskSheet({
             animate={{ y: 0 }}
             exit={{ y: 40 }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className="relative mx-auto max-h-[86%] w-full overflow-y-auto rounded-t-[24px] bg-white px-[18px] pb-9 pt-2.5 shadow-[0_-12px_40px_rgba(40,30,60,0.2)] sm:max-w-md"
+            className="bg-surface relative mx-auto max-h-[86%] w-full overflow-y-auto rounded-t-[24px] px-[18px] pb-9 pt-2.5 shadow-[0_-12px_40px_rgba(40,30,60,0.2)] sm:max-w-md"
           >
             <div
               aria-hidden
@@ -276,7 +276,7 @@ export function TaskSheet({
                 type="button"
                 aria-label={t.editTitle}
                 onClick={() => titleRef.current?.focus()}
-                className="text-ink-300 hover:text-brand-600 flex h-8 w-8 flex-none items-center justify-center transition-colors"
+                className="text-ink-300 hover:text-brand-accent flex h-8 w-8 flex-none items-center justify-center transition-colors"
               >
                 <PencilIcon size={15} />
               </button>
@@ -284,7 +284,7 @@ export function TaskSheet({
 
             {task.recurringTaskId && (
               <div className="ml-[38px] mt-1.5">
-                <span className="bg-brand-50 text-brand-700 inline-flex h-[22px] items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-bold">
+                <span className="bg-brand-50 text-brand-accent-strong inline-flex h-[22px] items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-bold">
                   <RecurringIcon size={11} strokeWidth={2.4} />
                   {t.recurring}
                 </span>
@@ -307,7 +307,7 @@ export function TaskSheet({
               placeholder={t.notePlaceholder}
               aria-label={t.note}
               maxLength={2000}
-              className="border-line text-ink-700 focus:border-brand-600 h-[46px] w-full rounded-[13px] border-[1.5px] bg-[oklch(0.985_0.004_265)] px-3.5 text-sm outline-none focus:bg-white"
+              className="border-line text-ink-700 focus:border-brand-600 bg-bg focus:bg-surface h-[46px] w-full rounded-[13px] border-[1.5px] px-3.5 text-sm outline-none"
             />
 
             <div className="flex items-baseline justify-between pb-1.5 pt-4">
@@ -376,7 +376,7 @@ export function TaskSheet({
                             'h-[30px] rounded-full border-[1.5px] px-2.5 text-[12.5px] font-semibold transition-colors',
                             active
                               ? 'border-brand-600 bg-brand-600 text-white'
-                              : 'border-line text-ink-600 bg-white',
+                              : 'border-line text-ink-600 bg-surface',
                           )}
                         >
                           {label}

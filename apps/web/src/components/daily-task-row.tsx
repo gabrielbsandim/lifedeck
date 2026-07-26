@@ -69,7 +69,7 @@ function TaskRowBody({
       style={style}
       {...dragHandle}
       className={cn(
-        'relative flex touch-pan-y items-center gap-3 bg-white py-2.5 pl-4 pr-1.5',
+        'bg-surface relative flex touch-pan-y items-center gap-3 py-2.5 pl-4 pr-1.5',
         overlay
           ? 'ring-brand-200/70 rounded-2xl shadow-[0_16px_36px_-12px_rgba(70,50,120,0.45)] ring-1'
           : 'min-h-[56px]',

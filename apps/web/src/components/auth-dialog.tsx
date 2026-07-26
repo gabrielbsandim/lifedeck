@@ -144,7 +144,7 @@ export function AuthDialog({
           </Button>
           <a
             href="/api/v1/auth/google"
-            className="border-line text-ink-700 hover:bg-bg flex h-11 items-center justify-center gap-3 rounded-xl border bg-white text-sm font-medium transition"
+            className="border-line text-ink-700 hover:bg-bg bg-surface flex h-11 items-center justify-center gap-3 rounded-xl border text-sm font-medium transition"
           >
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
               <path
@@ -169,7 +169,7 @@ export function AuthDialog({
           <button
             type="button"
             onClick={() => setMode(mode === 'register' ? 'signin' : 'register')}
-            className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+            className="text-brand-accent hover:text-brand-accent-strong text-sm font-medium"
           >
             {mode === 'register'
               ? messages.auth.haveAccount

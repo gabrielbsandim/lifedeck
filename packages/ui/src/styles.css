@@ -14,6 +14,12 @@
   --color-brand-700: oklch(0.45 0.2 280);
   --color-brand-900: oklch(0.3 0.12 280);
 
+  /* Brand as foreground - links, icons and emphasis drawn on a surface.
+     Kept apart from the ramp because the ramp stays saturated in dark mode
+     (solid buttons) while brand text has to lighten to stay legible. */
+  --color-brand-accent: oklch(0.52 0.22 280);
+  --color-brand-accent-strong: oklch(0.45 0.2 280);
+
   /* Neutrals - slate, hue 265 */
   --color-ink-900: oklch(0.21 0.02 265);
   --color-ink-800: oklch(0.24 0.02 265);
@@ -26,12 +32,29 @@
   --color-line: oklch(0.92 0.005 265);
   --color-surface: oklch(1 0 0);
   --color-bg: oklch(0.985 0.004 265);
+  /* Inset fills that sit on a surface - segmented tracks, progress rails. */
+  --color-muted: oklch(0.97 0.005 265);
+
+  /* Always-dark roles - they must not invert with the theme. */
+  --color-inverse: oklch(0.21 0.02 265);
+  --color-scrim: oklch(0.21 0.02 265);
+  --color-tile: oklch(0.5 0.02 265);
+  --color-tile-strong: oklch(0.37 0.02 265);
 
   /* Semantic + accent */
   --color-success: oklch(0.62 0.17 155);
   --color-danger: oklch(0.58 0.21 25);
   --color-warning: oklch(0.76 0.15 75);
   --color-violet-500: oklch(0.6 0.18 300);
+
+  /* Semantic tints - soft fill, hairline and readable text per tone. */
+  --color-success-soft: oklch(0.95 0.04 155);
+  --color-success-line: oklch(0.87 0.07 155);
+  --color-success-fg: oklch(0.45 0.13 155);
+  --color-danger-soft: oklch(0.96 0.025 25);
+  --color-danger-line: oklch(0.88 0.06 25);
+  --color-danger-fg: oklch(0.45 0.18 25);
+  --color-violet-soft: oklch(0.94 0.04 300);
 
   /* Brandmark deck card tints */
   --color-deck-mid: oklch(0.74 0.13 285);
@@ -59,6 +82,50 @@
   --animate-glow: tk-glow 1.5s ease-out infinite;
   --animate-celebrate: tk-celebrate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-shimmer: tk-shimmer 1.4s linear infinite;
+}
+
+/* Dark theme.
+   Follows the device setting only - there is no in-app switch, so the app
+   matches whatever the phone is set to. These rules are deliberately left
+   outside `@layer theme` so they override the light defaults above.
+
+   Roles that do NOT invert: the brand ramp from 400 up (solid buttons keep
+   white text), the semantic hues, and the always-dark roles (scrim, inverse
+   panels, icon tiles). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-brand-50: oklch(0.28 0.045 288);
+    --color-brand-100: oklch(0.33 0.06 288);
+    --color-brand-200: oklch(0.39 0.075 288);
+    --color-brand-300: oklch(0.45 0.09 288);
+
+    --color-brand-accent: oklch(0.8 0.13 288);
+    --color-brand-accent-strong: oklch(0.88 0.09 288);
+
+    --color-ink-900: oklch(0.96 0.005 285);
+    --color-ink-800: oklch(0.93 0.006 285);
+    --color-ink-700: oklch(0.88 0.008 285);
+    --color-ink-600: oklch(0.8 0.01 285);
+    --color-ink-500: oklch(0.73 0.012 285);
+    --color-ink-400: oklch(0.64 0.014 285);
+    --color-ink-300: oklch(0.55 0.014 285);
+    --color-ink-200: oklch(0.45 0.016 285);
+    --color-line: oklch(0.33 0.016 275);
+    --color-surface: oklch(0.235 0.014 275);
+    --color-bg: oklch(0.165 0.012 275);
+    --color-muted: oklch(0.3 0.016 275);
+
+    --color-inverse: oklch(0.13 0.012 275);
+    --color-scrim: oklch(0.05 0.01 275);
+
+    --color-success-soft: oklch(0.28 0.05 155);
+    --color-success-line: oklch(0.38 0.07 155);
+    --color-success-fg: oklch(0.82 0.13 155);
+    --color-danger-soft: oklch(0.29 0.06 25);
+    --color-danger-line: oklch(0.4 0.09 25);
+    --color-danger-fg: oklch(0.82 0.11 25);
+    --color-violet-soft: oklch(0.3 0.06 300);
+  }
 }
 
 @keyframes tk-glow {

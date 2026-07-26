@@ -136,7 +136,7 @@ function DesktopMonth({
   const { messages } = useI18n()
   const t = messages.calendar
   return (
-    <div className="border-line overflow-hidden rounded-2xl border bg-white shadow-sm">
+    <div className="border-line bg-surface overflow-hidden rounded-2xl border shadow-sm">
       <div className="border-line/70 bg-bg/60 grid grid-cols-7 border-b">
         {weeks[0]?.map(day => (
           <span

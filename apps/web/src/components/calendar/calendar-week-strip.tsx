@@ -48,7 +48,7 @@ export function CalendarWeekStrip({
                 isSelected
                   ? 'text-white/80'
                   : isToday
-                    ? 'text-brand-600'
+                    ? 'text-brand-accent'
                     : 'text-ink-500',
               )}
             >
@@ -60,7 +60,7 @@ export function CalendarWeekStrip({
                 isSelected
                   ? 'text-white'
                   : isToday
-                    ? 'text-brand-600'
+                    ? 'text-brand-accent'
                     : 'text-ink-800',
               )}
             >

@@ -30,7 +30,7 @@ export function Tabs({ tabs, value, onChange, className }: TabsProps) {
             className={cn(
               'flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition',
               active
-                ? 'text-brand-700 bg-white shadow-sm'
+                ? 'text-brand-accent-strong bg-surface shadow-sm'
                 : 'text-ink-500 hover:text-ink-700',
             )}
           >

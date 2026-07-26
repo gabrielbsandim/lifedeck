@@ -30,7 +30,7 @@ export function SharedBoardView({ token }: { token: string }) {
     return (
       <Card className="flex flex-col items-center gap-3 p-8 text-center">
         <p className="text-ink-500 text-sm">{messages.common.error}</p>
-        <Link href="/" className="text-brand-600 text-sm font-medium">
+        <Link href="/" className="text-brand-accent text-sm font-medium">
           {messages.app.name}
         </Link>
       </Card>
@@ -44,7 +44,7 @@ export function SharedBoardView({ token }: { token: string }) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <p className="text-brand-600 text-sm font-medium">
+        <p className="text-brand-accent text-sm font-medium">
           {messages.app.name}
         </p>
         <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export function SharedBoardView({ token }: { token: string }) {
               return (
                 <li
                   key={task.id}
-                  className="border-line flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3"
+                  className="border-line bg-surface flex items-center gap-3 rounded-xl border px-3.5 py-3"
                 >
                   <TaskCheckbox
                     checked={completed}

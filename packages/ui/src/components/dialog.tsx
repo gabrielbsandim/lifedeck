@@ -70,7 +70,7 @@ export function Dialog({
     <div
       onClick={onClose}
       className={cn(
-        'bg-ink-900/30 fixed inset-0 z-50 flex p-4 backdrop-blur-sm',
+        'bg-scrim/30 fixed inset-0 z-50 flex p-4 backdrop-blur-sm',
         sheet ? 'items-end justify-center' : 'items-center justify-center',
       )}
     >
@@ -85,7 +85,7 @@ export function Dialog({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className={cn(
-          'w-full bg-white p-5 shadow-lg outline-none',
+          'bg-surface w-full p-5 shadow-lg outline-none',
           sheet ? 'max-w-md rounded-t-2xl' : 'max-w-sm rounded-2xl',
         )}
       >

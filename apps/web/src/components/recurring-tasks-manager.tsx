@@ -89,7 +89,7 @@ export function RecurringTasksManager() {
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="border-brand-300 text-brand-600 hover:bg-brand-50 flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed bg-[oklch(0.97_0.02_280_/_0.5)] text-sm font-semibold"
+          className="border-brand-300 text-brand-accent hover:bg-brand-50 bg-brand-50/50 flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed text-sm font-semibold"
         >
           <svg
             width="17"
@@ -116,7 +116,7 @@ export function RecurringTasksManager() {
       )}
 
       {list.isError && (
-        <div className="border-line flex flex-col items-center gap-3 rounded-2xl border bg-white py-8 text-center">
+        <div className="border-line bg-surface flex flex-col items-center gap-3 rounded-2xl border py-8 text-center">
           <p className="text-ink-500 text-sm">{messages.common.error}</p>
           <button
             type="button"
@@ -129,8 +129,8 @@ export function RecurringTasksManager() {
       )}
 
       {list.isSuccess && definitions.length === 0 && !adding && (
-        <div className="border-line flex flex-col items-center gap-3 rounded-2xl border bg-white px-6 py-11 text-center">
-          <span className="bg-brand-50 text-brand-600 flex h-16 w-16 items-center justify-center rounded-full">
+        <div className="border-line bg-surface flex flex-col items-center gap-3 rounded-2xl border px-6 py-11 text-center">
+          <span className="bg-brand-50 text-brand-accent flex h-16 w-16 items-center justify-center rounded-full">
             <RepeatIcon size={30} />
           </span>
           <div>
@@ -174,9 +174,9 @@ export function RecurringTasksManager() {
             ) : (
               <li
                 key={definition.id}
-                className="border-line hover:border-ink-200 flex items-center gap-3.5 rounded-2xl border bg-white p-3.5 pl-4 shadow-sm transition-colors"
+                className="border-line hover:border-ink-200 bg-surface flex items-center gap-3.5 rounded-2xl border p-3.5 pl-4 shadow-sm transition-colors"
               >
-                <span className="bg-brand-50 text-brand-600 flex h-10 w-10 flex-none items-center justify-center rounded-xl">
+                <span className="bg-brand-50 text-brand-accent flex h-10 w-10 flex-none items-center justify-center rounded-xl">
                   <RepeatIcon />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -192,7 +192,7 @@ export function RecurringTasksManager() {
                     type="button"
                     aria-label={t.edit}
                     onClick={() => setEditingId(definition.id)}
-                    className="text-brand-600 hover:bg-brand-50 flex h-9 w-9 items-center justify-center rounded-lg"
+                    className="text-brand-accent hover:bg-brand-50 flex h-9 w-9 items-center justify-center rounded-lg"
                   >
                     <svg
                       width="17"
@@ -241,7 +241,7 @@ export function RecurringTasksManager() {
           type="button"
           disabled={list.isFetchingNextPage}
           onClick={() => list.fetchNextPage()}
-          className="border-line text-ink-600 hover:bg-bg flex h-11 items-center justify-center self-start rounded-xl border bg-white px-6 text-sm font-semibold disabled:opacity-50"
+          className="border-line text-ink-600 hover:bg-bg bg-surface flex h-11 items-center justify-center self-start rounded-xl border px-6 text-sm font-semibold disabled:opacity-50"
         >
           {messages.common.loadMore}
         </button>

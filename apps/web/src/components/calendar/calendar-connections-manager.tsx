@@ -14,7 +14,7 @@ import {
 const linkClass =
   'border-line text-ink-700 hover:bg-bg inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors'
 const inputClass =
-  'border-line text-ink-800 focus-visible:border-brand-600 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none'
+  'border-line text-ink-800 focus-visible:border-brand-600 h-10 w-full rounded-lg border bg-surface px-3 text-sm outline-none'
 
 const PROVIDER_LABEL: Record<string, string> = {
   google: 'Google',
@@ -109,7 +109,7 @@ export function CalendarConnectionsManager({
           className="flex w-full items-center justify-between gap-2 p-4 text-left"
         >
           <span className="flex min-w-0 items-center gap-2.5">
-            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+            <span className="bg-success h-2 w-2 shrink-0 rounded-full" />
             <span className="text-ink-900 shrink-0 text-sm font-semibold">
               {t.connectedCalendars}
             </span>
@@ -170,7 +170,7 @@ export function CalendarConnectionsManager({
       {form && (
         <form
           onSubmit={submit}
-          className="border-line flex flex-col gap-2 rounded-lg border bg-white/50 p-3"
+          className="border-line bg-surface/50 flex flex-col gap-2 rounded-lg border p-3"
         >
           <input
             type="email"
@@ -193,7 +193,7 @@ export function CalendarConnectionsManager({
           <p className="text-ink-500 text-xs">
             {form === 'apple' ? c.applePasswordHint : c.calcomReadOnly}
           </p>
-          {error && <p className="text-xs text-red-600">{c.connectError}</p>}
+          {error && <p className="text-danger text-xs">{c.connectError}</p>}
           <div className="flex items-center gap-2">
             <Button type="submit" variant="primary" disabled={pending}>
               {pending ? c.connecting : c.connect}
@@ -218,7 +218,7 @@ export function CalendarConnectionsManager({
                     {PROVIDER_LABEL[connection.provider] ?? connection.provider}
                   </span>
                   {connection.isDefault && (
-                    <span className="shrink-0 rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                    <span className="bg-success-soft text-success-fg shrink-0 rounded px-2 py-0.5 text-xs font-medium">
                       {t.defaultCalendar}
                     </span>
                   )}
@@ -238,7 +238,7 @@ export function CalendarConnectionsManager({
                     <button
                       type="button"
                       onClick={() => setConfirmingId(connection.id)}
-                      className="text-xs font-medium text-red-600 hover:underline"
+                      className="text-danger text-xs font-medium hover:underline"
                     >
                       {t.disconnectCalendar}
                     </button>
@@ -246,8 +246,10 @@ export function CalendarConnectionsManager({
                 )}
               </div>
               {confirmingId === connection.id && (
-                <div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5">
-                  <p className="text-xs text-red-700">{t.disconnectConfirm}</p>
+                <div className="border-danger-line bg-danger-soft flex flex-col gap-2 rounded-lg border p-2.5">
+                  <p className="text-danger-fg text-xs">
+                    {t.disconnectConfirm}
+                  </p>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -256,7 +258,7 @@ export function CalendarConnectionsManager({
                         setConfirmingId(null)
                       }}
                       disabled={disconnect.isPending}
-                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                      className="bg-danger hover:bg-danger/90 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                     >
                       {t.disconnectCalendar}
                     </button>

@@ -11,7 +11,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
     <div
       ref={ref}
       className={cn(
-        'border-line rounded-2xl border bg-white shadow-sm',
+        'border-line bg-surface rounded-2xl border shadow-sm',
         className,
       )}
       {...props}

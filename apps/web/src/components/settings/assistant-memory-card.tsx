@@ -12,7 +12,7 @@ type PersonDraft = { name: string; relationship: string }
 // Shared with the rest of the app's inputs: 40px tall, lightly rounded, with a
 // clear brand focus ring instead of the faint, over-rounded pill this used to be.
 const INPUT_CLASS =
-  'border-line text-ink-800 focus-visible:border-brand-600 h-10 min-w-0 flex-1 rounded-lg border bg-white px-3 text-sm outline-none'
+  'border-line text-ink-800 focus-visible:border-brand-600 h-10 min-w-0 flex-1 rounded-lg border bg-surface px-3 text-sm outline-none'
 
 // A whole-hour <select> for a nullable local hour (0-23); the blank option maps
 // back to null so the user can leave a routine unset.
@@ -37,7 +37,7 @@ function HourSelect({
       onChange={event =>
         onChange(event.target.value === '' ? null : Number(event.target.value))
       }
-      className="border-line text-ink-800 focus-visible:border-brand-600 h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+      className="border-line text-ink-800 focus-visible:border-brand-600 bg-surface h-10 rounded-lg border px-3 text-sm outline-none"
     >
       <option value="">{unsetLabel}</option>
       {Array.from({ length: 24 }, (_, hour) => (
@@ -235,7 +235,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
             />
           </div>
           {workStart !== null && workEnd !== null && workStart >= workEnd && (
-            <p className="text-xs text-amber-600">{m.workHoursInvalid}</p>
+            <p className="text-warning text-xs">{m.workHoursInvalid}</p>
           )}
         </div>
       </div>
@@ -335,7 +335,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
           onClick={() =>
             setPeople(current => [...current, { name: '', relationship: '' }])
           }
-          className="text-brand-600 self-start text-[13px] font-semibold"
+          className="text-brand-accent self-start text-[13px] font-semibold"
         >
           {m.addPerson}
         </button>
@@ -394,9 +394,7 @@ export function AssistantMemoryCard({ user }: { user: SessionUser }) {
           {m.save}
         </Button>
         {setProfile.isSuccess && !dirty && (
-          <span className="text-xs font-medium text-emerald-600">
-            {m.saved}
-          </span>
+          <span className="text-success text-xs font-medium">{m.saved}</span>
         )}
       </div>
     </SectionCard>

@@ -37,7 +37,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#6d4ae6',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#6d4ae6' },
+    { media: '(prefers-color-scheme: dark)', color: '#0d0e14' },
+  ],
   width: 'device-width',
   initialScale: 1,
 }
@@ -53,7 +56,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className="font-sans text-slate-900 antialiased">
+      <body className="font-sans antialiased">
         <Providers locale={locale} messages={messages}>
           {children}
         </Providers>

@@ -26,7 +26,7 @@ export function TaskCheckbox({
         'flex h-6 w-6 flex-none items-center justify-center rounded-lg border-2 transition-colors duration-150',
         checked
           ? 'border-brand-600 bg-brand-600'
-          : 'border-ink-500/40 bg-white',
+          : 'border-ink-500/40 bg-surface',
         disabled && 'cursor-not-allowed opacity-50',
       )}
     >

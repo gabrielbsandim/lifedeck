@@ -188,7 +188,7 @@ export function EventEditorDialog({
               type="datetime-local"
               value={startsAt}
               onChange={changed => setStartsAt(changed.target.value)}
-              className="border-line text-ink-800 focus-visible:border-brand-600 h-11 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none"
+              className="border-line text-ink-800 focus-visible:border-brand-600 bg-surface h-11 rounded-xl border-[1.5px] px-3.5 text-sm outline-none"
               required
             />
           </label>
@@ -198,7 +198,7 @@ export function EventEditorDialog({
               type="datetime-local"
               value={endsAt}
               onChange={changed => setEndsAt(changed.target.value)}
-              className="border-line text-ink-800 focus-visible:border-brand-600 h-11 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none"
+              className="border-line text-ink-800 focus-visible:border-brand-600 bg-surface h-11 rounded-xl border-[1.5px] px-3.5 text-sm outline-none"
               required
             />
           </label>
@@ -220,7 +220,7 @@ export function EventEditorDialog({
             onChange={changed => setDescription(changed.target.value)}
             maxLength={2000}
             rows={3}
-            className="border-line text-ink-800 focus-visible:border-brand-600 rounded-xl border-[1.5px] bg-white px-3.5 py-2.5 text-sm outline-none"
+            className="border-line text-ink-800 focus-visible:border-brand-600 bg-surface rounded-xl border-[1.5px] px-3.5 py-2.5 text-sm outline-none"
           />
         </label>
 
@@ -245,7 +245,7 @@ export function EventEditorDialog({
                   }
                   className={
                     active
-                      ? 'bg-brand-50 text-brand-700 rounded-full px-3 py-1 text-xs font-semibold'
+                      ? 'bg-brand-50 text-brand-accent-strong rounded-full px-3 py-1 text-xs font-semibold'
                       : 'border-line text-ink-600 hover:bg-bg rounded-full border px-3 py-1 text-xs font-medium'
                   }
                 >

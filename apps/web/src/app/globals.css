@@ -2,8 +2,17 @@
 @import '@lifedeck/ui/styles.css';
 @source '../../../../packages/ui/src/**/*.{ts,tsx}';
 
+/* Tell the UA which scheme to paint its own widgets in - scrollbars, form
+   controls, autofill. Declared as two explicit values rather than the shorthand
+   `light dark`, which Lightning CSS downlevels to `light` alone. */
 :root {
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
 }
 
 body {
