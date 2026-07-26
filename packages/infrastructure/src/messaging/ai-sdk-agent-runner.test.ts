@@ -5,6 +5,8 @@ import {
   AiSdkAgentRunner,
   buildAssistantToolset,
   buildSystemPrompt,
+  claimsUnbackedAction,
+  collectToolNames,
   createAgentRunner,
   gateTools,
 } from '@/messaging/ai-sdk-agent-runner'
@@ -38,7 +40,14 @@ function spyTools(overrides: Partial<AssistantTools> = {}): AssistantTools {
     getAgenda: method({ events: [] }),
     getWeather: method({ current: null, daily: [] }),
     updateAssistantMemory: method({ ok: true, memory: 'Home: Lisbon' }),
-    addTask: method({ id: 'task-1' }),
+    addTask: method({ id: 'task-1', added: true, alreadyExisted: false }),
+    logActivity: method({
+      kind: 'habit',
+      id: 'habit-1',
+      title: 'Treinar',
+      date: '2026-07-19',
+      currentStreak: 3,
+    }),
     completeTask: method({ ok: true }),
     reopenTask: method({ ok: true }),
     renameTask: method({ ok: true }),
@@ -132,6 +141,23 @@ describe('buildAssistantToolset', () => {
     expect(tools.addTask).toHaveBeenCalledWith(USER_ID, {
       title: 'Buy milk',
       listId: 'list-9',
+      completed: undefined,
+    })
+
+    await run(toolset.addTask, { title: 'Walk the dog', completed: true })
+    expect(tools.addTask).toHaveBeenCalledWith(USER_ID, {
+      title: 'Walk the dog',
+      listId: undefined,
+      completed: true,
+    })
+
+    await run(toolset.logActivity, {
+      title: 'treinei',
+      date: '2026-07-19',
+    })
+    expect(tools.logActivity).toHaveBeenCalledWith(USER_ID, {
+      title: 'treinei',
+      date: '2026-07-19',
     })
 
     await run(toolset.completeTask, { taskId: 't1' })
@@ -303,7 +329,11 @@ describe('AiSdkAgentRunner.run', () => {
       message: 'what is on today?',
       history: [],
     })
-    expect(reply).toEqual({ text: 'assistant reply', actions: [] })
+    expect(reply).toEqual({
+      text: 'assistant reply',
+      actions: [],
+      toolCalls: [],
+    })
 
     const call = genCall()
     expect(call.model).toBe('flash-model')
@@ -400,6 +430,129 @@ describe('AiSdkAgentRunner.run', () => {
       role: 'user',
       content: '',
     })
+  })
+
+  it('reports the tools the turn ran', async () => {
+    generateTextMock.mockResolvedValue({
+      text: 'Feito',
+      steps: [
+        {
+          toolResults: [
+            { toolName: 'getHabits', input: {}, output: {} },
+            { toolName: 'logHabit', input: {}, output: {} },
+          ],
+        },
+      ],
+    } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'treinei',
+      history: [],
+    })
+
+    expect(reply.toolCalls).toEqual(['getHabits', 'logHabit'])
+    expect(reply.unverifiedClaim).toBeUndefined()
+  })
+
+  it('redoes a turn that confirms work no tool performed', async () => {
+    // The real incident: "Certo, registrei seu treino de ontem" with no call.
+    generateTextMock
+      .mockResolvedValueOnce({ text: 'Certo, registrei seu treino.' } as never)
+      .mockResolvedValueOnce({
+        text: 'Pronto, registrei seu treino de ontem.',
+        steps: [
+          {
+            toolResults: [
+              { toolName: 'logActivity', input: {}, output: { kind: 'habit' } },
+            ],
+          },
+        ],
+      } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'eu treinei ontem',
+      history: [],
+    })
+
+    expect(generateTextMock).toHaveBeenCalledTimes(2)
+    expect(generateTextMock.mock.calls[1]?.[0]?.system).toContain('CORRECTION')
+    expect(reply.text).toBe('Pronto, registrei seu treino de ontem.')
+    expect(reply.toolCalls).toEqual(['logActivity'])
+    expect(reply.unverifiedClaim).toBe(false)
+  })
+
+  it('flags a claim that is still unbacked after the retry', async () => {
+    generateTextMock.mockResolvedValue({
+      text: 'Marquei como concluído.',
+    } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'conclui a tarefa',
+      history: [],
+    })
+
+    expect(generateTextMock).toHaveBeenCalledTimes(2)
+    expect(reply.unverifiedClaim).toBe(true)
+  })
+
+  it('does not retry a turn that only answers a question', async () => {
+    generateTextMock.mockResolvedValue({
+      text: 'Você tem 3 tarefas hoje.',
+      steps: [
+        { toolResults: [{ toolName: 'getToday', input: {}, output: {} }] },
+      ],
+    } as never)
+
+    await runner().run({
+      userId: USER_ID,
+      message: 'o que tenho hoje?',
+      history: [],
+    })
+
+    expect(generateTextMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('collectToolNames', () => {
+  it('lists every tool result in call order', () => {
+    expect(
+      collectToolNames([
+        { toolResults: [{ toolName: 'getToday' }, { toolName: 'addTask' }] },
+        { toolResults: [{ toolName: 'completeTask' }] },
+        {},
+      ] as never),
+    ).toEqual(['getToday', 'addTask', 'completeTask'])
+  })
+
+  it('handles a turn with no steps at all', () => {
+    expect(collectToolNames()).toEqual([])
+  })
+})
+
+describe('claimsUnbackedAction', () => {
+  it('catches a confirmation with no mutation behind it', () => {
+    expect(claimsUnbackedAction('Certo, registrei seu treino.', [])).toBe(true)
+    expect(claimsUnbackedAction('Added it to your list.', ['getToday'])).toBe(
+      true,
+    )
+    expect(claimsUnbackedAction('Listo, marqué la tarea.', [])).toBe(true)
+  })
+
+  it('accepts a confirmation a mutation actually backs', () => {
+    expect(claimsUnbackedAction('Certo, registrei.', ['logActivity'])).toBe(
+      false,
+    )
+    expect(claimsUnbackedAction('Added it.', ['getToday', 'addTask'])).toBe(
+      false,
+    )
+  })
+
+  it('ignores a reply that claims nothing', () => {
+    expect(claimsUnbackedAction('Você tem 3 tarefas hoje.', [])).toBe(false)
+    expect(claimsUnbackedAction('Quer que eu adicione?', [])).toBe(false)
   })
 })
 

@@ -35,6 +35,13 @@ export type AgentAction = {
 export type AgentReply = {
   text: string
   actions?: AgentAction[]
+  // Every tool the model ran this turn, in call order. Logged by the caller: a
+  // turn that confirms work it never did is otherwise indistinguishable, in the
+  // logs, from one that worked.
+  toolCalls?: string[]
+  // The reply still claims an action no tool performed, even after the runner's
+  // corrective retry. Always a defect worth surfacing.
+  unverifiedClaim?: boolean
 }
 
 export interface AgentRunner {

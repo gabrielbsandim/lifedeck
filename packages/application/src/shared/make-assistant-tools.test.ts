@@ -140,12 +140,167 @@ describe('makeAssistantTools', () => {
   it('defaults a new task to today’s board list when no listId is given', async () => {
     const { tools, deps } = build()
 
-    const result = await tools.addTask(USER_ID, { title: 'Buy milk' })
+    const result = await tools.addTask(USER_ID, { title: 'Call the vet' })
 
-    expect(result).toEqual({ id: 'task-1', added: true })
+    expect(result).toEqual({ id: 'task-1', added: true, alreadyExisted: false })
     expect(deps.createTask).toHaveBeenCalledWith(USER_ID, {
       listId: 'list-1',
+      title: 'Call the vet',
+    })
+  })
+
+  it('reuses a task already on today’s board instead of duplicating it', async () => {
+    const { tools, deps } = build()
+
+    // Same task, typed with different case and punctuation.
+    const result = await tools.addTask(USER_ID, { title: 'buy milk!' })
+
+    expect(result).toEqual({
+      id: 'task-1',
+      added: false,
+      alreadyExisted: true,
+    })
+    expect(deps.createTask).not.toHaveBeenCalled()
+  })
+
+  it('completes the task it adds when the user already did it', async () => {
+    const { tools, deps } = build()
+
+    await tools.addTask(USER_ID, { title: 'Call the vet', completed: true })
+
+    expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-1', {
+      status: 'completed',
+    })
+  })
+
+  it('completes an existing pending task rather than adding a second one', async () => {
+    const { tools, deps } = build()
+
+    const result = await tools.addTask(USER_ID, {
       title: 'Buy milk',
+      completed: true,
+    })
+
+    expect(result.alreadyExisted).toBe(true)
+    expect(deps.createTask).not.toHaveBeenCalled()
+    expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-1', {
+      status: 'completed',
+    })
+  })
+
+  describe('logActivity', () => {
+    it('logs the habit whose name the user conjugated', async () => {
+      // "Eu treinei ontem" has to reach the habit "Treinar".
+      const { tools, deps } = build({
+        listHabits: vi.fn(async () => [
+          { id: 'habit-1', title: 'Treinar', active: true, currentStreak: 2 },
+        ]) as unknown as AssistantToolsDeps['listHabits'],
+        logHabit: vi.fn(async () => ({
+          currentStreak: 3,
+          doneToday: false,
+        })) as unknown as AssistantToolsDeps['logHabit'],
+      })
+
+      const result = await tools.logActivity(USER_ID, {
+        title: 'treinei',
+        date: '2026-07-18',
+      })
+
+      expect(result).toEqual({
+        kind: 'habit',
+        id: 'habit-1',
+        title: 'Treinar',
+        date: '2026-07-18',
+        currentStreak: 3,
+      })
+      expect(deps.logHabit).toHaveBeenCalledWith(USER_ID, 'habit-1', {
+        date: '2026-07-18',
+      })
+      expect(deps.createTask).not.toHaveBeenCalled()
+    })
+
+    it('completes the matching task on the day’s board when no habit matches', async () => {
+      // "Passeamos com a Rhaenyra" has to reach "Passear com Rhaenyra".
+      const { tools, deps } = build({
+        getDailyBoard: vi.fn(async () => ({
+          list: { id: 'list-1' },
+          tasks: [
+            {
+              id: 'task-9',
+              title: 'Passear com Rhaenyra',
+              status: 'pending',
+            },
+          ],
+        })) as unknown as AssistantToolsDeps['getDailyBoard'],
+      })
+
+      const result = await tools.logActivity(USER_ID, {
+        title: 'passeamos com a Rhaenyra',
+      })
+
+      expect(result).toEqual({
+        kind: 'task',
+        id: 'task-9',
+        title: 'Passear com Rhaenyra',
+        date: '2026-07-19',
+      })
+      expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-9', {
+        status: 'completed',
+      })
+      expect(deps.createTask).not.toHaveBeenCalled()
+    })
+
+    it('leaves an already completed task alone', async () => {
+      const { tools, deps } = build({
+        getDailyBoard: vi.fn(async () => ({
+          list: { id: 'list-1' },
+          tasks: [
+            { id: 'task-9', title: 'Ir ao mercado', status: 'completed' },
+          ],
+        })) as unknown as AssistantToolsDeps['getDailyBoard'],
+      })
+
+      const result = await tools.logActivity(USER_ID, {
+        title: 'fomos ao mercado',
+      })
+
+      expect(result.kind).toBe('task')
+      expect(deps.updateTask).not.toHaveBeenCalled()
+    })
+
+    it('records an unmatched activity as an already-completed task', async () => {
+      const { tools, deps } = build()
+
+      const result = await tools.logActivity(USER_ID, {
+        title: 'Consertei a bicicleta',
+      })
+
+      expect(result).toEqual({
+        kind: 'created',
+        id: 'task-1',
+        title: 'Consertei a bicicleta',
+        date: '2026-07-19',
+      })
+      expect(deps.createTask).toHaveBeenCalledWith(USER_ID, {
+        listId: 'list-1',
+        title: 'Consertei a bicicleta',
+      })
+      expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-1', {
+        status: 'completed',
+      })
+    })
+
+    it('ignores an archived habit and falls through to tasks', async () => {
+      const { tools, deps } = build({
+        listHabits: vi.fn(async () => [
+          { id: 'habit-1', title: 'Treinar', active: false, currentStreak: 0 },
+        ]) as unknown as AssistantToolsDeps['listHabits'],
+      })
+
+      await tools.logActivity(USER_ID, { title: 'treinei' })
+
+      expect(deps.logHabit).not.toHaveBeenCalled()
+      expect(deps.createTask).toHaveBeenCalled()
     })
   })
 

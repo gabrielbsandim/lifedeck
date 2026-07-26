@@ -48,6 +48,22 @@ export type AssistantHabitSummary = {
   active: boolean
 }
 
+// The outcome of reporting something the user already did. `kind` tells the
+// assistant what it actually touched, so it can confirm in the user's terms
+// ("logged your workout", "checked that off") instead of guessing:
+// - `habit`: an existing habit was logged for that day (`currentStreak` follows)
+// - `task`: a task already on that day's board was completed
+// - `created`: nothing matched, so a task was created already completed
+export type AssistantActivityLog = {
+  kind: 'habit' | 'task' | 'created'
+  id: string
+  /** The stored title that was matched, so the assistant echoes the real name. */
+  title: string
+  /** Civil date the activity was recorded on, YYYY-MM-DD. */
+  date: string
+  currentStreak?: number
+}
+
 // Grounds the assistant in the user's local time so it resolves "tomorrow" and
 // sets clock times in the right zone. Without it the model has no anchor and
 // guesses the date and drifts times by the UTC offset.
@@ -143,10 +159,22 @@ export interface AssistantTools {
   ): Promise<{ ok: boolean; memory: string }>
 
   // Tasks
+  // Adds a task, unless one with the same title is already on the target day, in
+  // which case the existing one is returned untouched (`alreadyExisted`). The
+  // assistant used to duplicate a task it had just been told about, because the
+  // only way to notice was to remember to read the board first.
   addTask(
     userId: string,
-    input: { title: string; listId?: string },
-  ): Promise<{ id: string; added: boolean }>
+    input: { title: string; listId?: string; completed?: boolean },
+  ): Promise<{ id: string; added: boolean; alreadyExisted: boolean }>
+  // "I already did X": records it against whatever the user actually tracks, a
+  // habit or a task, creating a completed task only when nothing matches. One
+  // call so the assistant cannot land halfway (a task added but left pending, or
+  // a confirmation with nothing recorded at all).
+  logActivity(
+    userId: string,
+    input: { title: string; date?: string },
+  ): Promise<AssistantActivityLog>
   completeTask(userId: string, taskId: string): Promise<{ ok: boolean }>
   reopenTask(userId: string, taskId: string): Promise<{ ok: boolean }>
   renameTask(

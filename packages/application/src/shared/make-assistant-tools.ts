@@ -32,6 +32,7 @@ import type { makeCreateHabit } from '@/use-cases/create-habit'
 import type { makeListHabits } from '@/use-cases/list-habits'
 import type { makeLogHabit } from '@/use-cases/log-habit'
 import { ForbiddenError } from '@/errors/use-case-error'
+import { findBestTitleMatch, isSameTitle } from '@/shared/activity-match'
 
 // Default heads-up (minutes) for an event the assistant creates without an
 // explicit reminder, so a WhatsApp-made event actually schedules an alert.
@@ -209,9 +210,63 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
         const date = civilDate(clock.now(), timezone)
         const board = await getDailyBoard(userId, date)
         listId = board.list.id
+        // The board is already loaded to resolve the list, so the duplicate
+        // check is free. Exact title match only: anything looser would refuse to
+        // add a task the user legitimately wants twice.
+        const existing = board.tasks.find(task =>
+          isSameTitle(task.title, input.title),
+        )
+        if (existing) {
+          if (input.completed && existing.status !== 'completed') {
+            await updateTask(userId, existing.id, { status: 'completed' })
+          }
+          return { id: existing.id, added: false, alreadyExisted: true }
+        }
       }
       const task = await createTask(userId, { listId, title: input.title })
-      return { id: task.id, added: true }
+      // Reporting something already done is one intent, so it must not depend on
+      // the model remembering a second call to close it out.
+      if (input.completed) {
+        await updateTask(userId, task.id, { status: 'completed' })
+      }
+      return { id: task.id, added: true, alreadyExisted: false }
+    },
+    async logActivity(userId, input) {
+      const timezone = await timezoneOf(userId)
+      const date = input.date ?? civilDate(clock.now(), timezone)
+
+      // Habits first: a tracked habit is the more specific meaning of "I did X",
+      // and logging it also keeps the streak honest.
+      const habits = (await listHabits(userId)).filter(view => view.active)
+      const habit = findBestTitleMatch(habits, input.title, view => view.title)
+      if (habit) {
+        const view = await logHabit(userId, habit.id, { date })
+        return {
+          kind: 'habit',
+          id: habit.id,
+          title: habit.title,
+          date,
+          currentStreak: view.currentStreak,
+        }
+      }
+
+      // Then the day's board: the thing they did is usually already on it.
+      const board = await getDailyBoard(userId, date)
+      const task = findBestTitleMatch(board.tasks, input.title, t => t.title)
+      if (task) {
+        if (task.status !== 'completed') {
+          await updateTask(userId, task.id, { status: 'completed' })
+        }
+        return { kind: 'task', id: task.id, title: task.title, date }
+      }
+
+      // Nothing tracked matches, so record it as a task that is already done.
+      const created = await createTask(userId, {
+        listId: board.list.id,
+        title: input.title,
+      })
+      await updateTask(userId, created.id, { status: 'completed' })
+      return { kind: 'created', id: created.id, title: input.title, date }
     },
     async completeTask(userId, taskId) {
       await updateTask(userId, taskId, { status: 'completed' })

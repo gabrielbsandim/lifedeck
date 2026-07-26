@@ -100,7 +100,8 @@ retries on slow responses.
 (`packages/infrastructure/src/messaging/ai-sdk-agent-runner.ts`) on the Vercel AI
 SDK `generateText`. Provider resolution mirrors list generation: `GEMINI_API_KEY`
 direct, else the `AI_MODEL` gateway, else a stub. Default model is Gemini Flash
-(`GEMINI_MODEL_ID`); the registry caps tool steps with `stopWhen: stepCountIs(5)`.
+(`GEMINI_MODEL_ID`); the registry caps tool steps with `stopWhen: stepCountIs(10)`,
+enough for a read, a few mutations and the closing sentence in one turn.
 
 Tools are thin adapters over existing use cases, exposed through the `AssistantTools`
 port (`packages/application/src/ports/assistant-tools.ts`) and wired in the
@@ -116,8 +117,18 @@ creating:
   place on the user, surfaced back through `getContext`, so later "weather
   tomorrow?" asks need no location; the assistant offers to save it after the
   user first names a place and none is stored.
-- **Tasks**: `addTask` (defaults to today's list, or a given `listId`),
-  `completeTask`, `reopenTask`, `renameTask`, `deleteTask`, `moveTaskToToday`.
+- **Tasks**: `addTask` (defaults to today's list, or a given `listId`; reuses a
+  same-titled task already on that day instead of duplicating it, and takes
+  `completed` for something the user has already done), `completeTask`,
+  `reopenTask`, `renameTask`, `deleteTask`, `moveTaskToToday`.
+- **Already did it**: `logActivity` takes the activity in the user's own words
+  ("treinei ontem", "passeamos com a Rhaenyra") plus an optional date. It matches
+  their habits, then that day's tasks, by title (accent- and conjugation-tolerant,
+  `packages/application/src/shared/activity-match.ts`), logging the habit or
+  completing the task it finds, and only creating an already-completed task when
+  nothing matches. One call, so the model cannot land halfway: the recurring
+  failure was a task added but left pending, or a confirmation with nothing
+  recorded at all.
 - **Lists / subtasks**: `createList`, `addSubtask`, `completeSubtask`.
 - **Calendar**: `addEvent` (with description/location/all-day/reminders),
   `updateEvent` (also reschedule), `deleteEvent`.
@@ -125,6 +136,20 @@ creating:
 Mutations reference an entity by id, so the model reads first (`getToday` /
 `getAgenda` / `getLists`) then acts. Each call inherits the same authorization and
 validation the REST API enforces.
+
+### Verified confirmations
+
+A model that answers "registrei seu treino" without calling anything is the worst
+failure this surface has: the user is told it worked and only finds out later that
+nothing changed. Two guards, since the prompt rule alone is not enough:
+
+- `claimsUnbackedAction` compares the reply against first-person "I did it" verbs
+  in the three supported languages. If one appears and no mutation tool ran, the
+  turn is generated once more with a `CORRECTION` appended to the system prompt.
+  The retry is safe precisely because nothing was mutated: only reads repeat.
+- Every turn logs `assistant_turn` with the tools it ran, and a claim still
+  unbacked after the retry logs `assistant_unverified_claim`. Before this, a turn
+  that lied looked identical in the logs to one that worked.
 
 Short-term context lives in `ConversationStore` (port) via
 `RedisConversationStore` (`packages/infrastructure/src/messaging/redis-conversation-store.ts`):
@@ -151,15 +176,109 @@ by the run input's model tier.
 
 ## Proactive alerts
 
-Calendar reminders fired outside Meta's 24-hour window are sent as pre-approved
-utility templates via `MessagingChannel.sendTemplate`. `deliverReminder` sends a
-best-effort template (event title plus start time) when the user has a verified
-number and `WHATSAPP_REMINDER_TEMPLATE` is set, alongside the in-app notification.
+Everything the assistant sends on its own initiative (calendar reminders, the daily
+brief, habit check-ins, nudges) goes through `sendProactiveMessage`. It sends plain
+text while Meta's 24-hour customer-service window is open, and a pre-approved
+utility template once that window has closed. **With no template configured the
+send is skipped**, silently as far as the user is concerned, and only a
+`proactive_send_skipped` / `window_closed_no_template` warning is logged. That is
+exactly how a Sunday brief went missing while Saturday's arrived: the user had
+written on Friday, so Saturday was still inside the window and Sunday was not.
+
+Two things follow from that:
+
+- Configure a template for every proactive message, not just reminders. Each is
+  optional, and each one left unset means that message only ever reaches users who
+  happen to be inside the window.
+- The brief, check-in and nudge also write an **in-app notification** whenever
+  WhatsApp did not deliver, so the content lands in the notification bell instead
+  of vanishing. Reminders already did this unconditionally.
+
+### Template shapes
+
+Template names are **code, not configuration**
+(`apps/web/src/server/whatsapp-templates.ts`): they name things we own and are the
+same in every environment, so an env var per template only created a way for
+production to silently disagree with Meta. Renaming one there means re-registering
+it here. A template that is missing or not yet approved makes the send fail loudly
+(`proactive_send_failed`) and the message still reaches the user through the
+notification bell.
+
+A template body parameter cannot contain a line break, a tab, or four consecutive
+spaces, and is capped at 1024 characters; Meta also rejects a body made only of
+variables. `sendProactiveMessage` flattens every parameter (`toTemplateParam`), and
+the daily brief passes a purpose-built one-line summary (`composeDailyBriefParam`)
+rather than its bulleted text.
+
+All four are `utility` category, and carry a `_v1` suffix: an approved body cannot
+be edited freely, so changing the wording means registering the next version and
+bumping the name in `whatsapp-templates.ts`. Each name is registered once with
+three language versions, matching `whatsappLanguageForLocale`: **pt_BR**, **en_US**
+and **es**, the codes `reminder_v1` is already approved under. These have to match
+exactly: asking for `en` when the template was approved as `en_US` is a failed
+send, not a graceful fallback. An unknown locale falls back to
+`WHATSAPP_TEMPLATE_LANGUAGE` in `whatsapp-templates.ts` (`pt_BR`).
+
+Meta also rejects a body that begins or ends with a variable, so every body below
+keeps static copy on both sides.
+
+**`reminder_v1`** — params: event title, localized start time. Already approved;
+listed here for reference. `{{2}}` arrives as a full localized datetime
+(`28 de jul. de 2026, 15:30`), so the copy around it should not assume a bare time.
+
+| | |
+| --- | --- |
+| pt_BR | `Olá! Lembrete: "{{1}}" — {{2}}. Bom compromisso!` |
+| en_US | `Hi! Reminder: "{{1}}" — {{2}}. Have a good one!` |
+| es | `¡Hola! Recordatorio: "{{1}}" — {{2}}. ¡Que vaya bien!` |
+
+**`daily_brief_v1`** — param: the one-line day summary from `composeDailyBriefParam`.
+
+| | |
+| --- | --- |
+| pt_BR | `Seu resumo diário do Life Deck: {{1}}. Você ativou este resumo nas configurações do app.` |
+| en_US | `Your Life Deck daily summary: {{1}}. You turned this summary on in the app settings.` |
+| es | `Tu resumen diario de Life Deck: {{1}}. Activaste este resumen en los ajustes de la app.` |
+
+**`habit_checkin_v1`** — param: the habit title.
+
+| | |
+| --- | --- |
+| pt_BR | `Check-in do hábito "{{1}}" de hoje. Responda "sim" para registrar e manter sua sequência.` |
+| en_US | `Today's check-in for your habit "{{1}}". Reply "yes" to log it and keep your streak.` |
+| es | `Check-in de hoy para tu hábito "{{1}}". Responde "sí" para registrarlo y mantener tu racha.` |
+
+**`nudge_v1`** — params: task title, days it has been on the list.
+
+| | |
+| --- | --- |
+| pt_BR | `Atualização das suas tarefas: "{{1}}" está pendente há {{2}} dias. Responda para reagendar ou dividir em passos menores.` |
+| en_US | `Task update: "{{1}}" has been pending for {{2}} days. Reply to reschedule it or break it into smaller steps.` |
+| es | `Actualización de tus tareas: "{{1}}" lleva {{2}} días pendiente. Responde para reprogramarla o dividirla en pasos más pequeños.` |
+
+### Keeping the category UTILITY
+
+Meta re-categorizes on the copy, not on the category you pick, and silently: the
+first `daily_brief_v1` draft was moved to MARKETING for greeting the user and
+inviting them to open the app. That matters beyond price (roughly 10x per message
+in Brazil): a MARKETING template obeys the recipient's marketing opt-out and Meta's
+per-user marketing frequency cap, so it can be dropped without reaching us at all,
+which is the failure this whole section exists to prevent.
+
+So the proactive copy avoids, in every language:
+
+- greetings and well-wishes ("Bom dia!", "Have a good one!")
+- invitations to open, browse or come back to the app
+- decorative emoji at the start of the body
+
+and instead states plainly what changed in the user's own data, and that they
+turned the message on. The free-form in-window copy (`composeDailyBrief` and
+friends) is not subject to any of this and stays warm.
 
 ## Env vars
 
 `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`,
-`WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_REMINDER_TEMPLATE`, `WHATSAPP_TEMPLATE_LANGUAGE`,
+`WHATSAPP_VERIFY_TOKEN`,
 `GEMINI_API_KEY`, `GEMINI_MODEL_ID`, `GEMINI_PRO_MODEL_ID`, `AI_MODEL`,
 `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. When the Abracode gateway
 is used instead of Meta-direct: `ABRACODE_API_KEY`, `ABRACODE_FROM`,

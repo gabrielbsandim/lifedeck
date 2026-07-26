@@ -305,10 +305,19 @@ export { makeSendNudge, type NudgeTemplate } from '@/use-cases/send-nudge'
 export { composeNudge, type NudgeData } from '@/shared/nudge-text'
 export {
   composeDailyBrief,
+  composeDailyBriefParam,
   type DailyBriefData,
   type DailyBriefEvent,
   type DailyBriefWeather,
 } from '@/shared/daily-brief-text'
+export { toTemplateParam, toTemplateParams } from '@/shared/template-param'
+export {
+  findBestTitleMatch,
+  isSameTitle,
+  normalizeTitle,
+  titleMatchScore,
+  titleTokens,
+} from '@/shared/activity-match'
 export type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
 export { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 export { makeReconcileCalendars } from '@/use-cases/reconcile-calendars'

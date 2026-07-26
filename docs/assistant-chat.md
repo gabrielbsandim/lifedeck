@@ -58,8 +58,9 @@ render an inline card instead of only the assistant's sentence. Each
 passed (a task title, an event time) and `result` the tool's return value (the
 day's tasks, a weather lookup) — needed because a mutation's result is only an
 id. `AiSdkAgentRunner` collects these from the multi-step generation, keeping only
-`addTask`, `addEvent`, `addHabit`, `createList`, `getToday`, `getWeather`, and
-`findTime` (lookups and plain deletes are dropped; the sentence covers those). The
+`addTask`, `addEvent`, `addHabit`, `createList`, `getToday`, `getWeather`,
+`findTime`, and `logActivity` (lookups and plain deletes are dropped; the sentence
+covers those). The
 WhatsApp channel ignores `actions`; only the in-app chat renders them.
 
 ## Route and transport

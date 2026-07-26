@@ -238,6 +238,17 @@ export function makeHandleInAppMessage({
       return { status: 'error' }
     }
 
+    // What the turn actually did, mirroring the WhatsApp handler: a reply that
+    // confirms work the model never performed is otherwise invisible in logs.
+    logger.info('assistant_turn', {
+      userId,
+      kind: message.kind,
+      tools: (reply.toolCalls ?? []).join(','),
+    })
+    if (reply.unverifiedClaim) {
+      logger.warn('assistant_unverified_claim', { userId, kind: message.kind })
+    }
+
     // The model sometimes runs a tool but returns no words; fall back to a short
     // acknowledgement so a completed action is always confirmed and history
     // never holds an empty assistant turn.

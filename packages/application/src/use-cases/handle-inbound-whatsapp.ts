@@ -422,6 +422,19 @@ export function makeHandleInboundWhatsApp({
       return { action: 'error' }
     }
 
+    // What the turn actually did. Without this a reply that confirms work the
+    // model never performed looks exactly like a successful one in the logs, and
+    // the only evidence is the user noticing nothing changed in the app.
+    logger.info('assistant_turn', {
+      userId,
+      kind: message.kind,
+      model: pro ? 'pro' : 'flash',
+      tools: (reply.toolCalls ?? []).join(','),
+    })
+    if (reply.unverifiedClaim) {
+      logger.warn('assistant_unverified_claim', { userId, kind: message.kind })
+    }
+
     // The model sometimes runs a tool but returns no words; sending an empty
     // body is rejected by the channel and the user gets nothing. Fall back to a
     // short acknowledgement so a completed action is always confirmed.

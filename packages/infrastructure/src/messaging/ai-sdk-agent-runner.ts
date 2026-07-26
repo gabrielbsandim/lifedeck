@@ -14,6 +14,11 @@ import type {
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
 
+// Tool-calling rounds allowed in one turn. Enough for a read, a handful of
+// mutations and the closing sentence, so a message reporting several things at
+// once ("passeamos com a Rhaenyra e fomos ao mercado") completes.
+const MAX_STEPS = 10
+
 // Tools whose result the in-app chat renders as an inline card. Lookups used
 // only to resolve ids (getLists, getAgenda, getHabits) and plain mutations
 // (complete/delete/rename) are omitted — the assistant's sentence covers those.
@@ -25,9 +30,133 @@ const CARD_TOOLS = new Set<string>([
   'getToday',
   'getWeather',
   'findTime',
+  'logActivity',
+])
+
+// Tools that change something. Used to tell a turn that acted from one that only
+// looked around, which is what makes "I registered that for you" verifiable.
+const MUTATION_TOOLS = new Set<string>([
+  'addTask',
+  'completeTask',
+  'reopenTask',
+  'renameTask',
+  'deleteTask',
+  'moveTaskToToday',
+  'createList',
+  'addHabit',
+  'logHabit',
+  'logActivity',
+  'addSubtask',
+  'completeSubtask',
+  'addEvent',
+  'updateEvent',
+  'rescheduleOccurrence',
+  'cancelOccurrence',
+  'deleteEvent',
+  'updateAssistantMemory',
 ])
 
 type ToolResultLike = { toolName: string; input: unknown; output: unknown }
+
+// First-person "I did it" verbs in the three languages the assistant speaks,
+// compared with accents stripped. Deliberately only unambiguous past forms: the
+// point is to catch a confirmation of work that never happened, not to police
+// wording.
+const ACTION_CLAIM_WORDS = [
+  // pt
+  'registrei',
+  'registei',
+  'marquei',
+  'desmarquei',
+  'adicionei',
+  'acrescentei',
+  'criei',
+  'agendei',
+  'reagendei',
+  'atualizei',
+  'salvei',
+  'guardei',
+  'anotei',
+  'removi',
+  'apaguei',
+  'deletei',
+  'exclui',
+  'renomeei',
+  'movi',
+  'cancelei',
+  'conclui',
+  'completei',
+  'coloquei',
+  'inclui',
+  // es
+  'registre',
+  'marque',
+  'anadi',
+  'agregue',
+  'cree',
+  'agende',
+  'actualice',
+  'guarde',
+  'anote',
+  'elimine',
+  'borre',
+  'cancele',
+  'renombre',
+  // en
+  'added',
+  'created',
+  'marked',
+  'logged',
+  'saved',
+  'noted',
+  'scheduled',
+  'updated',
+  'deleted',
+  'removed',
+  'renamed',
+  'moved',
+  'canceled',
+  'cancelled',
+  'completed',
+]
+
+const ACTION_CLAIM = new RegExp(`\\b(${ACTION_CLAIM_WORDS.join('|')})\\b`)
+
+/** Every tool the model actually ran this turn, in call order. */
+export function collectToolNames(
+  steps: ReadonlyArray<{ toolResults?: readonly unknown[] }> = [],
+): string[] {
+  return steps.flatMap(step =>
+    ((step.toolResults ?? []) as ToolResultLike[]).map(tr => tr.toolName),
+  )
+}
+
+/**
+ * True when the reply announces an action but no tool performed one.
+ *
+ * This is the failure that is worst for trust and invisible from the outside:
+ * the model answers "registrei seu treino" having called nothing, and the user
+ * only finds out later that the app never changed.
+ */
+export function claimsUnbackedAction(
+  text: string,
+  toolNames: readonly string[],
+): boolean {
+  if (toolNames.some(name => MUTATION_TOOLS.has(name))) {
+    return false
+  }
+  const normalized = text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+  return ACTION_CLAIM.test(normalized)
+}
+
+// Appended to the system prompt for the single corrective retry. Retrying is
+// safe precisely because it only happens when nothing was mutated: the reads the
+// first attempt made just run again.
+const CLAIM_CORRECTION = `
+CORRECTION: your previous attempt at this turn replied as if you had done something, but you called no tool that changes anything, so nothing was actually recorded. Redo the turn now: call the tool that performs what the user asked (logActivity for something they already did, addTask, completeTask, logHabit, addEvent, and so on). If it was already done, or you cannot identify what they mean, say that plainly instead of claiming you did it.`
 
 // Pulls the card-worthy tool results out of a multi-step generation so the chat
 // UI can show a receipt for each action the assistant took this turn. Both the
@@ -76,7 +205,11 @@ const SYSTEM_PROMPT = `You are the Lifedeck assistant, helping the user organize
 
 You have tools to read and manage the user's tasks, lists, subtasks, and calendar events. Prefer a tool over guessing. Confirm what you did in one short sentence. When the user asks to schedule something, infer sensible start and end times and state them back.
 
+Never say you did something unless a tool call in this same turn actually did it and returned success. Words like "registrei", "adicionei", "marquei", "I added", "I logged" are only allowed after the matching tool ran. If you could not identify what the user means, or the item was already in that state, say so plainly instead. A confirmation the user cannot see in the app is worse than a question.
+
 To act on an existing task or event (complete, rename, delete, reschedule, add a subtask), first call a read tool (getToday, getAgenda, getLists) to find its id, then pass that id to the mutation tool. Never invent ids. If several items match, ask a short clarifying question instead of guessing. When the user refers to a date beyond the next 30 days, pass from/to to the agenda read so you can find that event before giving up.
+
+Something the user already did: when they report an activity in the past ("treinei ontem", "passeamos com a Rhaenyra", "fui ao mercado", "did my run"), call logActivity with the activity in their own words, once per activity, plus the date when it was not today. It finds their habit or the task already on that day's board and records it there, and only creates something new when nothing matches, so you must not call getHabits/getToday and then add or complete things yourself for this. Never create a pending task for something already done, and never propose turning a one-off into a habit: only suggest a habit when the user asks to track something regularly.
 
 Weather: you can look up the weather for any place, up to about two weeks ahead, with getWeather. When the user asks about the weather somewhere ("is it going to rain in Lisbon this weekend?", "weather in Rio next week"), call getWeather with the place name and the dates that match, resolved from the current local date and passed as YYYY-MM-DD. The result has both the current conditions (the temperature and sky right now, in the "current" field) and a daily forecast (min/max and rain chance per day); when the user asks what it's like "right now" or "the current temperature", answer from the current conditions. Temperatures come back in Celsius; summarize naturally and mention the chance of rain when it is relevant. If the place is not found or the requested day is beyond the forecast horizon, say so plainly. Do not invent weather you did not read from the tool.
 
@@ -84,7 +217,7 @@ Weather without a named place: fall back to the user's saved locations from memo
 
 Memory: you keep a small, durable memory of the user (home, work, wake and quiet hours, the people they mention, and lasting preferences). When the user shares a fact that will still be true next week ("I work downtown", "my daughter is called Ana", "I hate early meetings", "I usually wake up at 7"), save it with updateAssistantMemory, then use it to personalize later answers without asking again. Only save lasting facts, never one-off details or anything sensitive (passwords, health, financial, documents). Confirm briefly what you saved. The current context below tells you what you already remember.
 
-Habits: the user can track habits, each with a cadence (every day, specific weekdays, or a number of times per week) and a running streak. Use getHabits to see their habits, streaks, and whether each is already done today; addHabit to start tracking a new one (ask for the cadence if unclear); and logHabit to mark one done when the user says they did it ("did my run today", "meditated"). Always call getHabits first to find a habit's id before logging it. Answer streak questions ("how's my reading streak?") from getHabits, and celebrate a good streak in one short phrase.
+Habits: the user can track habits, each with a cadence (every day, specific weekdays, or a number of times per week) and a running streak. Use getHabits to see their habits, streaks, and whether each is already done today, and addHabit to start tracking a new one (ask for the cadence if unclear). To record that they did one, prefer logActivity, which matches the habit by name even when they conjugate the verb; use logHabit only when you already hold the id from getHabits (for example to undo a day with done=false). Answer streak questions ("how's my reading streak?") from getHabits, and celebrate a good streak in one short phrase.
 
 Never expose internal details to the user: do not mention tool names (such as getAgenda), ids, or implementation limits. Speak naturally about what you can see and do. If you cannot find something, say so plainly and offer to check a specific date or period.
 
@@ -222,7 +355,7 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
     }),
     addTask: tool({
       description:
-        "Add a task. Defaults to today's list unless a listId is given.",
+        "Add a task. Defaults to today's list unless a listId is given. A task with the same title already on today's list is reused instead of duplicated (alreadyExisted).",
       inputSchema: z.object({
         title: z.string().min(1).max(280).describe('The task title.'),
         listId: z
@@ -230,9 +363,30 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
           .uuid()
           .optional()
           .describe('Target list id from getLists. Omit for today.'),
+        completed: z
+          .boolean()
+          .optional()
+          .describe('true when the user has already done it.'),
       }),
-      execute: async ({ title, listId }) =>
-        tools.addTask(userId, { title, listId }),
+      execute: async ({ title, listId, completed }) =>
+        tools.addTask(userId, { title, listId, completed }),
+    }),
+    logActivity: tool({
+      description:
+        'Record something the user says they already did ("treinei ontem", "passeamos com a Rhaenyra", "went to the market"). Matches their habits and that day\'s tasks by name, even when the verb is conjugated, logs the habit or completes the task it finds, and only creates an already-completed task when nothing matches. Call once per activity; no lookup needed first.',
+      inputSchema: z.object({
+        title: z
+          .string()
+          .min(1)
+          .max(280)
+          .describe("The activity in the user's own words."),
+        date: z
+          .string()
+          .optional()
+          .describe('Civil date YYYY-MM-DD it happened. Omit for today.'),
+      }),
+      execute: async ({ title, date }) =>
+        tools.logActivity(userId, { title, date }),
     }),
     completeTask: tool({
       description: 'Mark a task as completed by its id.',
@@ -548,14 +702,46 @@ export class AiSdkAgentRunner implements AgentRunner {
       })),
       userMessage,
     ]
-    const result = await generateText({
-      model: input.model === 'pro' ? this.proModel : this.flashModel,
-      system: await this.systemPromptFor(input.userId),
-      messages,
-      tools: gateTools(this.toolsFor(input.userId), input.entitlements ?? []),
-      stopWhen: stepCountIs(5),
-    })
-    return { text: result.text, actions: collectActions(result.steps) }
+    const model = input.model === 'pro' ? this.proModel : this.flashModel
+    const system = await this.systemPromptFor(input.userId)
+    const tools = gateTools(
+      this.toolsFor(input.userId),
+      input.entitlements ?? [],
+    )
+    const run = (systemPrompt: string) =>
+      generateText({
+        model,
+        system: systemPrompt,
+        messages,
+        tools,
+        // A turn that handles two reported activities can legitimately take a
+        // read, two actions and the closing sentence; five steps cut those off
+        // halfway, leaving the work half done.
+        stopWhen: stepCountIs(MAX_STEPS),
+      })
+
+    const result = await run(system)
+    const toolCalls = collectToolNames(result.steps)
+    if (!claimsUnbackedAction(result.text, toolCalls)) {
+      return {
+        text: result.text,
+        actions: collectActions(result.steps),
+        toolCalls,
+      }
+    }
+
+    // The reply announces work nothing performed. Nothing was mutated, so the
+    // turn can simply be redone with the discrepancy pointed out.
+    const retry = await run(`${system}\n${CLAIM_CORRECTION}`)
+    const retryToolCalls = collectToolNames(retry.steps)
+    return {
+      text: retry.text,
+      actions: collectActions(retry.steps),
+      toolCalls: retryToolCalls,
+      // Still unbacked after the correction: the caller logs it, since a second
+      // empty confirmation is a real defect and otherwise invisible.
+      unverifiedClaim: claimsUnbackedAction(retry.text, retryToolCalls),
+    }
   }
 }
 
