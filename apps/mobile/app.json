@@ -7,6 +7,10 @@
     "scheme": "lifedeck",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lifedeck.app",
@@ -17,17 +21,42 @@
     },
     "android": {
       "package": "com.lifedeck.app",
-      "permissions": ["RECORD_AUDIO"]
+      "permissions": ["RECORD_AUDIO"],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6d4ae6"
+      }
     },
     "web": {
       "output": "static",
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
       "expo-web-browser",
       "expo-audio",
-      "@react-native-community/datetimepicker"
+      "expo-updates",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#6d4ae6"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#6d4ae6",
+          "dark": {
+            "backgroundColor": "#0d0e14"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Android adaptive foreground. The launcher masks this to a shape of its
+       choosing (circle, squircle, teardrop) and may animate it, so the artwork
+       has to stay inside the central safe zone and the background is declared
+       separately in app.json. Scaled so even the bounding box corners survive a
+       circular mask. -->
+  <g transform="translate(512 512) scale(20.8) translate(-17.5 -16.5)">
+    <rect x="13" y="4" width="15" height="20" rx="4.5" fill="#ffffff" opacity="0.42" />
+    <rect x="10" y="6.5" width="15" height="20" rx="4.5" fill="#ffffff" opacity="0.72" />
+    <rect x="7" y="9" width="15" height="20" rx="4.5" fill="#ffffff" />
+    <circle cx="12" cy="14.5" r="2.4" fill="#b96fe6" />
+  </g>
+</svg>

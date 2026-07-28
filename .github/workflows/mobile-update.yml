@@ -1,0 +1,95 @@
+name: Mobile OTA update
+
+# Publishes the app's JS bundle to the `preview` EAS Update branch on every push
+# to main that touches the app. Installed preview builds pick it up in the
+# background and apply it the next time they are opened, so testing a change
+# means opening the app, not reinstalling it.
+#
+# Native changes (a new native module, a permission, the icon, an SDK bump) are
+# NOT covered by an OTA. The fingerprint runtime version makes that safe rather
+# than silent: a bundle whose native fingerprint differs is simply not offered
+# to the installed build, and a new one has to come from `Mobile build`.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mobile-update.yml'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: EAS Update branch to publish to
+        type: choice
+        options: [preview, production]
+        default: preview
+
+concurrency:
+  group: mobile-update-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The secrets context cannot be read from a job-level `if`, so the guard
+      # runs as a step. Without it every push to main would fail red until the
+      # Expo token is added.
+      - name: Check for the Expo token
+        id: guard
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "EXPO_TOKEN is not set, so there is nothing to publish to." \
+              >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.guard.outputs.ready == 'true'
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.ready == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.guard.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile
+
+      # An OTA lands straight on a phone with no review step in between, so the
+      # app and everything it imports is verified before it goes out.
+      - name: Verify the app and its workspace dependencies
+        if: steps.guard.outputs.ready == 'true'
+        run: pnpm exec turbo run lint typecheck test --filter=@lifedeck/mobile...
+
+      - uses: expo/expo-github-action@v8
+        if: steps.guard.outputs.ready == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish the update
+        if: steps.guard.outputs.ready == 'true'
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://lifedeck.com.br
+          UPDATE_BRANCH: ${{ inputs.branch || 'preview' }}
+        # The branch and the message go through the environment rather than
+        # through `${{ }}` interpolation: a commit message is attacker-controlled
+        # text and interpolating it would splice it into this shell script.
+        run: |
+          eas update \
+            --branch "$UPDATE_BRANCH" \
+            --message "$(git log -1 --pretty=%s)" \
+            --non-interactive
