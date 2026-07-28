@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "eas-build-post-install": "cd ../.. && pnpm exec turbo run build --filter=@lifedeck/mobile^..."
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.7",
