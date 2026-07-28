@@ -23,7 +23,7 @@ export function useSession() {
     queryKey: sessionKey,
     queryFn: async () => {
       try {
-        return await apiRequest<SessionUser>('/sessions/me')
+        return await apiRequest<SessionUser>('/api/v1/sessions/me')
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           return null
@@ -39,7 +39,7 @@ export function useCreateGuest() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: GuestSignInInput) => createGuestSession(input),
-    onSuccess: user => {
+    onSuccess: (user: UserView) => {
       queryClient.setQueryData(sessionKey, user)
     },
   })

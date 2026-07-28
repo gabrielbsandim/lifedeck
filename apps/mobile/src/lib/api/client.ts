@@ -3,11 +3,11 @@
 // full API base. The request/response contract is shared via @lifedeck/client.
 import { getLocales } from 'expo-localization'
 import { createApiClient } from '@lifedeck/client'
-import { API_BASE_URL, API_PREFIX } from './config'
+import { API_BASE_URL } from './config'
 import { getSessionToken } from './session-token'
 
 const client = createApiClient({
-  baseUrl: `${API_BASE_URL}${API_PREFIX}`,
+  baseUrl: API_BASE_URL,
   getLocale: () => getLocales()[0]?.languageTag ?? 'en',
   getToken: getSessionToken,
 })
