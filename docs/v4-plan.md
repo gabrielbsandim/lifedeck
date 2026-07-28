@@ -287,9 +287,10 @@ One PR-sized phase at a time:
   Next than expected, fall back to thin duplicated hooks in the app.
 - **Streaming in RN.** ~~Depends on `expo/fetch`~~ — moot. The assistant chat is
   request/response, not streamed, so the app needed no streaming client.
-- **IAP.** Deferred to V4.1; V4 sends billing to the web.
-- **Push notifications** (Expo Notifications) — deferred to V4.1. Proactive
-  messages still reach the user over WhatsApp and the in-app notification bell.
+- **IAP.** Deferred, and still open: see section 12 for why it is blocked on
+  store accounts rather than on effort.
+- **Push notifications** (Expo Notifications) — ~~deferred to V4.1~~ shipped in
+  V4.1, see section 12.
 - **Offline.** V4 assumes an online thin client; React Query cache only. No
   offline-first sync.
 - **Metro + pnpm resolution** (found while validating the bundle): Metro walks
@@ -343,6 +344,9 @@ route in section 6 is ported.** What follows is per-phase.
   divergences.
 - **V4-5 — done, via the assistant chat.** See section 7.
 
+**V4.1 followed; see section 12.** Push notifications shipped, the release
+pipeline is wired, and IAP is documented as blocked.
+
 **Validated by bundling, not yet on a real device.** `pnpm check` is green
 across all 8 packages (lint + typecheck + format + 2177 tests at the 95%
 coverage gate), and — new in this pass — `expo export` now succeeds for **both
@@ -360,4 +364,89 @@ against the deployed backend, and EAS Build/Submit to the stores.
 - Universal links. Deep links use the `lifedeck://` scheme; associating the web
   domain (`applinks` / `assetlinks.json`) needs the store build and is part of
   the EAS step.
-- Native IAP and push notifications, both explicitly V4.1.
+- Native IAP. See section 12.
+
+---
+
+## 12. V4.1
+
+### Push notifications — done
+
+Delivery is Expo's push service (it fronts APNs and FCM, so no per-platform
+credentials live in this repo; EAS holds them).
+
+The design decision worth recording: **push mirrors the in-app bell rather than
+being a channel of its own.** Every notification is now created through one
+helper, `makePublishNotification`, which writes the bell entry and then sends the
+alert. Callers pass `alert` when the user should hear about something and omit it
+when they should not. That means the existing "WhatsApp delivered, so stay quiet
+in-app" logic in the brief, the nudge and the habit check-in automatically
+governs push too, and no future notification site can forget to wire push up.
+
+Pieces, layer by layer:
+
+- **Domain** `PushDevice`. The token is the identity, not the person: a phone
+  that changes hands re-registers the same token and the row moves to whoever is
+  signed in now (`claim`), instead of leaving one person's alerts on another
+  person's lock screen.
+- **Application** `PushDeviceRepository` + `PushSender` ports,
+  `registerPushDevice` / `unregisterPushDevice`, and `publishNotification`. The
+  bell write is awaited; the push is best-effort and swallowed with a warning, so
+  a provider outage never rolls back a notification the user can already see.
+- **Infrastructure** `PrismaPushDeviceRepository` (upsert on the unique token)
+  and `ExpoPushSender` (chunks at 100 messages per request, prunes only
+  `DeviceNotRegistered`). Deliberately only that one error: `InvalidCredentials`
+  is an account-level problem, and treating it as a dead token would delete every
+  registration the moment push credentials were misconfigured.
+- **API** `POST` / `DELETE /api/v1/notifications/devices`. The token travels in
+  the body on delete rather than the query string, to keep it out of access logs.
+- **App** `usePushNotifications()` asks for permission only once a real account
+  is signed in, registers, refetches the bell on arrival and routes a tap.
+  Sign-out hands the registration back before the session token is cleared,
+  while the call is still authenticated.
+
+Known and accepted: a user with both the app and WhatsApp reminders on gets two
+buzzes for a reminder. Push mirrors the bell rather than changing which channel
+wins; `reminderWhatsapp` already turns the other off. Also, Expo's tickets
+confirm acceptance, not delivery; final receipts would need a follow-up job, and
+the one failure that matters for data hygiene (a dead token) is already reported
+synchronously.
+
+### Release pipeline — done
+
+`eas.json` profiles (development / preview / production), icon, adaptive icon,
+splash and notification icon generated from brand SVGs, `expo-updates` on the
+`fingerprint` runtime policy, an in-app OTA check that applies on the next
+return from background rather than mid-task, and two GitHub workflows: an OTA
+publish on every push to `main` that touches the app, and a manual build. Both
+skip themselves with a note until `EXPO_TOKEN` exists. See
+[mobile.md](./mobile.md) for the operator's version.
+
+### In-app purchases — blocked, not deferred
+
+Not built, and deliberately so. IAP cannot be written responsibly yet:
+
+1. **The products do not exist.** Subscription products are created in App Store
+   Connect and the Play Console, and their identifiers are what the client asks
+   for and the server validates. Both consoles need paid accounts (Apple US$ 99
+   a year, Google US$ 25 once), and neither exists today.
+2. **None of it is testable.** Purchases can only be exercised through the
+   stores' sandboxes, which are tied to those same accounts. Writing a payment
+   path that has never once been executed is how silent revenue bugs ship.
+3. **Server-side validation needs keys from those consoles.** Apple's App Store
+   Server API wants a signed JWT from a private key issued in App Store Connect;
+   Google's Play Developer API wants a service account. Renewals and
+   cancellations arrive as App Store Server Notifications V2 and Play real-time
+   developer notifications over Pub/Sub, each with its own endpoint and secret.
+
+The shape it should take when unblocked: a `PurchaseVerifier` port per store
+behind one `verifyPurchase` use case that maps a validated receipt onto the
+existing `Subscription` entity, so entitlements keep flowing through
+`resolvePlan` exactly as they do for Stripe and Asaas today. The app adds
+`expo-iap`, which is a native module and therefore a new build, not an OTA.
+
+Until then the billing screen stays read-only and hands checkout to the web,
+which is fine for internal distribution (those builds are not reviewed). It is
+**not** fine for a store submission: linking out to an external purchase flow for
+digital goods is what Apple's rule 3.1.1 forbids, so IAP has to land before the
+first App Store review, not after.

@@ -165,6 +165,21 @@ directly (it manages the access token; you only need an API key). Abracode
 | `ABRACODE_PHONE_NUMBER_ID` | Meta phone-number id, only needed to resolve inbound media. | Meta → WhatsApp → API Setup. |
 | `ABRACODE_WEBHOOK_SECRET` | Validates the inbound Abracode webhook. | You set it; paste the same value into Abracode. |
 
+## Mobile app (Expo)
+
+Nothing here is required for the web. The app talks to the same API and needs
+one build-time value plus, optionally, one server-side token.
+
+| Variable | What it is | Where to get it |
+| --- | --- | --- |
+| `EXPO_PUBLIC_API_URL` | The API origin the app calls. Set per build profile in `apps/mobile/eas.json`, not here. | Your deployed URL (e.g. `https://lifedeck.com.br`). Inlined into the bundle, so never a secret. |
+| `EXPO_ACCESS_TOKEN` | Server-side, lets the API authenticate its push sends. | Expo dashboard, Account settings, Access tokens. Only needed once the Expo account turns on enhanced push security. |
+| `EXPO_TOKEN` | GitHub Actions secret, not an app variable. Lets CI publish OTA updates and queue builds. | Same page as above; add it under Settings, Secrets and variables, Actions. |
+
+Push notifications need no other credentials: Expo's push service fronts APNs
+and FCM, and EAS holds the per-platform keys. Full setup lives in
+[mobile.md](./mobile.md).
+
 ## V2 go-live checklist
 
 1. Set `CALENDAR_TOKEN_KEY` and `CRON_SECRET` in production.

@@ -56,7 +56,9 @@ src/
 │   ├── billing/          Price book + plan display (shared logic, copied)
 │   ├── calendar/         Calendar range math (shared logic, copied)
 │   ├── i18n/             MessagesProvider over @lifedeck/i18n
-│   └── media/            Voice recording
+│   ├── media/            Voice recording
+│   ├── notifications/    Push permission, registration and tap routing
+│   └── updates/          Over-the-air update checks
 └── theme/                Token palette + useThemeColors()
 ```
 
@@ -87,6 +89,86 @@ importing file or transitive imports fail to resolve. Packages our own source
 pulls in through a toolchain (`@expo/metro-runtime`, `react-native-css-interop`)
 are declared as direct dependencies for the same reason.
 
+## Icons and splash
+
+`assets/*.png` are generated from the SVGs in `assets/source/`. After editing a
+source, re-render them:
+
+```bash
+node scripts/render-mobile-assets.mjs
+```
+
+The constraints are baked into the sources: the store icon is opaque and full
+bleed (iOS rejects an alpha channel and rounds the corners itself), the Android
+adaptive foreground is transparent and stays inside the central safe zone the
+launcher masks to, and the notification icon is white on transparent because
+Android keeps only the alpha channel.
+
+## Releasing
+
+Two layers, and the difference matters:
+
+| Change | How it ships |
+| --- | --- |
+| JS, styles, assets | **EAS Update.** Every push to `main` that touches the app publishes to the `preview` branch; installed builds download it in the background and apply it the next time the app is opened. |
+| Native modules, permissions, icon, splash, SDK bump, first install | **EAS Build.** Run the `Mobile build` workflow manually. |
+
+The `fingerprint` runtime version keeps the two honest: a bundle whose native
+fingerprint differs from the installed build is never offered to it, so an OTA
+cannot land on a binary that lacks the native code it needs.
+
+### One-time setup
+
+1. Create an Expo account, then from `apps/mobile` run `eas init`. It writes the
+   project id into `app.json`, which is what `eas update` and `eas build` need.
+2. Generate an access token in the Expo dashboard (Account settings, Access
+   tokens) and add it to GitHub as the `EXPO_TOKEN` secret. Both workflows skip
+   themselves with a note in the run summary until it exists.
+3. iOS only: a paid Apple Developer Program membership, then `eas device:create`
+   and open the link on each test phone to register it. Ad hoc builds install
+   from a link; TestFlight instead invites by email but adds Apple's processing
+   step to every build.
+
+Android needs nothing beyond steps 1 and 2: `preview` produces an APK that
+installs from the EAS link, and EAS generates and keeps the keystore.
+
+### Day to day
+
+```bash
+eas build --profile preview --platform android   # or ios, or all
+eas update --branch preview --message "what changed"
+```
+
+`eas.json` holds the profiles. `EXPO_PUBLIC_API_URL` is set per profile there
+and baked into the bundle at build time, so it is a build input rather than a
+runtime setting, and never a place for a secret.
+
+## Push notifications
+
+Delivery goes through Expo's push service, which fronts APNs and FCM so no
+per-platform credentials live in this repo; EAS holds them. `EXPO_ACCESS_TOKEN`
+is only needed once the Expo account turns on enhanced push security.
+
+Server side, every in-app notification is created through one helper
+(`makePublishNotification`), and that helper also sends the push. The two cannot
+drift: anything that reaches the bell reaches the lock screen, and anything
+deliberately kept quiet (a brief WhatsApp already delivered) stays quiet on both.
+Tokens the provider reports as `DeviceNotRegistered` are deleted; nothing else
+counts as a dead token, so an account-level credentials error cannot wipe every
+registration at once.
+
+App side, `usePushNotifications()` asks for permission once a real account is
+signed in (never for a guest), registers the token, refetches the bell when an
+alert arrives, and routes a tap to the screen the notification is about. Signing
+out hands the registration back first, while the call is still authenticated:
+the phone stays in someone's hand, and the next alert must not put the previous
+user's tasks on its lock screen.
+
+Reminders can arrive twice for someone who has both the app and WhatsApp
+reminders on. That is deliberate for now: push mirrors the bell rather than
+changing which channel wins, and `reminderWhatsapp` in settings already turns
+the other one off.
+
 ## Testing
 
 `pnpm test` runs vitest over the app's **pure** modules (date math, calendar
@@ -111,9 +193,9 @@ on the device could claim.
 ## Not in the app yet
 
 - **In-app purchases.** Apple and Google require IAP for digital goods, so the
-  billing screen is read-only and hands checkout to the web. V4.1.
-- **Push notifications.** Proactive messages still arrive over WhatsApp and the
-  in-app notification bell. V4.1.
+  billing screen is read-only and hands checkout to the web. Blocked on store
+  accounts rather than on effort; v4-plan.md §12 has the design and the
+  blockers.
 - **Universal links.** Deep links use the `lifedeck://` scheme; associating the
   web domain needs the store build.
 - **Offline.** The app is an online thin client with the React Query cache only.
