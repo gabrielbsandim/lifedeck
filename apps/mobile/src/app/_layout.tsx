@@ -7,6 +7,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SessionGate } from '@/components/session-gate'
 import { useGoogleAuthDeepLink } from '@/lib/auth/use-google-auth'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { usePushNotifications } from '@/lib/notifications/use-push-notifications'
+import { useOtaUpdates } from '@/lib/updates/use-ota-updates'
 import { AppProviders } from '@/providers/app-providers'
 import { useThemeColors } from '@/theme/tokens'
 
@@ -21,6 +23,14 @@ function RootStack() {
   // deep link the OAuth callback redirects to; mounting it here covers both a
   // cold start from the link and a warm return to the app.
   useGoogleAuthDeepLink()
+
+  // Pull the newest JS bundle in the background so a tester's phone stays on
+  // the current build without reinstalling anything.
+  useOtaUpdates()
+
+  // Registers the device for push once a real account is signed in, and routes
+  // a tapped alert to the screen it is about.
+  usePushNotifications()
 
   return (
     <Stack

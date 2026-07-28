@@ -10,6 +10,7 @@ import { base64ToBytes } from '@/lib/api/base64'
 import { apiRequest } from '@/lib/api/client'
 import { deviceTimeZone } from '@/lib/api/dates'
 import { clearSessionToken } from '@/lib/api/session-token'
+import { unregisterFromPush } from '@/lib/notifications/push-registration'
 import { sessionKey } from '@/lib/api/use-session'
 
 export function useRenameUser() {
@@ -206,6 +207,8 @@ export function useSignOut() {
         '/api/v1/sessions',
         { method: 'DELETE' },
       )
+      // Before the token is dropped: unregistering is an authenticated call.
+      await unregisterFromPush()
       // The route clears the web's cookie; the app's copy of the token lives in
       // the keychain and has to go too, or the next launch resumes the session.
       await clearSessionToken()
