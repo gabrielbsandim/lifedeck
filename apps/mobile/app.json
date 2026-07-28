@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Lifedeck",
-    "slug": "lifedeck",
+    "slug": "life-deck",
     "version": "0.1.0",
     "orientation": "portrait",
     "scheme": "lifedeck",
@@ -10,6 +10,9 @@
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/94baca10-33e8-4d9c-a55d-6c97fb79fe19"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,7 +24,12 @@
     },
     "android": {
       "package": "com.lifedeck.app",
-      "permissions": ["RECORD_AUDIO"],
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#6d4ae6"
@@ -60,6 +68,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "94baca10-33e8-4d9c-a55d-6c97fb79fe19"
+      }
+    },
+    "owner": "gabrielbsandim"
   }
 }
