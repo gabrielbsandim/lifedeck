@@ -100,7 +100,10 @@ jobs:
         if: steps.guard.outputs.ready == 'true'
         working-directory: apps/mobile
         env:
-          EXPO_PUBLIC_API_URL: https://lifedeck.com.br
+          # www, not the apex. The apex answers 308 to www, and a redirect
+          # across origins drops the Authorization header, so every
+          # authenticated call would come back 401 with nothing to show for it.
+          EXPO_PUBLIC_API_URL: https://www.lifedeck.com.br
           UPDATE_BRANCH: ${{ inputs.branch || 'preview' }}
         # The branch and the message go through the environment rather than
         # through `${{ }}` interpolation: a commit message is attacker-controlled

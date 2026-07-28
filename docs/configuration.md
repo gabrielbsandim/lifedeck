@@ -172,7 +172,7 @@ one build-time value plus, optionally, one server-side token.
 
 | Variable | What it is | Where to get it |
 | --- | --- | --- |
-| `EXPO_PUBLIC_API_URL` | The API origin the app calls. Set per build profile in `apps/mobile/eas.json`, not here. | Your deployed URL (e.g. `https://lifedeck.com.br`). Inlined into the bundle, so never a secret. |
+| `EXPO_PUBLIC_API_URL` | The API origin the app calls. Set per build profile in `apps/mobile/eas.json`, not here. | The host that answers **without redirecting** (`https://www.lifedeck.com.br`, not the apex). Inlined into the bundle, so never a secret. |
 | `EXPO_ACCESS_TOKEN` | Server-side, lets the API authenticate its push sends. | Expo dashboard, Account settings, Access tokens. Only needed once the Expo account turns on enhanced push security. |
 | `EXPO_TOKEN` | GitHub Actions secret, not an app variable. Lets CI publish OTA updates and queue builds. | Same page as above; add it under Settings, Secrets and variables, Actions. |
 
