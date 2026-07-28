@@ -60,8 +60,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify the app and its workspace dependencies
-        run: pnpm exec turbo run lint typecheck test --filter=@lifedeck/mobile...
+      # Three invocations rather than one: turbo runs tasks from a single
+      # invocation concurrently, and a lint that overlaps a build or a test run
+      # in the same package reads the temporary config files those tools write
+      # and then delete.
+      - name: Lint
+        run: pnpm exec turbo run lint --filter=@lifedeck/mobile...
+
+      - name: Typecheck
+        run: pnpm exec turbo run typecheck --filter=@lifedeck/mobile...
+
+      - name: Test
+        run: pnpm exec turbo run test --filter=@lifedeck/mobile...
 
       - uses: expo/expo-github-action@v8
         with:

@@ -74,9 +74,21 @@ jobs:
 
       # An OTA lands straight on a phone with no review step in between, so the
       # app and everything it imports is verified before it goes out.
-      - name: Verify the app and its workspace dependencies
+      # Three invocations rather than one: turbo runs tasks from a single
+      # invocation concurrently, and a lint that overlaps a build or a test run
+      # in the same package reads the temporary config files those tools write
+      # and then delete.
+      - name: Lint
         if: steps.guard.outputs.ready == 'true'
-        run: pnpm exec turbo run lint typecheck test --filter=@lifedeck/mobile...
+        run: pnpm exec turbo run lint --filter=@lifedeck/mobile...
+
+      - name: Typecheck
+        if: steps.guard.outputs.ready == 'true'
+        run: pnpm exec turbo run typecheck --filter=@lifedeck/mobile...
+
+      - name: Test
+        if: steps.guard.outputs.ready == 'true'
+        run: pnpm exec turbo run test --filter=@lifedeck/mobile...
 
       - uses: expo/expo-github-action@v8
         if: steps.guard.outputs.ready == 'true'

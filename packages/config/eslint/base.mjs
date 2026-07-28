@@ -8,12 +8,13 @@ export default tseslint.config(
       '**/.next/**',
       '**/coverage/**',
       '**/node_modules/**',
-      // tsup writes this next to its config while bundling and deletes it on
-      // the way out. A lint running at the same time as a build (turbo happily
-      // schedules both, since a package's lint does not depend on its own
-      // build) would otherwise pick the file up and then fail with ENOENT when
-      // it vanishes mid-run.
+      // tsup and vitest both write a temporary module next to their config
+      // while loading it and delete it on the way out. A lint running at the
+      // same time as a build or a test run (turbo happily schedules both, since
+      // a package's lint does not depend on its own build) would otherwise pick
+      // one up and then fail with ENOENT when it vanishes mid-run.
       '**/tsup.config.bundled_*.mjs',
+      '**/*.timestamp-*.mjs',
     ],
   },
   js.configs.recommended,
