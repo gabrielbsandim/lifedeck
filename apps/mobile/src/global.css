@@ -1,3 +1,104 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+  The design tokens from packages/ui/src/styles.css, as CSS variables NativeWind
+  resolves at runtime. The web declares them in oklch; React Native cannot parse
+  oklch, so the same values are pre-converted to sRGB channels here (see
+  src/theme/palette.json, the single source both this file and the imperative
+  colors read from).
+
+  Dark mode follows the device setting exactly as the web does - the same roles
+  invert, and the same ones (the brand ramp from 400 up, the semantic hues, the
+  always-dark scrim/inverse/tile) deliberately do not.
+*/
+@layer base {
+  :root {
+    --color-brand-50: 242 244 255;
+    --color-brand-100: 228 232 255;
+    --color-brand-200: 204 210 255;
+    --color-brand-300: 176 182 255;
+    --color-brand-400: 135 138 248;
+    --color-brand-500: 105 99 236;
+    --color-brand-600: 89 74 226;
+    --color-brand-700: 72 56 191;
+    --color-brand-900: 38 32 103;
+    --color-brand-accent: 89 74 226;
+    --color-brand-accent-strong: 72 56 191;
+    --color-ink-900: 20 24 34;
+    --color-ink-800: 27 31 41;
+    --color-ink-700: 59 64 75;
+    --color-ink-600: 80 85 97;
+    --color-ink-500: 108 114 126;
+    --color-ink-400: 137 143 156;
+    --color-ink-300: 168 174 187;
+    --color-ink-200: 183 190 203;
+    --color-line: 227 228 232;
+    --color-surface: 255 255 255;
+    --color-bg: 249 250 253;
+    --color-muted: 243 245 249;
+    --color-inverse: 20 24 34;
+    --color-scrim: 20 24 34;
+    --color-tile: 94 99 111;
+    --color-tile-strong: 59 64 75;
+    --color-success: 0 162 86;
+    --color-danger: 219 43 51;
+    --color-warning: 232 161 39;
+    --color-violet-500: 146 96 218;
+    --color-success-soft: 218 247 227;
+    --color-success-line: 176 226 192;
+    --color-success-fg: 0 105 51;
+    --color-danger-soft: 255 236 233;
+    --color-danger-line: 253 201 196;
+    --color-danger-fg: 162 5 25;
+    --color-violet-soft: 239 230 255;
+    --color-deck-mid: 163 158 249;
+    --color-deck-back: 203 203 254;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-brand-50: 40 37 62;
+      --color-brand-100: 52 48 82;
+      --color-brand-200: 67 62 107;
+      --color-brand-300: 83 76 132;
+      --color-brand-400: 135 138 248;
+      --color-brand-500: 105 99 236;
+      --color-brand-600: 89 74 226;
+      --color-brand-700: 72 56 191;
+      --color-brand-900: 38 32 103;
+      --color-brand-accent: 186 176 255;
+      --color-brand-accent-strong: 212 207 255;
+      --color-ink-900: 241 241 245;
+      --color-ink-800: 231 231 236;
+      --color-ink-700: 215 215 221;
+      --color-ink-600: 189 189 196;
+      --color-ink-500: 167 167 175;
+      --color-ink-400: 139 139 149;
+      --color-ink-300: 112 113 122;
+      --color-ink-200: 84 84 94;
+      --color-line: 51 53 62;
+      --color-surface: 28 30 37;
+      --color-bg: 13 14 20;
+      --color-muted: 43 45 54;
+      --color-inverse: 6 7 12;
+      --color-scrim: 0 0 1;
+      --color-tile: 94 99 111;
+      --color-tile-strong: 59 64 75;
+      --color-success: 0 162 86;
+      --color-danger: 219 43 51;
+      --color-warning: 232 161 39;
+      --color-violet-500: 146 96 218;
+      --color-success-soft: 18 48 30;
+      --color-success-line: 31 77 50;
+      --color-success-fg: 121 221 159;
+      --color-danger-soft: 69 30 28;
+      --color-danger-line: 112 49 46;
+      --color-danger-fg: 255 168 160;
+      --color-violet-soft: 51 38 71;
+      --color-deck-mid: 163 158 249;
+      --color-deck-back: 203 203 254;
+    }
+  }
+}

@@ -4,13 +4,14 @@
 import { useEffect, useState } from 'react'
 import { Animated, View } from 'react-native'
 import { cn } from '@/lib/cn'
-import { colors } from '@/theme/tokens'
+import { useThemeColors } from '@/theme/tokens'
 
 export type SkeletonProps = {
   className?: string
 }
 
 export function Skeleton({ className }: SkeletonProps) {
+  const colors = useThemeColors()
   const [opacity] = useState(() => new Animated.Value(0.5))
 
   useEffect(() => {

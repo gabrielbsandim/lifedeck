@@ -2,7 +2,7 @@
 // same invalid styling. Focus rings are web-only and dropped.
 import { Text, TextInput, View, type TextInputProps } from 'react-native'
 import { cn } from '@/lib/cn'
-import { colors } from '@/theme/tokens'
+import { useThemeColors } from '@/theme/tokens'
 
 export type TextFieldProps = TextInputProps & {
   label?: string
@@ -16,6 +16,7 @@ export function TextField({
   className,
   ...props
 }: TextFieldProps) {
+  const colors = useThemeColors()
   const invalid = Boolean(error)
 
   return (
