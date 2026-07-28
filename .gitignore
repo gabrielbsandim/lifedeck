@@ -32,6 +32,13 @@ coverage
 .env.*
 !.env.example
 
+# Firebase / Google service account keys. These carry a private key and belong
+# only in EAS, never in the repository. Note that google-services.json is NOT
+# one of these: it holds identifiers, not secrets, and has to be committed for
+# the Android build to find it.
+*service-account*.json
+*firebase-adminsdk*.json
+
 # Prisma
 packages/infrastructure/prisma/*.db
 
