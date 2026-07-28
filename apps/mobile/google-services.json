@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "395929003464",
+    "project_id": "life-deck-app",
+    "storage_bucket": "life-deck-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395929003464:android:ffab2063e703d03fc3ccfd",
+        "android_client_info": {
+          "package_name": "com.lifedeck.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCg4yvmpXcwMbbPqNm_H0Dkw6vg2imoODY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
