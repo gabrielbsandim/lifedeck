@@ -1,22 +1,33 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { PrismaClient } from '@prisma/client'
-import { ApiKey, List, Task, User, asEntityId } from '@lifedeck/domain'
+import {
+  ApiKey,
+  List,
+  PushDevice,
+  Task,
+  User,
+  asEntityId,
+} from '@lifedeck/domain'
 import { PrismaListRepository } from '@/database/prisma-list-repository'
 import { PrismaTaskRepository } from '@/database/prisma-task-repository'
 import { PrismaUserRepository } from '@/database/prisma-user-repository'
 import { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
+import { PrismaPushDeviceRepository } from '@/database/prisma-push-device-repository'
 
 const prisma = new PrismaClient()
 const users = new PrismaUserRepository(prisma)
 const lists = new PrismaListRepository(prisma)
 const tasks = new PrismaTaskRepository(prisma)
 const apiKeys = new PrismaApiKeyRepository(prisma)
+const pushDevices = new PrismaPushDeviceRepository(prisma)
 
 const USER = asEntityId('1a000000-0000-4000-8000-0000000000a1')
 const LIST_A = asEntityId('1a000000-0000-4000-8000-0000000000b1')
 const LIST_B = asEntityId('1a000000-0000-4000-8000-0000000000b2')
 const TASK = asEntityId('1a000000-0000-4000-8000-0000000000c1')
 const API_KEY = asEntityId('1a000000-0000-4000-8000-0000000000d1')
+const PUSH_DEVICE = asEntityId('1a000000-0000-4000-8000-0000000000e1')
+const PUSH_TOKEN = 'ExponentPushToken[integration]'
 const NOW = new Date('2026-06-22T10:00:00.000Z')
 
 function standalone(id: typeof LIST_A, title: string): List {
@@ -113,6 +124,40 @@ describe('Prisma repositories (integration)', () => {
     expect(found?.id).toBe(API_KEY)
     expect(found?.scopes).toEqual(['tasks:read'])
     expect(await apiKeys.listByUser(USER)).toHaveLength(1)
+  })
+
+  it('re-registers a push device onto the token that already exists', async () => {
+    const first = PushDevice.create({
+      id: PUSH_DEVICE,
+      userId: USER,
+      token: PUSH_TOKEN,
+      platform: 'ios',
+      createdAt: NOW,
+    })
+    await pushDevices.save(first)
+
+    // A second launch mints the same token but a new id. The unique index on the
+    // token is what keeps this from inserting a duplicate the fan-out would then
+    // notify twice.
+    const again = PushDevice.create({
+      id: asEntityId('1a000000-0000-4000-8000-0000000000e2'),
+      userId: USER,
+      token: PUSH_TOKEN,
+      platform: 'android',
+      createdAt: new Date(NOW.getTime() + 60_000),
+    })
+    await pushDevices.save(again)
+
+    const stored = await pushDevices.listByUser(USER)
+    expect(stored).toHaveLength(1)
+    expect(stored[0]?.id).toBe(PUSH_DEVICE)
+    expect(stored[0]?.platform).toBe('android')
+
+    await pushDevices.deleteByTokens([PUSH_TOKEN])
+    expect(await pushDevices.findByToken(PUSH_TOKEN)).toBeNull()
+    // Deleting nothing is a no-op rather than an error: the caller passes
+    // whatever the provider reported, which can be an empty list.
+    await expect(pushDevices.deleteByTokens([])).resolves.toBeUndefined()
   })
 
   it('cascades task deletion when a list is deleted', async () => {

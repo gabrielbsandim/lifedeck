@@ -395,6 +395,12 @@ export type { VisionReader } from '@/ports/vision-reader'
 export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 export { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 export type { NotificationRepository } from '@/ports/notification-repository'
+export type { PushDeviceRepository } from '@/ports/push-device-repository'
+export type {
+  PushSender,
+  PushMessage,
+  PushSendResult,
+} from '@/ports/push-sender'
 export {
   notificationViewSchema,
   notificationListViewSchema,
@@ -484,6 +490,15 @@ export {
   makeSendProactiveMessage,
   type ProactiveMessage,
 } from '@/shared/send-proactive-message'
+export {
+  makePublishNotification,
+  type PublishNotificationInput,
+} from '@/shared/publish-notification'
+export {
+  pushTitles,
+  reminderPushBody,
+  assignedPushBody,
+} from '@/shared/push-text'
 export { makeSetReminderPreferences } from '@/use-cases/set-reminder-preferences'
 export { makeSetAvatar, type AvatarInput } from '@/use-cases/set-avatar'
 export { makeRemoveAvatar } from '@/use-cases/remove-avatar'
@@ -513,6 +528,8 @@ export { makeCheckHealth } from '@/use-cases/check-health'
 export { makeGenerateList } from '@/use-cases/generate-list'
 export { makeSendDailyDigest } from '@/use-cases/send-daily-digest'
 export { makeListNotifications } from '@/use-cases/list-notifications'
+export { makeRegisterPushDevice } from '@/use-cases/register-push-device'
+export { makeUnregisterPushDevice } from '@/use-cases/unregister-push-device'
 export {
   makeMarkNotificationRead,
   makeMarkAllNotificationsRead,
@@ -548,6 +565,7 @@ export { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-reposi
 export { InMemoryNudgeLogRepository } from '@/testing/in-memory-nudge-log-repository'
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 export { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+export { InMemoryPushDeviceRepository } from '@/testing/in-memory-push-device-repository'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
 export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'

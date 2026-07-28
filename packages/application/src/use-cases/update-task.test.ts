@@ -8,6 +8,7 @@ import { InMemoryListRepository } from '@/testing/in-memory-list-repository'
 import { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { testPublishNotification } from '@/testing/test-publish-notification'
 import { FakeEmailSender } from '@/testing/fake-email-sender'
 import { FixedClock, ID, SequentialIdGenerator } from '@/testing/fakes'
 
@@ -51,7 +52,7 @@ async function setup(visibility: 'private' | 'link' = 'private') {
       lists,
       memberships,
       users,
-      notifications,
+      publishNotification: testPublishNotification(notifications),
       emailSender,
       ids: new SequentialIdGenerator([ID.verification]),
       clock: new FixedClock(NOW),
@@ -213,7 +214,9 @@ describe('updateTask', () => {
       lists,
       memberships,
       users: new InMemoryUserRepository(),
-      notifications: new InMemoryNotificationRepository(),
+      publishNotification: testPublishNotification(
+        new InMemoryNotificationRepository(),
+      ),
       emailSender: new FakeEmailSender(),
       ids: new SequentialIdGenerator([ID.verification]),
       clock: new FixedClock(NOW),

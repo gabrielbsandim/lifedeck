@@ -1,5 +1,4 @@
 import {
-  Notification,
   asEntityId,
   civilDate,
   civilHour,
@@ -10,11 +9,12 @@ import type { Clock } from '@/ports/clock'
 import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { IdGenerator } from '@/ports/id-generator'
-import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { NudgeLogRepository } from '@/ports/nudge-log-repository'
 import type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
+import type { makePublishNotification } from '@/shared/publish-notification'
 import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
+import { pushTitles } from '@/shared/push-text'
 import type { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import { composeNudge, nudgeButtonLabels } from '@/shared/nudge-text'
@@ -38,7 +38,7 @@ type Dependencies = {
   nudgeLogs: NudgeLogRepository
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
-  notifications: Pick<NotificationRepository, 'save'>
+  publishNotification: ReturnType<typeof makePublishNotification>
   // Records the nudge as an assistant turn so a "Yes, reschedule" reply (tapped
   // button or typed) reaches the assistant with the task already in context.
   conversations: Pick<ConversationStore, 'append'>
@@ -72,7 +72,7 @@ export function makeSendNudge({
   nudgeLogs,
   sendProactiveMessage,
   sendGuard,
-  notifications,
+  publishNotification,
   conversations,
   ids,
   clock,
@@ -169,19 +169,18 @@ export function makeSendNudge({
     // Same fallback as the brief/check-in: with WhatsApp unavailable the nudge
     // lands in the in-app notification bell instead of disappearing.
     if (!delivered) {
-      await notifications.save(
-        Notification.create({
-          id: ids.generate(),
-          userId: asEntityId(userId),
-          type: NUDGE_JOB,
-          data: {
-            taskId: candidate.task.id,
-            taskTitle: candidate.task.title,
-            text,
-          },
-          createdAt: now,
-        }),
-      )
+      await publishNotification({
+        id: ids.generate(),
+        userId: asEntityId(userId),
+        type: NUDGE_JOB,
+        data: {
+          taskId: candidate.task.id,
+          taskTitle: candidate.task.title,
+          text,
+        },
+        createdAt: now,
+        alert: { title: pushTitles(language).nudge, body: text },
+      })
     }
 
     // Recorded either way: the user was nudged about this task today through one

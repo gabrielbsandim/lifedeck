@@ -7,6 +7,7 @@ import type { WeatherLookup } from '@/ports/weather-provider'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { testPublishNotification } from '@/testing/test-publish-notification'
 import { FixedClock, ID } from '@/testing/fakes'
 
 const NOTIFICATION_ID = '11111111-1111-4111-8111-111111111111'
@@ -108,7 +109,7 @@ async function setup(options?: {
     },
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
-    notifications,
+    publishNotification: testPublishNotification(notifications),
     ids: { generate: () => asEntityId(NOTIFICATION_ID) },
     clock: new FixedClock(NOW),
     briefTemplate: options?.briefTemplate,

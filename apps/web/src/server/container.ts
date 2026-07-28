@@ -91,6 +91,9 @@ import {
   makeReorderSubtasks,
   makeListMembers,
   makeListNotifications,
+  makePublishNotification,
+  makeRegisterPushDevice,
+  makeUnregisterPushDevice,
   makeMarkAllNotificationsRead,
   makeMarkNotificationRead,
   makeListRecurringTasks,
@@ -127,6 +130,8 @@ import {
   type ListRepository,
   type MembershipRepository,
   type NotificationRepository,
+  type PushDeviceRepository,
+  type PushSender,
   type OAuthProvider,
   type PasswordHasher,
   type RecurringTaskRepository,
@@ -170,6 +175,7 @@ import {
   PrismaListRepository,
   PrismaMembershipRepository,
   PrismaNotificationRepository,
+  PrismaPushDeviceRepository,
   PrismaRecurringTaskRepository,
   PrismaHabitRepository,
   PrismaHabitLogRepository,
@@ -200,6 +206,7 @@ import {
   createWhatsappSessionWindow,
   createTranscriber,
   createVisionReader,
+  createPushSender,
   createUsageMeter,
   createProactiveSendGuard,
   Argon2PasswordHasher,
@@ -286,6 +293,8 @@ type Container = {
   sendDailyDigest: ReturnType<typeof makeSendDailyDigest>
   sendDailyBrief: ReturnType<typeof makeSendDailyBrief>
   listNotifications: ReturnType<typeof makeListNotifications>
+  registerPushDevice: ReturnType<typeof makeRegisterPushDevice>
+  unregisterPushDevice: ReturnType<typeof makeUnregisterPushDevice>
   markNotificationRead: ReturnType<typeof makeMarkNotificationRead>
   markAllNotificationsRead: ReturnType<typeof makeMarkAllNotificationsRead>
   createApiKey: ReturnType<typeof makeCreateApiKey>
@@ -352,6 +361,7 @@ type Repositories = {
   emailVerifications: EmailVerificationRepository
   analytics: AnalyticsRepository
   notifications: NotificationRepository
+  pushDevices: PushDeviceRepository
   apiKeys: ApiKeyRepository
   scheduledJobs: ScheduledJobRepository
   subscriptions: SubscriptionRepository
@@ -380,6 +390,7 @@ type Services = {
   whatsappSession: WhatsappSessionWindow
   transcriber: Transcriber
   visionReader: VisionReader
+  push: PushSender
 }
 
 function build(
@@ -397,6 +408,7 @@ function build(
     emailVerifications,
     analytics,
     notifications,
+    pushDevices,
     apiKeys,
     scheduledJobs,
     subscriptions,
@@ -424,6 +436,7 @@ function build(
     whatsappSession,
     transcriber,
     visionReader,
+    push,
   }: Services,
   unitOfWork: UnitOfWork,
 ): Container {
@@ -518,9 +531,22 @@ function build(
       info: (message, meta) => log('info', message, meta),
     },
   })
+  // Every in-app notification goes through here, so push mirrors the bell
+  // without each use case having to know push exists.
+  const publishNotification = makePublishNotification({
+    notifications,
+    pushDevices,
+    push,
+    logger: {
+      error: (message, meta) => log('error', message, meta),
+      warn: (message, meta) => log('warn', message, meta),
+      info: (message, meta) => log('info', message, meta),
+    },
+  })
   const deliverReminder = makeDeliverReminder({
     calendarEvents,
     notifications,
+    publishNotification,
     users,
     emailSender,
     sendProactiveMessage,
@@ -661,7 +687,7 @@ function build(
     lists,
     memberships,
     users,
-    notifications,
+    publishNotification,
     emailSender,
     ids,
     clock,
@@ -735,7 +761,7 @@ function build(
     weather: weatherProvider,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
-    notifications,
+    publishNotification,
     ids,
     clock,
     briefTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.dailyBrief),
@@ -759,7 +785,7 @@ function build(
     entitlements: entitlementService,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
-    notifications,
+    publishNotification,
     ids,
     clock,
     checkinTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.habitCheckin),
@@ -771,7 +797,7 @@ function build(
     nudgeLogs,
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
-    notifications,
+    publishNotification,
     conversations,
     ids,
     clock,
@@ -938,6 +964,8 @@ function build(
     sendDailyDigest,
     sendDailyBrief,
     listNotifications: makeListNotifications({ notifications }),
+    registerPushDevice: makeRegisterPushDevice({ pushDevices, ids, clock }),
+    unregisterPushDevice: makeUnregisterPushDevice({ pushDevices }),
     markNotificationRead: makeMarkNotificationRead({ notifications, clock }),
     markAllNotificationsRead: makeMarkAllNotificationsRead({
       notifications,
@@ -1156,6 +1184,7 @@ export function getContainer(): Container {
         emailVerifications: new PrismaEmailVerificationRepository(db),
         analytics: new PrismaAnalyticsRepository(db),
         notifications: new PrismaNotificationRepository(db),
+        pushDevices: new PrismaPushDeviceRepository(db),
         apiKeys: new PrismaApiKeyRepository(db),
         scheduledJobs: new PrismaScheduledJobRepository(db),
         subscriptions: new PrismaSubscriptionRepository(db),
@@ -1187,6 +1216,7 @@ export function getContainer(): Container {
         whatsappSession: createWhatsappSessionWindow(),
         transcriber: createTranscriber(),
         visionReader: createVisionReader(),
+        push: createPushSender(),
       },
       new PrismaUnitOfWork(prisma),
     )

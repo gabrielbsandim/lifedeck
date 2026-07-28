@@ -72,6 +72,7 @@ model User {
   calendarConnections CalendarConnection[]
   channelIdentities   ChannelIdentity[]
   nudgeLogs           NudgeLog[]
+  pushDevices         PushDevice[]
 
   @@map("users")
 }
@@ -88,6 +89,23 @@ model Notification {
 
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+model PushDevice {
+  id         String   @id @default(uuid())
+  // Unique because the token identifies an installation, not a person: a phone
+  // that changes hands re-registers the same token and the row moves to the new
+  // owner rather than duplicating.
+  token      String   @unique
+  userId     String   @map("user_id")
+  platform   String
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_devices")
 }
 
 model ApiKey {

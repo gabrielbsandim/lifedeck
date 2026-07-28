@@ -6,6 +6,7 @@ import { InMemoryNudgeLogRepository } from '@/testing/in-memory-nudge-log-reposi
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { testPublishNotification } from '@/testing/test-publish-notification'
 import { FixedClock, ID } from '@/testing/fakes'
 
 // Noon UTC; the user sits in UTC so "today" is 2026-07-20 there.
@@ -91,7 +92,7 @@ async function setup(options?: {
     nudgeLogs,
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
-    notifications,
+    publishNotification: testPublishNotification(notifications),
     conversations,
     // One fixed id for both the nudge log and any fallback notification: they
     // live in separate stores, so there is nothing to collide with.

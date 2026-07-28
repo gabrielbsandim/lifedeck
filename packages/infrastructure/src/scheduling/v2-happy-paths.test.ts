@@ -16,6 +16,7 @@ import {
   makeRefundCredits,
   makeCreateCalendarEvent,
   makeDeliverReminder,
+  makePublishNotification,
   makeSendProactiveMessage,
   makeDispatchDueJobs,
   makeHandleInboundWhatsApp,
@@ -80,6 +81,10 @@ describe('V2 calendar reminder happy path', () => {
     const deliverReminder = makeDeliverReminder({
       calendarEvents,
       notifications,
+      publishNotification: makePublishNotification({
+        notifications,
+        logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+      }),
       users: new InMemoryUserRepository(),
       emailSender: new FakeEmailSender(),
       sendProactiveMessage: makeSendProactiveMessage({

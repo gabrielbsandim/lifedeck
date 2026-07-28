@@ -9,6 +9,7 @@ import {
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { testPublishNotification } from '@/testing/test-publish-notification'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { FakeEmailSender } from '@/testing/fake-email-sender'
 import {
@@ -116,6 +117,7 @@ async function setup(options: {
   const deliver = makeDeliverReminder({
     calendarEvents,
     notifications,
+    publishNotification: testPublishNotification(notifications),
     users,
     emailSender,
     sendProactiveMessage,

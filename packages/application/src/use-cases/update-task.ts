@@ -1,7 +1,7 @@
 import {
-  Notification,
   ValidationError,
   asEntityId,
+  toMessageLanguage,
   type EntityId,
 } from '@lifedeck/domain'
 import {
@@ -17,16 +17,17 @@ import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { ListRepository } from '@/ports/list-repository'
 import type { MembershipRepository } from '@/ports/membership-repository'
-import type { NotificationRepository } from '@/ports/notification-repository'
 import type { TaskRepository } from '@/ports/task-repository'
 import type { UserRepository } from '@/ports/user-repository'
+import type { makePublishNotification } from '@/shared/publish-notification'
+import { assignedPushBody, pushTitles } from '@/shared/push-text'
 
 type Dependencies = {
   tasks: TaskRepository
   lists: ListRepository
   memberships: MembershipRepository
   users: UserRepository
-  notifications: NotificationRepository
+  publishNotification: ReturnType<typeof makePublishNotification>
   emailSender: EmailSender
   ids: IdGenerator
   clock: Clock
@@ -37,7 +38,7 @@ export function makeUpdateTask({
   lists,
   memberships,
   users,
-  notifications,
+  publishNotification,
   emailSender,
   ids,
   clock,
@@ -123,17 +124,23 @@ export function makeUpdateTask({
     taskTitle: string,
     listTitle: string,
   ): Promise<void> {
-    await notifications.save(
-      Notification.create({
-        id: ids.generate(),
-        userId: assignee,
-        type: 'task-assigned',
-        data: { taskTitle, listTitle },
-        createdAt: clock.now(),
-      }),
-    )
-
+    // Loaded before publishing rather than after: the push alert has to be in
+    // the assignee's language, not the language of whoever assigned the task.
     const user = await users.findById(assignee)
+    const language = toMessageLanguage(user?.locale)
+
+    await publishNotification({
+      id: ids.generate(),
+      userId: assignee,
+      type: 'task-assigned',
+      data: { taskTitle, listTitle },
+      createdAt: clock.now(),
+      alert: {
+        title: pushTitles(language).assigned,
+        body: assignedPushBody(taskTitle, listTitle),
+      },
+    })
+
     if (!user?.email) {
       return
     }

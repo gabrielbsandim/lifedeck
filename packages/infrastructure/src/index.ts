@@ -18,6 +18,7 @@ export { PrismaMembershipRepository } from '@/database/prisma-membership-reposit
 export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verification-repository'
 export { PrismaAnalyticsRepository } from '@/database/prisma-analytics-repository'
 export { PrismaNotificationRepository } from '@/database/prisma-notification-repository'
+export { PrismaPushDeviceRepository } from '@/database/prisma-push-device-repository'
 export { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
 export { PrismaHealthProbe } from '@/database/prisma-health-probe'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
@@ -88,6 +89,11 @@ export {
   toNotificationRecord,
   type NotificationRecord,
 } from '@/database/notification-record'
+export {
+  toDomainPushDevice,
+  toPushDeviceRecord,
+  type PushDeviceRecord,
+} from '@/database/push-device-record'
 export {
   toDomainApiKey,
   toApiKeyRecord,
@@ -171,6 +177,11 @@ export {
   type ParsedWhatsappMessage,
 } from '@/messaging/whatsapp-webhook'
 export { parseAbracodeInbound } from '@/messaging/abracode-webhook'
+export {
+  ExpoPushSender,
+  createPushSender,
+  type ExpoPushSenderConfig,
+} from '@/messaging/expo-push-sender'
 export {
   AiSdkAgentRunner,
   createAgentRunner,

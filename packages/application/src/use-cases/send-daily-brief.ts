@@ -1,5 +1,4 @@
 import {
-  Notification,
   asEntityId,
   civilDate,
   toMessageLanguage,
@@ -7,12 +6,13 @@ import {
 } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
-import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { WeatherProvider } from '@/ports/weather-provider'
 import type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
+import type { makePublishNotification } from '@/shared/publish-notification'
 import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
+import { pushTitles } from '@/shared/push-text'
 import type { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import type { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
@@ -38,7 +38,7 @@ type Dependencies = {
   weather: WeatherProvider
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
-  notifications: Pick<NotificationRepository, 'save'>
+  publishNotification: ReturnType<typeof makePublishNotification>
   ids: IdGenerator
   clock: Clock
   briefTemplate?: BriefTemplate
@@ -62,7 +62,7 @@ export function makeSendDailyBrief({
   weather,
   sendProactiveMessage,
   sendGuard,
-  notifications,
+  publishNotification,
   ids,
   clock,
   briefTemplate,
@@ -167,15 +167,14 @@ export function makeSendDailyBrief({
     // in the app's notification bell so the day's summary is never lost, the way
     // reminders already do. Only on failure, so a delivered brief is not echoed.
     if (!delivered) {
-      await notifications.save(
-        Notification.create({
-          id: ids.generate(),
-          userId: asEntityId(userId),
-          type: DAILY_BRIEF_JOB,
-          data: { date: today, text },
-          createdAt: now,
-        }),
-      )
+      await publishNotification({
+        id: ids.generate(),
+        userId: asEntityId(userId),
+        type: DAILY_BRIEF_JOB,
+        data: { date: today, text },
+        createdAt: now,
+        alert: { title: pushTitles(language).brief, body: text },
+      })
     }
 
     return { sent: delivered }

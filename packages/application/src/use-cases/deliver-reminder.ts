@@ -1,4 +1,4 @@
-import { Notification, asEntityId, toMessageLanguage } from '@lifedeck/domain'
+import { asEntityId, toMessageLanguage } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
@@ -6,6 +6,8 @@ import { toEmailLocale, type EmailSender } from '@/ports/email-sender'
 import { formatEventTime } from '@/shared/format-event-time'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import { whatsappReminderText } from '@/shared/whatsapp-reminder-text'
+import type { makePublishNotification } from '@/shared/publish-notification'
+import { pushTitles, reminderPushBody } from '@/shared/push-text'
 import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
 import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
@@ -20,6 +22,7 @@ export type ReminderTemplate = {
 type Dependencies = {
   calendarEvents: CalendarEventRepository
   notifications: NotificationRepository
+  publishNotification: ReturnType<typeof makePublishNotification>
   users: UserRepository
   emailSender: EmailSender
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
@@ -37,6 +40,7 @@ export type ReminderResult = {
 export function makeDeliverReminder({
   calendarEvents,
   notifications,
+  publishNotification,
   users,
   emailSender,
   sendProactiveMessage,
@@ -85,24 +89,35 @@ export function makeDeliverReminder({
       return { delivered: false }
     }
 
-    // In-app notification always fires; it is the reliable channel.
-    await notifications.save(
-      Notification.create({
-        id: ids.generate(),
-        userId: asEntityId(userId),
-        type: REMINDER_JOB,
-        data: {
-          eventId,
-          title: props.title,
-          startsAt: props.startsAt.toISOString(),
-          minutesBefore: String(minutesBefore),
-        },
-        createdAt: clock.now(),
-      }),
-    )
-
+    // Loaded before publishing rather than after: the push alert carries a time
+    // formatted in the user's locale and timezone, so their preferences have to
+    // be known by then.
     const user = await users.findById(asEntityId(userId))
     const startsAtIso = props.startsAt.toISOString()
+    // A localized, timezone-aware time rather than a raw ISO timestamp; the push
+    // alert, the free-form WhatsApp text and the template all render it as-is.
+    const when = user
+      ? formatEventTime(startsAtIso, toEmailLocale(user.locale), user.timezone)
+      : startsAtIso
+
+    // In-app notification always fires; it is the reliable channel. Push mirrors
+    // it for anyone who installed the app and allowed notifications.
+    await publishNotification({
+      id: ids.generate(),
+      userId: asEntityId(userId),
+      type: REMINDER_JOB,
+      data: {
+        eventId,
+        title: props.title,
+        startsAt: startsAtIso,
+        minutesBefore: String(minutesBefore),
+      },
+      createdAt: clock.now(),
+      alert: {
+        title: pushTitles(toMessageLanguage(user?.locale)).reminder,
+        body: reminderPushBody(props.title, when),
+      },
+    })
 
     // Best-effort email reminder, opt-in per user and only to a verified address.
     // A failure must not undo the in-app notification, so it is swallowed.
@@ -125,15 +140,6 @@ export function makeDeliverReminder({
     // 24h window is open and falls back to the approved template once it closes;
     // with neither available, only the in-app notification fires.
     if (user?.reminderWhatsapp !== false) {
-      // A localized, timezone-aware time rather than a raw ISO timestamp; both
-      // the free-form text and the template render it as-is.
-      const when = user
-        ? formatEventTime(
-            startsAtIso,
-            toEmailLocale(user.locale),
-            user.timezone,
-          )
-        : startsAtIso
       await sendProactiveMessage(userId, {
         text: whatsappReminderText(
           toMessageLanguage(user?.locale),

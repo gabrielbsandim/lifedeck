@@ -1,5 +1,4 @@
 import {
-  Notification,
   asEntityId,
   civilDate,
   isHabitScheduledOn,
@@ -10,10 +9,11 @@ import type { EntitlementService } from '@/ports/entitlement-service'
 import type { HabitRepository } from '@/ports/habit-repository'
 import type { HabitLogRepository } from '@/ports/habit-log-repository'
 import type { IdGenerator } from '@/ports/id-generator'
-import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { ProactiveSendGuard } from '@/ports/proactive-send-guard'
+import type { makePublishNotification } from '@/shared/publish-notification'
 import type { makeSendProactiveMessage } from '@/shared/send-proactive-message'
+import { pushTitles } from '@/shared/push-text'
 import { whatsappLanguageForLocale } from '@/shared/whatsapp-language'
 import { composeHabitCheckin } from '@/shared/habit-checkin-text'
 import { HABIT_CHECKIN_JOB } from '@/use-cases/enqueue-habit-checkins'
@@ -30,7 +30,7 @@ type Dependencies = {
   entitlements: EntitlementService
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
-  notifications: Pick<NotificationRepository, 'save'>
+  publishNotification: ReturnType<typeof makePublishNotification>
   ids: IdGenerator
   clock: Clock
   checkinTemplate?: CheckinTemplate
@@ -43,7 +43,7 @@ export function makeSendHabitCheckin({
   entitlements,
   sendProactiveMessage,
   sendGuard,
-  notifications,
+  publishNotification,
   ids,
   clock,
   checkinTemplate,
@@ -89,10 +89,8 @@ export function makeSendHabitCheckin({
       return { sent: false }
     }
 
-    const text = composeHabitCheckin(
-      toMessageLanguage(user.locale),
-      habit.title,
-    )
+    const language = toMessageLanguage(user.locale)
+    const text = composeHabitCheckin(language, habit.title)
     const { delivered } = await sendProactiveMessage(userId, {
       text,
       template: checkinTemplate?.name
@@ -112,15 +110,14 @@ export function makeSendHabitCheckin({
     // Same fallback as the daily brief: a closed WhatsApp window must not make
     // the check-in disappear, so it lands in the in-app notification bell.
     if (!delivered) {
-      await notifications.save(
-        Notification.create({
-          id: ids.generate(),
-          userId: asEntityId(userId),
-          type: HABIT_CHECKIN_JOB,
-          data: { habitId: habitId, habitTitle: habit.title, text },
-          createdAt: clock.now(),
-        }),
-      )
+      await publishNotification({
+        id: ids.generate(),
+        userId: asEntityId(userId),
+        type: HABIT_CHECKIN_JOB,
+        data: { habitId: habitId, habitTitle: habit.title, text },
+        createdAt: clock.now(),
+        alert: { title: pushTitles(language).checkin, body: text },
+      })
     }
 
     return { sent: delivered }

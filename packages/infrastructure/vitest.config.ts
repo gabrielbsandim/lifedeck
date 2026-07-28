@@ -25,6 +25,7 @@ export default mergeConfig(
         'src/database/prisma-email-verification-repository.ts',
         'src/database/prisma-analytics-repository.ts',
         'src/database/prisma-notification-repository.ts',
+        'src/database/prisma-push-device-repository.ts',
         'src/database/prisma-api-key-repository.ts',
         'src/database/prisma-scheduled-job-repository.ts',
         'src/database/prisma-subscription-repository.ts',

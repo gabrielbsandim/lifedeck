@@ -14,6 +14,7 @@ import { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-reposi
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { testPublishNotification } from '@/testing/test-publish-notification'
 import { FixedClock, ID } from '@/testing/fakes'
 
 // Noon UTC on Monday 2026-07-20; the user sits in UTC so "today" is that date.
@@ -82,7 +83,7 @@ async function setup(options?: {
     },
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
-    notifications,
+    publishNotification: testPublishNotification(notifications),
     ids: { generate: () => asEntityId(NOTIFICATION_ID) },
     clock: new FixedClock(NOW),
     checkinTemplate: options?.checkinTemplate,
