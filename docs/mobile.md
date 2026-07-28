@@ -158,6 +158,13 @@ eas update --branch preview --message "what changed"
 and baked into the bundle at build time, so it is a build input rather than a
 runtime setting, and never a place for a secret.
 
+**The EAS worker installs but does not build.** The workspace packages resolve
+through their `dist/`, which is generated and gitignored, so on a clean worker
+`@lifedeck/domain` is found and then fails with a missing `main`. The
+`eas-build-post-install` script in `apps/mobile/package.json` runs turbo over
+the app's workspace dependencies to fill that gap. It has no equivalent in the
+OTA workflow, where the verification steps already build them.
+
 ## Push notifications
 
 Delivery goes through Expo's push service, which fronts APNs and FCM so no
