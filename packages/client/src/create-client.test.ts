@@ -79,6 +79,19 @@ describe('createApiClient', () => {
     })
   })
 
+  it('falls back to the global fetch when none is injected', async () => {
+    const original = globalThis.fetch
+    const spy = vi.fn(() => Promise.resolve(jsonResponse({ data: 'global' })))
+    globalThis.fetch = spy as unknown as typeof fetch
+    try {
+      const client = createApiClient()
+      await expect(client.request('/x')).resolves.toBe('global')
+      expect(spy).toHaveBeenCalledOnce()
+    } finally {
+      globalThis.fetch = original
+    }
+  })
+
   it('lets FormData set its own multipart content-type', async () => {
     const { fetchMock, calls } = stubFetch(jsonResponse({ data: null }))
     const client = createApiClient({ fetch: fetchMock })
