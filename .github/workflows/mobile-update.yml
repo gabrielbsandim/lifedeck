@@ -17,6 +17,11 @@ on:
       - 'apps/mobile/**'
       - 'packages/**'
       - 'pnpm-lock.yaml'
+      # The install layout and the pinned pnpm decide whether the app's Babel
+      # and Metro toolchain resolves at all, so a change to either has to be
+      # exercised here rather than discovered on the next unrelated push.
+      - '.npmrc'
+      - 'package.json'
       - '.github/workflows/mobile-update.yml'
   workflow_dispatch:
     inputs:
