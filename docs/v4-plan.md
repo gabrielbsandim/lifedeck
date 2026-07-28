@@ -1,5 +1,9 @@
 # Lifedeck V4 plan
 
+> **Status: shipped.** Every phase below is done — see the progress log in
+> section 11 for what landed, where the implementation diverged from this plan,
+> and the follow-ups that were consciously left for V4.1.
+
 V3 turned Lifedeck into a proactive personal assistant over WhatsApp and the web.
 V4 has two goals, and only two:
 
@@ -15,6 +19,11 @@ V4 has two goals, and only two:
 small, additive changes (a header-based session token for mobile, and a
 conversational generate endpoint). No breaking changes, no schema migrations for
 the app itself.
+
+_(How that held: the token change landed as planned; the conversational endpoint
+turned out to be unnecessary because the web's assistant chat already covers it,
+so the only other backend addition is the native Google sign-in handoff. Still
+no breaking changes and no migrations.)_
 
 ## Contents
 
@@ -123,7 +132,26 @@ app — but shared is the target.
 
 ---
 
-## 5. V4-3 — Design system in React Native (NativeWind)
+## 5. V4-3 — Design system in React Native (NativeWind) — SHIPPED
+
+Shipped: every `@lifedeck/ui` primitive now has an RN counterpart in
+`apps/mobile/src/components/ui` with the same prop API — Button, Card, Badge,
+TextField, PasswordField, Skeleton, EmptyState, Avatar, ProgressBar, Dialog
+(→ Modal, `center` | `sheet`), Toast, Tabs, TaskCheckbox, Logo/LogoMark — plus
+four RN-only primitives the web gets from the DOM (`Screen` for the page shell,
+`Row` for grouped list rows, `Select` for `<select>`, `Switch` for a toggle).
+The web icon set is ported 1:1 to `react-native-svg` in
+`apps/mobile/src/components/icons.tsx`.
+
+**Tokens follow the device theme, like the web.** The plan assumed NativeWind
+could parse the oklch values directly; it cannot at runtime, so the tokens are
+pre-converted to sRGB channels in `src/theme/palette.json` (both the light set
+and the dark overrides) and declared as CSS variables in `src/global.css`,
+including the `@media (prefers-color-scheme: dark)` block. `tailwind.config.js`
+maps every color to `rgb(var(--color-x) / <alpha-value>)`, so a class like
+`bg-brand-600` or `bg-success/15` inverts on device exactly as it does on the
+web. `useThemeColors()` resolves the same tokens for native props NativeWind
+cannot reach (navigation theming, `placeholderTextColor`, SVG fills).
 
 - A `tailwind.config` in the app mirrors the `@theme` tokens from
   `packages/ui/src/styles.css`: brand (hue 280, 50–900), ink (hue 265, 200–900),
@@ -140,33 +168,70 @@ app — but shared is the target.
 
 ---
 
-## 6. V4-4 — Screen parity (port every route)
+## 6. V4-4 — Screen parity (port every route) — SHIPPED
 
 One RN screen per web route, same data, same states (loading skeleton / error /
-empty / content):
+empty / content). All of them are in:
 
 | Web route | Mobile screen | Notes |
 |-----------|---------------|-------|
-| `/` | Today / daily board | Home tab |
-| `/lists`, `/lists/[id]` | Lists + list detail | tasks/subtasks |
-| `/habits` | Habits | streak week bar, check-in |
-| `/recurring` | Recurring | rule editor |
-| `/calendar` | Calendar | events + connections |
-| `/analytics` | Analytics | |
-| `/settings` (+ `/billing`) | Profile hub + plans | see IAP note |
-| `/developers` | API keys | |
-| `/generate` | Chat | V4-5 |
-| `/share/[token]` | Public shared board | deep link, no shell |
+| `/` | `(tabs)/index` — Today / daily board | greeting, day stepper, progress ring, leftovers, add-task, task list |
+| `/lists`, `/lists/[id]` | `(tabs)/lists`, `lists/[id]` | today card, per-list progress, rename/delete/leave, share |
+| `/habits` | `habits` | trailing-week bar (each day toggles), streak badge, cadence form, Free upsell |
+| `/recurring` | `recurring` | rule editor (freq / interval / weekdays / monthday / start / until) |
+| `/calendar` | `calendar` | agenda + month, week strip, event editor, detail sheet, find-time, connections |
+| `/analytics` | `analytics` | weekly/monthly/yearly buckets, trend, streak, habit consistency |
+| `/settings` (+ `/billing`) | `(tabs)/profile` hub → `settings?section=…`, `billing` | see IAP note |
+| `/developers` | `developers` | API keys, scopes, one-time secret |
+| `/generate` | `(tabs)/assistant` | the assistant chat — V4-5 |
+| `/share/[token]` | `share/[token]` | deep link, no tab shell |
 
-Read-heavy screens (Today, Lists, Habits, Recurring, Calendar, Analytics) ship
-first; they only need the client layer + primitives.
+**Reordering** is the one interaction that is deliberately *not* a port. The web
+drags rows with dnd-kit; inside a scroll view that needs a gesture library and
+fights the list's own pan, so the app uses the pattern native settings screens
+use — long-press puts the list in reorder mode, where each row gets explicit
+move controls (`ReorderableList`). It hits the same `PATCH /lists/:id/tasks`
+endpoint and is the accessible option, since a drag has no screen-reader
+equivalent.
+
+Two other places diverge for platform reasons, both noted in the code: the
+avatar upload sends decoded base64 bytes from the image picker instead of a
+resized `Blob`, and the WhatsApp pairing card drops the web's QR fallback (on a
+phone the deep link always works, and the code is still shown for manual
+sending).
 
 ---
 
-## 7. V4-5 — Generate → chat (web + app)
+## 7. V4-5 — Generate → chat (web + app) — SHIPPED, by a different route
 
-Replace the one-shot brief form (`ai-generator.tsx`) with a WhatsApp-style
-conversation on both platforms.
+The goal was "the one-shot brief form becomes a WhatsApp-style conversation on
+both platforms". That happened on the web while V4 was in flight, through the
+**in-app assistant chat** (`feat: add in-app assistant chat`, then photo +
+voice): `/generate` stopped rendering `ai-generator.tsx` and now renders
+`AssistantChat`, a multi-turn thread with tool-call receipt cards — including
+`createList`, which is what the planned `proposeList` tool was for.
+
+So V4-5 closed as:
+
+- **No new endpoint.** `POST /api/v1/assistant/chat` already does what the
+  planned `/lists/generate/chat` would have: it chats, calls tools, and returns
+  `{ text, actions }`. It is the *general* assistant rather than a
+  list-generation-only chat, which is strictly more capable. The plan's
+  stateless / no-new-tables / no-Neon-cost constraint holds — the assistant chat
+  keeps its history in Redis, not Postgres.
+- **App side shipped here**: `(tabs)/assistant` is the RN port of the web chat —
+  same turn model (text / photo / voice), same action cards, same locked and
+  quota upsells. `MediaRecorder` becomes `expo-audio`, the file input becomes
+  `expo-image-picker`, and both upload through RN's `FormData` file streaming.
+  No streaming client is needed: the web chat is request/response
+  (`useSendAssistantMessage`), not `useChat`, so the `expo/fetch` streaming risk
+  in section 10 never materialized.
+- **`ai-generator.tsx` deleted.** Nothing imported it once `/generate` switched
+  to the chat. `POST /api/v1/lists/generate` and its `useGenerateList` /
+  `useSaveDraftList` hooks stay: they are part of the documented public REST
+  surface, not dead code.
+
+The original design, for the record:
 
 **Backend — new endpoint `POST /api/v1/lists/generate/chat` (streaming):**
 
@@ -220,46 +285,79 @@ One PR-sized phase at a time:
   that supports it. Verify at scaffold time.
 - **`packages/client` extraction noise.** If the web hooks are more coupled to
   Next than expected, fall back to thin duplicated hooks in the app.
-- **Streaming in RN.** Depends on `expo/fetch`; validate the chat stream on a
-  device early.
+- **Streaming in RN.** ~~Depends on `expo/fetch`~~ — moot. The assistant chat is
+  request/response, not streamed, so the app needed no streaming client.
 - **IAP.** Deferred to V4.1; V4 sends billing to the web.
-- **Push notifications** (Expo Notifications) — deferred to V4.1.
+- **Push notifications** (Expo Notifications) — deferred to V4.1. Proactive
+  messages still reach the user over WhatsApp and the in-app notification bell.
 - **Offline.** V4 assumes an online thin client; React Query cache only. No
   offline-first sync.
+- **Metro + pnpm resolution** (found while validating the bundle): Metro walks
+  plain `node_modules` directories, which pnpm's isolated store does not
+  provide. Two fixes landed and both matter for anyone touching the app:
+  `disableHierarchicalLookup` is now OFF (it assumes a hoisted layout, so it
+  broke every transitive import), and packages our own source imports through a
+  toolchain — `@expo/metro-runtime`, `react-native-css-interop` — are declared
+  as direct dependencies of `apps/mobile`.
 
 ---
 
 ## 11. Progress log
 
-As of 2026-07-23 (branch `v4`), roughly 25% of the effort is done — the
-foundation is in place; screen parity (V4-4) and the chat (V4-5) are the bulk of
-what remains.
+**As of 2026-07-27 (branch `v4`): V4 is complete — the app is built and every
+route in section 6 is ported.** What follows is per-phase.
 
 - **V4-0 — done.** `apps/mobile` on Expo SDK 57 (RN 0.86, React 19.2), Expo
   Router + NativeWind, Metro wired for the pnpm monorepo. Design tokens mirrored
-  from `styles.css` to `src/theme/palette.json` (oklch converted to sRGB hex so
-  RN can parse them). Tab shell (Today / Lists / Generate / Profile) with
-  placeholder screens. Support fixes: pinned `typescript` in `@lifedeck/config`
-  and an `@types/react` override to keep the workspace on one version.
+  from `styles.css` to `src/theme/palette.json`. Support fixes: pinned
+  `typescript` in `@lifedeck/config` and an `@types/react` override to keep the
+  workspace on one version.
 - **V4-1 — done.** Backend is additive: `getUserIdFromRequest` also accepts the
   session JWT via `Authorization: Bearer`; `okSession` returns the token as a
   sibling of `data` from the guest and sign-in routes (web keeps using the
-  cookie). App stores the token in SecureStore and boots a guest session through
-  `SessionGate` (onboarding overlay). Covered by new session/respond tests.
+  cookie). App stores the token in SecureStore, boots a guest session through
+  `SessionGate`, and now also does full email register / verify / sign-in.
+  **Google sign-in works on native** through a single-use code: `/auth/google`
+  takes `platform=native`, the callback stores the session token in Redis under
+  a 2-minute one-time code and deep-links `lifedeck://auth?code=…`, and
+  `POST /auth/native` trades that code for the token over HTTPS. The token
+  itself never travels through the custom-scheme URL, which any app on the
+  device could claim.
 - **V4-2 — done, scoped to the transport.** `packages/client` holds the shared
-  `createApiClient` factory + `ApiError` (100%/95.8% covered). Web and mobile
-  both consume it; the web's 21+ importers are unchanged. **Hook migration was
-  deliberately deferred to V4-4** — auth hooks are platform-coupled (cookie vs
-  token), so the data hooks move per screen as they are ported (the "extraction
-  noise" fallback in section 10).
-- **V4-3 — core primitives done.** Rebuilt in `apps/mobile/src/components/ui`:
-  Button, Card, Badge, TextField, Skeleton, EmptyState, Avatar, ProgressBar
-  (same prop APIs; web-only pseudo classes dropped, `Animated` used instead of
-  reanimated for the skeleton pulse). Remaining `@lifedeck/ui` primitives
-  (Dialog→Modal, Tabs, Toast, TaskCheckbox, PasswordField, Celebration, Logo)
-  are built on demand during V4-4.
-- **Not yet validated on a real device/emulator.** Everything passes
-  typecheck/lint/tests/package builds; the first `expo start` against the
-  deployed backend (Bearer reaching `/sessions/me`) is still ahead.
+  `createApiClient` factory + `ApiError` (100% covered, including the multipart
+  path the assistant chat needs). Web and mobile both consume it.
+  **Hook sharing stopped at the transport, deliberately.** The data hooks are
+  ported into `apps/mobile/src/lib/api` as near-verbatim copies rather than
+  moved into `packages/client` — the "extraction noise" fallback in section 10.
+  The reason: web hooks import `apiRequest` as a module singleton, and the web's
+  ~25 hook test files mock exactly that module. Sharing them means introducing a
+  client-injection seam and rewriting every one of those tests, which is real
+  churn against a 95% gate for zero user-visible gain. To keep the copies
+  cheap to diff, the mobile client's base URL excludes `/api/v1`, so the hook
+  bodies are character-for-character identical to the web's; each file says so
+  at the top. Genuinely platform-coupled hooks (`use-session`, `use-auth`,
+  `use-account`, `use-assistant`) diverge and say why.
+- **V4-3 — done.** See section 5: every primitive, the icon set, and
+  device-following dark mode.
+- **V4-4 — done.** See section 6 for the route table and the three deliberate
+  divergences.
+- **V4-5 — done, via the assistant chat.** See section 7.
 
-Next: **V4-4**, starting with the read-heavy screens (Today, Lists, Habits).
+**Validated by bundling, not yet on a real device.** `pnpm check` is green
+across all 8 packages (lint + typecheck + format + 2177 tests at the 95%
+coverage gate), and — new in this pass — `expo export` now succeeds for **both
+iOS (1854 modules) and Android (1954 modules)**, which is what caught the Metro
+resolution bugs in section 10. Still ahead: running it on a simulator/device
+against the deployed backend, and EAS Build/Submit to the stores.
+
+**Follow-ups, none blocking:**
+
+- Component-level tests for the app. The mobile package has a vitest setup and a
+  100%-covered pure-module suite (dates, calendar ranges, base64, weekday
+  labels, `cn`, prices), but screens are RN trees that need a native renderer
+  (jest-expo / RNTL) rather than jsdom; they are covered by typecheck, lint and
+  the bundle today. `vitest.config.ts` records the scope and why.
+- Universal links. Deep links use the `lifedeck://` scheme; associating the web
+  domain (`applinks` / `assetlinks.json`) needs the store build and is part of
+  the EAS step.
+- Native IAP and push notifications, both explicitly V4.1.

@@ -40,6 +40,7 @@ analytics. No account required to start, optional account when you want more.
 | i18n          | Typed SSR message catalogs from `Accept-Language` (en, pt, es) |
 | Testing       | Vitest + Testing Library (95% coverage gate)                   |
 | Tooling       | pnpm workspaces, Turborepo, ESLint, Prettier                   |
+| Mobile        | Expo SDK 57 (React Native 0.86), Expo Router, NativeWind       |
 | Hosting       | Vercel (web + API), Neon (database)                            |
 
 ## Monorepo layout
@@ -47,16 +48,22 @@ analytics. No account required to start, optional account when you want more.
 ```
 lifedeck/
 ├── apps/
-│   └── web/              Next.js app: UI + white-label REST API (/api/v1)
+│   ├── web/             Next.js app: UI + white-label REST API (/api/v1)
+│   └── mobile/          Expo (iOS + Android) app: a thin client over /api/v1
 ├── packages/
 │   ├── domain/          Entities, value objects, domain errors (pure, no deps)
 │   ├── application/     Use cases, ports (interfaces), DTOs
 │   ├── infrastructure/  Prisma repositories, Resend email, adapters
 │   ├── ui/              Design system (React + Tailwind + Framer Motion)
+│   ├── client/          Shared API transport (request/response contract)
 │   ├── i18n/            Locale messages and detection
 │   └── config/          Shared tsconfig, eslint, prettier presets
 └── docs/                Architecture, API, security, testing, design, i18n
 ```
+
+The mobile app rebuilds only the presentation layer: it reuses `domain`,
+`application` (types) and `i18n` unchanged, and talks to the same `/api/v1`
+surface the web does through `packages/client`.
 
 Dependencies flow inward: `domain` knows nothing about frameworks; `application`
 depends on `domain`; `infrastructure` and `apps/web` depend on both through
@@ -70,6 +77,17 @@ pnpm install
 cp .env.example .env      # then fill in the values
 pnpm dev                  # starts the web app on http://localhost:3000
 ```
+
+For the mobile app:
+
+```bash
+cd apps/mobile
+cp .env.example .env      # point EXPO_PUBLIC_API_URL at your API
+pnpm start                # then press i / a, or scan with a dev build
+```
+
+It needs a development build (not Expo Go) because of the native modules it
+uses (SecureStore, audio, image picker). More in [docs/mobile.md](./docs/mobile.md).
 
 Useful scripts:
 
@@ -98,7 +116,8 @@ More detail in [docs/getting-started.md](./docs/getting-started.md).
 - [Internationalization](./docs/i18n.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Development plan](./DEVELOPMENT_PLAN.md)
-- [V2 plan](./docs/v2-plan.md) · [V3 plan](./docs/v3-plan.md)
+- [Mobile app](./docs/mobile.md)
+- [V2 plan](./docs/v2-plan.md) · [V3 plan](./docs/v3-plan.md) · [V4 plan](./docs/v4-plan.md)
 
 ## License
 
