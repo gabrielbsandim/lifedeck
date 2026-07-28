@@ -82,12 +82,27 @@ way. For native props NativeWind cannot reach (navigation theming,
 `colors` export — that one is light-only and exists for default props evaluated
 outside a render.
 
-**Metro and pnpm.** `disableHierarchicalLookup` must stay OFF. The usual
-monorepo advice is to turn it on, but that assumes a hoisted layout; pnpm nests
-each package's dependencies, so Metro has to be allowed to walk up from the
-importing file or transitive imports fail to resolve. Packages our own source
-pulls in through a toolchain (`@expo/metro-runtime`, `react-native-css-interop`)
-are declared as direct dependencies for the same reason.
+**Metro, Babel and pnpm.** React Native's toolchain assumes a hoisted
+`node_modules`; pnpm gives each package only its own declared dependencies.
+Three consequences, all of them found the hard way:
+
+- `disableHierarchicalLookup` must stay **OFF** in `metro.config.js`. The usual
+  monorepo advice is to turn it on, but that assumes the hoisted layout, and
+  with it on every transitive import fails to resolve.
+- Packages our own source pulls in through a toolchain
+  (`@expo/metro-runtime`, `react-native-css-interop`, `babel-preset-expo`) are
+  declared as direct dependencies, because a config file naming a package makes
+  it a direct dependency whether or not the package manager agrees.
+- The root `.npmrc` hoists `@babel/*`, `babel-plugin-*` and `babel-preset-*` to
+  the workspace root. Babel resolves the plugins a preset names as strings from
+  the app directory, and pnpm does not put them there. **Setting
+  `public-hoist-pattern` replaces pnpm's default list rather than adding to it**,
+  so `*eslint*` and `*prettier*` are repeated there; drop them and every shared
+  eslint config stops resolving.
+
+The last two only show up in a clean install. A machine that has run `pnpm add`
+a few times keeps enough in the virtual store to hide them, so CI finds them
+first.
 
 ## Icons and splash
 
