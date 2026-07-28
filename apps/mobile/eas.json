@@ -9,7 +9,7 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lifedeck.com.br"
+        "EXPO_PUBLIC_API_URL": "https://www.lifedeck.com.br"
       }
     },
     "preview": {
@@ -20,7 +20,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lifedeck.com.br"
+        "EXPO_PUBLIC_API_URL": "https://www.lifedeck.com.br"
       }
     },
     "production": {
@@ -31,7 +31,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lifedeck.com.br"
+        "EXPO_PUBLIC_API_URL": "https://www.lifedeck.com.br"
       }
     }
   },
