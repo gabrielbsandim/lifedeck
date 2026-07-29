@@ -1,6 +1,7 @@
 import {
   asEntityId,
   civilDate,
+  civilHour,
   isHabitScheduledOn,
   toMessageLanguage,
 } from '@lifedeck/domain'
@@ -90,7 +91,11 @@ export function makeSendHabitCheckin({
     }
 
     const language = toMessageLanguage(user.locale)
-    const text = composeHabitCheckin(language, habit.title)
+    const text = composeHabitCheckin(
+      language,
+      habit.title,
+      civilHour(clock.now(), user.timezone),
+    )
     const { delivered } = await sendProactiveMessage(userId, {
       text,
       template: checkinTemplate?.name

@@ -33,6 +33,7 @@ async function setup(options?: {
   cap?: number
   ownerId?: EntityId
   delivered?: boolean
+  now?: Date
 }) {
   const habits = new InMemoryHabitRepository()
   const habitLogs = new InMemoryHabitLogRepository()
@@ -85,7 +86,7 @@ async function setup(options?: {
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
     publishNotification: testPublishNotification(notifications),
     ids: { generate: () => asEntityId(NOTIFICATION_ID) },
-    clock: new FixedClock(NOW),
+    clock: new FixedClock(options?.now ?? NOW),
     checkinTemplate: options?.checkinTemplate,
   })
 
@@ -102,6 +103,17 @@ describe('sendHabitCheckin', () => {
     const [, message] = sendProactiveMessage.mock.calls[0]!
     expect(message.text).toContain('Did you Meditate today?')
     expect(message.template).toBeUndefined()
+  })
+
+  it('nudges forward instead of asking when the check-in hour is in the morning', async () => {
+    const { sendHabitCheckin, sendProactiveMessage } = await setup({
+      now: new Date('2026-07-20T07:00:00.000Z'),
+    })
+
+    await sendHabitCheckin(ID.user, HABIT)
+
+    const [, message] = sendProactiveMessage.mock.calls[0]!
+    expect(message.text).toContain('Meditate is on your list for today')
   })
 
   it('sends the habit_checkin template with the title as its param', async () => {
