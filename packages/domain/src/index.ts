@@ -1,7 +1,7 @@
 export { DomainError, ValidationError } from '@/shared/domain-error'
 export { guard } from '@/shared/guard'
 export { asEntityId, type EntityId } from '@/shared/id'
-export { Email } from '@/value-objects/email'
+export { Email, isDeliverableEmail } from '@/value-objects/email'
 export {
   MESSAGE_LANGUAGES,
   detectMessageLanguage,

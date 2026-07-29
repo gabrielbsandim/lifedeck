@@ -15,6 +15,13 @@ export class InMemoryScheduledJobRepository implements ScheduledJobRepository {
       .slice(0, limit)
   }
 
+  async nextPendingRunAt(): Promise<Date | null> {
+    const pending = [...this.items.values()]
+      .filter(job => job.status === 'pending')
+      .sort((a, b) => a.runAt.getTime() - b.runAt.getTime())
+    return pending[0]?.runAt ?? null
+  }
+
   async claimDue(
     now: Date,
     limit: number,

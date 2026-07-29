@@ -6,6 +6,7 @@ import {
   InMemoryChannelIdentityRepository,
   InMemoryConversationStore,
   InMemoryNotificationRepository,
+  FakeDispatchWatermark,
   InMemoryScheduledJobRepository,
   InMemoryUsageEventLedger,
   InMemoryUsageMeter,
@@ -70,6 +71,7 @@ describe('V2 calendar reminder happy path', () => {
       ids,
       clock,
       new NoopJobScheduler(),
+      new FakeDispatchWatermark(),
     )
 
     const createEvent = makeCreateCalendarEvent({
@@ -98,6 +100,7 @@ describe('V2 calendar reminder happy path', () => {
     })
     const dispatch = makeDispatchDueJobs({
       scheduledJobs,
+      watermark: new FakeDispatchWatermark(),
       handlers: {
         [CALENDAR_PUSH_JOB]: async () => {},
         [REMINDER_JOB]: payload =>
@@ -154,6 +157,7 @@ describe('V2 whatsapp assistant happy path', () => {
       ids,
       clock,
       new NoopJobScheduler(),
+      new FakeDispatchWatermark(),
     )
     const createEvent = makeCreateCalendarEvent({
       calendarEvents,

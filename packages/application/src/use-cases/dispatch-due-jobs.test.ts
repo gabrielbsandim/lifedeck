@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ScheduledJob, asEntityId } from '@lifedeck/domain'
+import { FakeDispatchWatermark } from '@/testing/fake-dispatch-watermark'
 import { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
 import { makeDispatchDueJobs } from '@/use-cases/dispatch-due-jobs'
 
@@ -37,6 +38,7 @@ describe('dispatchDueJobs', () => {
       scheduledJobs: repo,
       handlers: { ping: handler },
       clock,
+      watermark: new FakeDispatchWatermark(),
     })
 
     const result = await dispatch()
@@ -54,6 +56,7 @@ describe('dispatchDueJobs', () => {
       scheduledJobs: repo,
       handlers: { ping: handler },
       clock,
+      watermark: new FakeDispatchWatermark(),
     })
 
     const result = await dispatch()
@@ -70,6 +73,7 @@ describe('dispatchDueJobs', () => {
       scheduledJobs: repo,
       handlers: {},
       clock,
+      watermark: new FakeDispatchWatermark(),
     })
 
     const result = await dispatch()
@@ -90,6 +94,7 @@ describe('dispatchDueJobs', () => {
         },
       },
       clock,
+      watermark: new FakeDispatchWatermark(),
       backoff: () => 60_000,
     })
 
@@ -113,6 +118,7 @@ describe('dispatchDueJobs', () => {
         },
       },
       clock,
+      watermark: new FakeDispatchWatermark(),
       maxAttempts: 1,
     })
 
@@ -134,6 +140,7 @@ describe('dispatchDueJobs', () => {
         },
       },
       clock,
+      watermark: new FakeDispatchWatermark(),
       logger,
       backoff: () => 60_000,
     })
@@ -159,6 +166,7 @@ describe('dispatchDueJobs', () => {
         },
       },
       clock,
+      watermark: new FakeDispatchWatermark(),
       logger,
       maxAttempts: 1,
     })
@@ -194,11 +202,67 @@ describe('dispatchDueJobs', () => {
       scheduledJobs: repo,
       handlers: { ping: handler },
       clock,
+      watermark: new FakeDispatchWatermark(),
     })
 
     const result = await dispatch(2)
 
     expect(result.processed).toBe(2)
     expect(handler).toHaveBeenCalledTimes(2)
+  })
+
+  it('clears the watermark when the queue drains completely', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
+    const watermark = new FakeDispatchWatermark()
+    const dispatch = makeDispatchDueJobs({
+      scheduledJobs: repo,
+      handlers: { ping: vi.fn().mockResolvedValue(undefined) },
+      clock,
+      watermark,
+    })
+
+    await dispatch()
+
+    expect(watermark.drained).toEqual([null])
+    expect(await watermark.hasWorkBefore(NOW)).toBe(false)
+  })
+
+  it('leaves the watermark at the next pending job after a partial drain', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    const later = new Date('2026-06-24T18:00:00.000Z')
+    await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
+    await repo.save(job(ID_B, 'ping', later))
+    const watermark = new FakeDispatchWatermark()
+    const dispatch = makeDispatchDueJobs({
+      scheduledJobs: repo,
+      handlers: { ping: vi.fn().mockResolvedValue(undefined) },
+      clock,
+      watermark,
+    })
+
+    await dispatch()
+
+    expect(watermark.drained).toEqual([later])
+    expect(await watermark.hasWorkBefore(NOW)).toBe(false)
+    expect(await watermark.hasWorkBefore(later)).toBe(true)
+  })
+
+  it('keeps the watermark due when a failed job is scheduled for retry', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    await repo.save(job(ID_A, 'ping', new Date('2026-06-24T09:00:00.000Z')))
+    const watermark = new FakeDispatchWatermark()
+    const dispatch = makeDispatchDueJobs({
+      scheduledJobs: repo,
+      handlers: { ping: vi.fn().mockRejectedValue(new Error('boom')) },
+      clock,
+      watermark,
+    })
+
+    await dispatch()
+
+    const [retryAt] = watermark.drained
+    expect(retryAt).toBeInstanceOf(Date)
+    expect(await watermark.hasWorkBefore(retryAt as Date)).toBe(true)
   })
 })

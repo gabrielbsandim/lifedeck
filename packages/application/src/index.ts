@@ -151,6 +151,7 @@ export type {
 export type { ScheduledJobRepository } from '@/ports/scheduled-job-repository'
 export type { JobQueue, EnqueueJobInput } from '@/ports/job-queue'
 export type { JobScheduler } from '@/ports/job-scheduler'
+export type { DispatchWatermark } from '@/ports/dispatch-watermark'
 export {
   makeDispatchDueJobs,
   type JobHandler,
@@ -568,6 +569,7 @@ export { InMemoryNotificationRepository } from '@/testing/in-memory-notification
 export { InMemoryPushDeviceRepository } from '@/testing/in-memory-push-device-repository'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
+export { FakeDispatchWatermark } from '@/testing/fake-dispatch-watermark'
 export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
 export { InMemoryCheckoutIntentRepository } from '@/testing/in-memory-checkout-intent-repository'
 export { InMemoryBillingCustomerRepository } from '@/testing/in-memory-billing-customer-repository'

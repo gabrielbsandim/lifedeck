@@ -25,7 +25,7 @@ async function addUser(
   })
   if (withEmail) {
     user.register({
-      email: `${id}@example.com`,
+      email: `${id}@lifedeck.com.br`,
       passwordHash: 'x',
       emailVerifiedAt: null,
     })
@@ -60,6 +60,33 @@ describe('enqueueDailyDigests', () => {
   it('ignores guests without an email', async () => {
     const users = new InMemoryUserRepository()
     await addUser(users, ID.user, 'America/Sao_Paulo', false)
+    const enqueue = vi.fn().mockResolvedValue(undefined)
+    const enqueueDailyDigests = makeEnqueueDailyDigests({
+      users,
+      jobQueue: { enqueue },
+      clock: new FixedClock(NOW),
+      digestHour: 7,
+    })
+
+    expect(await enqueueDailyDigests()).toEqual({ enqueued: 0 })
+    expect(enqueue).not.toHaveBeenCalled()
+  })
+
+  it('skips seed accounts on reserved domains no provider delivers to', async () => {
+    const users = new InMemoryUserRepository()
+    const user = User.createGuest({
+      id: ID.user,
+      displayName: 'Seed',
+      locale: 'pt',
+      timezone: 'America/Sao_Paulo',
+      createdAt: NOW,
+    })
+    user.register({
+      email: 'seed@example.com',
+      passwordHash: 'x',
+      emailVerifiedAt: null,
+    })
+    await users.save(user)
     const enqueue = vi.fn().mockResolvedValue(undefined)
     const enqueueDailyDigests = makeEnqueueDailyDigests({
       users,

@@ -200,6 +200,7 @@ import {
   OutboxJobQueue,
   QStashJobScheduler,
   NoopJobScheduler,
+  createDispatchWatermark,
   createMessagingChannel,
   createAgentRunner,
   createConversationStore,
@@ -303,6 +304,7 @@ type Container = {
   authenticateApiKey: ReturnType<typeof makeAuthenticateApiKey>
   checkHealth: ReturnType<typeof makeCheckHealth>
   dispatchDueJobs: ReturnType<typeof makeDispatchDueJobs>
+  hasDueJobs: (now: Date) => Promise<boolean>
   startCheckout: ReturnType<typeof makeStartCheckout>
   handleSubscriptionWebhook: ReturnType<typeof makeHandleSubscriptionWebhook>
   startLocalCheckout: ReturnType<typeof makeStartLocalCheckout>
@@ -337,6 +339,8 @@ type Container = {
     briefs: number
     checkins: number
     nudges: number
+  }>
+  runCalendarMaintenance: () => Promise<{
     reconciled: number
     renewed: number
   }>
@@ -484,7 +488,21 @@ function build(
             }),
         })
       : new NoopJobScheduler()
-  const jobQueue = new OutboxJobQueue(scheduledJobs, ids, clock, jobScheduler)
+  // Redis-side mirror of "when is the next job due". The fallback cron reads it
+  // before touching Postgres, so an empty queue never wakes a suspended compute.
+  // Fails open: without Redis, or on any error, the sweep runs as before.
+  const dispatchWatermark = createDispatchWatermark(error =>
+    log('warn', 'dispatch_watermark_failed', {
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  )
+  const jobQueue = new OutboxJobQueue(
+    scheduledJobs,
+    ids,
+    clock,
+    jobScheduler,
+    dispatchWatermark,
+  )
   // One adapter per provider; sync use cases resolve by connection.provider so a
   // user's Google, Apple, and cal.com calendars all flow through one path.
   const calendarProviders: CalendarProviderRegistry = {
@@ -602,6 +620,7 @@ function build(
   const dispatchDueJobs = makeDispatchDueJobs({
     scheduledJobs,
     clock,
+    watermark: dispatchWatermark,
     logger: {
       error: (message, meta) => log('error', message, meta),
       warn: (message, meta) => log('warn', message, meta),
@@ -648,23 +667,29 @@ function build(
     },
   })
   const runScheduledFanOut = async () => {
-    const [digests, briefs, checkins, nudges, reconciled, renewed] =
-      await Promise.all([
-        enqueueDailyDigests(),
-        enqueueDailyBriefs(),
-        enqueueHabitCheckins(),
-        enqueueNudges(),
-        reconcileCalendars(),
-        renewCalendarChannels(),
-      ])
+    const [digests, briefs, checkins, nudges] = await Promise.all([
+      enqueueDailyDigests(),
+      enqueueDailyBriefs(),
+      enqueueHabitCheckins(),
+      enqueueNudges(),
+    ])
     return {
       digests: digests.enqueued,
       briefs: briefs.enqueued,
       checkins: checkins.enqueued,
       nudges: nudges.enqueued,
-      reconciled: reconciled.enqueued,
-      renewed: renewed.enqueued,
     }
+  }
+  // Google push notifications are the primary calendar sync path, so this
+  // reconcile is only the safety net for a dropped notification. It runs on its
+  // own slow schedule instead of riding the hourly fan-out, which was costing 24
+  // full pulls a day to catch the rare miss.
+  const runCalendarMaintenance = async () => {
+    const [reconciled, renewed] = await Promise.all([
+      reconcileCalendars(),
+      renewCalendarChannels(),
+    ])
+    return { reconciled: reconciled.enqueued, renewed: renewed.enqueued }
   }
   const asaasGateway = new AsaasPaymentGateway()
   const gateways = {
@@ -991,6 +1016,7 @@ function build(
       version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
     }),
     dispatchDueJobs,
+    hasDueJobs: (now: Date) => dispatchWatermark.hasWorkBefore(now),
     startCheckout: makeStartCheckout({
       gateways,
       checkoutIntents,
@@ -1058,6 +1084,7 @@ function build(
     }),
     googleCalendarAuthUrl: (state: string) => googleCalendar.authUrl(state),
     runScheduledFanOut,
+    runCalendarMaintenance,
     enqueueReminderBackfill,
     startWhatsappPairing: makeStartWhatsappPairing({
       channelIdentities,

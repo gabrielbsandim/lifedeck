@@ -1,4 +1,4 @@
-import { civilHour } from '@lifedeck/domain'
+import { civilHour, isDeliverableEmail } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { JobQueue } from '@/ports/job-queue'
 import type { UserRepository } from '@/ports/user-repository'
@@ -26,6 +26,9 @@ export function makeEnqueueDailyDigests({
     let enqueued = 0
     for (const user of eligible) {
       if (civilHour(now, user.timezone) !== digestHour) {
+        continue
+      }
+      if (!user.email || !isDeliverableEmail(user.email)) {
         continue
       }
       await jobQueue.enqueue({

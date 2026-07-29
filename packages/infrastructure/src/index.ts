@@ -115,6 +115,11 @@ export {
   type QStashJobSchedulerDeps,
 } from '@/scheduling/qstash-job-scheduler'
 export { NoopJobScheduler } from '@/scheduling/noop-job-scheduler'
+export {
+  createDispatchWatermark,
+  NoopDispatchWatermark,
+  RedisDispatchWatermark,
+} from '@/scheduling/redis-dispatch-watermark'
 export { PrismaSubscriptionRepository } from '@/database/prisma-subscription-repository'
 export { PrismaCheckoutIntentRepository } from '@/database/prisma-checkout-intent-repository'
 export { PrismaBillingCustomerRepository } from '@/database/prisma-billing-customer-repository'

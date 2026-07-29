@@ -66,6 +66,15 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
     return rows.map(row => toDomainScheduledJob(fromPrisma(row)))
   }
 
+  async nextPendingRunAt(): Promise<Date | null> {
+    const row = await this.prisma.scheduledJob.findFirst({
+      where: { status: 'pending' },
+      orderBy: { runAt: 'asc' },
+      select: { runAt: true },
+    })
+    return row?.runAt ?? null
+  }
+
   async claimDue(
     now: Date,
     limit: number,

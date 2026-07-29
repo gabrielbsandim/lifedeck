@@ -1,4 +1,5 @@
 import type { Clock } from '@/ports/clock'
+import type { DispatchWatermark } from '@/ports/dispatch-watermark'
 import type { Logger } from '@/ports/logger'
 import type { ScheduledJobRepository } from '@/ports/scheduled-job-repository'
 
@@ -14,6 +15,7 @@ type Dependencies = {
   scheduledJobs: ScheduledJobRepository
   handlers: Record<string, JobHandler>
   clock: Clock
+  watermark: DispatchWatermark
   logger?: Logger
   maxAttempts?: number
   backoff?: (attempt: number) => number
@@ -31,6 +33,7 @@ export function makeDispatchDueJobs({
   scheduledJobs,
   handlers,
   clock,
+  watermark,
   logger,
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
   backoff = defaultBackoff,
@@ -95,6 +98,8 @@ export function makeDispatchDueJobs({
         failed += 1
       }
     }
+
+    await watermark.markDrained(await scheduledJobs.nextPendingRunAt())
 
     return { processed: due.length, succeeded, failed }
   }

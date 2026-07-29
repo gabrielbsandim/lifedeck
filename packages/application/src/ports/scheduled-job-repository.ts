@@ -9,4 +9,10 @@ export interface ScheduledJobRepository {
    * crashed run lets the lease expire and the job becomes due again.
    */
   claimDue(now: Date, limit: number, leaseUntil: Date): Promise<ScheduledJob[]>
+  /**
+   * Run time of the earliest pending job, or `null` when the queue is empty.
+   * Feeds the dispatch watermark so the next fallback sweep knows whether it
+   * has to touch the database at all.
+   */
+  nextPendingRunAt(): Promise<Date | null>
 }

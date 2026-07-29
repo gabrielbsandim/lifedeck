@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { asEntityId } from '@lifedeck/domain'
-import { InMemoryScheduledJobRepository } from '@lifedeck/application'
+import {
+  FakeDispatchWatermark,
+  InMemoryScheduledJobRepository,
+} from '@lifedeck/application'
 import { OutboxJobQueue } from '@/scheduling/outbox-job-queue'
 import { NoopJobScheduler } from '@/scheduling/noop-job-scheduler'
 
@@ -14,6 +17,7 @@ describe('OutboxJobQueue', () => {
       { generate: () => asEntityId(NEW_ID) },
       { now: () => new Date('2026-06-24T08:00:00.000Z') },
       new NoopJobScheduler(),
+      new FakeDispatchWatermark(),
     )
     const runAt = new Date('2026-06-24T09:00:00.000Z')
 
@@ -38,6 +42,7 @@ describe('OutboxJobQueue', () => {
       { generate: () => asEntityId(NEW_ID) },
       { now: () => new Date('2026-06-24T08:00:00.000Z') },
       new NoopJobScheduler(),
+      new FakeDispatchWatermark(),
     )
 
     await queue.enqueue({
@@ -53,17 +58,20 @@ describe('OutboxJobQueue', () => {
   it('schedules a wake at the job run time after persisting', async () => {
     const repo = new InMemoryScheduledJobRepository()
     const scheduleWake = vi.fn().mockResolvedValue(undefined)
+    const watermark = new FakeDispatchWatermark()
     const queue = new OutboxJobQueue(
       repo,
       { generate: () => asEntityId(NEW_ID) },
       { now: () => new Date('2026-06-24T08:00:00.000Z') },
       { scheduleWake },
+      watermark,
     )
     const runAt = new Date('2026-06-24T09:00:00.000Z')
 
     await queue.enqueue({ type: 'reminder', payload: {}, runAt })
 
     expect(scheduleWake).toHaveBeenCalledWith(runAt)
+    expect(watermark.noted).toEqual([runAt])
     // The job is persisted regardless, so the fallback cron can still drain it.
     const due = await repo.listDue(new Date('2026-06-24T09:30:00.000Z'), 10)
     expect(due).toHaveLength(1)
