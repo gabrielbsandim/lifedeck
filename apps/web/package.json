@@ -35,10 +35,10 @@
     "@upstash/redis": "1.38.0",
     "framer-motion": "11.15.0",
     "jose": "6.2.3",
-    "next": "16.2.6",
+    "next": "16.4.2",
     "qrcode.react": "4.2.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
     "zod": "3.25.76"
   },
   "devDependencies": {
@@ -55,7 +55,7 @@
     "@vitejs/plugin-react": "4.3.4",
     "@vitest/coverage-v8": "2.1.8",
     "eslint": "9.17.0",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.4.2",
     "jsdom": "25.0.1",
     "serwist": "9.5.11",
     "tailwindcss": "4.1.13",
