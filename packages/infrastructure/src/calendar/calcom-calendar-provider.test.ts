@@ -97,6 +97,7 @@ describe('CalcomCalendarProvider', () => {
       externalId: 'bk-1',
       title: 'Intro call',
       allDay: false,
+      busy: true,
       deleted: false,
     })
     expect(page.events[1]).toMatchObject({ externalId: 'bk-2', deleted: true })

@@ -36,6 +36,7 @@ function external(
     allDay: false,
     recurrence: null,
     reminders: [],
+    busy: true,
     updatedAt: new Date('2026-06-24T09:00:00.000Z'),
     recurringEventExternalId: null,
     originalStartsAt: null,
@@ -109,10 +110,37 @@ describe('pullCalendarChanges', () => {
       'g-1',
     )
     expect(stored?.source).toBe('google')
+    expect(stored?.busy).toBe(true)
     const connection = await calendarConnections.findDefaultByOwner(
       asEntityId(OWNER_ID),
     )
     expect(connection?.syncToken).toBe('sync-2')
+  })
+
+  it('stores an event the remote shows as free as not busy', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const provider = providerWith({
+      events: [external({ busy: false })],
+      nextSyncToken: null,
+    })
+    const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    await pull(OWNER_ID)
+
+    const stored = await calendarEvents.findByExternalId(
+      asEntityId(OWNER_ID),
+      'g-1',
+    )
+    expect(stored?.busy).toBe(false)
   })
 
   it('arms reminder jobs for a synced event that carries reminders', async () => {
@@ -165,7 +193,9 @@ describe('pullCalendarChanges', () => {
     const enqueue = vi.fn().mockResolvedValue(undefined)
     const provider = providerWith({
       // Remote is older (default updatedAt) but carries a reminder offset.
-      events: [external({ title: 'From Google', reminders: [15] })],
+      events: [
+        external({ title: 'From Google', reminders: [15], busy: false }),
+      ],
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
@@ -187,6 +217,7 @@ describe('pullCalendarChanges', () => {
     )
     // Reminder imported, but the newer local title is preserved.
     expect(stored?.reminders).toEqual([15])
+    expect(stored?.busy).toBe(false)
     expect(stored?.toJSON().title).toBe('Dentist (local edit)')
     const reminders = enqueue.mock.calls
       .map(call => call[0])
@@ -369,7 +400,7 @@ describe('pullCalendarChanges', () => {
     })
     await calendarEvents.save(local)
     const provider = providerWith({
-      events: [external({ title: 'New title', updatedAt: NOW })],
+      events: [external({ title: 'New title', updatedAt: NOW, busy: false })],
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
@@ -390,6 +421,7 @@ describe('pullCalendarChanges', () => {
       'g-1',
     )
     expect(stored?.toJSON().title).toBe('New title')
+    expect(stored?.busy).toBe(false)
   })
 
   it('keeps the local copy when the remote change is stale', async () => {

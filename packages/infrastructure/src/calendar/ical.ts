@@ -23,6 +23,8 @@ export type ParsedEvent = {
   recurrenceId: Date | null
   updatedAt: Date
   cancelled: boolean
+  // TRANSP:TRANSPARENT, the iCal "show as free".
+  transparent: boolean
 }
 
 type Prop = { name: string; params: Record<string, string>; value: string }
@@ -142,6 +144,7 @@ function buildEvent(props: Prop[]): ParsedEvent {
     recurrenceId: recurrenceId ? parseDate(recurrenceId).date : null,
     updatedAt: lastModified ? parseDate(lastModified).date : new Date(0),
     cancelled: get('STATUS')?.value.trim().toUpperCase() === 'CANCELLED',
+    transparent: get('TRANSP')?.value.trim().toUpperCase() === 'TRANSPARENT',
   }
 }
 
@@ -248,6 +251,45 @@ export function buildCalendar(input: BuildCalendarInput): string {
             : line,
         )
       : []),
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ]
+  return lines.map(foldLine).join('\r\n')
+}
+
+export type BookingInviteInput = {
+  uid: string
+  // PUBLISH adds or updates the entry in the client's calendar; CANCEL removes it.
+  method: 'PUBLISH' | 'CANCEL'
+  sequence: number
+  summary: string
+  description: string | null
+  location: string | null
+  startsAt: Date
+  endsAt: Date
+  dtstamp: Date
+}
+
+// The `.ics` attached to a booking email. Same UID across every email for one
+// booking, and a growing SEQUENCE, so calendar apps update instead of duplicate.
+export function buildBookingInvite(input: BookingInviteInput): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Lifedeck//Booking//EN',
+    `METHOD:${input.method}`,
+    'BEGIN:VEVENT',
+    `UID:${input.uid}`,
+    `SEQUENCE:${input.sequence}`,
+    `DTSTAMP:${stamp(input.dtstamp, false)}`,
+    `DTSTART:${stamp(input.startsAt, false)}`,
+    `DTEND:${stamp(input.endsAt, false)}`,
+    `SUMMARY:${escapeText(input.summary)}`,
+    ...(input.description
+      ? [`DESCRIPTION:${escapeText(input.description)}`]
+      : []),
+    ...(input.location ? [`LOCATION:${escapeText(input.location)}`] : []),
+    `STATUS:${input.method === 'CANCEL' ? 'CANCELLED' : 'CONFIRMED'}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ]

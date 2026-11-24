@@ -158,6 +158,7 @@ export function makePullCalendarChanges({
                 allDay: external.allDay,
                 reminders: external.reminders,
                 cancelled: external.cancelledOccurrence,
+                busy: external.busy,
               },
               clock.now(),
             )
@@ -168,9 +169,12 @@ export function makePullCalendarChanges({
               connection.id,
             )
           } else {
-            // Forced backfill of an unchanged event: refresh only the reminder
-            // offsets, leaving local content edits untouched.
-            existing.update({ reminders: external.reminders }, clock.now())
+            // Forced backfill of an unchanged event: refresh only what the
+            // remote side owns (reminders, free/busy), never local content.
+            existing.update(
+              { reminders: external.reminders, busy: external.busy },
+              clock.now(),
+            )
           }
           await calendarEvents.save(existing)
           // A cancelled instance must not remind; an edited (moved) one should.
@@ -192,6 +196,7 @@ export function makePullCalendarChanges({
           recurrenceMasterExternalId: external.recurringEventExternalId,
           originalStartsAt: external.originalStartsAt,
           cancelled: external.cancelledOccurrence,
+          busy: external.busy,
           source: connection.provider,
           connectionId: connection.id,
           externalId: external.externalId,
@@ -234,6 +239,7 @@ export function makePullCalendarChanges({
               allDay: external.allDay,
               reminders: external.reminders,
               recurrence: external.recurrence,
+              busy: external.busy,
             },
             clock.now(),
           )
@@ -245,7 +251,10 @@ export function makePullCalendarChanges({
             connection.id,
           )
         } else {
-          existing.update({ reminders: external.reminders }, clock.now())
+          existing.update(
+            { reminders: external.reminders, busy: external.busy },
+            clock.now(),
+          )
         }
         await calendarEvents.save(existing)
         await armReminders(existing)
@@ -263,6 +272,7 @@ export function makePullCalendarChanges({
         allDay: external.allDay,
         reminders: external.reminders,
         recurrence: external.recurrence,
+        busy: external.busy,
         source: connection.provider,
         connectionId: connection.id,
         externalId: external.externalId,

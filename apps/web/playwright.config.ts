@@ -19,6 +19,8 @@ export default defineConfig({
     command: 'pnpm start',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
+    // Booking ships behind its flags; the e2e server runs with them on.
+    env: { FEATURES_V2: 'true', FEATURE_BOOKING: 'true' },
     timeout: 120_000,
   },
 })

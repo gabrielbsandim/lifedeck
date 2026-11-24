@@ -210,6 +210,14 @@ describe('CalendarEvent', () => {
     expect(event.updatedAt).toEqual(new Date('2026-06-26T10:00:00.000Z'))
   })
 
+  it('blocks time by default and can be shown as free', () => {
+    expect(build().busy).toBe(true)
+    const event = build()
+    event.update({ busy: false }, new Date('2026-06-26T10:00:00.000Z'))
+    expect(event.busy).toBe(false)
+    expect(event.toJSON().busy).toBe(false)
+  })
+
   it('exposes its recurrence rule', () => {
     const event = CalendarEvent.create({
       id: asEntityId(ID),

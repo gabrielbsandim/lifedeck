@@ -6,6 +6,8 @@ export const API_SCOPES = [
   'analytics:read',
   'calendar:read',
   'calendar:write',
+  'booking:read',
+  'booking:write',
 ] as const
 
 export type ApiScope = (typeof API_SCOPES)[number]

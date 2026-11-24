@@ -6,6 +6,7 @@ import {
   ForbiddenError,
   NotFoundError,
   QuotaExceededError,
+  SlotTakenError,
 } from '@lifedeck/application'
 import { log } from '@/server/api/logger'
 
@@ -69,6 +70,9 @@ export function handleError(error: unknown): NextResponse<ApiErrorBody> {
   }
   if (error instanceof ForbiddenError) {
     return fail('FORBIDDEN', error.message, 403)
+  }
+  if (error instanceof SlotTakenError) {
+    return fail('SLOT_TAKEN', error.message, 409)
   }
   if (error instanceof QuotaExceededError) {
     return fail('QUOTA_EXCEEDED', error.message, 429, {

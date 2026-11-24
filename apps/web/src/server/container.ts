@@ -241,6 +241,7 @@ import {
 } from '@/server/whatsapp-templates'
 import { log } from '@/server/api/logger'
 import { SITE_NAME, siteUrl } from '@/lib/site'
+import { buildBooking, type BookingContainer } from '@/server/booking-container'
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
@@ -362,6 +363,7 @@ type Container = {
   handleInboundWhatsApp: ReturnType<typeof makeHandleInboundWhatsApp>
   handleInAppMessage: ReturnType<typeof makeHandleInAppMessage>
   entitlements: EntitlementService
+  booking: BookingContainer
 }
 
 type Repositories = {
@@ -460,6 +462,7 @@ function build(
     push,
   }: Services,
   unitOfWork: UnitOfWork,
+  db: ReturnType<typeof createTransactionalClient>,
 ): Container {
   const clock = new SystemClock()
   const ids = new UuidGenerator()
@@ -634,57 +637,6 @@ function build(
     jobQueue,
     clock,
   })
-  const dispatchDueJobs = makeDispatchDueJobs({
-    scheduledJobs,
-    clock,
-    watermark: dispatchWatermark,
-    logger: appLogger,
-    handlers: {
-      [DAILY_DIGEST_JOB]: async payload => {
-        await sendDailyDigest(String(payload.userId))
-      },
-      [DAILY_BRIEF_JOB]: async payload => {
-        await sendDailyBrief(String(payload.userId))
-      },
-      [HABIT_CHECKIN_JOB]: async payload => {
-        await sendHabitCheckin(String(payload.userId), String(payload.habitId))
-      },
-      [NUDGE_JOB]: async payload => {
-        await sendNudge(String(payload.userId))
-      },
-      [CALENDAR_PULL_JOB]: async payload => {
-        const result = await pullCalendarChanges(String(payload.userId), {
-          force: payload.force === true,
-        })
-        // Throwing hands the job back to the dispatcher's backoff, so a
-        // transient Google failure is retried instead of being marked done.
-        if (result.failed > 0) {
-          throw new Error(`${result.failed} calendar connection(s) failed`)
-        }
-      },
-      [CALENDAR_PUSH_JOB]: async payload => {
-        await pushCalendarEvent(String(payload.userId), String(payload.eventId))
-      },
-      [CALENDAR_DELETE_JOB]: async payload => {
-        await deleteRemoteCalendarEvent(
-          String(payload.userId),
-          String(payload.externalId),
-          payload.connectionId ? String(payload.connectionId) : undefined,
-        )
-      },
-      [CALENDAR_WATCH_JOB]: async payload => {
-        await watchGoogleCalendar(String(payload.userId), calendarWebhookUrl)
-      },
-      [REMINDER_JOB]: async payload => {
-        await deliverReminder(
-          String(payload.eventId),
-          String(payload.userId),
-          Number(payload.minutesBefore),
-          payload.occurrenceStart ? String(payload.occurrenceStart) : undefined,
-        )
-      },
-    },
-  })
   const runScheduledFanOut = async () => {
     const [digests, briefs, checkins, nudges] = await Promise.all([
       enqueueDailyDigests(),
@@ -854,6 +806,77 @@ function build(
     nudgeTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.nudge),
   })
 
+  const booking = buildBooking({
+    db,
+    users,
+    emailSender,
+    entitlements: entitlementService,
+    jobQueue,
+    unitOfWork,
+    ids,
+    clock,
+    logger: appLogger,
+    listCalendarEvents,
+    pullCalendarChanges,
+    createCalendarEvent,
+    updateCalendarEvent,
+    deleteCalendarEvent,
+    publishNotification,
+    appUrl: siteUrl(),
+    env: process.env,
+  })
+  const dispatchDueJobs = makeDispatchDueJobs({
+    scheduledJobs,
+    clock,
+    watermark: dispatchWatermark,
+    logger: appLogger,
+    handlers: {
+      [DAILY_DIGEST_JOB]: async payload => {
+        await sendDailyDigest(String(payload.userId))
+      },
+      [DAILY_BRIEF_JOB]: async payload => {
+        await sendDailyBrief(String(payload.userId))
+      },
+      [HABIT_CHECKIN_JOB]: async payload => {
+        await sendHabitCheckin(String(payload.userId), String(payload.habitId))
+      },
+      [NUDGE_JOB]: async payload => {
+        await sendNudge(String(payload.userId))
+      },
+      [CALENDAR_PULL_JOB]: async payload => {
+        const result = await pullCalendarChanges(String(payload.userId), {
+          force: payload.force === true,
+        })
+        // Throwing hands the job back to the dispatcher's backoff, so a
+        // transient Google failure is retried instead of being marked done.
+        if (result.failed > 0) {
+          throw new Error(`${result.failed} calendar connection(s) failed`)
+        }
+      },
+      [CALENDAR_PUSH_JOB]: async payload => {
+        await pushCalendarEvent(String(payload.userId), String(payload.eventId))
+      },
+      [CALENDAR_DELETE_JOB]: async payload => {
+        await deleteRemoteCalendarEvent(
+          String(payload.userId),
+          String(payload.externalId),
+          payload.connectionId ? String(payload.connectionId) : undefined,
+        )
+      },
+      [CALENDAR_WATCH_JOB]: async payload => {
+        await watchGoogleCalendar(String(payload.userId), calendarWebhookUrl)
+      },
+      [REMINDER_JOB]: async payload => {
+        await deliverReminder(
+          String(payload.eventId),
+          String(payload.userId),
+          Number(payload.minutesBefore),
+          payload.occurrenceStart ? String(payload.occurrenceStart) : undefined,
+        )
+      },
+      ...booking.jobHandlers,
+    },
+  })
   const listListTasks = makeListListTasks({
     tasks,
     subtasks,
@@ -1159,6 +1182,7 @@ function build(
       turnLock,
     }),
     entitlements: entitlementService,
+    booking,
   }
 }
 
@@ -1280,6 +1304,7 @@ export function getContainer(): Container {
         push: createPushSender(),
       },
       new PrismaUnitOfWork(prisma),
+      db,
     )
   }
   return container

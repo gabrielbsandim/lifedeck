@@ -48,7 +48,7 @@ const ApiKeyAuth = registry.registerComponent('securitySchemes', 'ApiKeyAuth', {
   type: 'http',
   scheme: 'bearer',
   description:
-    'Send a personal API key as `Authorization: Bearer tk_live_...` (or the `X-API-Key` header). Keys are scoped and rate limited per key. Each endpoint lists the scope it requires in its `security` entry; a request whose key lacks that scope is rejected with `403`. Available scopes: `lists:read`, `lists:write`, `tasks:read`, `tasks:write`, `analytics:read`, `calendar:read`, `calendar:write`.',
+    'Send a personal API key as `Authorization: Bearer tk_live_...` (or the `X-API-Key` header). Keys are scoped and rate limited per key. Each endpoint lists the scope it requires in its `security` entry; a request whose key lacks that scope is rejected with `403`. Available scopes: `lists:read`, `lists:write`, `tasks:read`, `tasks:write`, `analytics:read`, `calendar:read`, `calendar:write`, `booking:read`, `booking:write`.',
 })
 
 const apiKeySecurity = [{ [ApiKeyAuth.name]: [] }]

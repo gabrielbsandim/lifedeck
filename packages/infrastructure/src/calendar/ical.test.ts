@@ -29,6 +29,7 @@ describe('parseCalendarEvents', () => {
       recurrence: null,
       recurrenceId: null,
       cancelled: false,
+      transparent: false,
     })
     expect(event!.startsAt.toISOString()).toBe('2026-07-20T15:00:00.000Z')
     expect(event!.endsAt.toISOString()).toBe('2026-07-20T16:00:00.000Z')
@@ -135,6 +136,15 @@ describe('parseCalendarEvents', () => {
     )
     expect(event!.allDay).toBe(true)
     expect(event!.startsAt.toISOString()).toBe('2026-07-20T00:00:00.000Z')
+  })
+
+  it('flags an event shown as free', () => {
+    const [event] = parseCalendarEvents(
+      wrap(
+        'BEGIN:VEVENT\r\nUID:f1\r\nSUMMARY:Focus\r\nDTSTART:20260720T150000Z\r\nDTEND:20260720T160000Z\r\nTRANSP:TRANSPARENT\r\nEND:VEVENT',
+      ),
+    )
+    expect(event!.transparent).toBe(true)
   })
 
   it('flags a cancelled event and unfolds wrapped lines', () => {

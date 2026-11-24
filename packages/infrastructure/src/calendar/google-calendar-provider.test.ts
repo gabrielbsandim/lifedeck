@@ -233,6 +233,37 @@ describe('GoogleCalendarProvider', () => {
       expect(page.events[2]?.title).toBe('(no title)')
     })
 
+    it('lets events shown as free and declined invites stop blocking time', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          items: [
+            googleEvent({ id: 'evt-free', transparency: 'transparent' }),
+            googleEvent({
+              id: 'evt-declined',
+              attendees: [
+                { email: 'boss@example.com', responseStatus: 'accepted' },
+                { self: true, responseStatus: 'declined' },
+              ],
+            }),
+            googleEvent({
+              id: 'evt-accepted',
+              transparency: 'opaque',
+              attendees: [{ self: true, responseStatus: 'accepted' }],
+            }),
+            googleEvent({ id: 'evt-plain' }),
+          ],
+          nextSyncToken: 'sync-1',
+        }),
+      )
+      const page = await provider().listChanges(connection())
+      expect(page.events.map(event => [event.externalId, event.busy])).toEqual([
+        ['evt-free', false],
+        ['evt-declined', false],
+        ['evt-accepted', true],
+        ['evt-plain', true],
+      ])
+    })
+
     it('maps explicit reminder overrides to sorted, deduped minute offsets', async () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({

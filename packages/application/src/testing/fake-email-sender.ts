@@ -1,4 +1,5 @@
 import type {
+  BookingNotice,
   DailyDigestSummary,
   EmailLocale,
   EmailSender,
@@ -76,5 +77,19 @@ export class FakeEmailSender implements EmailSender {
     timeZone?: string,
   ): Promise<void> {
     this.reminders.push({ to, eventTitle, startsAt, locale, timeZone })
+  }
+
+  readonly bookingNotices: Array<{
+    to: string
+    notice: BookingNotice
+    locale: EmailLocale
+  }> = []
+
+  async sendBookingNotice(
+    to: string,
+    notice: BookingNotice,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    this.bookingNotices.push({ to, notice, locale })
   }
 }

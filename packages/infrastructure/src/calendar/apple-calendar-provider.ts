@@ -331,6 +331,7 @@ function toExternalEvent(
     // CalDAV VALARM parsing is not wired yet, so Apple events carry no reminder
     // offsets. Google is the reminder-bearing source today.
     reminders: [],
+    busy: !parsed.transparent,
     updatedAt: parsed.updatedAt,
     recurringEventExternalId: isOverride ? resourceHref : null,
     originalStartsAt: parsed.recurrenceId,
@@ -351,6 +352,7 @@ function deletedEvent(externalId: string): ExternalCalendarEvent {
     allDay: false,
     recurrence: null,
     reminders: [],
+    busy: true,
     updatedAt: new Date(0),
     recurringEventExternalId: null,
     originalStartsAt: null,

@@ -21,6 +21,8 @@ vi.mock('@upstash/ratelimit', () => ({
 import {
   checkAssistantRateLimit,
   checkAuthRateLimit,
+  checkBookingRequestRateLimit,
+  checkBookingSlotsRateLimit,
   checkGenerateRateLimit,
   checkGuestSessionRateLimit,
   checkPublicRateLimit,
@@ -87,6 +89,11 @@ describe('rate limit', () => {
   it('allows public traffic when Upstash is not configured', async () => {
     const result = await checkPublicRateLimit('shared:1.2.3.4')
     expect(result).toEqual({ ok: true, limit: 60, remaining: 60, reset: 0 })
+  })
+
+  it('allows booking traffic when Upstash is not configured', async () => {
+    expect((await checkBookingSlotsRateLimit('slots:1.2.3.4')).limit).toBe(60)
+    expect((await checkBookingRequestRateLimit('book:1.2.3.4')).limit).toBe(5)
   })
 
   it('prefers the platform x-real-ip over a spoofable x-forwarded-for', () => {

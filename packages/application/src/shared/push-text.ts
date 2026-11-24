@@ -10,6 +10,10 @@ type Titles = {
   nudge: string
   checkin: string
   assigned: string
+  bookingRequested: string
+  bookingConfirmed: string
+  bookingCancelled: string
+  bookingRescheduled: string
 }
 
 const TITLES: Record<MessageLanguage, Titles> = {
@@ -19,6 +23,10 @@ const TITLES: Record<MessageLanguage, Titles> = {
     nudge: 'Still on your list',
     checkin: 'Habit check-in',
     assigned: 'New task for you',
+    bookingRequested: 'Booking request',
+    bookingConfirmed: 'New booking',
+    bookingCancelled: 'Booking cancelled',
+    bookingRescheduled: 'Booking moved',
   },
   pt: {
     reminder: 'Lembrete',
@@ -26,6 +34,10 @@ const TITLES: Record<MessageLanguage, Titles> = {
     nudge: 'Ainda na sua lista',
     checkin: 'Check-in de hábito',
     assigned: 'Nova tarefa para você',
+    bookingRequested: 'Pedido de agendamento',
+    bookingConfirmed: 'Novo agendamento',
+    bookingCancelled: 'Agendamento cancelado',
+    bookingRescheduled: 'Agendamento remarcado',
   },
   es: {
     reminder: 'Recordatorio',
@@ -33,6 +45,10 @@ const TITLES: Record<MessageLanguage, Titles> = {
     nudge: 'Sigue en tu lista',
     checkin: 'Check-in de hábito',
     assigned: 'Nueva tarea para ti',
+    bookingRequested: 'Solicitud de reserva',
+    bookingConfirmed: 'Nueva reserva',
+    bookingCancelled: 'Reserva cancelada',
+    bookingRescheduled: 'Reserva movida',
   },
 }
 

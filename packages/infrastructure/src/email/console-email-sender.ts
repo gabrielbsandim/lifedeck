@@ -1,4 +1,5 @@
 import type {
+  BookingNotice,
   DailyDigestSummary,
   EmailLocale,
   EmailSender,
@@ -54,6 +55,16 @@ export class ConsoleEmailSender implements EmailSender {
   ): Promise<void> {
     console.info(
       `[lifedeck] reminder for ${to} (${locale}, ${timeZone ?? 'UTC'}): ${eventTitle} at ${startsAt}`,
+    )
+  }
+
+  async sendBookingNotice(
+    to: string,
+    notice: BookingNotice,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    console.info(
+      `[lifedeck] booking ${notice.kind} "${notice.serviceName}" for ${to} (${locale}) at ${notice.startsAt.toISOString()}: ${notice.manageUrl ?? 'no link'}`,
     )
   }
 }

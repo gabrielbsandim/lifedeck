@@ -123,6 +123,48 @@ export {
   type TimeInterval,
   type FindFreeSlotsParams,
 } from '@/value-objects/free-slots'
+export {
+  bookableSlots,
+  type BookableSlotsParams,
+} from '@/value-objects/bookable-slots'
+export {
+  validateWeeklyAvailability,
+  validateAvailabilityOverride,
+  type DayWindow,
+  type WeeklyWindow,
+  type AvailabilityOverride,
+} from '@/value-objects/availability'
+export {
+  BOOKING_LOCATION_KINDS,
+  validateBookingLocation,
+  type BookingLocation,
+  type BookingLocationKind,
+} from '@/value-objects/booking-location'
+export {
+  isReservedBookingSlug,
+  validateBookingSlug,
+} from '@/value-objects/booking-slug'
+export {
+  BOOKING_STATUSES,
+  BOOKING_SOURCES,
+  isBookingStatus,
+  isBookingSource,
+  canTransitionBooking,
+  holdsSlot,
+  type BookingStatus,
+  type BookingSource,
+} from '@/value-objects/booking-status'
+export { BookingPage, type BookingPageProps } from '@/entities/booking-page'
+export {
+  BookingService,
+  type BookingServiceProps,
+  type BookingServiceSettings,
+} from '@/entities/booking-service'
+export {
+  BookingClient,
+  type BookingClientProps,
+} from '@/entities/booking-client'
+export { Booking, type BookingProps } from '@/entities/booking'
 export { Task, type TaskProps } from '@/entities/task'
 export {
   Subtask,

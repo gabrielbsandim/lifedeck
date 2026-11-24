@@ -34,6 +34,8 @@ export type {
   EmailSender,
   EmailLocale,
   DailyDigestSummary,
+  BookingNotice,
+  BookingNoticeKind,
 } from '@/ports/email-sender'
 export { toEmailLocale } from '@/ports/email-sender'
 export { formatEventTime } from '@/shared/format-event-time'
@@ -50,6 +52,7 @@ export {
   ForbiddenError,
   QuotaExceededError,
   MediaUnderstandingUnavailableError,
+  SlotTakenError,
 } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -586,3 +589,75 @@ export { FakeDispatchWatermark } from '@/testing/fake-dispatch-watermark'
 export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
 export { InMemoryCheckoutIntentRepository } from '@/testing/in-memory-checkout-intent-repository'
 export { InMemoryBillingCustomerRepository } from '@/testing/in-memory-billing-customer-repository'
+export type { BookingPageRepository } from '@/ports/booking-page-repository'
+export type { BookingServiceRepository } from '@/ports/booking-service-repository'
+export type { AvailabilityRepository } from '@/ports/availability-repository'
+export type { BookingClientRepository } from '@/ports/booking-client-repository'
+export type { BookingRepository } from '@/ports/booking-repository'
+export {
+  InMemoryBookingPageRepository,
+  InMemoryBookingServiceRepository,
+  InMemoryAvailabilityRepository,
+  InMemoryBookingClientRepository,
+  InMemoryBookingRepository,
+} from '@/testing/in-memory-booking-repositories'
+export type { BookingTokenSigner } from '@/ports/booking-token-signer'
+export { FakeBookingTokenSigner } from '@/testing/fake-booking-token-signer'
+export * from '@/dtos/booking-dto'
+export {
+  toBookingPageView,
+  toBookingServiceView,
+  toBookingClientView,
+  toBookingView,
+} from '@/mappers/booking-mapper'
+export {
+  BOOKING_NOTICE_JOB,
+  BOOKING_REMINDER_JOB,
+  BOOKING_REMINDER_LEAD_MIN,
+} from '@/shared/booking-jobs'
+export {
+  makeLoadPublicPage,
+  makeLoadManagedBooking,
+  type PublicPageLoader,
+  type LoadManagedBooking,
+} from '@/shared/booking-context'
+export {
+  makeServiceSlots,
+  makeRefreshHostCalendar,
+  type ServiceSlots,
+  type RefreshHostCalendar,
+} from '@/shared/booking-slots'
+export {
+  makeUpsertBookingClient,
+  makeBookingLifecycle,
+  type BookingLifecycle,
+  type UpsertBookingClient,
+} from '@/shared/booking-records'
+export { makeBookingMailer, type BookingMailer } from '@/shared/booking-notice'
+export { makeGetBookingSetup } from '@/use-cases/get-booking-setup'
+export { makeUpsertBookingPage } from '@/use-cases/upsert-booking-page'
+export { makeCheckBookingSlug } from '@/use-cases/check-booking-slug'
+export { makeCreateBookingService } from '@/use-cases/create-booking-service'
+export { makeUpdateBookingService } from '@/use-cases/update-booking-service'
+export { makeArchiveBookingService } from '@/use-cases/archive-booking-service'
+export { makeReorderBookingServices } from '@/use-cases/reorder-booking-services'
+export { makeSetAvailability } from '@/use-cases/set-availability'
+export { makeSetAvailabilityOverride } from '@/use-cases/set-availability-override'
+export { makeDeleteAvailabilityOverride } from '@/use-cases/delete-availability-override'
+export { makeListBookingClients } from '@/use-cases/list-booking-clients'
+export { makeUpsertBookingClientForHost } from '@/use-cases/upsert-booking-client'
+export { makeListBookings } from '@/use-cases/list-bookings'
+export { makeConfirmBooking } from '@/use-cases/confirm-booking'
+export { makeDeclineBooking } from '@/use-cases/decline-booking'
+export { makeCancelBooking } from '@/use-cases/cancel-booking'
+export { makeRescheduleBooking } from '@/use-cases/reschedule-booking'
+export { makeMarkBookingOutcome } from '@/use-cases/mark-booking-outcome'
+export { makeCreateBookingForClient } from '@/use-cases/create-booking-for-client'
+export { makeGetPublicBookingPage } from '@/use-cases/get-public-booking-page'
+export { makeListBookableSlots } from '@/use-cases/list-bookable-slots'
+export { makeRequestBooking } from '@/use-cases/request-booking'
+export { makeGetManagedBooking } from '@/use-cases/get-managed-booking'
+export { makeCancelBookingByToken } from '@/use-cases/cancel-booking-by-token'
+export { makeRescheduleBookingByToken } from '@/use-cases/reschedule-booking-by-token'
+export { makeDeliverBookingNotice } from '@/use-cases/deliver-booking-notice'
+export { makeDeliverBookingReminder } from '@/use-cases/deliver-booking-reminder'

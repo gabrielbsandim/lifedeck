@@ -21,6 +21,7 @@ function event(id: string, startsAt: string): CalendarEventView {
     allDay: false,
     reminders: [],
     recurrence: null,
+    busy: true,
     recurring: false,
     seriesId: null,
     occurrenceStart: null,

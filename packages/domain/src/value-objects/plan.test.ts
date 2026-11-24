@@ -32,6 +32,7 @@ describe('plan', () => {
       'calendarSync',
       'whatsappAssistant',
       'proactiveMessaging',
+      'booking',
     ])
     expect(entitlementsForPlan('premium')).toEqual([
       'calendarSync',
@@ -39,6 +40,7 @@ describe('plan', () => {
       'premiumModel',
       'proactiveMessaging',
       'smartScheduling',
+      'booking',
     ])
   })
 
@@ -58,6 +60,9 @@ describe('plan', () => {
     expect(planGrants('free', 'smartScheduling')).toBe(false)
     expect(planGrants('pro', 'smartScheduling')).toBe(false)
     expect(planGrants('premium', 'smartScheduling')).toBe(true)
+
+    expect(planGrants('free', 'booking')).toBe(false)
+    expect(planGrants('pro', 'booking')).toBe(true)
   })
 
   it('exposes a rising credit quota per plan', () => {

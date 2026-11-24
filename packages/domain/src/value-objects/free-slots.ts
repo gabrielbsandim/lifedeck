@@ -11,7 +11,7 @@ const DEFAULT_MAX_RESULTS = 8
 
 // Merge overlapping or touching intervals into a sorted, disjoint set. Empty and
 // inverted intervals are dropped.
-function mergeIntervals(intervals: TimeInterval[]): TimeInterval[] {
+export function mergeIntervals(intervals: TimeInterval[]): TimeInterval[] {
   const sorted = intervals
     .filter(interval => interval.end.getTime() > interval.start.getTime())
     .sort((a, b) => a.start.getTime() - b.start.getTime())

@@ -30,6 +30,9 @@ export type CalendarEventProps = {
   recurrenceMasterExternalId: string | null
   originalStartsAt: Date | null
   cancelled: boolean
+  // False when the remote calendar shows the event as free (Google
+  // transparency, iCal TRANSP) or the owner declined it: shown, never blocking.
+  busy: boolean
   source: CalendarEventSource
   connectionId: EntityId | null
   externalId: string | null
@@ -87,6 +90,7 @@ export class CalendarEvent {
     recurrenceMasterExternalId?: string | null
     originalStartsAt?: Date | null
     cancelled?: boolean
+    busy?: boolean
     source?: CalendarEventSource
     connectionId?: EntityId | null
     externalId?: string | null
@@ -125,6 +129,7 @@ export class CalendarEvent {
       recurrenceMasterExternalId: input.recurrenceMasterExternalId ?? null,
       originalStartsAt: input.originalStartsAt ?? null,
       cancelled: input.cancelled ?? false,
+      busy: input.busy ?? true,
       source: input.source ?? 'local',
       connectionId: input.connectionId ?? null,
       externalId: input.externalId ?? null,
@@ -195,6 +200,10 @@ export class CalendarEvent {
     return this.props.cancelled
   }
 
+  get busy(): boolean {
+    return this.props.busy
+  }
+
   get connectionId(): EntityId | null {
     return this.props.connectionId
   }
@@ -243,6 +252,7 @@ export class CalendarEvent {
       reminders?: number[]
       recurrence?: RecurrenceRule | null
       cancelled?: boolean
+      busy?: boolean
     },
     now: Date,
   ): void {
@@ -289,6 +299,9 @@ export class CalendarEvent {
     }
     if (input.cancelled !== undefined) {
       this.props.cancelled = input.cancelled
+    }
+    if (input.busy !== undefined) {
+      this.props.busy = input.busy
     }
     this.props.updatedAt = now
   }

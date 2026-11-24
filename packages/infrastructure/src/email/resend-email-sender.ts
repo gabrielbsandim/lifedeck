@@ -1,9 +1,11 @@
 import { Resend } from 'resend'
 import type {
+  BookingNotice,
   DailyDigestSummary,
   EmailLocale,
   EmailSender,
 } from '@lifedeck/application'
+import { renderBookingEmail } from '@/email/render-booking-email'
 import { renderEmail } from '@/email/render-email'
 
 export class ResendEmailSender implements EmailSender {
@@ -17,12 +19,28 @@ export class ResendEmailSender implements EmailSender {
     this.client = new Resend(apiKey)
   }
 
-  private async send(to: string, subject: string, html: string): Promise<void> {
+  private async send(
+    to: string,
+    subject: string,
+    html: string,
+    ics: string | null = null,
+  ): Promise<void> {
     const { error } = await this.client.emails.send({
       from: this.from,
       to,
       subject,
       html,
+      ...(ics
+        ? {
+            attachments: [
+              {
+                filename: 'invite.ics',
+                content: Buffer.from(ics, 'utf8'),
+                contentType: 'text/calendar; charset=utf-8',
+              },
+            ],
+          }
+        : {}),
     })
     if (error) {
       throw new Error(`Resend failed to send email: ${error.message}`)
@@ -91,5 +109,14 @@ export class ResendEmailSender implements EmailSender {
       locale,
     )
     await this.send(to, subject, html)
+  }
+
+  async sendBookingNotice(
+    to: string,
+    notice: BookingNotice,
+    locale: EmailLocale = 'en',
+  ): Promise<void> {
+    const { subject, html, ics } = renderBookingEmail(notice, locale)
+    await this.send(to, subject, html, ics)
   }
 }

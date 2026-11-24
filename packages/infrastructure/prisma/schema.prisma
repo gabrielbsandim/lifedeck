@@ -74,6 +74,10 @@ model User {
   channelIdentities   ChannelIdentity[]
   nudgeLogs           NudgeLog[]
   pushDevices         PushDevice[]
+  bookingPage         BookingPage?
+  bookingServices     BookingService[]
+  bookingClients      BookingClient[]
+  bookings            Booking[]
 
   @@map("users")
 }
@@ -370,6 +374,7 @@ model CalendarEvent {
   recurrenceMasterExternalId String? @map("recurrence_master_external_id")
   originalStartsAt           DateTime? @map("original_starts_at")
   cancelled                  Boolean   @default(false)
+  busy                       Boolean   @default(true)
   source      String    @default("local")
   connectionId String?  @map("connection_id")
   externalId  String?   @map("external_id")
@@ -378,7 +383,8 @@ model CalendarEvent {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @default(now()) @map("updated_at")
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings Booking[]
 
   @@index([ownerId, startsAt])
   @@index([ownerId, externalId])
@@ -430,4 +436,131 @@ model ChannelIdentity {
   @@unique([channel, address])
   @@index([channel, pairingCode])
   @@map("channel_identities")
+}
+
+// One public booking page per host in V5. Availability hangs off the page and
+// is read in the page time zone.
+model BookingPage {
+  id              String   @id @default(uuid())
+  ownerId         String   @unique @map("owner_id")
+  slug            String   @unique
+  displayName     String   @map("display_name")
+  headline        String?
+  timezone        String
+  locale          String
+  cancelNoticeMin Int      @default(0) @map("cancel_notice_min")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at")
+
+  owner     User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  services  BookingService[]
+  rules     AvailabilityRule[]
+  overrides AvailabilityOverride[]
+
+  @@map("booking_pages")
+}
+
+model BookingService {
+  id               String   @id @default(uuid())
+  ownerId          String   @map("owner_id")
+  pageId           String   @map("page_id")
+  name             String
+  description      String?
+  durationMin      Int      @map("duration_min")
+  slotStepMin      Int      @map("slot_step_min")
+  bufferBeforeMin  Int      @map("buffer_before_min")
+  bufferAfterMin   Int      @map("buffer_after_min")
+  minNoticeMin     Int      @map("min_notice_min")
+  maxHorizonDays   Int      @map("max_horizon_days")
+  maxPerDay        Int?     @map("max_per_day")
+  location         Json
+  priceLabel       String?  @map("price_label")
+  requiresApproval Boolean  @default(false) @map("requires_approval")
+  active           Boolean  @default(true)
+  position         Int      @default(0)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @map("updated_at")
+
+  owner    User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  page     BookingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([pageId, position])
+  @@map("booking_services")
+}
+
+model AvailabilityRule {
+  id          String @id @default(uuid())
+  pageId      String @map("page_id")
+  weekday     Int
+  startMinute Int    @map("start_minute")
+  endMinute   Int    @map("end_minute")
+
+  page BookingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@map("availability_rules")
+}
+
+// An empty windows array closes the day.
+model AvailabilityOverride {
+  id      String   @id @default(uuid())
+  pageId  String   @map("page_id")
+  date    DateTime @db.Date
+  windows Json
+
+  page BookingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, date])
+  @@map("availability_overrides")
+}
+
+// Email is not unique: a client found by phone may carry an email another
+// client already holds, and merging must not fail on it.
+model BookingClient {
+  id        String   @id @default(uuid())
+  ownerId   String   @map("owner_id")
+  name      String
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@unique([ownerId, phone])
+  @@index([ownerId, email])
+  @@map("booking_clients")
+}
+
+// bookings_no_overlap (EXCLUDE USING gist, migration 037) keeps two holding
+// bookings of one host from overlapping; Prisma cannot express it.
+model Booking {
+  id              String   @id @default(uuid())
+  ownerId         String   @map("owner_id")
+  serviceId       String   @map("service_id")
+  clientId        String   @map("client_id")
+  startsAt        DateTime @map("starts_at")
+  endsAt          DateTime @map("ends_at")
+  status          String
+  source          String
+  calendarEventId String?  @map("calendar_event_id")
+  clientTimezone  String?  @map("client_timezone")
+  note            String?
+  cancelReason    String?  @map("cancel_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at")
+
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  service       BookingService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  client        BookingClient  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  calendarEvent CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, startsAt])
+  @@index([clientId])
+  @@index([calendarEventId])
+  @@map("bookings")
 }

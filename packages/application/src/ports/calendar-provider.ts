@@ -19,6 +19,9 @@ export type ExternalCalendarEvent = {
   // synced event fires the same lead-time reminders a locally created one does.
   // Empty when the provider has no reminder data.
   reminders: number[]
+  // False when the remote side shows the event as free or the owner declined
+  // it, so it never blocks a slot.
+  busy: boolean
   updatedAt: Date
   // `deleted` removes a top-level event's row. Occurrence overrides never delete
   // a row: `recurringEventExternalId` links them to the series master and

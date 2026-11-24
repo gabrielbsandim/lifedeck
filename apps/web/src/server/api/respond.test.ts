@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ValidationError } from '@lifedeck/domain'
-import { ForbiddenError, NotFoundError } from '@lifedeck/application'
+import {
+  ForbiddenError,
+  NotFoundError,
+  SlotTakenError,
+} from '@lifedeck/application'
 import { fail, handleError, ok, okPage, okSession } from '@/server/api/respond'
 
 describe('respond helpers', () => {
@@ -64,6 +68,12 @@ describe('respond helpers', () => {
 
   it('maps a ForbiddenError to 403', () => {
     expect(handleError(new ForbiddenError('task')).status).toBe(403)
+  })
+
+  it('maps a SlotTakenError to 409', async () => {
+    const response = handleError(new SlotTakenError())
+    expect(response.status).toBe(409)
+    expect((await response.json()).error.code).toBe('SLOT_TAKEN')
   })
 
   it('maps an unknown error to 500', () => {

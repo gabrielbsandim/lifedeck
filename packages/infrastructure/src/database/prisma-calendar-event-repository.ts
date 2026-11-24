@@ -26,6 +26,7 @@ function fromPrisma(record: {
   recurrenceMasterExternalId: string | null
   originalStartsAt: Date | null
   cancelled: boolean
+  busy: boolean
   source: string
   connectionId: string | null
   externalId: string | null
@@ -48,6 +49,7 @@ function fromPrisma(record: {
     recurrenceMasterExternalId: record.recurrenceMasterExternalId,
     originalStartsAt: record.originalStartsAt,
     cancelled: record.cancelled,
+    busy: record.busy,
     source: record.source as CalendarEventSource,
     connectionId: record.connectionId,
     externalId: record.externalId,
@@ -83,6 +85,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         recurrenceMasterExternalId: record.recurrenceMasterExternalId,
         originalStartsAt: record.originalStartsAt,
         cancelled: record.cancelled,
+        busy: record.busy,
         source: record.source,
         connectionId: record.connectionId,
         externalId: record.externalId,
@@ -103,6 +106,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         recurrenceMasterExternalId: record.recurrenceMasterExternalId,
         originalStartsAt: record.originalStartsAt,
         cancelled: record.cancelled,
+        busy: record.busy,
         source: record.source,
         connectionId: record.connectionId,
         externalId: record.externalId,

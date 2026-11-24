@@ -129,6 +129,7 @@ export const userViewSchema = z.object({
         'premiumModel',
         'proactiveMessaging',
         'smartScheduling',
+        'booking',
       ]),
     )
     .optional(),

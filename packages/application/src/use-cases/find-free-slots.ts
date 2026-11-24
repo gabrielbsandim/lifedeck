@@ -148,7 +148,7 @@ export function makeFindFreeSlots({
       to: new Date(rangeEnd).toISOString(),
     })
     const busy: TimeInterval[] = events
-      .filter(event => !event.allDay)
+      .filter(event => event.busy && !event.allDay)
       .map(event => ({
         start: new Date(event.startsAt),
         end: new Date(event.endsAt),

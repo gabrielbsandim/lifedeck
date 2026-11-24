@@ -6,13 +6,19 @@ import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { FixedClock, ID } from '@/testing/fakes'
 import type { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 
-type BusyEvent = { startsAt: string; endsAt: string; allDay: boolean }
+type BusyEvent = {
+  startsAt: string
+  endsAt: string
+  allDay: boolean
+  busy?: boolean
+}
 
-// The use case only reads startsAt/endsAt/allDay off each event.
+// The use case only reads startsAt/endsAt/allDay/busy off each event.
 function fakeList(
   events: BusyEvent[] = [],
 ): ReturnType<typeof makeListCalendarEvents> {
-  return (async () => events) as unknown as ReturnType<
+  const views = events.map(event => ({ busy: true, ...event }))
+  return (async () => views) as unknown as ReturnType<
     typeof makeListCalendarEvents
   >
 }
@@ -127,6 +133,26 @@ describe('findFreeSlots', () => {
       ...DAY,
     })
     expect(startHours(slots)).toContain('09:00')
+  })
+
+  it('does not treat an event shown as free as busy', async () => {
+    const { findFreeSlots } = await setup({
+      events: [
+        {
+          startsAt: '2026-07-20T12:00:00.000Z',
+          endsAt: '2026-07-20T13:00:00.000Z',
+          allDay: false,
+          busy: false,
+        },
+      ],
+    })
+    const slots = await findFreeSlots(ID.user, {
+      durationMin: 60,
+      granularityMin: 60,
+      maxResults: 20,
+      ...DAY,
+    })
+    expect(startHours(slots)).toContain('12:00')
   })
 
   it('returns nothing when no gap fits the duration', async () => {

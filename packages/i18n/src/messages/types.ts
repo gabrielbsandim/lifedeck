@@ -779,4 +779,58 @@ export type Messages = {
     removePhoto: string
     photoHint: string
   }
+  booking: {
+    pageTitle: string
+    chooseService: string
+    minutes: string
+    needsApproval: string
+    pickDay: string
+    pickTime: string
+    noSlots: string
+    previousDays: string
+    nextDays: string
+    timezone: string
+    yourDetails: string
+    name: string
+    email: string
+    phone: string
+    note: string
+    honeypot: string
+    book: string
+    request: string
+    back: string
+    slotTaken: string
+    failed: string
+    confirmedTitle: string
+    pendingTitle: string
+    confirmedBody: string
+    pendingBody: string
+    manage: string
+    unavailable: string
+    poweredBy: string
+    manageTitle: string
+    serviceWith: string
+    cancel: string
+    cancelReason: string
+    cancelConfirm: string
+    keep: string
+    reschedule: string
+    rescheduleConfirm: string
+    changed: string
+    tooLate: string
+    linkInvalid: string
+    status: Record<
+      | 'pending'
+      | 'confirmed'
+      | 'cancelled'
+      | 'declined'
+      | 'completed'
+      | 'no_show',
+      string
+    >
+    places: Record<
+      'online-meet' | 'online-link' | 'in-person' | 'phone',
+      string
+    >
+  }
 }

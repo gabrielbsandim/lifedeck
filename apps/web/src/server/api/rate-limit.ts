@@ -59,6 +59,20 @@ const PUBLIC_LIMIT: LimiterConfig = {
   prefix: 'lifedeck/ratelimit/public',
 }
 
+// Public booking: slot lookups per IP, and booking requests per IP and per
+// client email so one address cannot be flooded with confirmations.
+const BOOKING_SLOTS_LIMIT: LimiterConfig = {
+  requests: 60,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/booking-slots',
+}
+
+const BOOKING_REQUEST_LIMIT: LimiterConfig = {
+  requests: 5,
+  window: '600 s',
+  prefix: 'lifedeck/ratelimit/booking-request',
+}
+
 export type RateLimitResult = {
   ok: boolean
   limit: number
@@ -167,6 +181,18 @@ export function checkPublicRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
   return check(PUBLIC_LIMIT, identifier)
+}
+
+export function checkBookingSlotsRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(BOOKING_SLOTS_LIMIT, identifier)
+}
+
+export function checkBookingRequestRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(BOOKING_REQUEST_LIMIT, identifier)
 }
 
 export function clientIp(request: Request): string {

@@ -44,3 +44,14 @@ export class QuotaExceededError extends Error {
     this.name = 'QuotaExceededError'
   }
 }
+
+// The bookings_no_overlap exclusion constraint fired: another booking took
+// the slot between the slot check and the insert.
+export class SlotTakenError extends Error {
+  readonly code = 'SLOT_TAKEN'
+
+  constructor() {
+    super('That time was just booked. Pick another slot.')
+    this.name = 'SlotTakenError'
+  }
+}

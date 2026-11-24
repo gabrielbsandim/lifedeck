@@ -46,6 +46,19 @@ type GoogleEvent = {
   recurringEventId?: string
   originalStartTime?: GoogleSlot
   reminders?: { useDefault?: boolean; overrides?: GoogleReminder[] }
+  transparency?: string
+  attendees?: GoogleAttendee[]
+}
+
+type GoogleAttendee = { self?: boolean; responseStatus?: string }
+
+// "Show as free" and an invite the owner declined stay on the calendar but must
+// not make the owner look unavailable.
+function blocksTime(item: GoogleEvent): boolean {
+  const own = item.attendees?.find(attendee => attendee.self)
+  return (
+    item.transparency !== 'transparent' && own?.responseStatus !== 'declined'
+  )
 }
 
 type GoogleReminder = { method?: string; minutes?: number }
@@ -118,6 +131,7 @@ function toExternalEvent(
           startsAt.toISOString().slice(0, 10),
         ),
     reminders: mapReminders(item.reminders, defaultReminders),
+    busy: blocksTime(item),
     updatedAt: item.updated ? new Date(item.updated) : new Date(0),
     recurringEventExternalId: item.recurringEventId ?? null,
     originalStartsAt,

@@ -165,6 +165,13 @@ export {
 } from '@/calendar/calcom-calendar-provider'
 export { PrismaChannelIdentityRepository } from '@/database/prisma-channel-identity-repository'
 export {
+  PrismaBookingPageRepository,
+  PrismaBookingServiceRepository,
+  PrismaAvailabilityRepository,
+  PrismaBookingClientRepository,
+  PrismaBookingRepository,
+} from '@/database/prisma-booking-repositories'
+export {
   toDomainChannelIdentity,
   toChannelIdentityRecord,
   type ChannelIdentityRecord,
@@ -201,3 +208,5 @@ export {
   createTranscriber,
   createVisionReader,
 } from '@/messaging/gemini-multimodal'
+export { HmacBookingTokenSigner } from '@/security/hmac-booking-token-signer'
+export { renderBookingEmail } from '@/email/render-booking-email'

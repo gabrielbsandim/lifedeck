@@ -19,6 +19,7 @@ export type CalendarEventRecord = {
   recurrenceMasterExternalId: string | null
   originalStartsAt: Date | null
   cancelled: boolean
+  busy: boolean
   source: CalendarEventSource
   connectionId: string | null
   externalId: string | null
@@ -45,6 +46,7 @@ export function toDomainCalendarEvent(
     recurrenceMasterExternalId: record.recurrenceMasterExternalId,
     originalStartsAt: record.originalStartsAt,
     cancelled: record.cancelled,
+    busy: record.busy,
     source: record.source,
     connectionId:
       record.connectionId === null ? null : asEntityId(record.connectionId),
@@ -74,6 +76,7 @@ export function toCalendarEventRecord(
     recurrenceMasterExternalId: props.recurrenceMasterExternalId,
     originalStartsAt: props.originalStartsAt,
     cancelled: props.cancelled,
+    busy: props.busy,
     source: props.source,
     connectionId: props.connectionId,
     externalId: props.externalId,

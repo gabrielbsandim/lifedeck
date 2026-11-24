@@ -12,7 +12,7 @@ const BRAND = {
   codeBg: '#f1ecfd',
 }
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -21,7 +21,7 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;')
 }
 
-const LINK_FALLBACK: Record<EmailLocale, string> = {
+export const LINK_FALLBACK: Record<EmailLocale, string> = {
   en: 'If the button does not work, paste this link into your browser:',
   pt: 'Se o botão não funcionar, copie e cole este link no navegador:',
   es: 'Si el botón no funciona, copia y pega este enlace en tu navegador:',
@@ -44,7 +44,11 @@ const FOOTER_COPY: Record<EmailLocale, FooterCopy> = {
   },
 }
 
-function layout(title: string, body: string, locale: EmailLocale): string {
+export function layout(
+  title: string,
+  body: string,
+  locale: EmailLocale,
+): string {
   const footer = FOOTER_COPY[locale]
   const year = new Date().getFullYear()
   return `<!doctype html><html lang="${locale}"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>${escapeHtml(
@@ -77,11 +81,11 @@ ${body}
 </body></html>`
 }
 
-function paragraph(html: string): string {
+export function paragraph(html: string): string {
   return `<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${BRAND.body}">${html}</p>`
 }
 
-function button(url: string, label: string, fallback: string): string {
+export function button(url: string, label: string, fallback: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td align="center" style="padding:6px 0 24px"><a href="${url}" target="_blank" style="display:inline-block;background-color:${BRAND.primary};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 40px;border-radius:10px;line-height:1">${escapeHtml(
     label,
   )}</a></td></tr></table><p style="margin:0 0 6px;font-size:13px;line-height:1.5;color:${BRAND.muted}">${escapeHtml(

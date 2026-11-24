@@ -13,7 +13,9 @@ jobs that keep it all moving.
   (an array of offset minutes), an optional `recurrence` (reuses the V1
   `RecurrenceRule`, synced both directions), plus the sync columns `source`
   (`local` | `google`), `connectionId` (which calendar it belongs to),
-  `externalId`, `etag`, `syncedAt`. Invariant: `endsAt >= startsAt`.
+  `externalId`, `etag`, `syncedAt`, and `busy` (false when the remote calendar
+  shows the event as free or the owner declined the invite: still listed, never
+  blocking a free slot). Invariant: `endsAt >= startsAt`.
 - `CalendarConnection` (`packages/domain/src/entities/calendar-connection.ts`):
   `ownerId`, `provider`, `accountEmail`, `isDefault`, `accessToken`, `refreshToken`,
   `tokenExpiresAt`, `calendarId`, `syncToken`, `channelId`, `resourceId`,
@@ -65,7 +67,9 @@ abstraction: `exchangeCode`, `refreshAccessToken`, `listChanges`, `pushEvent`,
   `syncToken`; any failure with a stored token (a `410`, or a `400` after the
   query parameters changed) triggers one clean full resync. Create/update/delete
   reconcile deduped by `externalId`, adopting untagged legacy events into the
-  connection that pulls them.
+  connection that pulls them. `busy` comes from Google's `transparency` and the
+  `self` attendee's `responseStatus` (iCal `TRANSP` for Apple; cal.com bookings
+  always block), and a forced pull refreshes it with the reminders.
 - **Outbound:** a local create or update enqueues a `calendar-push` job (targeting
   the event's connection, or the default for new events); a delete on a synced event
   enqueues a `calendar-delete` job carrying the connection id. Conflict resolution is

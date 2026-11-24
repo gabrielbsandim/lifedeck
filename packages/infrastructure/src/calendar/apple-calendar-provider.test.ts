@@ -104,10 +104,12 @@ describe('AppleCalendarProvider', () => {
       externalId: 'https://dav.test/123/calendars/home/evt-1.ics',
       title: 'Lunch',
       etag: '"e1"',
+      busy: true,
       deleted: false,
     })
     expect(page.events[1]).toMatchObject({
       externalId: 'https://dav.test/123/calendars/home/gone.ics',
+      busy: true,
       deleted: true,
     })
   })

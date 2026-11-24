@@ -6,6 +6,8 @@ export const ENTITLEMENTS = [
   'proactiveMessaging',
   // The "find me time" scheduling flow.
   'smartScheduling',
+  // The public booking page and everything around it.
+  'booking',
 ] as const
 
 export type Entitlement = (typeof ENTITLEMENTS)[number]

@@ -25,6 +25,7 @@ describe('PlanEntitlementService', () => {
       'premiumModel',
       'proactiveMessaging',
       'smartScheduling',
+      'booking',
     ])
   })
 

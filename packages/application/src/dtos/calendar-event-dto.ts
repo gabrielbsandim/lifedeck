@@ -77,6 +77,8 @@ export const calendarEventViewSchema = z.object({
   allDay: z.boolean(),
   reminders: z.array(z.number().int()),
   recurrence: recurrenceRuleSchema.nullable(),
+  // False for an event the remote calendar shows as free or the owner declined.
+  busy: z.boolean(),
   // Occurrence linkage: `recurring` marks an event that belongs to a series;
   // `seriesId` is the master event's real id and `occurrenceStart` the original
   // start of this occurrence (both null for plain, non-recurring events).
