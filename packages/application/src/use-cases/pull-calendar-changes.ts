@@ -17,6 +17,7 @@ import type { Logger } from '@/ports/logger'
 import { makeEnsureFreshCalendarToken } from '@/shared/fresh-calendar-token'
 import type { UserRepository } from '@/ports/user-repository'
 import { ownerZoneFor, upcomingReminderJobs } from '@/shared/reminder-schedule'
+import type { BookingCalendarSync } from '@/shared/booking-calendar-sync'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
@@ -27,6 +28,7 @@ type Dependencies = {
   ids: IdGenerator
   clock: Clock
   logger?: Logger
+  bookingSync?: BookingCalendarSync
 }
 
 export type CalendarPullResult = {
@@ -43,6 +45,7 @@ export function makePullCalendarChanges({
   ids,
   clock,
   logger,
+  bookingSync,
 }: Dependencies) {
   const ensureFreshToken = makeEnsureFreshCalendarToken({
     calendarConnections,
@@ -213,6 +216,7 @@ export function makePullCalendarChanges({
 
       if (external.deleted) {
         if (existing) {
+          await bookingSync?.eventDeleted(existing.id)
           await calendarEvents.delete(existing.id)
           return true
         }
@@ -256,8 +260,16 @@ export function makePullCalendarChanges({
             clock.now(),
           )
         }
+        existing.setConferenceUrl(external.conferenceUrl)
         await calendarEvents.save(existing)
         await armReminders(existing)
+        if (isNewer) {
+          await bookingSync?.eventMoved(
+            existing.id,
+            existing.startsAt,
+            existing.endsAt,
+          )
+        }
         return true
       }
 
@@ -273,6 +285,7 @@ export function makePullCalendarChanges({
         reminders: external.reminders,
         recurrence: external.recurrence,
         busy: external.busy,
+        conferenceUrl: external.conferenceUrl,
         source: connection.provider,
         connectionId: connection.id,
         externalId: external.externalId,

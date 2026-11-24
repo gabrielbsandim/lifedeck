@@ -30,6 +30,8 @@ export type BookingNotice = {
   endsAt: Date
   timeZone: string
   location: BookingLocation
+  // The Google Meet link once Google created it; null for other places.
+  meetingUrl: string | null
   manageUrl: string | null
   reason: string | null
   // Grows with every change so calendar apps replace the earlier invite.

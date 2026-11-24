@@ -8,6 +8,7 @@ import type { BookingClientRepository } from '@/ports/booking-client-repository'
 import type { BookingPageRepository } from '@/ports/booking-page-repository'
 import type { BookingServiceRepository } from '@/ports/booking-service-repository'
 import type { BookingTokenSigner } from '@/ports/booking-token-signer'
+import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { Clock } from '@/ports/clock'
 import {
   toEmailLocale,
@@ -30,6 +31,10 @@ type Dependencies = {
   tokens: BookingTokenSigner
   appUrl: string
   clock: Clock
+  calendarEvents?: Pick<CalendarEventRepository, 'findById'>
+  // Pushes the event right away so Google hands back the Meet link before the
+  // email goes out; the queued push job would only run after it.
+  pushCalendarEvent?: (ownerId: string, eventId: string) => Promise<unknown>
 }
 
 export function makeBookingMailer({
@@ -40,7 +45,38 @@ export function makeBookingMailer({
   tokens,
   appUrl,
   clock,
+  calendarEvents,
+  pushCalendarEvent,
 }: Dependencies) {
+  async function meetingUrl(
+    booking: Booking,
+    service: BookingService,
+  ): Promise<string | null> {
+    const eventId = booking.calendarEventId
+    if (
+      service.location.kind !== 'online-meet' ||
+      !eventId ||
+      !booking.holdsSlot ||
+      !calendarEvents
+    ) {
+      return null
+    }
+    const event = await calendarEvents.findById(eventId)
+    if (
+      !event?.conferenceRequested ||
+      event.conferenceUrl ||
+      !pushCalendarEvent
+    ) {
+      return event?.conferenceUrl ?? null
+    }
+    try {
+      await pushCalendarEvent(booking.ownerId as string, eventId as string)
+    } catch {
+      return null
+    }
+    return (await calendarEvents.findById(eventId))?.conferenceUrl ?? null
+  }
+
   async function partsOf(booking: Booking): Promise<BookingParts | null> {
     const [service, client] = await Promise.all([
       services.findById(booking.serviceId),
@@ -81,6 +117,7 @@ export function makeBookingMailer({
       endsAt: props.endsAt,
       timeZone: props.clientTimezone ?? page.timezone,
       location: service.location,
+      meetingUrl: await meetingUrl(booking, service),
       manageUrl: manageUrl(booking),
       reason: props.cancelReason,
       sequence: Math.floor(props.updatedAt.getTime() / 1000),
@@ -92,7 +129,7 @@ export function makeBookingMailer({
     )
   }
 
-  return { partsOf, sendToClient }
+  return { partsOf, sendToClient, meetingUrl }
 }
 
 export type BookingMailer = ReturnType<typeof makeBookingMailer>

@@ -35,6 +35,7 @@ import {
   makeUpsertBookingClient,
   makeUpsertBookingClientForHost,
   makeUpsertBookingPage,
+  type CalendarEventRepository,
   type Clock,
   type EmailSender,
   type EntitlementService,
@@ -78,6 +79,8 @@ export type BookingDependencies = {
   createCalendarEvent: ReturnType<typeof makeCreateCalendarEvent>
   updateCalendarEvent: ReturnType<typeof makeUpdateCalendarEvent>
   deleteCalendarEvent: ReturnType<typeof makeDeleteCalendarEvent>
+  calendarEvents: CalendarEventRepository
+  pushCalendarEvent: (ownerId: string, eventId: string) => Promise<unknown>
   publishNotification: ReturnType<typeof makePublishNotification>
   appUrl: string
   env: Record<string, string | undefined>
@@ -149,9 +152,12 @@ export function buildBooking(deps: BookingDependencies) {
     tokens,
     appUrl: deps.appUrl,
     clock,
+    calendarEvents: deps.calendarEvents,
+    pushCalendarEvent: deps.pushCalendarEvent,
   })
   const shared = {
     ...repos,
+    calendarEvents: deps.calendarEvents,
     users: deps.users,
     ids: deps.ids,
     clock,

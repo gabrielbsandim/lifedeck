@@ -11,6 +11,7 @@ const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 2000
 const MAX_LOCATION_LENGTH = 300
 const MAX_REMINDERS = 5
+const MAX_CONFERENCE_URL_LENGTH = 500
 
 export type CalendarEventProps = {
   id: EntityId
@@ -33,6 +34,10 @@ export type CalendarEventProps = {
   // False when the remote calendar shows the event as free (Google
   // transparency, iCal TRANSP) or the owner declined it: shown, never blocking.
   busy: boolean
+  // Ask the remote calendar to attach a video call (Google Meet) on the next
+  // push; the link it returns lands in `conferenceUrl`.
+  conferenceRequested: boolean
+  conferenceUrl: string | null
   source: CalendarEventSource
   connectionId: EntityId | null
   externalId: string | null
@@ -73,6 +78,14 @@ function cleanText(
   return guard.maxLength(trimmed, max, field)
 }
 
+function cleanConferenceUrl(value: string | null | undefined): string | null {
+  const url = value?.trim()
+  if (!url || url.length > MAX_CONFERENCE_URL_LENGTH) {
+    return null
+  }
+  return /^https:\/\/\S+$/i.test(url) ? url : null
+}
+
 export class CalendarEvent {
   private constructor(private props: CalendarEventProps) {}
 
@@ -91,6 +104,8 @@ export class CalendarEvent {
     originalStartsAt?: Date | null
     cancelled?: boolean
     busy?: boolean
+    conferenceRequested?: boolean
+    conferenceUrl?: string | null
     source?: CalendarEventSource
     connectionId?: EntityId | null
     externalId?: string | null
@@ -130,6 +145,8 @@ export class CalendarEvent {
       originalStartsAt: input.originalStartsAt ?? null,
       cancelled: input.cancelled ?? false,
       busy: input.busy ?? true,
+      conferenceRequested: input.conferenceRequested ?? false,
+      conferenceUrl: cleanConferenceUrl(input.conferenceUrl),
       source: input.source ?? 'local',
       connectionId: input.connectionId ?? null,
       externalId: input.externalId ?? null,
@@ -204,6 +221,14 @@ export class CalendarEvent {
     return this.props.busy
   }
 
+  get conferenceRequested(): boolean {
+    return this.props.conferenceRequested
+  }
+
+  get conferenceUrl(): string | null {
+    return this.props.conferenceUrl
+  }
+
   get connectionId(): EntityId | null {
     return this.props.connectionId
   }
@@ -234,6 +259,11 @@ export class CalendarEvent {
     this.props.etag = etag
     this.props.syncedAt = syncedAt
     this.props.connectionId = connectionId
+  }
+
+  /** The link comes from the remote side, so it never counts as a local edit. */
+  setConferenceUrl(url: string | null): void {
+    this.props.conferenceUrl = cleanConferenceUrl(url)
   }
 
   markSynced(etag: string | null, syncedAt: Date): void {

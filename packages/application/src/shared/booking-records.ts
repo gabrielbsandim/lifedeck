@@ -181,6 +181,7 @@ export function makeBookingLifecycle({
         startsAt: booking.startsAt.toISOString(),
         endsAt: booking.endsAt.toISOString(),
         reminders: [HOST_REMINDER_MIN],
+        requestConference: service.location.kind === 'online-meet',
       })
       booking.linkCalendarEvent(asEntityId(event.id), now)
       await bookings.save(booking)

@@ -39,6 +39,7 @@ import {
   makeHandleInAppMessage,
   makeHandleCalendarNotification,
   makePullCalendarChanges,
+  makeBookingCalendarSync,
   makePushCalendarEvent,
   makeWatchGoogleCalendar,
   CALENDAR_PULL_JOB,
@@ -230,6 +231,7 @@ import {
   SystemClock,
   UuidGenerator,
   PrismaUnitOfWork,
+  PrismaBookingRepository,
   VercelBlobStorage,
   createTransactionalClient,
   prisma,
@@ -553,6 +555,13 @@ function build(
     ids,
     clock,
     logger: appLogger,
+    bookingSync: makeBookingCalendarSync({
+      bookings: new PrismaBookingRepository(db),
+      jobQueue,
+      unitOfWork,
+      clock,
+      logger: appLogger,
+    }),
   })
   const pushCalendarEvent = makePushCalendarEvent({
     calendarConnections,
@@ -821,6 +830,8 @@ function build(
     createCalendarEvent,
     updateCalendarEvent,
     deleteCalendarEvent,
+    calendarEvents,
+    pushCalendarEvent,
     publishNotification,
     appUrl: siteUrl(),
     env: process.env,

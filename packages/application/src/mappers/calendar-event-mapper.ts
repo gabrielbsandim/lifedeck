@@ -15,6 +15,7 @@ export function toCalendarEventView(event: CalendarEvent): CalendarEventView {
     reminders: props.reminders,
     recurrence: props.recurrence,
     busy: props.busy,
+    conferenceUrl: props.conferenceUrl,
     recurring:
       props.recurrence !== null || props.recurrenceMasterExternalId !== null,
     seriesId: null,

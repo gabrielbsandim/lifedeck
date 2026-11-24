@@ -235,4 +235,32 @@ describe('CalendarEvent', () => {
     })
     expect(event.recurrence?.freq).toBe('weekly')
   })
+
+  it('asks for a video call and keeps only an https link', () => {
+    const plain = build()
+    expect(plain.conferenceRequested).toBe(false)
+    expect(plain.conferenceUrl).toBeNull()
+
+    const meet = CalendarEvent.create({
+      id: asEntityId(ID),
+      ownerId: asEntityId(OWNER_ID),
+      title: 'Class',
+      startsAt: STARTS,
+      endsAt: ENDS,
+      conferenceRequested: true,
+      conferenceUrl: 'javascript:alert(1)',
+      now: NOW,
+    })
+    expect(meet.conferenceRequested).toBe(true)
+    expect(meet.conferenceUrl).toBeNull()
+
+    const before = meet.updatedAt
+    meet.setConferenceUrl(' https://meet.google.com/abc-defg-hij ')
+    expect(meet.conferenceUrl).toBe('https://meet.google.com/abc-defg-hij')
+    expect(meet.updatedAt).toBe(before)
+    meet.setConferenceUrl(`https://meet.google.com/${'x'.repeat(500)}`)
+    expect(meet.conferenceUrl).toBeNull()
+    meet.setConferenceUrl(null)
+    expect(meet.toJSON().conferenceUrl).toBeNull()
+  })
 })

@@ -198,11 +198,14 @@ const METHOD: Record<BookingNoticeKind, 'PUBLISH' | 'CANCEL' | null> = {
   declined: 'CANCEL',
 }
 
-function placeDetail(location: BookingLocation): string | null {
+function placeDetail(
+  location: BookingLocation,
+  meetingUrl: string | null,
+): string | null {
   const details: Record<BookingLocation['kind'], string | null> = {
     'online-link': location.kind === 'online-link' ? location.url : null,
     'in-person': location.kind === 'in-person' ? location.address : null,
-    'online-meet': null,
+    'online-meet': meetingUrl,
     phone: null,
   }
   return details[location.kind]
@@ -222,7 +225,7 @@ export function renderBookingEmail(
   const host = escapeHtml(notice.hostName)
   const start = notice.startsAt.toISOString()
   const when = `${formatEventTime(start, locale, notice.timeZone)} (${notice.timeZone})`
-  const detail = placeDetail(notice.location)
+  const detail = placeDetail(notice.location, notice.meetingUrl)
   const place = copy.places[notice.location.kind]
   const where = detail ? `${place}: ${escapeHtml(detail)}` : place
   const body = [

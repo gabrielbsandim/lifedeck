@@ -6,6 +6,7 @@ import type {
   CalendarSyncPage,
   ExternalCalendarEvent,
   OAuthTokens,
+  PushResult,
   RefreshedToken,
   WatchChannel,
 } from '@lifedeck/application'
@@ -48,6 +49,17 @@ type GoogleEvent = {
   reminders?: { useDefault?: boolean; overrides?: GoogleReminder[] }
   transparency?: string
   attendees?: GoogleAttendee[]
+  hangoutLink?: string
+  conferenceData?: {
+    entryPoints?: { entryPointType?: string; uri?: string }[]
+  }
+}
+
+function conferenceUrlOf(item: GoogleEvent): string | null {
+  const video = item.conferenceData?.entryPoints?.find(
+    entry => entry.entryPointType === 'video',
+  )
+  return item.hangoutLink ?? video?.uri ?? null
 }
 
 type GoogleAttendee = { self?: boolean; responseStatus?: string }
@@ -132,6 +144,7 @@ function toExternalEvent(
         ),
     reminders: mapReminders(item.reminders, defaultReminders),
     busy: blocksTime(item),
+    conferenceUrl: conferenceUrlOf(item),
     updatedAt: item.updated ? new Date(item.updated) : new Date(0),
     recurringEventExternalId: item.recurringEventId ?? null,
     originalStartsAt,
@@ -260,7 +273,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async pushEvent(
     connection: CalendarConnection,
     event: CalendarEvent,
-  ): Promise<{ externalId: string; etag: string | null; skipped?: boolean }> {
+  ): Promise<PushResult> {
     const props = event.toJSON()
 
     // Occurrence override: PATCH the specific instance of the series. The
@@ -296,6 +309,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
       return { externalId: result.id ?? instanceId, etag: result.etag ?? null }
     }
 
+    // The request id makes a retried push reuse the call it already created.
+    const wantsMeet = props.conferenceRequested && !props.conferenceUrl
     const body = {
       summary: props.title,
       description: props.description ?? undefined,
@@ -304,19 +319,34 @@ export class GoogleCalendarProvider implements CalendarProvider {
       ...(props.recurrence
         ? { recurrence: toGoogleRecurrence(props.recurrence) }
         : {}),
+      ...(wantsMeet
+        ? {
+            conferenceData: {
+              createRequest: {
+                requestId: props.id,
+                conferenceSolutionKey: { type: 'hangoutsMeet' },
+              },
+            },
+          }
+        : {}),
     }
+    const query = wantsMeet ? '?conferenceDataVersion=1' : ''
     const path = `/calendars/${encodeURIComponent(connection.calendarId)}/events`
     if (!event.externalId) {
       const created = await this.api<GoogleEvent>(
         'POST',
-        path,
+        `${path}${query}`,
         connection.accessToken,
         body,
       )
-      return { externalId: created.id, etag: created.etag ?? null }
+      return {
+        externalId: created.id,
+        etag: created.etag ?? null,
+        conferenceUrl: conferenceUrlOf(created),
+      }
     }
     const result = await this.patchUnlessNewer(
-      `${path}/${encodeURIComponent(event.externalId)}`,
+      `${path}/${encodeURIComponent(event.externalId)}${query}`,
       connection.accessToken,
       body,
       event,
@@ -324,7 +354,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
     if (!result) {
       return { externalId: event.externalId, etag: event.etag, skipped: true }
     }
-    return { externalId: result.id, etag: result.etag ?? null }
+    return {
+      externalId: result.id,
+      etag: result.etag ?? null,
+      conferenceUrl: conferenceUrlOf(result),
+    }
   }
 
   // If-Match keeps a push from silently overwriting an edit made in Google.

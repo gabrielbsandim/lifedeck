@@ -13,6 +13,7 @@ function notice(overrides: Partial<BookingNotice> = {}): BookingNotice {
     endsAt: new Date('2026-06-23T14:00:00.000Z'),
     timeZone: 'America/Sao_Paulo',
     location: { kind: 'online-link', url: 'https://meet.test/ana' },
+    meetingUrl: null,
     manageUrl: 'https://lifedeck.test/b/manage/t',
     reason: null,
     sequence: 1782219600,
@@ -21,6 +22,23 @@ function notice(overrides: Partial<BookingNotice> = {}): BookingNotice {
 }
 
 describe('renderBookingEmail', () => {
+  it('shows the Google Meet link once Google created it', () => {
+    const meet = { kind: 'online-meet' as const }
+    const linked = renderBookingEmail(
+      notice({
+        location: meet,
+        meetingUrl: 'https://meet.google.com/abc-defg-hij',
+      }),
+      'en',
+    )
+    expect(linked.html).toContain('https://meet.google.com/abc-defg-hij')
+    expect(linked.ics).toContain(
+      'LOCATION:https://meet.google.com/abc-defg-hij',
+    )
+    const pending = renderBookingEmail(notice({ location: meet }), 'en')
+    expect(pending.html).not.toContain('meet.google.com')
+  })
+
   it('renders a confirmation with the time, place, link and an invite', () => {
     const email = renderBookingEmail(notice(), 'pt')
     expect(email.subject).toBe('Confirmado: Aula <1> com Ana')

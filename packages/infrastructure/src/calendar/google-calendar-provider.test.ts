@@ -440,6 +440,23 @@ describe('GoogleCalendarProvider', () => {
       )
     })
 
+    it('reads the Meet link of a synced event', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          items: [
+            googleEvent({ hangoutLink: 'https://meet.google.com/abc' }),
+            googleEvent({ id: 'evt-plain' }),
+          ],
+          nextSyncToken: 'sync-1',
+        }),
+      )
+      const page = await provider().listChanges(connection())
+      expect(page.events.map(event => event.conferenceUrl)).toEqual([
+        'https://meet.google.com/abc',
+        null,
+      ])
+    })
+
     it('falls back to the epoch when a non-occurrence event has no start', async () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
@@ -454,12 +471,54 @@ describe('GoogleCalendarProvider', () => {
   })
 
   describe('pushEvent', () => {
+    it('asks Google for a Meet call once and returns the link', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          id: 'remote-meet',
+          etag: '"m"',
+          hangoutLink: 'https://meet.google.com/abc-defg-hij',
+        }),
+      )
+      const event = localEvent({ conferenceRequested: true })
+      const result = await provider().pushEvent(connection(), event)
+      expect(result.conferenceUrl).toBe('https://meet.google.com/abc-defg-hij')
+      expect(String(call(0)[0])).toContain('conferenceDataVersion=1')
+      expect(JSON.parse(call(0)[1].body ?? '{}').conferenceData).toEqual({
+        createRequest: {
+          requestId: event.id,
+          conferenceSolutionKey: { type: 'hangoutsMeet' },
+        },
+      })
+
+      event.setConferenceUrl('https://meet.google.com/abc-defg-hij')
+      event.linkToExternal('remote-meet', null, NOW)
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          id: 'remote-meet',
+          conferenceData: {
+            entryPoints: [
+              { entryPointType: 'phone', uri: 'tel:+1' },
+              { entryPointType: 'video', uri: 'https://meet.google.com/x' },
+            ],
+          },
+        }),
+      )
+      const again = await provider().pushEvent(connection(), event)
+      expect(String(call(1)[0])).not.toContain('conferenceDataVersion')
+      expect(JSON.parse(call(1)[1].body ?? '{}').conferenceData).toBeUndefined()
+      expect(again.conferenceUrl).toBe('https://meet.google.com/x')
+    })
+
     it('POSTs a brand new event and returns its external id + etag', async () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({ id: 'remote-1', etag: '"e"' }),
       )
       const result = await provider().pushEvent(connection(), localEvent())
-      expect(result).toEqual({ externalId: 'remote-1', etag: '"e"' })
+      expect(result).toEqual({
+        externalId: 'remote-1',
+        etag: '"e"',
+        conferenceUrl: null,
+      })
       expect(call(0)[1].method).toBe('POST')
       expect(String(call(0)[0])).toContain('/calendars/primary/events')
       expect(JSON.parse(call(0)[1].body ?? '{}')).toMatchObject({
@@ -532,7 +591,11 @@ describe('GoogleCalendarProvider', () => {
       const headers = (call(0)[1] as { headers: Record<string, string> })
         .headers
       expect(headers['if-match']).toBe('"e1"')
-      expect(result).toEqual({ externalId: 'r1', etag: '"e2"' })
+      expect(result).toEqual({
+        externalId: 'r1',
+        etag: '"e2"',
+        conferenceUrl: null,
+      })
     })
 
     it('leaves a newer Google edit for the pull to adopt', async () => {
@@ -561,7 +624,11 @@ describe('GoogleCalendarProvider', () => {
         connection(),
         localEvent({ externalId: 'r1', etag: '"e1"' }),
       )
-      expect(result).toEqual({ externalId: 'r1', etag: '"e3"' })
+      expect(result).toEqual({
+        externalId: 'r1',
+        etag: '"e3"',
+        conferenceUrl: null,
+      })
       expect(call(2)[1].method).toBe('PATCH')
     })
 

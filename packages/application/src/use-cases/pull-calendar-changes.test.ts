@@ -37,6 +37,7 @@ function external(
     recurrence: null,
     reminders: [],
     busy: true,
+    conferenceUrl: null,
     updatedAt: new Date('2026-06-24T09:00:00.000Z'),
     recurringEventExternalId: null,
     originalStartsAt: null,

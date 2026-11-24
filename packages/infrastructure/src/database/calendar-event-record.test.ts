@@ -21,6 +21,8 @@ const RECORD: CalendarEventRecord = {
   originalStartsAt: null,
   cancelled: false,
   busy: false,
+  conferenceRequested: false,
+  conferenceUrl: null,
   source: 'local',
   connectionId: null,
   externalId: null,
@@ -53,6 +55,8 @@ describe('calendar-event-record', () => {
       originalStartsAt: RECORD.originalStartsAt,
       cancelled: RECORD.cancelled,
       busy: RECORD.busy,
+      conferenceRequested: RECORD.conferenceRequested,
+      conferenceUrl: RECORD.conferenceUrl,
       source: RECORD.source,
       connectionId: RECORD.connectionId
         ? asEntityId(RECORD.connectionId)

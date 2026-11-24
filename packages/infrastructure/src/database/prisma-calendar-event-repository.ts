@@ -27,6 +27,8 @@ function fromPrisma(record: {
   originalStartsAt: Date | null
   cancelled: boolean
   busy: boolean
+  conferenceRequested: boolean
+  conferenceUrl: string | null
   source: string
   connectionId: string | null
   externalId: string | null
@@ -50,6 +52,8 @@ function fromPrisma(record: {
     originalStartsAt: record.originalStartsAt,
     cancelled: record.cancelled,
     busy: record.busy,
+    conferenceRequested: record.conferenceRequested,
+    conferenceUrl: record.conferenceUrl,
     source: record.source as CalendarEventSource,
     connectionId: record.connectionId,
     externalId: record.externalId,
@@ -86,6 +90,8 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         originalStartsAt: record.originalStartsAt,
         cancelled: record.cancelled,
         busy: record.busy,
+        conferenceRequested: record.conferenceRequested,
+        conferenceUrl: record.conferenceUrl,
         source: record.source,
         connectionId: record.connectionId,
         externalId: record.externalId,
@@ -107,6 +113,8 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         originalStartsAt: record.originalStartsAt,
         cancelled: record.cancelled,
         busy: record.busy,
+        conferenceRequested: record.conferenceRequested,
+        conferenceUrl: record.conferenceUrl,
         source: record.source,
         connectionId: record.connectionId,
         externalId: record.externalId,

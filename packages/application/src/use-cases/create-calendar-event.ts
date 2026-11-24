@@ -45,6 +45,7 @@ export function makeCreateCalendarEvent({
       allDay: data.allDay,
       reminders: data.reminders,
       recurrence: data.recurrence ?? null,
+      conferenceRequested: data.requestConference ?? false,
       now: clock.now(),
     })
 

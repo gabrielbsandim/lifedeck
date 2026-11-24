@@ -69,6 +69,7 @@ function toExternalEvent(booking: CalcomBooking): ExternalCalendarEvent | null {
     // cal.com owns its own booking reminders; we import none.
     reminders: [],
     busy: true,
+    conferenceUrl: null,
     updatedAt: new Date(booking.updatedAt ?? start),
     recurringEventExternalId: null,
     originalStartsAt: null,

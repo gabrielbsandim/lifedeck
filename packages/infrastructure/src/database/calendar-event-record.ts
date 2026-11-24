@@ -20,6 +20,8 @@ export type CalendarEventRecord = {
   originalStartsAt: Date | null
   cancelled: boolean
   busy: boolean
+  conferenceRequested: boolean
+  conferenceUrl: string | null
   source: CalendarEventSource
   connectionId: string | null
   externalId: string | null
@@ -47,6 +49,8 @@ export function toDomainCalendarEvent(
     originalStartsAt: record.originalStartsAt,
     cancelled: record.cancelled,
     busy: record.busy,
+    conferenceRequested: record.conferenceRequested,
+    conferenceUrl: record.conferenceUrl,
     source: record.source,
     connectionId:
       record.connectionId === null ? null : asEntityId(record.connectionId),
@@ -77,6 +81,8 @@ export function toCalendarEventRecord(
     originalStartsAt: props.originalStartsAt,
     cancelled: props.cancelled,
     busy: props.busy,
+    conferenceRequested: props.conferenceRequested,
+    conferenceUrl: props.conferenceUrl,
     source: props.source,
     connectionId: props.connectionId,
     externalId: props.externalId,

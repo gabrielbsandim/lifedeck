@@ -12,6 +12,8 @@ export const createCalendarEventSchema = z.object({
   allDay: z.boolean().optional(),
   reminders: reminders.optional(),
   recurrence: recurrenceRuleSchema.nullable().optional(),
+  // Ask the connected Google calendar to attach a Meet call on push.
+  requestConference: z.boolean().optional(),
 })
 
 export type CreateCalendarEventInput = z.infer<typeof createCalendarEventSchema>
@@ -79,6 +81,7 @@ export const calendarEventViewSchema = z.object({
   recurrence: recurrenceRuleSchema.nullable(),
   // False for an event the remote calendar shows as free or the owner declined.
   busy: z.boolean(),
+  conferenceUrl: z.string().nullable(),
   // Occurrence linkage: `recurring` marks an event that belongs to a series;
   // `seriesId` is the master event's real id and `occurrenceStart` the original
   // start of this occurrence (both null for plain, non-recurring events).

@@ -22,6 +22,8 @@ export type ExternalCalendarEvent = {
   // False when the remote side shows the event as free or the owner declined
   // it, so it never blocks a slot.
   busy: boolean
+  // The video call the remote side attached (Google Meet), null when none.
+  conferenceUrl: string | null
   updatedAt: Date
   // `deleted` removes a top-level event's row. Occurrence overrides never delete
   // a row: `recurringEventExternalId` links them to the series master and
@@ -30,6 +32,14 @@ export type ExternalCalendarEvent = {
   originalStartsAt: Date | null
   cancelledOccurrence: boolean
   deleted: boolean
+}
+
+export type PushResult = {
+  externalId: string
+  etag: string | null
+  skipped?: boolean
+  // Set when the provider attached a video call the event asked for.
+  conferenceUrl?: string | null
 }
 
 export type CalendarSyncPage = {
@@ -90,7 +100,7 @@ export interface CalendarProvider {
   pushEvent(
     connection: CalendarConnection,
     event: CalendarEvent,
-  ): Promise<{ externalId: string; etag: string | null; skipped?: boolean }>
+  ): Promise<PushResult>
   deleteEvent(connection: CalendarConnection, externalId: string): Promise<void>
   watch(
     connection: CalendarConnection,

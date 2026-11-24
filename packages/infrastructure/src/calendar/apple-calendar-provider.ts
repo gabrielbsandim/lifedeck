@@ -332,6 +332,7 @@ function toExternalEvent(
     // offsets. Google is the reminder-bearing source today.
     reminders: [],
     busy: !parsed.transparent,
+    conferenceUrl: null,
     updatedAt: parsed.updatedAt,
     recurringEventExternalId: isOverride ? resourceHref : null,
     originalStartsAt: parsed.recurrenceId,
@@ -353,6 +354,7 @@ function deletedEvent(externalId: string): ExternalCalendarEvent {
     recurrence: null,
     reminders: [],
     busy: true,
+    conferenceUrl: null,
     updatedAt: new Date(0),
     recurringEventExternalId: null,
     originalStartsAt: null,

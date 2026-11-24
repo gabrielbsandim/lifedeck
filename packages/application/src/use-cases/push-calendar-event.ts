@@ -50,14 +50,15 @@ export function makePushCalendarEvent({
       return { pushed: false }
     }
     await ensureFreshToken(connection, provider)
-    const { externalId, etag, skipped } = await provider.pushEvent(
-      connection,
-      event,
-    )
+    const { externalId, etag, skipped, conferenceUrl } =
+      await provider.pushEvent(connection, event)
     if (skipped) {
       return { pushed: false }
     }
     event.linkToExternal(externalId, etag, clock.now(), connection.id)
+    if (conferenceUrl) {
+      event.setConferenceUrl(conferenceUrl)
+    }
     await calendarEvents.save(event)
     return { pushed: true }
   }

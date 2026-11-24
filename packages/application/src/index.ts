@@ -245,6 +245,7 @@ export type {
   CalendarProviderRegistry,
   ExternalCalendarEvent,
   CalendarSyncPage,
+  PushResult,
   OAuthTokens,
   RefreshedToken,
   WatchChannel,
@@ -634,6 +635,10 @@ export {
   type UpsertBookingClient,
 } from '@/shared/booking-records'
 export { makeBookingMailer, type BookingMailer } from '@/shared/booking-notice'
+export {
+  makeBookingCalendarSync,
+  type BookingCalendarSync,
+} from '@/shared/booking-calendar-sync'
 export { makeGetBookingSetup } from '@/use-cases/get-booking-setup'
 export { makeUpsertBookingPage } from '@/use-cases/upsert-booking-page'
 export { makeCheckBookingSlug } from '@/use-cases/check-booking-slug'

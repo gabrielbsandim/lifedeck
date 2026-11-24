@@ -1,4 +1,5 @@
 import type { ManagedBookingView } from '@/dtos/booking-dto'
+import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { Clock } from '@/ports/clock'
 import {
   clientCanChange,
@@ -9,6 +10,7 @@ import {
 export function toManagedBookingView(
   { booking, service, page, client }: ManagedBooking,
   now: Date,
+  meetingUrl: string | null = null,
 ): ManagedBookingView {
   const props = booking.toJSON()
   return {
@@ -23,7 +25,9 @@ export function toManagedBookingView(
     pageTimezone: page.timezone,
     clientName: client.name,
     clientTimezone: props.clientTimezone,
-    location: service.location,
+    location: meetingUrl
+      ? { kind: service.location.kind, url: meetingUrl }
+      : service.location,
     canChange: clientCanChange(booking, page, now),
   }
 }
@@ -31,15 +35,27 @@ export function toManagedBookingView(
 type Dependencies = {
   loadManagedBooking: LoadManagedBooking
   clock: Clock
+  calendarEvents?: Pick<CalendarEventRepository, 'findById'>
 }
 
 export function makeGetManagedBooking({
   loadManagedBooking,
   clock,
+  calendarEvents,
 }: Dependencies) {
+  // Read only: a public page view never triggers a push to Google.
+  async function meetingUrl(managed: ManagedBooking): Promise<string | null> {
+    const eventId = managed.booking.calendarEventId
+    if (managed.service.location.kind !== 'online-meet' || !eventId) {
+      return null
+    }
+    return (await calendarEvents?.findById(eventId))?.conferenceUrl ?? null
+  }
+
   return async function getManagedBooking(
     token: string,
   ): Promise<ManagedBookingView> {
-    return toManagedBookingView(await loadManagedBooking(token), clock.now())
+    const managed = await loadManagedBooking(token)
+    return toManagedBookingView(managed, clock.now(), await meetingUrl(managed))
   }
 }
