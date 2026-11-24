@@ -136,6 +136,7 @@ export type Messages = {
     habits: string
     profile: string
     menu: string
+    booking: string
   }
   calendar: {
     title: string
@@ -832,5 +833,115 @@ export type Messages = {
       'online-meet' | 'online-link' | 'in-person' | 'phone',
       string
     >
+  }
+  bookingHost: {
+    title: string
+    subtitle: string
+    upsellBadge: string
+    upsellTitle: string
+    upsellBody: string
+    upsellCta: string
+    failed: string
+    saved: string
+    save: string
+    cancel: string
+    edit: string
+    tabs: Record<'bookings' | 'services' | 'hours' | 'clients' | 'page', string>
+    wizard: {
+      title: string
+      step: string
+      linkTitle: string
+      linkHint: string
+      displayName: string
+      slug: string
+      slugAvailable: string
+      slugUnavailable: Record<'invalid' | 'reserved' | 'taken', string>
+      serviceTitle: string
+      serviceHint: string
+      hoursTitle: string
+      hoursHint: string
+      next: string
+      back: string
+      finish: string
+    }
+    link: {
+      label: string
+      copy: string
+      copied: string
+      share: string
+      shareText: string
+      open: string
+      paused: string
+      pause: string
+      resume: string
+    }
+    services: {
+      add: string
+      empty: string
+      name: string
+      description: string
+      duration: string
+      location: string
+      url: string
+      address: string
+      price: string
+      approval: string
+      approvalHint: string
+      minNotice: string
+      bufferAfter: string
+      archive: string
+      moveUp: string
+      moveDown: string
+      hours: string
+    }
+    hours: {
+      weekly: string
+      timezoneNote: string
+      addWindow: string
+      removeWindow: string
+      closed: string
+      from: string
+      to: string
+      invalidDay: string
+      overrides: string
+      overridesHint: string
+      date: string
+      closedAllDay: string
+      addOverride: string
+      noOverrides: string
+      removeOverride: string
+    }
+    bookings: {
+      pending: string
+      upcoming: string
+      past: string
+      empty: string
+      confirm: string
+      decline: string
+      cancel: string
+      reason: string
+      completed: string
+      noShow: string
+      outcomeAsk: string
+      fromSource: Record<'public' | 'host' | 'assistant', string>
+    }
+    clients: {
+      search: string
+      add: string
+      empty: string
+      name: string
+      email: string
+      phone: string
+      notes: string
+    }
+    page: {
+      displayName: string
+      headline: string
+      slug: string
+      timezone: string
+      cancelNotice: string
+      language: string
+    }
+    calendarBadge: string
   }
 }

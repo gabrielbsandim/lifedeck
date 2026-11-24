@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { cn, Skeleton } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
+import { useBookings } from '@/lib/api/use-booking'
+import { bookedEventIds } from '@/lib/booking/host'
 import { browserTimeZone, todayIso } from '@/lib/api/dates'
 import {
   groupByDay,
@@ -202,6 +204,14 @@ export function CalendarScreen() {
     [list, timeZone],
   )
   const remove = useDeleteCalendarEvent(range)
+  const hasBooking =
+    (session.data?.features?.booking ?? false) &&
+    (session.data?.entitlements?.includes('booking') ?? false)
+  const bookings = useBookings(range, available && hasBooking)
+  const bookedIds = useMemo(
+    () => bookedEventIds(bookings.data ?? []),
+    [bookings.data],
+  )
 
   const monthTitle = new Intl.DateTimeFormat(locale, {
     month: 'long',
@@ -365,6 +375,7 @@ export function CalendarScreen() {
                 timeZone={timeZone}
                 locale={locale}
                 eventsByDay={eventsByDay}
+                bookedIds={bookedIds}
                 onSelectEvent={setDetail}
               />
             </div>
@@ -390,6 +401,7 @@ export function CalendarScreen() {
                   timeZone={timeZone}
                   locale={locale}
                   eventsByDay={eventsByDay}
+                  bookedIds={bookedIds}
                   onSelectEvent={setDetail}
                 />
               </div>
@@ -488,6 +500,7 @@ export function CalendarScreen() {
       {detail && (
         <EventDetailSheet
           event={detail}
+          booked={bookedIds.has(detail.id)}
           timeZone={timeZone}
           locale={locale}
           onClose={() => setDetail(null)}

@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       calendar: isFeatureEnabled('calendar'),
       whatsapp: isFeatureEnabled('whatsapp'),
       billing: isFeatureEnabled('billing'),
+      booking: isFeatureEnabled('booking'),
     }
     // Country from the edge, used to pick the billing currency (never the UI
     // language). Absent in local dev; the client falls back to the locale.

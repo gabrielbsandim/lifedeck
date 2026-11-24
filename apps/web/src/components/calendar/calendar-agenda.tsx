@@ -2,6 +2,7 @@
 
 import type { CalendarEventView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { BookingBadge } from '@/components/calendar/booking-badge'
 import {
   eventCalendarLabel,
   eventColor,
@@ -14,6 +15,7 @@ type Props = {
   timeZone: string
   locale: string
   eventsByDay: Map<string, CalendarEventView[]>
+  bookedIds?: ReadonlySet<string>
   onSelectEvent: (event: CalendarEventView) => void
 }
 
@@ -23,6 +25,7 @@ export function CalendarAgenda({
   timeZone,
   locale,
   eventsByDay,
+  bookedIds,
   onSelectEvent,
 }: Props) {
   const { messages } = useI18n()
@@ -78,8 +81,15 @@ export function CalendarAgenda({
                     style={{ background: eventColor(event) }}
                   />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="text-ink-900 truncate text-[15px] font-semibold leading-snug">
-                      {event.title || t.untitled}
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="text-ink-900 truncate text-[15px] font-semibold leading-snug">
+                        {event.title || t.untitled}
+                      </span>
+                      {bookedIds?.has(event.id) && (
+                        <BookingBadge
+                          label={messages.bookingHost.calendarBadge}
+                        />
+                      )}
                     </span>
                     <span className="text-ink-500 flex items-center gap-2 text-[12.5px]">
                       <span className="tabular-nums">

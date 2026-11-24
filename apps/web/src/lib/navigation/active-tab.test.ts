@@ -9,6 +9,7 @@ describe('activeMobileTab', () => {
     ['/generate', 'assistant'],
     ['/habits', 'habits'],
     ['/calendar', 'profile'],
+    ['/booking', 'profile'],
     ['/settings/billing', 'profile'],
     ['/analytics', 'profile'],
     ['/recurring', 'profile'],

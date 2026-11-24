@@ -304,6 +304,14 @@ function MobileHub({
               href="/calendar"
             />
           )}
+          {user.features?.booking && (
+            <HubRow
+              icon={<LinkIcon size={16} />}
+              iconClassName="bg-violet-500"
+              label={messages.nav.booking}
+              href={'/booking' as Route}
+            />
+          )}
           <HubRow
             icon={<ChartIcon size={16} />}
             iconClassName="bg-violet-500"

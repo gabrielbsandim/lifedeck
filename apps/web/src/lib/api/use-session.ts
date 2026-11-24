@@ -9,6 +9,7 @@ export type ClientFeatures = {
   calendar: boolean
   whatsapp: boolean
   billing: boolean
+  booking?: boolean
 }
 
 export type SessionUser = UserView & {

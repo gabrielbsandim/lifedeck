@@ -1,9 +1,12 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
+import type { Route } from 'next'
 import { motion } from 'framer-motion'
 import type { CalendarEventView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { BookingBadge } from '@/components/calendar/booking-badge'
 import {
   eventCalendarLabel,
   eventColor,
@@ -11,6 +14,7 @@ import {
 
 type Props = {
   event: CalendarEventView
+  booked?: boolean
   timeZone: string
   locale: string
   onClose: () => void
@@ -37,6 +41,7 @@ function timeRange(
 
 export function EventDetailSheet({
   event,
+  booked = false,
   timeZone,
   locale,
   onClose,
@@ -102,6 +107,11 @@ export function EventDetailSheet({
               />
               {eventCalendarLabel(event, t.syncedTag, t.title)}
             </span>
+            {booked && (
+              <Link href={'/booking' as Route} className="mt-2 flex w-fit">
+                <BookingBadge label={messages.bookingHost.calendarBadge} />
+              </Link>
+            )}
           </div>
         </div>
 

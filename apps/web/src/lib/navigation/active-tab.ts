@@ -8,6 +8,7 @@ const TAB_BY_PREFIX: readonly (readonly [string, MobileTab])[] = [
   ['/habits', 'habits'],
   ['/settings', 'profile'],
   ['/calendar', 'profile'],
+  ['/booking', 'profile'],
   ['/analytics', 'profile'],
   ['/recurring', 'profile'],
   ['/developers', 'profile'],
