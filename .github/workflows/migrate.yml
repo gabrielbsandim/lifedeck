@@ -30,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Align applied migration names with the folders
+        run: pnpm --filter @lifedeck/infrastructure exec prisma db execute --schema prisma/schema.prisma --file prisma/rename-migrations.sql
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+
       - name: Apply pending migrations
         run: pnpm --filter @lifedeck/infrastructure run db:deploy
         env:
