@@ -1,0 +1,47 @@
+# The bundle id differs per platform, so the EAS job passes it in.
+appId: ${MAESTRO_APP_ID}
+name: Guest smoke
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn:
+    id: onboarding-name
+- inputText: Maestro
+- tapOn:
+    id: onboarding-start
+- extendedWaitUntil:
+    visible:
+      id: add-task-input
+    timeout: 30000
+- tapOn:
+    id: add-task-input
+- inputText: Smoke test task
+- tapOn:
+    id: add-task-submit
+- extendedWaitUntil:
+    visible:
+      id: task-checkbox
+    timeout: 15000
+- tapOn:
+    id: task-checkbox
+- assertVisible:
+    id: task-checkbox
+    checked: true
+- tapOn:
+    id: tab-profile
+- tapOn:
+    id: settings-account
+# Deleting the guest is the cleanup too: the build talks to production.
+- scrollUntilVisible:
+    element:
+      id: delete-account
+- tapOn:
+    id: delete-account
+- tapOn:
+    id: delete-account-confirm
+- extendedWaitUntil:
+    visible:
+      id: onboarding-name
+    timeout: 30000

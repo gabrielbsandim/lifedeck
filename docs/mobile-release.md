@@ -17,7 +17,16 @@ workflow is `.github/workflows/mobile-release.yml`; the version logic is
    `release/vX.Y.Z` with the bump in `app.json`, opens the `release: vX.Y.Z`
    pull request with the notes, and dispatches CI on it. A run with no app
    change since the tag stops with a note in the summary.
-3. Merge the pull request once CI is green. Squash or merge commit both work.
+3. Merge the pull request once CI is green and the `Maestro on the release
+   candidate` job of the same run passed. That job runs
+   `apps/mobile/.eas/workflows/e2e.yml` on EAS: an `e2e-test` build per
+   platform (Android emulator, iOS simulator, channel `e2e` so no OTA replaces
+   the bundle) and `.maestro/guest-smoke.yaml` on each, which starts as a
+   guest, adds a task, completes it and deletes the account from Profile,
+   Account. The build talks to production, and the deletion is the cleanup.
+   Run it alone with `eas workflow:run .eas/workflows/e2e.yml` from
+   `apps/mobile`; EAS keeps the screen recording. Squash or merge commit both
+   work.
 4. The merge tags `vX.Y.Z`, publishes the GitHub release, and ships each
    platform on its own:
 

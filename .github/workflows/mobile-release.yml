@@ -40,6 +40,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      app: ${{ steps.version.outputs.app }}
+      tag: ${{ steps.version.outputs.tag }}
     defaults:
       run:
         working-directory: apps/mobile
@@ -153,6 +156,42 @@ jobs:
         env:
           PREVIOUS: ${{ steps.version.outputs.previous }}
         run: $NODE_RUN src/lib/store/store-assets.ts --since "v$PREVIOUS"
+
+  e2e:
+    name: Maestro on the release candidate
+    needs: prepare
+    if: needs.prepare.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/${{ needs.prepare.outputs.tag }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # eas-cli resolves app.config.ts through the installed expo package.
+      - name: Install the workspace
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Run the E2E workflow on EAS
+        run: eas workflow:run .eas/workflows/e2e.yml --non-interactive --wait
 
   publish:
     name: Tag and publish the release

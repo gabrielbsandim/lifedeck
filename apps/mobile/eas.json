@@ -23,6 +23,21 @@
         "EXPO_PUBLIC_API_URL": "https://www.lifedeck.com.br"
       }
     },
+    "e2e-test": {
+      "withoutCredentials": true,
+      "distribution": "internal",
+      "channel": "e2e",
+      "environment": "preview",
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://www.lifedeck.com.br"
+      }
+    },
     "production": {
       "distribution": "store",
       "channel": "production",

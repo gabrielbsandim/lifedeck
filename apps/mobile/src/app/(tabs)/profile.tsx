@@ -74,6 +74,21 @@ export default function ProfileScreen() {
           {messages.auth.createAccount}
         </Button>
         <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+        {/* A guest's tasks live on the server too, so the stores require the
+            same export and delete path a full account has. */}
+        <Group title={messages.settings.hubAccount}>
+          <Row
+            testID="settings-account"
+            label={messages.settings.account}
+            icon={<UserIcon size={16} color={colors.ink['500']} />}
+            onPress={() =>
+              router.push({
+                pathname: '/settings',
+                params: { section: 'conta' },
+              })
+            }
+          />
+        </Group>
       </Screen>
     )
   }
@@ -214,6 +229,7 @@ export default function ProfileScreen() {
 
       <Group title={messages.settings.hubAccount}>
         <Row
+          testID="settings-account"
           label={messages.settings.account}
           icon={<UserIcon size={16} color={colors.ink['500']} />}
           onPress={() => open('conta')}

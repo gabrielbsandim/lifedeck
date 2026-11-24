@@ -1,0 +1,37 @@
+# Started by the release workflow on every release candidate:
+# eas workflow:run .eas/workflows/e2e.yml. Runbook: docs/mobile-release.md.
+name: E2E
+
+jobs:
+  build_android:
+    name: Build Android for E2E
+    type: build
+    params:
+      platform: android
+      profile: e2e-test
+  build_ios:
+    name: Build iOS for E2E
+    type: build
+    params:
+      platform: ios
+      profile: e2e-test
+  test_android:
+    name: Maestro on Android
+    needs: [build_android]
+    type: maestro
+    env:
+      MAESTRO_APP_ID: com.lifedeck.app
+    params:
+      build_id: ${{ needs.build_android.outputs.build_id }}
+      flow_path: ['.maestro/guest-smoke.yaml']
+      record_screen: true
+  test_ios:
+    name: Maestro on iOS
+    needs: [build_ios]
+    type: maestro
+    env:
+      MAESTRO_APP_ID: com.gbs.lifedeck
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      flow_path: ['.maestro/guest-smoke.yaml']
+      record_screen: true

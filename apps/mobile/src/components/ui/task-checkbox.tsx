@@ -10,6 +10,7 @@ export type TaskCheckboxProps = {
   label: string
   onChange: (checked: boolean) => void
   disabled?: boolean
+  testID?: string
 }
 
 export function TaskCheckbox({
@@ -17,9 +18,11 @@ export function TaskCheckbox({
   label,
   onChange,
   disabled = false,
+  testID,
 }: TaskCheckboxProps) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="checkbox"
       accessibilityState={{ checked, disabled }}
       accessibilityLabel={label}

@@ -65,6 +65,7 @@ export function TaskRow({
       )}
     >
       <TaskCheckbox
+        testID="task-checkbox"
         checked={completed}
         label={task.title}
         onChange={() => onToggle(task)}

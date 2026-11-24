@@ -270,6 +270,7 @@ export function DailyBoard({
 
       <View className="flex-row gap-2">
         <TextInput
+          testID="add-task-input"
           value={title}
           onChangeText={setTitle}
           onSubmitEditing={addTask}
@@ -281,6 +282,7 @@ export function DailyBoard({
           className="border-line text-ink-800 bg-surface h-12 flex-1 rounded-[14px] border-[1.5px] px-4 text-base"
         />
         <Pressable
+          testID="add-task-submit"
           accessibilityRole="button"
           accessibilityLabel={messages.task.addAction}
           onPress={addTask}

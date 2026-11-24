@@ -65,6 +65,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: t.profile,
+          tabBarButtonTestID: 'tab-profile',
           headerShown: false,
           tabBarIcon: ({ color }) => <UserIcon size={22} color={color} />,
         }}

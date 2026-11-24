@@ -63,6 +63,7 @@ export function SessionGate() {
         <Text className="text-ink-500 text-sm">{t.subtitle}</Text>
       </View>
       <TextField
+        testID="onboarding-name"
         value={name}
         onChangeText={setName}
         placeholder={t.namePlaceholder}
@@ -72,6 +73,7 @@ export function SessionGate() {
         onSubmitEditing={onStart}
       />
       <Button
+        testID="onboarding-start"
         onPress={onStart}
         disabled={!canStart}
         isLoading={createGuest.isPending}

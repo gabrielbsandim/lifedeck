@@ -17,6 +17,7 @@ export type RowProps = {
   destructive?: boolean
   disabled?: boolean
   className?: string
+  testID?: string
 }
 
 export function Row({
@@ -29,12 +30,14 @@ export function Row({
   destructive = false,
   disabled = false,
   className,
+  testID,
 }: RowProps) {
   const colors = useThemeColors()
   const interactive = Boolean(onPress) && !disabled
 
   return (
     <Pressable
+      testID={testID}
       accessibilityRole={interactive ? 'button' : undefined}
       disabled={!interactive}
       onPress={onPress}

@@ -629,6 +629,7 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
         {confirmingDelete ? (
           <View className="flex-row gap-2">
             <Button
+              testID="delete-account-confirm"
               className="bg-danger h-9 flex-1"
               isLoading={deleteAccount.isPending}
               onPress={() =>
@@ -647,6 +648,7 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
           </View>
         ) : (
           <Button
+            testID="delete-account"
             variant="ghost"
             className="border-danger-line h-9 self-start border"
             onPress={() => setConfirmingDelete(true)}
