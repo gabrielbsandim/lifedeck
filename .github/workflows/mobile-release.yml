@@ -157,15 +157,30 @@ jobs:
           PREVIOUS: ${{ steps.version.outputs.previous }}
         run: $NODE_RUN src/lib/store/store-assets.ts --since "v$PREVIOUS"
 
+  # EAS runs Maestro only on a paid plan, so EAS builds the binary and the
+  # runner drives it: an emulator on Linux, a simulator on macOS.
   e2e:
-    name: Maestro on the release candidate
+    name: Maestro on ${{ matrix.platform }}
     needs: prepare
     if: needs.prepare.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            runner: ubuntu-latest
+            app_id: com.lifedeck.app
+          - platform: ios
+            runner: macos-15
+            app_id: com.gbs.lifedeck
     defaults:
       run:
         working-directory: apps/mobile
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      MAESTRO_APP_ID: ${{ matrix.app_id }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -190,8 +205,55 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Run the E2E workflow on EAS
-        run: eas workflow:run .eas/workflows/e2e.yml --non-interactive --wait
+      - name: Build the E2E binary on EAS
+        run: |
+          eas build --platform "$PLATFORM" --profile e2e-test --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
+          url=$(jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")
+          mkdir -p "$RUNNER_TEMP/app"
+          curl -fsSL "$url" -o "$RUNNER_TEMP/app/build"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Let the emulator use KVM
+        if: matrix.platform == 'android'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the smoke flow on an Android emulator
+        if: matrix.platform == 'android'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          working-directory: apps/mobile
+          script: |
+            adb install "$RUNNER_TEMP/app/build"
+            maestro test --debug-output "$RUNNER_TEMP/maestro" .maestro/guest-smoke.yaml
+
+      - name: Run the smoke flow on an iOS simulator
+        if: matrix.platform == 'ios'
+        run: |
+          tar -xzf "$RUNNER_TEMP/app/build" -C "$RUNNER_TEMP/app"
+          app=$(find "$RUNNER_TEMP/app" -maxdepth 3 -name '*.app' -type d | head -1)
+          udid=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" "$app"
+          maestro --device "$udid" test --debug-output "$RUNNER_TEMP/maestro" .maestro/guest-smoke.yaml
+
+      - name: Keep the Maestro screenshots and logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-${{ matrix.platform }}
+          path: ${{ runner.temp }}/maestro
+          if-no-files-found: ignore
 
   publish:
     name: Tag and publish the release

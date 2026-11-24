@@ -1,4 +1,4 @@
-# The bundle id differs per platform, so the EAS job passes it in.
+# The bundle id differs per platform, so the release job passes it in.
 appId: ${MAESTRO_APP_ID}
 name: Guest smoke
 ---
