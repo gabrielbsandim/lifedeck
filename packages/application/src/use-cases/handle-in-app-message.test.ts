@@ -5,7 +5,9 @@ import {
   MediaUnderstandingUnavailableError,
   QuotaExceededError,
 } from '@/errors/use-case-error'
-import type { AgentAction } from '@/ports/agent-runner'
+import type { AgentAction, AgentReply } from '@/ports/agent-runner'
+import type { TurnLock } from '@/ports/turn-lock'
+import { InMemoryTurnLock } from '@/testing/in-memory-turn-lock'
 import { makeHandleInAppMessage } from '@/use-cases/handle-in-app-message'
 
 const USER = 'user-1'
@@ -17,8 +19,9 @@ type Options = {
   entitled?: boolean
   grants?: Entitlement[]
   consumeCredits?: (userId: string, operation: string) => Promise<unknown>
-  agentRun?: () => Promise<{ text: string; actions?: AgentAction[] }>
+  agentRun?: () => Promise<AgentReply>
   mediaAvailable?: boolean
+  turnLock?: TurnLock
 }
 
 function setup(options: Options = {}) {
@@ -48,6 +51,7 @@ function setup(options: Options = {}) {
     transcriber: { transcribe, isAvailable: () => mediaAvailable },
     visionReader: { describe, isAvailable: () => mediaAvailable },
     logger,
+    turnLock: options.turnLock ?? new InMemoryTurnLock(),
   })
   return {
     conversations,
@@ -402,5 +406,28 @@ describe('handleInAppMessage', () => {
       'in_app_history_append_failed',
       expect.any(Object),
     )
+  })
+
+  it('keeps what the tools changed beside the stored reply', async () => {
+    const recorded = [{ tool: 'addTask', id: 't1', title: 'Buy milk' }]
+    const ctx = setup({ agentRun: async () => ({ text: 'Added.', recorded }) })
+
+    await ctx.handleInAppMessage({ userId: USER, kind: 'text', text: 'milk' })
+
+    const [, assistant] = await ctx.conversations.load(USER)
+    expect(assistant?.actions).toEqual(recorded)
+  })
+
+  it('reports busy without charging when an earlier turn holds the lock', async () => {
+    const ctx = setup({ turnLock: { acquire: async () => null } })
+
+    const result = await ctx.handleInAppMessage({
+      userId: USER,
+      kind: 'text',
+      text: 'milk',
+    })
+
+    expect(result).toEqual({ status: 'busy' })
+    expect(ctx.consume).not.toHaveBeenCalled()
   })
 })

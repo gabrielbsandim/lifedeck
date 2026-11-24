@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { GuestSignInInput, UserView } from '@lifedeck/application'
 import { ApiError, apiRequest } from '@/lib/api/client'
+import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
 
 export const sessionKey = ['session'] as const
 
@@ -35,6 +36,7 @@ export function useSession() {
 export function useCreateGuest() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: GuestSignInInput) =>
       apiRequest<UserView>('/api/v1/sessions/guest', {
         method: 'POST',

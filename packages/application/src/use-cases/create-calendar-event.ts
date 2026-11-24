@@ -10,10 +10,12 @@ import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { JobQueue } from '@/ports/job-queue'
 import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
-import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
+import type { UserRepository } from '@/ports/user-repository'
+import { ownerZoneFor, upcomingReminderJobs } from '@/shared/reminder-schedule'
 
 type Dependencies = {
   calendarEvents: CalendarEventRepository
+  users: Pick<UserRepository, 'findById'>
   jobQueue: JobQueue
   ids: IdGenerator
   clock: Clock
@@ -21,6 +23,7 @@ type Dependencies = {
 
 export function makeCreateCalendarEvent({
   calendarEvents,
+  users,
   jobQueue,
   ids,
   clock,
@@ -55,21 +58,9 @@ export function makeCreateCalendarEvent({
       runAt: clock.now(),
     })
 
-    // Arm a reminder job for each offset whose fire time is still in the future.
-    const startsAt = event.startsAt.getTime()
-    for (const minutesBefore of event.reminders) {
-      const fireAt = startsAt - minutesBefore * MINUTE_MS
-      if (fireAt > clock.now().getTime()) {
-        await jobQueue.enqueue({
-          type: REMINDER_JOB,
-          payload: {
-            eventId: event.id as string,
-            userId: ownerId,
-            minutesBefore,
-          },
-          runAt: new Date(fireAt),
-        })
-      }
+    const ownerZone = await ownerZoneFor(users, event)
+    for (const job of upcomingReminderJobs(event, clock.now(), ownerZone)) {
+      await jobQueue.enqueue(job)
     }
 
     return toCalendarEventView(event)

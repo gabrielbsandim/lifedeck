@@ -51,6 +51,18 @@ export type Messages = {
     error: string
     retry: string
     loadMore: string
+    saveFailed: string
+    offline: string
+    sessionEnded: string
+    tooMany: string
+    dismiss: string
+  }
+  errorPage: {
+    notFoundTitle: string
+    notFoundBody: string
+    crashTitle: string
+    crashBody: string
+    backHome: string
   }
   recurring: {
     manage: string
@@ -127,6 +139,11 @@ export type Messages = {
   }
   calendar: {
     title: string
+    upsellBadge: string
+    upsellTitle: string
+    upsellBody: string
+    upsellCta: string
+    loadError: string
     today: string
     month: string
     week: string
@@ -283,6 +300,8 @@ export type Messages = {
     awaitingPayment: string
     cardNumber: string
     cardExpiry: string
+    cardExpiryYearPlaceholder: string
+    pixQrAlt: string
     cardCvv: string
     cardHolder: string
     postalCodeLabel: string
@@ -720,7 +739,10 @@ export type Messages = {
     signIn: string
     signInSubtitle: string
     signOut: string
+    signOutEverywhere: string
+    signOutEverywhereHint: string
     email: string
+    emailPlaceholder: string
     password: string
     showPassword: string
     hidePassword: string

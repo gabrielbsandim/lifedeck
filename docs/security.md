@@ -20,7 +20,8 @@ Security is a first-class requirement, not a later hardening pass.
 - **Registered:** email + password with an email verification code, or Google
   OAuth. Passwords are hashed with a memory-hard algorithm (Argon2id).
 - **Sessions (web):** signed JWT stored in an `HttpOnly`, `Secure`,
-  `SameSite=Lax` cookie. Tokens are short-lived and refreshed server-side.
+  `SameSite=Lax` cookie, valid for 7 days. A password change or "Sign out
+  everywhere" revokes every earlier token (see `docs/auth.md`).
 - **Sessions (non-web clients):** the white-label API authenticates with a
   personal **API key** (`Authorization: Bearer tk_live_...` or `X-API-Key`).
   Keys are scoped, the raw secret is shown once and stored only as a SHA-256
@@ -51,8 +52,9 @@ Security is a first-class requirement, not a later hardening pass.
   build time), so the CSP needs no external script origin.
 - Per-key rate limiting on the API, per-user rate limiting on first-party
   cookie traffic (with a tight per-user throttle on AI list generation), and
-  per-IP rate limiting on auth endpoints, backed by Upstash Redis (a graceful
-  no-op when unconfigured).
+  per-IP rate limiting on auth endpoints and on the public shared-board and
+  web-vitals endpoints, backed by Upstash Redis (a graceful no-op when
+  unconfigured).
 
 ## Data protection
 

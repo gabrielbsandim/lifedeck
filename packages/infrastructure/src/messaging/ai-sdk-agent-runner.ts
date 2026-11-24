@@ -10,6 +10,8 @@ import type {
   AgentRunner,
   AssistantContext,
   AssistantTools,
+  ConversationTurn,
+  RecordedAction,
 } from '@lifedeck/application'
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
@@ -46,6 +48,7 @@ const MUTATION_TOOLS = new Set<string>([
   'addHabit',
   'logHabit',
   'logActivity',
+  'undoActivity',
   'addSubtask',
   'completeSubtask',
   'addEvent',
@@ -176,6 +179,77 @@ function collectActions(
   return actions
 }
 
+// The fields a mutating tool's input may carry the touched item's id under, when
+// its result is only { ok: true }.
+const INPUT_ID_FIELDS = [
+  'taskId',
+  'eventId',
+  'habitId',
+  'subtaskId',
+  'seriesId',
+]
+
+function stringField(source: unknown, field: string): string | undefined {
+  if (typeof source !== 'object' || source === null) {
+    return undefined
+  }
+  const value = (source as Record<string, unknown>)[field]
+  return typeof value === 'string' && value !== '' ? value : undefined
+}
+
+function recordOf(result: ToolResultLike): RecordedAction | null {
+  if (!MUTATION_TOOLS.has(result.toolName)) {
+    return null
+  }
+  const id =
+    stringField(result.output, 'id') ??
+    INPUT_ID_FIELDS.map(field => stringField(result.input, field)).find(Boolean)
+  if (!id) {
+    return null
+  }
+  const kind = stringField(result.output, 'kind')
+  const date =
+    stringField(result.output, 'date') ?? stringField(result.input, 'date')
+  return {
+    tool: result.toolName,
+    id,
+    title:
+      stringField(result.output, 'title') ??
+      stringField(result.input, 'title') ??
+      '',
+    ...(kind ? { kind } : {}),
+    ...(date ? { date } : {}),
+  }
+}
+
+/** What the mutating tools changed this turn, to store beside the reply. */
+export function collectRecordedActions(
+  steps: ReadonlyArray<{ toolResults?: readonly unknown[] }> = [],
+): RecordedAction[] {
+  return steps
+    .flatMap(step => (step.toolResults ?? []) as ToolResultLike[])
+    .map(recordOf)
+    .filter((record): record is RecordedAction => record !== null)
+}
+
+function describeAction(action: RecordedAction): string {
+  const kind = action.kind ? ` ${action.kind}` : ''
+  const date = action.date ? ` date=${action.date}` : ''
+  return `${action.tool}${kind} "${action.title}" id=${action.id}${date}`
+}
+
+/** A stored turn as the model reads it: an assistant reply carries its action log. */
+export function renderTurn(turn: ConversationTurn): ModelMessage {
+  if (turn.role === 'user' || !turn.actions?.length) {
+    return { role: turn.role, content: turn.content }
+  }
+  const log = turn.actions.map(describeAction).join('; ')
+  return {
+    role: 'assistant',
+    content: `${turn.content}\n\n[Action log: ${log}]`,
+  }
+}
+
 // Tools that require a plan entitlement to be exposed to the model. A tool not
 // listed here is part of the baseline WhatsApp assistant and always available.
 export const TOOL_ENTITLEMENTS: Record<string, Entitlement> = {
@@ -216,6 +290,10 @@ Weather: you can look up the weather for any place, up to about two weeks ahead,
 Weather without a named place: fall back to the user's saved locations from memory. Home is the default: if they ask about the weather with no place ("vai chover amanhã?", "como está o tempo?"), use their Home. If they say "at home"/"em casa" use Home, and "at work"/"no trabalho" use Work. Only ask which place when the relevant location is not saved yet. If they name a new place and Home is not saved, answer first, then offer once, in one short sentence, to remember it as their home (e.g. "Quer que eu guarde São Paulo como sua casa?"); only when they clearly agree, save it with updateAssistantMemory (homeLocation). Do not offer again in the same conversation if they decline.
 
 Memory: you keep a small, durable memory of the user (home, work, wake and quiet hours, the people they mention, and lasting preferences). When the user shares a fact that will still be true next week ("I work downtown", "my daughter is called Ana", "I hate early meetings", "I usually wake up at 7"), save it with updateAssistantMemory, then use it to personalize later answers without asking again. Only save lasting facts, never one-off details or anything sensitive (passwords, health, financial, documents). Confirm briefly what you saved. The current context below tells you what you already remember.
+
+Your earlier replies may end with an [Action log: ...] line listing what your tools changed in that turn (tool, kind, title, id, date). It is for you only: use those ids to follow up ("mark it done", "rename it") without searching again, and never show the log or an id to the user. A habit check-in you sent appears there as habitCheckin with the habit id; when the user answers that they did it, call logHabit with that id.
+
+Corrections: when the user says what you just recorded was wrong ("não, era a tarefa do passeio", "that wasn't the habit"), fix that record instead of adding another. Call undoActivity with the logActivity entry from the action log (its kind, id, title and date exactly), then record it the right way: logActivity with as="task" or as="habit", or completeTask on the existing id. Never create a second task for something already on the board.
 
 Habits: the user can track habits, each with a cadence (every day, specific weekdays, or a number of times per week) and a running streak. Use getHabits to see their habits, streaks, and whether each is already done today, and addHabit to start tracking a new one (ask for the cadence if unclear). To record that they did one, prefer logActivity, which matches the habit by name even when they conjugate the verb; use logHabit only when you already hold the id from getHabits (for example to undo a day with done=false). Answer streak questions ("how's my reading streak?") from getHabits, and celebrate a good streak in one short phrase.
 
@@ -355,7 +433,7 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
     }),
     addTask: tool({
       description:
-        "Add a task. Defaults to today's list unless a listId is given. A task with the same title already on today's list is reused instead of duplicated (alreadyExisted).",
+        "Add a task. Defaults to today's list unless a listId is given. A task naming the same thing (even with the verb conjugated) already on the target list, or still pending from yesterday, is reused instead of duplicated: alreadyExisted with its stored title, and yesterday's is brought to today.",
       inputSchema: z.object({
         title: z.string().min(1).max(280).describe('The task title.'),
         listId: z
@@ -384,9 +462,26 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
           .string()
           .optional()
           .describe('Civil date YYYY-MM-DD it happened. Omit for today.'),
+        as: z
+          .enum(['habit', 'task'])
+          .optional()
+          .describe(
+            'Only when the user said which one they meant, e.g. correcting a habit log that should have been a task.',
+          ),
       }),
-      execute: async ({ title, date }) =>
-        tools.logActivity(userId, { title, date }),
+      execute: async ({ title, date, as }) =>
+        tools.logActivity(userId, { title, date, as }),
+    }),
+    undoActivity: tool({
+      description:
+        'Undo one logActivity result the user says was wrong: un-logs the habit, reopens the task, or deletes the task it created. Pass the entry from the action log exactly.',
+      inputSchema: z.object({
+        kind: z.enum(['habit', 'task', 'created']),
+        id: z.string().uuid(),
+        title: z.string().max(280),
+        date: z.string().describe('Civil date YYYY-MM-DD from the log.'),
+      }),
+      execute: async input => tools.undoActivity(userId, input),
     }),
     completeTask: tool({
       description: 'Mark a task as completed by its id.',
@@ -696,10 +791,7 @@ export class AiSdkAgentRunner implements AgentRunner {
         }
       : { role: 'user', content: input.message ?? '' }
     const messages: ModelMessage[] = [
-      ...input.history.map(turn => ({
-        role: turn.role,
-        content: turn.content,
-      })),
+      ...input.history.map(renderTurn),
       userMessage,
     ]
     const model = input.model === 'pro' ? this.proModel : this.flashModel
@@ -726,6 +818,7 @@ export class AiSdkAgentRunner implements AgentRunner {
       return {
         text: result.text,
         actions: collectActions(result.steps),
+        recorded: collectRecordedActions(result.steps),
         toolCalls,
       }
     }
@@ -737,6 +830,7 @@ export class AiSdkAgentRunner implements AgentRunner {
     return {
       text: retry.text,
       actions: collectActions(retry.steps),
+      recorded: collectRecordedActions(retry.steps),
       toolCalls: retryToolCalls,
       // Still unbacked after the correction: the caller logs it, since a second
       // empty confirmation is a real defect and otherwise invisible.

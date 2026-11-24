@@ -14,6 +14,7 @@ const RECORD: ScheduledJobRecord = {
   status: 'pending',
   attempts: 0,
   lastError: null,
+  dedupKey: 'digest:u1:2026-06-24',
   createdAt: new Date('2026-06-24T08:00:00.000Z'),
 }
 
@@ -23,6 +24,7 @@ describe('scheduled-job-record', () => {
     expect(job.type).toBe('daily-digest')
     expect(job.payload).toEqual({ userId: 'u1' })
     expect(job.status).toBe('pending')
+    expect(job.dedupKey).toBe('digest:u1:2026-06-24')
   })
 
   it('maps a domain job back to a record', () => {
@@ -34,6 +36,7 @@ describe('scheduled-job-record', () => {
       status: 'failed',
       attempts: 3,
       lastError: 'boom',
+      dedupKey: RECORD.dedupKey,
       createdAt: RECORD.createdAt,
     })
     expect(toScheduledJobRecord(job)).toEqual({

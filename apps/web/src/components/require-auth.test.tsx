@@ -46,4 +46,22 @@ describe('RequireAuth', () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/'))
     expect(screen.queryByText('protected content')).not.toBeInTheDocument()
   })
+
+  it('keeps the requested page so sign-in can return to it', async () => {
+    window.history.pushState({}, '', '/habits?view=week')
+    mockFetchOnce(
+      { error: { code: 'UNAUTHORIZED', message: 'no' } },
+      false,
+      401,
+    )
+
+    renderGuard()
+
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith(
+        '/?returnTo=%2Fhabits%3Fview%3Dweek',
+      ),
+    )
+    window.history.pushState({}, '', '/')
+  })
 })

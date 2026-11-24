@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api/client'
 import { userListsKey } from '@/lib/api/use-lists'
 import { habitsKey } from '@/lib/api/use-habits'
+import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
 
 // A card-worthy action the assistant took, mirrored from the application layer's
 // AgentAction. `input` holds the arguments the model passed (a task title, an
@@ -67,6 +68,7 @@ function sendMessage(input: AssistantSendInput): Promise<AssistantReply> {
 export function useSendAssistantMessage() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: sendMessage,
     onSuccess: reply => {
       // Refresh only the screens the assistant's actions actually touched, so a
@@ -82,6 +84,35 @@ export function useSendAssistantMessage() {
           void queryClient.invalidateQueries({ queryKey: key })
         }
       }
+    },
+  })
+}
+
+export type AssistantHistoryMessage = {
+  role: 'user' | 'assistant'
+  text: string
+}
+
+export const assistantHistoryKey = ['assistant-history'] as const
+
+export function useAssistantHistory() {
+  return useQuery({
+    queryKey: assistantHistoryKey,
+    queryFn: () =>
+      apiRequest<AssistantHistoryMessage[]>('/api/v1/assistant/chat'),
+    refetchOnWindowFocus: false,
+  })
+}
+
+export function useClearAssistantHistory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      apiRequest<{ cleared: boolean }>('/api/v1/assistant/chat', {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.setQueryData(assistantHistoryKey, [])
     },
   })
 }

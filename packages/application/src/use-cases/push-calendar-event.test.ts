@@ -69,6 +69,68 @@ describe('pushCalendarEvent', () => {
     expect(stored?.externalId).toBe('g-9')
   })
 
+  it('refreshes an expired token before pushing', async () => {
+    const calendarConnections = new InMemoryCalendarConnectionRepository()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    await calendarConnections.save(
+      CalendarConnection.create({
+        id: asEntityId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        ownerId: asEntityId(OWNER_ID),
+        provider: 'google',
+        accessToken: 'expired',
+        refreshToken: 'refresh-1',
+        tokenExpiresAt: new Date('2026-06-24T09:00:00.000Z'),
+        now: NOW,
+      }),
+    )
+    await localEvent(calendarEvents)
+    const pushEvent = vi
+      .fn()
+      .mockResolvedValue({ externalId: 'g-9', etag: 'etag-9' })
+    const google = provider(pushEvent)
+    google.refreshAccessToken = vi.fn().mockResolvedValue({
+      accessToken: 'fresh',
+      expiresAt: new Date('2026-06-24T11:00:00.000Z'),
+    })
+    const push = makePushCalendarEvent({
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => google },
+      clock: { now: () => NOW },
+    })
+
+    expect(await push(OWNER_ID, EVENT_ID)).toEqual({ pushed: true })
+    const [usedConnection] = pushEvent.mock.calls[0] as [CalendarConnection]
+    expect(usedConnection.accessToken).toBe('fresh')
+    expect(google.refreshAccessToken).toHaveBeenCalledWith('refresh-1')
+  })
+
+  it('leaves a newer remote copy untouched', async () => {
+    const calendarConnections = new InMemoryCalendarConnectionRepository()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    await connection(calendarConnections)
+    await localEvent(calendarEvents)
+    const push = makePushCalendarEvent({
+      calendarConnections,
+      calendarEvents,
+      providers: {
+        get: () =>
+          provider(
+            vi.fn().mockResolvedValue({
+              externalId: 'g-9',
+              etag: null,
+              skipped: true,
+            }),
+          ),
+      },
+      clock: { now: () => NOW },
+    })
+
+    expect(await push(OWNER_ID, EVENT_ID)).toEqual({ pushed: false })
+    const stored = await calendarEvents.findById(asEntityId(EVENT_ID))
+    expect(stored?.externalId).toBeNull()
+  })
+
   it('is a no-op when no calendar is connected', async () => {
     const calendarEvents = new InMemoryCalendarEventRepository()
     await localEvent(calendarEvents)

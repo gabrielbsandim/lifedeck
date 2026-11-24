@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { CalendarEvent, asEntityId } from '@lifedeck/domain'
+import { CalendarEvent, User, asEntityId } from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { makeUpdateCalendarEvent } from '@/use-cases/update-calendar-event'
@@ -9,6 +9,7 @@ const LATER = new Date('2026-06-24T12:00:00.000Z')
 const OWNER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
 const OTHER_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 const ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+const noUser = { findById: async () => null }
 
 async function setup() {
   const calendarEvents = new InMemoryCalendarEventRepository()
@@ -25,6 +26,7 @@ async function setup() {
   const enqueue = vi.fn().mockResolvedValue(undefined)
   const update = makeUpdateCalendarEvent({
     calendarEvents,
+    users: noUser,
     jobQueue: { enqueue },
     clock: { now: () => LATER },
   })
@@ -86,6 +88,7 @@ describe('updateCalendarEvent', () => {
     )
     const update = makeUpdateCalendarEvent({
       calendarEvents,
+      users: noUser,
       jobQueue: { enqueue: vi.fn().mockResolvedValue(undefined) },
       clock: { now: () => LATER },
     })
@@ -99,5 +102,43 @@ describe('updateCalendarEvent', () => {
     expect(view.startsAt).toBe('2025-02-26T19:00:00.000Z')
     expect(view.endsAt).toBe('2025-02-26T19:50:00.000Z')
     expect(view.recurrence?.freq).toBe('weekly')
+  })
+
+  it("anchors a late series edit on the owner's local date", async () => {
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const SERIES = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+    // Tuesday 2026-07-07 22:00 in Sao Paulo.
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId(SERIES),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'Late class',
+        startsAt: new Date('2026-07-08T01:00:00.000Z'),
+        endsAt: new Date('2026-07-08T02:00:00.000Z'),
+        recurrence: { freq: 'weekly', interval: 1, startDate: '2026-07-07' },
+        now: NOW,
+      }),
+    )
+    const owner = User.createGuest({
+      id: asEntityId(OWNER_ID),
+      displayName: 'Owner',
+      locale: 'pt-BR',
+      timezone: 'America/Sao_Paulo',
+      createdAt: NOW,
+    })
+    const update = makeUpdateCalendarEvent({
+      calendarEvents,
+      users: { findById: async () => owner },
+      jobQueue: { enqueue: vi.fn().mockResolvedValue(undefined) },
+      clock: { now: () => LATER },
+    })
+
+    // Moved to 20:00 Sao Paulo from the July 14 occurrence.
+    const view = await update(OWNER_ID, SERIES, {
+      startsAt: '2026-07-14T23:00:00.000Z',
+      endsAt: '2026-07-15T00:00:00.000Z',
+    })
+
+    expect(view.startsAt).toBe('2026-07-07T23:00:00.000Z')
   })
 })

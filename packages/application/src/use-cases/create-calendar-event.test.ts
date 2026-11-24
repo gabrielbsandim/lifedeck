@@ -13,6 +13,7 @@ function setup() {
   const calendarEvents = new InMemoryCalendarEventRepository()
   const enqueue = vi.fn().mockResolvedValue(undefined)
   const create = makeCreateCalendarEvent({
+    users: { findById: async () => null },
     calendarEvents,
     jobQueue: { enqueue },
     ids: { generate: () => asEntityId(NEW_ID) },

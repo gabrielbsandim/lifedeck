@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { CalendarEventView } from '@lifedeck/application'
-import { cn } from '@lifedeck/ui'
+import Link from 'next/link'
+import { cn, Skeleton } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
 import { browserTimeZone, todayIso } from '@/lib/api/dates'
@@ -26,6 +27,84 @@ import { FindTimeDialog } from '@/components/calendar/find-time-dialog'
 import { CalendarConnectionsManager } from '@/components/calendar/calendar-connections-manager'
 
 type Mode = 'agenda' | 'month'
+type EventsStatus = 'loading' | 'error' | 'ready'
+
+function eventsStatus(query: {
+  isPending: boolean
+  isError: boolean
+}): EventsStatus {
+  if (query.isPending) {
+    return 'loading'
+  }
+  return query.isError ? 'error' : 'ready'
+}
+
+type CalendarCopy = ReturnType<typeof useI18n>['messages']['calendar']
+
+function CalendarUpsell({ t }: { t: CalendarCopy }) {
+  return (
+    <div className="from-brand-600 flex flex-col gap-4 rounded-2xl bg-gradient-to-br to-violet-500 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <span className="inline-flex rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+          {t.upsellBadge}
+        </span>
+        <h1 className="mt-2 text-[19px] font-bold text-white">
+          {t.upsellTitle}
+        </h1>
+        <p className="mt-1 max-w-md text-[13.5px] leading-snug text-white/85">
+          {t.upsellBody}
+        </p>
+      </div>
+      <Link
+        href="/settings/billing"
+        className="text-brand-700 flex h-10 flex-none items-center justify-center rounded-full bg-white px-5 text-sm font-semibold shadow-md"
+      >
+        {t.upsellCta}
+      </Link>
+    </div>
+  )
+}
+
+function EventsGate({
+  status,
+  t,
+  retryLabel,
+  onRetry,
+  children,
+}: {
+  status: EventsStatus
+  t: CalendarCopy
+  retryLabel: string
+  onRetry: () => void
+  children: ReactNode
+}) {
+  if (status === 'loading') {
+    return (
+      <div aria-busy className="flex flex-col gap-3">
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-72 w-full rounded-2xl" />
+      </div>
+    )
+  }
+  if (status === 'error') {
+    return (
+      <div
+        role="alert"
+        className="border-line bg-surface flex flex-col items-center gap-3 rounded-2xl border px-6 py-10 text-center"
+      >
+        <p className="text-ink-700 text-sm font-medium">{t.loadError}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="bg-brand-600 hover:bg-brand-700 h-9 rounded-[11px] px-4 text-[13.5px] font-semibold text-white"
+        >
+          {retryLabel}
+        </button>
+      </div>
+    )
+  }
+  return <>{children}</>
+}
 
 function PlusIcon({ size = 20 }: { size?: number }) {
   return (
@@ -106,9 +185,9 @@ export function CalendarScreen() {
     day: string
   } | null>(null)
 
-  const available =
-    (session.data?.features?.calendar ?? false) &&
-    (session.data?.entitlements?.includes('calendarSync') ?? false)
+  const featureOn = session.data?.features?.calendar ?? false
+  const entitled = session.data?.entitlements?.includes('calendarSync') ?? false
+  const available = featureOn && entitled
   // Smart scheduling is Premium-only; the "Find time" action gates on it.
   const canFindTime =
     session.data?.entitlements?.includes('smartScheduling') ?? false
@@ -137,9 +216,20 @@ export function CalendarScreen() {
     timeZone: 'UTC',
   }).format(new Date(`${selectedDay}T00:00:00.000Z`))
 
-  if (!available) {
+  if (session.isPending) {
+    return <Skeleton className="h-72 w-full rounded-2xl" />
+  }
+
+  if (!featureOn) {
     return null
   }
+
+  if (!entitled) {
+    return <CalendarUpsell t={t} />
+  }
+
+  const status = eventsStatus(events)
+  const retryEvents = () => void events.refetch()
 
   function goToday() {
     setAnchor(today)
@@ -253,43 +343,24 @@ export function CalendarScreen() {
           </button>
         </div>
 
-        {mode === 'agenda' ? (
-          <div className="pb-24">
-            <CalendarWeekStrip
-              days={weekDays(anchor)}
-              selectedDay={selectedDay}
-              today={today}
-              locale={locale}
-              eventsByDay={eventsByDay}
-              onSelect={setSelectedDay}
-            />
-            <CalendarAgenda
-              days={weekDays(anchor)}
-              today={today}
-              timeZone={timeZone}
-              locale={locale}
-              eventsByDay={eventsByDay}
-              onSelectEvent={setDetail}
-            />
-          </div>
-        ) : (
-          <div className="pb-24">
-            <CalendarMonthView
-              variant="mobile"
-              anchor={anchor}
-              today={today}
-              selectedDay={selectedDay}
-              locale={locale}
-              eventsByDay={eventsByDay}
-              onSelectDay={setSelectedDay}
-              onSelectEvent={setDetail}
-            />
-            <div className="mt-4">
-              <p className="text-ink-900 px-1 pb-2.5 text-[13px] font-bold capitalize">
-                {selLong}
-              </p>
+        <EventsGate
+          status={status}
+          t={t}
+          retryLabel={messages.common.retry}
+          onRetry={retryEvents}
+        >
+          {mode === 'agenda' ? (
+            <div className="pb-24">
+              <CalendarWeekStrip
+                days={weekDays(anchor)}
+                selectedDay={selectedDay}
+                today={today}
+                locale={locale}
+                eventsByDay={eventsByDay}
+                onSelect={setSelectedDay}
+              />
               <CalendarAgenda
-                days={[selectedDay]}
+                days={weekDays(anchor)}
                 today={today}
                 timeZone={timeZone}
                 locale={locale}
@@ -297,8 +368,34 @@ export function CalendarScreen() {
                 onSelectEvent={setDetail}
               />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="pb-24">
+              <CalendarMonthView
+                variant="mobile"
+                anchor={anchor}
+                today={today}
+                selectedDay={selectedDay}
+                locale={locale}
+                eventsByDay={eventsByDay}
+                onSelectDay={setSelectedDay}
+                onSelectEvent={setDetail}
+              />
+              <div className="mt-4">
+                <p className="text-ink-900 px-1 pb-2.5 text-[13px] font-bold capitalize">
+                  {selLong}
+                </p>
+                <CalendarAgenda
+                  days={[selectedDay]}
+                  today={today}
+                  timeZone={timeZone}
+                  locale={locale}
+                  eventsByDay={eventsByDay}
+                  onSelectEvent={setDetail}
+                />
+              </div>
+            </div>
+          )}
+        </EventsGate>
 
         <button
           type="button"
@@ -369,16 +466,23 @@ export function CalendarScreen() {
           </div>
         </div>
 
-        <CalendarMonthView
-          variant="desktop"
-          anchor={anchor}
-          today={today}
-          selectedDay={selectedDay}
-          locale={locale}
-          eventsByDay={eventsByDay}
-          onSelectDay={openNew}
-          onSelectEvent={setDetail}
-        />
+        <EventsGate
+          status={status}
+          t={t}
+          retryLabel={messages.common.retry}
+          onRetry={retryEvents}
+        >
+          <CalendarMonthView
+            variant="desktop"
+            anchor={anchor}
+            today={today}
+            selectedDay={selectedDay}
+            locale={locale}
+            eventsByDay={eventsByDay}
+            onSelectDay={openNew}
+            onSelectEvent={setDetail}
+          />
+        </EventsGate>
       </div>
 
       {detail && (

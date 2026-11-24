@@ -1,3 +1,4 @@
+import { FakeUnitOfWork } from '@/testing/fakes'
 import { describe, expect, it } from 'vitest'
 import { CalendarConnection, CalendarEvent, asEntityId } from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -48,6 +49,7 @@ describe('disconnectCalendar', () => {
     await events.save(event('11111111-1111-4111-8111-111111111111', A))
     await events.save(event('22222222-2222-4222-8222-222222222222', B))
     const disconnect = makeDisconnectCalendar({
+      unitOfWork: new FakeUnitOfWork(),
       calendarConnections: connections,
       calendarEvents: events,
       clock: { now: () => LATER },
@@ -67,6 +69,7 @@ describe('disconnectCalendar', () => {
     await connections.save(connection(A, true))
     await connections.save(connection(B, false))
     const disconnect = makeDisconnectCalendar({
+      unitOfWork: new FakeUnitOfWork(),
       calendarConnections: connections,
       calendarEvents: new InMemoryCalendarEventRepository(),
       clock: { now: () => LATER },
@@ -83,6 +86,7 @@ describe('disconnectCalendar', () => {
     const connections = new InMemoryCalendarConnectionRepository()
     await connections.save(connection(A, true))
     const disconnect = makeDisconnectCalendar({
+      unitOfWork: new FakeUnitOfWork(),
       calendarConnections: connections,
       calendarEvents: new InMemoryCalendarEventRepository(),
       clock: { now: () => LATER },
@@ -95,6 +99,7 @@ describe('disconnectCalendar', () => {
 
   it('throws for a missing connection', async () => {
     const disconnect = makeDisconnectCalendar({
+      unitOfWork: new FakeUnitOfWork(),
       calendarConnections: new InMemoryCalendarConnectionRepository(),
       calendarEvents: new InMemoryCalendarEventRepository(),
       clock: { now: () => LATER },

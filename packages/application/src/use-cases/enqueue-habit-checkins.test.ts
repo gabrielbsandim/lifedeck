@@ -85,6 +85,7 @@ describe('enqueueHabitCheckins', () => {
       type: HABIT_CHECKIN_JOB,
       payload: { userId: ID.user as string, habitId: HABIT_A1 as string },
       runAt: NOW,
+      dedupKey: 'habit-checkin:11111111-1111-4111-8111-111111111111:2026-07-20',
     })
   })
 

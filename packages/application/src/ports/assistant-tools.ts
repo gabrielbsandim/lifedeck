@@ -64,6 +64,10 @@ export type AssistantActivityLog = {
   currentStreak?: number
 }
 
+// Restricts logActivity to one meaning when the user has already said which one
+// they meant, so a correction cannot land on the habit a second time.
+export type AssistantActivityTarget = 'habit' | 'task'
+
 // Grounds the assistant in the user's local time so it resolves "tomorrow" and
 // sets clock times in the right zone. Without it the model has no anchor and
 // guesses the date and drifts times by the UTC offset.
@@ -159,22 +163,33 @@ export interface AssistantTools {
   ): Promise<{ ok: boolean; memory: string }>
 
   // Tasks
-  // Adds a task, unless one with the same title is already on the target day, in
-  // which case the existing one is returned untouched (`alreadyExisted`). The
-  // assistant used to duplicate a task it had just been told about, because the
-  // only way to notice was to remember to read the board first.
+  // Adds a task, unless one naming the same thing is already on the target list
+  // or waiting to carry over, in which case that one is returned (`alreadyExisted`)
+  // with its stored title. The assistant used to duplicate a task it had just
+  // been told about, because the only way to notice was to read the board first.
   addTask(
     userId: string,
     input: { title: string; listId?: string; completed?: boolean },
-  ): Promise<{ id: string; added: boolean; alreadyExisted: boolean }>
+  ): Promise<{
+    id: string
+    title: string
+    added: boolean
+    alreadyExisted: boolean
+  }>
   // "I already did X": records it against whatever the user actually tracks, a
   // habit or a task, creating a completed task only when nothing matches. One
   // call so the assistant cannot land halfway (a task added but left pending, or
   // a confirmation with nothing recorded at all).
   logActivity(
     userId: string,
-    input: { title: string; date?: string },
+    input: { title: string; date?: string; as?: AssistantActivityTarget },
   ): Promise<AssistantActivityLog>
+  // Reverts one logActivity result, so "no, that was the walk" undoes the habit
+  // log instead of leaving it and adding a second record next to it.
+  undoActivity(
+    userId: string,
+    input: AssistantActivityLog,
+  ): Promise<{ ok: boolean }>
   completeTask(userId: string, taskId: string): Promise<{ ok: boolean }>
   reopenTask(userId: string, taskId: string): Promise<{ ok: boolean }>
   renameTask(

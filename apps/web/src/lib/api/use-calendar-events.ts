@@ -28,9 +28,13 @@ export function useCalendarEvents(range: CalendarRange, enabled = true) {
   })
 }
 
-export function useCreateCalendarEvent(range: CalendarRange) {
+export function useCreateCalendarEvent(
+  range: CalendarRange,
+  options: { inlineError?: boolean } = {},
+) {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { inlineError: options.inlineError },
     mutationFn: (input: CreateCalendarEventInput) =>
       apiRequest<CalendarEventView>('/api/v1/calendar/events', {
         method: 'POST',

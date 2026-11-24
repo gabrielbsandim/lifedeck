@@ -92,6 +92,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -123,6 +124,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -167,6 +169,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -212,6 +215,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -243,6 +247,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -275,6 +280,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -327,6 +333,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -366,6 +373,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -408,6 +416,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -445,6 +454,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -467,6 +477,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: null,
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -475,6 +486,52 @@ describe('pullCalendarChanges', () => {
       clock: { now: () => NOW },
     })
     expect((await pull(OWNER_ID)).applied).toBe(0)
+  })
+
+  it('logs a failing connection and reports it without throwing', async () => {
+    const calendarConnections = await withConnection()
+    const provider = providerWith({ events: [], nextSyncToken: null })
+    provider.listChanges = vi.fn().mockRejectedValue(new Error('401'))
+    const warn = vi.fn()
+    const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
+      calendarConnections,
+      calendarEvents: new InMemoryCalendarEventRepository(),
+      providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
+      ids,
+      clock: { now: () => NOW },
+      logger: { warn, error: vi.fn(), info: vi.fn() },
+    })
+
+    expect(await pull(OWNER_ID)).toEqual({ applied: 0, failed: 1 })
+    expect(warn).toHaveBeenCalledWith(
+      'calendar_pull_failed',
+      expect.objectContaining({ provider: 'google', error: '401' }),
+    )
+  })
+
+  it('reports a non-Error rejection as text', async () => {
+    const calendarConnections = await withConnection()
+    const provider = providerWith({ events: [], nextSyncToken: null })
+    provider.listChanges = vi.fn().mockRejectedValue('boom')
+    const warn = vi.fn()
+    const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
+      calendarConnections,
+      calendarEvents: new InMemoryCalendarEventRepository(),
+      providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
+      ids,
+      clock: { now: () => NOW },
+      logger: { warn, error: vi.fn(), info: vi.fn() },
+    })
+
+    await pull(OWNER_ID)
+    expect(warn).toHaveBeenCalledWith(
+      'calendar_pull_failed',
+      expect.objectContaining({ error: 'boom' }),
+    )
   })
 
   it('refreshes an expired access token before syncing', async () => {
@@ -491,6 +548,7 @@ describe('pullCalendarChanges', () => {
       refresh,
     )
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -540,6 +598,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -584,6 +643,7 @@ describe('pullCalendarChanges', () => {
       nextSyncToken: 'sync-2',
     })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -641,6 +701,7 @@ describe('pullCalendarChanges', () => {
       .mockRejectedValueOnce(new Error('revoked'))
       .mockResolvedValue({ events: [external()], nextSyncToken: 'sync-2' })
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents,
       providers: { get: () => provider },
@@ -655,6 +716,7 @@ describe('pullCalendarChanges', () => {
   it('rejects when the user has no calendar connection', async () => {
     const calendarConnections = new InMemoryCalendarConnectionRepository()
     const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
       calendarConnections,
       calendarEvents: new InMemoryCalendarEventRepository(),
       providers: {

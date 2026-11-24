@@ -6,6 +6,7 @@ type ToastTone = 'success' | 'error'
 export type ToastProps = {
   children: ReactNode
   tone?: ToastTone
+  action?: ReactNode
   className?: string
 }
 
@@ -14,10 +15,21 @@ const ICON_CLASSES: Record<ToastTone, string> = {
   error: 'bg-danger',
 }
 
-export function Toast({ children, tone = 'success', className }: ToastProps) {
+// An error interrupts (alert); a confirmation waits its turn (status).
+const ROLES: Record<ToastTone, 'status' | 'alert'> = {
+  success: 'status',
+  error: 'alert',
+}
+
+export function Toast({
+  children,
+  tone = 'success',
+  action,
+  className,
+}: ToastProps) {
   return (
     <div
-      role="status"
+      role={ROLES[tone]}
       className={cn(
         'border-line bg-surface flex items-center gap-2.5 rounded-xl border px-3.5 py-3 shadow-lg',
         className,
@@ -32,7 +44,10 @@ export function Toast({ children, tone = 'success', className }: ToastProps) {
       >
         {tone === 'success' ? '✓' : '!'}
       </span>
-      <span className="text-ink-800 text-sm font-medium">{children}</span>
+      <span className="text-ink-800 flex-1 text-sm font-medium">
+        {children}
+      </span>
+      {action}
     </div>
   )
 }

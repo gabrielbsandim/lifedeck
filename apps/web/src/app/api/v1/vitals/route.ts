@@ -1,8 +1,13 @@
 import { handleError, ok } from '@/server/api/respond'
 import { log } from '@/server/api/logger'
+import { enforcePublicRateLimit } from '@/server/api/public-guard'
 
 export async function POST(request: Request) {
   try {
+    const limited = await enforcePublicRateLimit(request, 'vitals')
+    if (limited) {
+      return limited
+    }
     const body = (await request.json().catch(() => null)) as {
       name?: unknown
       value?: unknown

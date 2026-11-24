@@ -303,7 +303,7 @@ export function CheckoutDialog({
                         <input
                           className={inputCls}
                           inputMode="numeric"
-                          placeholder="AAAA"
+                          placeholder={t.cardExpiryYearPlaceholder}
                           aria-label={t.cardExpiry}
                           maxLength={4}
                           value={form.expiryYear}
@@ -383,6 +383,7 @@ function PixView({
   onCopy: () => void
   messages: {
     pixInstructions: string
+    pixQrAlt: string
     copyCode: string
     copied: string
     awaitingPayment: string
@@ -396,7 +397,7 @@ function PixView({
       <div className="border-line rounded-2xl border p-3">
         <Image
           src={`data:image/png;base64,${pix.encodedImage}`}
-          alt="Pix QR code"
+          alt={messages.pixQrAlt}
           width={200}
           height={200}
           className="h-[200px] w-[200px]"

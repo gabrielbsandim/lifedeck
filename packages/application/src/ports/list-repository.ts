@@ -18,5 +18,11 @@ export interface ListRepository {
     ownerId: EntityId,
     referenceDate: Date,
   ): Promise<List | null>
+  /**
+   * Stores a new daily list unless the owner already has one for that date,
+   * and returns whichever list holds the slot. Concurrent first loads of a day
+   * therefore converge on one list.
+   */
+  ensureDaily(list: List): Promise<List>
   delete(id: EntityId): Promise<void>
 }

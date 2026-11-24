@@ -37,6 +37,10 @@ export {
   type RecurrenceRule,
 } from '@/value-objects/recurrence-rule'
 export {
+  recurringInstantsBetween,
+  type RecurringInstant,
+} from '@/value-objects/recurring-instants'
+export {
   HABIT_CADENCE_KINDS,
   validateHabitCadence,
   isHabitScheduledOn,
@@ -104,6 +108,8 @@ export {
   isTimeZone,
   civilDate,
   civilHour,
+  civilTime,
+  type CivilTime,
   startOfCivilDay,
   zoneOffset,
   zonedIso,

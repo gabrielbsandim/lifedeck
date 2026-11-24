@@ -121,10 +121,10 @@ See [docs/ai-generation.md](./docs/ai-generation.md) for the full design.
       to `StubListGenerator` offline. Switching providers is an env change, not a code change.
 - [x] `FakeListGenerator` + unit tests (happy path, clamped output, rejected output).
 - [x] `POST /api/v1/lists/generate` endpoint + OpenAPI entry; returns an editable draft.
-- [x] UI: guided questions + description, edit-then-save flow (`/generate`). Token-by-token
-      streaming of the draft is deferred to the Phase 7 motion pass.
-- [ ] Rate limiting + per-plan generation quotas (monetization hook). Deferred until the
-      quota/billing model lands; the endpoint requires an authenticated user today.
+- [x] UI: guided questions + description, edit-then-save flow (`/generate`). Replaced in
+      V4 by the assistant chat, which `/generate` now renders.
+- [x] Rate limiting + per-plan generation quotas: a 6/60s per-user throttle and
+      `consumeCredits(userId, 'listGeneration')` (refunded on failure) behind the `v2` flag.
 - [x] Prompt-injection safeguards (user text as data, fixed system prompt).
 
 ## Phase 7 - Polish: design & motion
@@ -315,17 +315,17 @@ These were real but feature-sized; all four are now implemented.
 - [x] `get-shared-board` now also requires `list.visibility === 'link'`, so toggling a
       list private invalidates outstanding share tokens.
 
-## Phase 13 - Mobile app (Expo) - future
+## Phase 13 - Mobile app (Expo)
 
-Not started until the web product is mature and validated. The clean
-architecture already positions for this (see
-[docs/architecture.md](./docs/architecture.md), "Clients").
+Built in V4 (see [docs/architecture.md](./docs/architecture.md), "Clients").
 
-- [ ] `apps/mobile` with Expo / React Native (iOS + Android).
-- [ ] Reuse `@lifedeck/domain`, `@lifedeck/application`, `@lifedeck/i18n` unchanged.
-- [ ] `@lifedeck/ui-native` design system mirroring the web tokens.
-- [ ] Bearer-token auth flow against `/api/v1` (no cookies on mobile).
-- [ ] Store submission (App Store + Play Store), OTA updates.
+- [x] `apps/mobile` with Expo / React Native (iOS + Android).
+- [x] Reuse `@lifedeck/domain`, `@lifedeck/application`, `@lifedeck/i18n` unchanged.
+- [x] Design system mirroring the web tokens, kept in `apps/mobile/src/components/ui`
+      instead of a separate `ui-native` package.
+- [x] Bearer-token auth flow against `/api/v1` (no cookies on mobile).
+- [x] OTA updates through EAS Update (`use-ota-updates.ts`).
+- [ ] Store submission (App Store + Play Store).
 
 ---
 

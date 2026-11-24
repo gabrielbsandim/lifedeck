@@ -13,3 +13,6 @@ expo-env.d.ts
 
 # Env
 .env*.local
+
+# Firebase client config: an EAS file variable on builds (GOOGLE_SERVICES_JSON)
+google-services.json

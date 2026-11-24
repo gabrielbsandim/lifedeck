@@ -5,6 +5,7 @@ import {
   Notification,
   User,
   asEntityId,
+  type RecurrenceRule,
 } from '@lifedeck/domain'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
@@ -28,6 +29,7 @@ async function setup(options: {
   now: Date
   reminders?: number[]
   withEvent?: boolean
+  recurrence?: RecurrenceRule
   reminderTemplate?: ReminderTemplate
   whatsappAddress?: string
   whatsappWindowOpen?: boolean
@@ -48,6 +50,10 @@ async function setup(options: {
         startsAt: STARTS,
         endsAt: new Date('2026-06-25T10:00:00.000Z'),
         reminders: options.reminders ?? [30],
+        recurrence: options.recurrence ?? null,
+        ...(options.recurrence
+          ? { source: 'google' as const, externalId: 'series-1' }
+          : {}),
         now: new Date('2026-06-24T00:00:00.000Z'),
       }),
     )
@@ -127,6 +133,7 @@ async function setup(options: {
     reminderTemplate: options.reminderTemplate,
   })
   return {
+    calendarEvents,
     notifications,
     deliver,
     enqueue,
@@ -361,5 +368,106 @@ describe('deliverReminder', () => {
       now: new Date('2026-06-25T09:30:00.000Z'),
     })
     expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: false })
+  })
+})
+
+describe('deliverReminder for a recurring series', () => {
+  const WEEKLY: RecurrenceRule = {
+    freq: 'weekly',
+    interval: 1,
+    startDate: '2026-06-25',
+  }
+
+  it('reminds each occurrence and arms the next one', async () => {
+    const clock = { now: new Date('2026-06-25T08:30:00.000Z') }
+    const { deliver, enqueue, notifications } = await setup({
+      get now() {
+        return clock.now
+      },
+      recurrence: WEEKLY,
+    })
+
+    expect(
+      await deliver(EVENT_ID, OWNER_ID, 30, '2026-06-25T09:00:00.000Z'),
+    ).toEqual({ delivered: true })
+    clock.now = new Date('2026-07-02T08:30:00.000Z')
+    expect(
+      await deliver(EVENT_ID, OWNER_ID, 30, '2026-07-02T09:00:00.000Z'),
+    ).toEqual({ delivered: true })
+
+    const [latest] = await notifications.listByUser(asEntityId(OWNER_ID), 10)
+    expect(latest?.toJSON().data.startsAt).toBe('2026-07-02T09:00:00.000Z')
+    expect(enqueue).toHaveBeenLastCalledWith({
+      type: 'event-reminder',
+      payload: {
+        eventId: EVENT_ID,
+        userId: OWNER_ID,
+        minutesBefore: 30,
+        occurrenceStart: '2026-07-09T09:00:00.000Z',
+      },
+      runAt: new Date('2026-07-09T08:30:00.000Z'),
+    })
+  })
+
+  it('skips a slot that is no longer part of the series', async () => {
+    const { deliver, enqueue } = await setup({
+      now: new Date('2026-06-26T08:30:00.000Z'),
+      recurrence: WEEKLY,
+    })
+    expect(
+      await deliver(EVENT_ID, OWNER_ID, 30, '2026-06-26T09:00:00.000Z'),
+    ).toEqual({ delivered: false, rescheduled: true })
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({ runAt: new Date('2026-07-02T08:30:00.000Z') }),
+    )
+  })
+
+  it('arms the next occurrence after a late job', async () => {
+    const { deliver, enqueue } = await setup({
+      now: new Date('2026-06-25T09:30:00.000Z'),
+      recurrence: WEEKLY,
+    })
+    expect(await deliver(EVENT_ID, OWNER_ID, 30)).toEqual({ delivered: false })
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({ runAt: new Date('2026-07-02T08:30:00.000Z') }),
+    )
+  })
+
+  it('stays quiet for an occurrence that has its own override', async () => {
+    const { deliver, enqueue, calendarEvents, notifications } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      recurrence: WEEKLY,
+    })
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId(NOTE_ID),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'Dentist (moved)',
+        startsAt: new Date('2026-06-25T11:00:00.000Z'),
+        endsAt: new Date('2026-06-25T12:00:00.000Z'),
+        recurrenceMasterExternalId: 'series-1',
+        originalStartsAt: STARTS,
+        source: 'google',
+        externalId: 'series-1_override',
+        now: new Date('2026-06-24T00:00:00.000Z'),
+      }),
+    )
+
+    expect(
+      await deliver(EVENT_ID, OWNER_ID, 30, '2026-06-25T09:00:00.000Z'),
+    ).toEqual({ delivered: false })
+    expect(await notifications.listByUser(asEntityId(OWNER_ID), 10)).toEqual([])
+    expect(enqueue).toHaveBeenCalledTimes(1)
+  })
+
+  it('arms nothing once the series has ended', async () => {
+    const { deliver, enqueue } = await setup({
+      now: new Date('2026-06-25T08:30:00.000Z'),
+      recurrence: { ...WEEKLY, until: '2026-06-25' },
+    })
+    expect(
+      await deliver(EVENT_ID, OWNER_ID, 30, '2026-06-25T09:00:00.000Z'),
+    ).toEqual({ delivered: true })
+    expect(enqueue).not.toHaveBeenCalled()
   })
 })

@@ -6,6 +6,7 @@ import {
   toMessageLanguage,
 } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
+import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { HabitRepository } from '@/ports/habit-repository'
 import type { HabitLogRepository } from '@/ports/habit-log-repository'
@@ -32,6 +33,7 @@ type Dependencies = {
   sendProactiveMessage: ReturnType<typeof makeSendProactiveMessage>
   sendGuard: ProactiveSendGuard
   publishNotification: ReturnType<typeof makePublishNotification>
+  conversations: ConversationStore
   ids: IdGenerator
   clock: Clock
   checkinTemplate?: CheckinTemplate
@@ -45,6 +47,7 @@ export function makeSendHabitCheckin({
   sendProactiveMessage,
   sendGuard,
   publishNotification,
+  conversations,
   ids,
   clock,
   checkinTemplate,
@@ -112,19 +115,35 @@ export function makeSendHabitCheckin({
         : undefined,
     })
 
-    // Same fallback as the daily brief: a closed WhatsApp window must not make
-    // the check-in disappear, so it lands in the in-app notification bell.
-    if (!delivered) {
-      await publishNotification({
-        id: ids.generate(),
-        userId: asEntityId(userId),
-        type: HABIT_CHECKIN_JOB,
-        data: { habitId: habitId, habitTitle: habit.title, text },
-        createdAt: clock.now(),
-        alert: { title: pushTitles(language).checkin, body: text },
-      })
+    if (delivered) {
+      // A bare "sim" or "treinei" reply only means something next to the
+      // question, and the habit id spares the assistant a name lookup.
+      try {
+        await conversations.append(userId, [
+          {
+            role: 'assistant',
+            content: text,
+            actions: [
+              { tool: 'habitCheckin', id: habitId, title: habit.title },
+            ],
+          },
+        ])
+      } catch {
+        // Ignore; the check-in already went out.
+      }
+      return { sent: true }
     }
 
-    return { sent: delivered }
+    // Same fallback as the daily brief: a closed WhatsApp window must not make
+    // the check-in disappear, so it lands in the in-app notification bell.
+    await publishNotification({
+      id: ids.generate(),
+      userId: asEntityId(userId),
+      type: HABIT_CHECKIN_JOB,
+      data: { habitId: habitId, habitTitle: habit.title, text },
+      createdAt: clock.now(),
+      alert: { title: pushTitles(language).checkin, body: text },
+    })
+    return { sent: false }
   }
 }

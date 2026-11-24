@@ -46,25 +46,27 @@ export function resetNativeAuthClient(): void {
   client = undefined
 }
 
-// Stores the session token under a fresh single-use code. Returns null when
-// Redis is unavailable, so the caller can fail the sign-in loudly instead of
-// redirecting the app to a code it can never exchange.
-export async function issueNativeAuthCode(
-  sessionToken: string,
+// Stores a value under a fresh single-use code. Returns null when Redis is
+// unavailable, so the caller can fail loudly instead of handing out a dead code.
+export async function storeSingleUseCode(
+  prefix: string,
+  value: string,
+  ttlSeconds: number,
 ): Promise<string | null> {
   const redis = getRedis()
   if (!redis) {
-    log('error', 'native auth code requested without Redis configured')
+    log('error', 'single-use code requested without Redis configured', {
+      prefix,
+    })
     return null
   }
   const code = randomUUID()
   try {
-    await redis.set(`${CODE_PREFIX}${code}`, sessionToken, {
-      ex: CODE_TTL_SECONDS,
-    })
+    await redis.set(`${prefix}${code}`, value, { ex: ttlSeconds })
     return code
   } catch (error) {
-    log('error', 'failed to store native auth code', {
+    log('error', 'failed to store single-use code', {
+      prefix,
       error: error instanceof Error ? error.message : String(error),
     })
     return null
@@ -72,7 +74,8 @@ export async function issueNativeAuthCode(
 }
 
 // Reads and deletes the code in one step so a replayed code never resolves.
-export async function claimNativeAuthCode(
+export async function claimSingleUseCode(
+  prefix: string,
   code: string,
 ): Promise<string | null> {
   const redis = getRedis()
@@ -80,14 +83,25 @@ export async function claimNativeAuthCode(
     return null
   }
   try {
-    const token = await redis.getdel<string>(`${CODE_PREFIX}${code}`)
-    return typeof token === 'string' && token.length > 0 ? token : null
+    const value = await redis.getdel<string>(`${prefix}${code}`)
+    return typeof value === 'string' && value.length > 0 ? value : null
   } catch (error) {
-    log('error', 'failed to claim native auth code', {
+    log('error', 'failed to claim single-use code', {
+      prefix,
       error: error instanceof Error ? error.message : String(error),
     })
     return null
   }
+}
+
+export function issueNativeAuthCode(
+  sessionToken: string,
+): Promise<string | null> {
+  return storeSingleUseCode(CODE_PREFIX, sessionToken, CODE_TTL_SECONDS)
+}
+
+export function claimNativeAuthCode(code: string): Promise<string | null> {
+  return claimSingleUseCode(CODE_PREFIX, code)
 }
 
 // Deep link the app listens on. Kept here so the callback and the app agree on

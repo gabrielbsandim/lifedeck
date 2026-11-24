@@ -1,4 +1,4 @@
-import { DEFAULT_TIME_ZONE, civilHour } from '@lifedeck/domain'
+import { DEFAULT_TIME_ZONE, civilDate, civilHour } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { JobQueue } from '@/ports/job-queue'
 import type { HabitRepository } from '@/ports/habit-repository'
@@ -48,6 +48,7 @@ export function makeEnqueueHabitCheckins({
           habitId: habit.id as string,
         },
         runAt: now,
+        dedupKey: `${HABIT_CHECKIN_JOB}:${habit.id}:${civilDate(now, timezone)}`,
       })
       enqueued += 1
     }

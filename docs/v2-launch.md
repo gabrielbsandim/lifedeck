@@ -62,8 +62,8 @@ plus `calendar_events.connection_id`) and `19_subscription_cancel`
    `GOOGLE_CALENDAR_WEBHOOK_TOKEN` (`openssl rand -hex 16`).
 
 ## 6. Cron
-Already defined in `apps/web/vercel.json` (`dispatch-jobs` every minute,
-`fan-out-jobs` every 15 minutes). Nothing to create; just make sure
+Already defined in `apps/web/vercel.json` (`dispatch-jobs` every 5 minutes,
+`fan-out-jobs` hourly, `calendar-maintenance` every 6 hours). Nothing to create; just make sure
 `CRON_SECRET` from step 1 is set.
 
 ## 7. Turn V2 on (last)

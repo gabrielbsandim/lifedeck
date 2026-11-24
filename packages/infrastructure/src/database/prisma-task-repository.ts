@@ -27,6 +27,14 @@ export class PrismaTaskRepository implements TaskRepository {
     })
   }
 
+  async claimCarryForward(id: EntityId, at: Date): Promise<boolean> {
+    const { count } = await this.prisma.task.updateMany({
+      where: { id, carriedForwardAt: null },
+      data: { carriedForwardAt: at },
+    })
+    return count === 1
+  }
+
   async findById(id: EntityId): Promise<Task | null> {
     const record = await this.prisma.task.findUnique({ where: { id } })
     return record ? toDomainTask(record) : null

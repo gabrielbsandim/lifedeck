@@ -36,6 +36,15 @@ function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
+function isCarryable(task: Task): boolean {
+  const props = task.toJSON()
+  return (
+    props.status === 'pending' &&
+    props.recurringTaskId === null &&
+    props.carriedForwardAt === null
+  )
+}
+
 export type CarryOverCandidate = {
   task: TaskView
   fromDate: string
@@ -83,25 +92,9 @@ export function makeGetDailyBoard({
       (await lists.findDailyByOwnerAndDate(owner, referenceDate)) ??
       (await provisionDailyList())
 
-    let carryOver: CarryOverCandidate[] = []
-    if (
-      referenceDate.getTime() ===
-      startOfCivilDay(clock.now(), timezone).getTime()
-    ) {
-      const candidates = await collectCandidates()
-      if ((user?.carryOverMode ?? 'manual') === 'auto') {
-        await unitOfWork.run(() => autoCarry(list, candidates))
-      } else {
-        carryOver = candidates.map(candidate => ({
-          task: toTaskView(candidate.task),
-          fromDate: candidate.fromDate,
-        }))
-      }
-    }
+    const carryOver = await resolveCarryOver(list)
 
-    await unitOfWork.run(() => materializeRecurring(list))
-
-    const items = await tasks.listByList(list.id)
+    const items = await materializeRecurring(list)
     const summaries = await summarizeSubtasks(
       subtasks,
       items.map(task => task.id),
@@ -112,38 +105,41 @@ export function makeGetDailyBoard({
       carryOver,
     }
 
+    async function resolveCarryOver(
+      todayList: List,
+    ): Promise<CarryOverCandidate[]> {
+      const isToday =
+        referenceDate.getTime() ===
+        startOfCivilDay(clock.now(), timezone).getTime()
+      if (!isToday) {
+        return []
+      }
+      if ((user?.carryOverMode ?? 'manual') === 'auto') {
+        await unitOfWork.run(async () =>
+          autoCarry(todayList, await collectCandidates()),
+        )
+        return []
+      }
+      const candidates = await collectCandidates()
+      return candidates.map(candidate => ({
+        task: toTaskView(candidate.task),
+        fromDate: candidate.fromDate,
+      }))
+    }
+
     async function collectCandidates(): Promise<
       Array<{ task: Task; fromDate: string }>
     > {
-      const owned = await lists.listByOwner(owner)
-      const earliest =
-        referenceDate.getTime() - CARRY_OVER_LOOKBACK_DAYS * MS_PER_DAY
-      const priorDailyLists = owned.filter(candidate => {
-        const props = candidate.toJSON()
-        return (
-          props.type === 'daily' &&
-          props.referenceDate !== null &&
-          props.referenceDate.getTime() < referenceDate.getTime() &&
-          props.referenceDate.getTime() >= earliest
-        )
-      })
-
-      const result: Array<{ task: Task; fromDate: string }> = []
-      for (const priorList of priorDailyLists) {
-        const fromDate = toIsoDate(priorList.toJSON().referenceDate as Date)
-        const priorTasks = await tasks.listByList(priorList.id)
-        for (const task of priorTasks) {
-          const props = task.toJSON()
-          if (
-            props.status === 'pending' &&
-            props.recurringTaskId === null &&
-            props.carriedForwardAt === null
-          ) {
-            result.push({ task, fromDate })
-          }
-        }
+      const priorDate = new Date(
+        referenceDate.getTime() - CARRY_OVER_LOOKBACK_DAYS * MS_PER_DAY,
+      )
+      const priorList = await lists.findDailyByOwnerAndDate(owner, priorDate)
+      if (!priorList) {
+        return []
       }
-      return result
+      const fromDate = toIsoDate(priorDate)
+      const priorTasks = await tasks.listByList(priorList.id)
+      return priorTasks.filter(isCarryable).map(task => ({ task, fromDate }))
     }
 
     async function autoCarry(
@@ -152,6 +148,11 @@ export function makeGetDailyBoard({
     ): Promise<void> {
       let position = (await tasks.listByList(todayList.id)).length
       for (const { task, fromDate } of candidates) {
+        // A concurrent load may have carried this task already; only the
+        // caller that flips carried_forward_at gets to copy it.
+        if (!(await tasks.claimCarryForward(task.id, clock.now()))) {
+          continue
+        }
         const props = task.toJSON()
         const copy = Task.create({
           id: ids.generate(),
@@ -163,8 +164,6 @@ export function makeGetDailyBoard({
           createdAt: clock.now(),
         })
         position += 1
-        task.markCarriedForward(clock.now())
-        await tasks.save(task)
         await tasks.save(copy)
         await copySubtasks(task.id, copy.id)
       }
@@ -201,39 +200,42 @@ export function makeGetDailyBoard({
         referenceDate,
         createdAt: clock.now(),
       })
-      await lists.save(created)
-      return created
+      return lists.ensureDaily(created)
     }
 
-    async function materializeRecurring(dailyList: List): Promise<void> {
-      const definitions = await recurringTasks.listByOwner(owner)
-      if (definitions.length === 0) {
-        return
-      }
-
-      const existing = await tasks.listByList(dailyList.id)
+    // Returns the list's tasks. A poll with nothing to generate reuses the
+    // read it already made and opens no transaction.
+    async function materializeRecurring(dailyList: List): Promise<Task[]> {
+      const [definitions, existing] = await Promise.all([
+        recurringTasks.listByOwner(owner),
+        tasks.listByList(dailyList.id),
+      ])
       const alreadyGenerated = new Set(
-        existing
-          .map(task => task.toJSON().recurringTaskId)
-          .filter((id): id is NonNullable<typeof id> => id !== null),
+        existing.map(task => task.toJSON().recurringTaskId),
       )
-
-      for (const definition of definitions) {
-        if (alreadyGenerated.has(definition.id)) {
-          continue
-        }
-        if (!occursOn(definition.rule, referenceDate)) {
-          continue
-        }
-        const task = Task.create({
-          id: ids.generate(),
-          listId: dailyList.id,
-          title: definition.title,
-          createdAt: clock.now(),
-          recurringTaskId: definition.id,
-        })
-        await tasks.save(task)
+      const due = definitions.filter(
+        definition =>
+          !alreadyGenerated.has(definition.id) &&
+          occursOn(definition.rule, referenceDate),
+      )
+      if (due.length === 0) {
+        return existing
       }
+
+      await unitOfWork.run(async () => {
+        for (const definition of due) {
+          await tasks.save(
+            Task.create({
+              id: ids.generate(),
+              listId: dailyList.id,
+              title: definition.title,
+              createdAt: clock.now(),
+              recurringTaskId: definition.id,
+            }),
+          )
+        }
+      })
+      return tasks.listByList(dailyList.id)
     }
   }
 }

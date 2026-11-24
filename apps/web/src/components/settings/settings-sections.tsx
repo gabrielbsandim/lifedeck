@@ -506,6 +506,7 @@ export function PlanSection() {
 export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
   const { messages } = useI18n()
   const signOut = useSignOut()
+  const signOutEverywhere = useSignOut()
   const deleteAccount = useDeleteAccount()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
@@ -540,6 +541,27 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
           className="border-line text-ink-700 hover:bg-bg bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold disabled:opacity-50"
         >
           {messages.auth.signOut}
+        </button>
+      </SectionCard>
+
+      <SectionCard className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-ink-900 text-sm font-semibold">
+            {messages.auth.signOutEverywhere}
+          </div>
+          <div className="text-ink-400 mt-0.5 text-xs">
+            {messages.auth.signOutEverywhereHint}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() =>
+            signOutEverywhere.mutate('all', { onSuccess: onSignedOut })
+          }
+          disabled={signOutEverywhere.isPending}
+          className="border-line text-ink-700 hover:bg-bg bg-surface h-9 rounded-[10px] border px-3.5 text-[13px] font-semibold disabled:opacity-50"
+        >
+          {messages.auth.signOutEverywhere}
         </button>
       </SectionCard>
 

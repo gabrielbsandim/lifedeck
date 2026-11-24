@@ -1,5 +1,8 @@
 import type { Entitlement } from '@lifedeck/domain'
-import type { ConversationTurn } from '@/ports/conversation-store'
+import type {
+  ConversationTurn,
+  RecordedAction,
+} from '@/ports/conversation-store'
 import type { MediaPayload } from '@/ports/messaging-channel'
 
 export type AgentModelTier = 'flash' | 'pro'
@@ -39,6 +42,9 @@ export type AgentReply = {
   // turn that confirms work it never did is otherwise indistinguishable, in the
   // logs, from one that worked.
   toolCalls?: string[]
+  // What the mutating tools changed, stored with the reply in history so the
+  // next turn can correct "the task I just created" by id.
+  recorded?: RecordedAction[]
   // The reply still claims an action no tool performed, even after the runner's
   // corrective retry. Always a defect worth surfacing.
   unverifiedClaim?: boolean

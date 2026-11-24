@@ -5,6 +5,7 @@ import {
   InMemoryCalendarEventRepository,
   InMemoryChannelIdentityRepository,
   InMemoryConversationStore,
+  InMemoryTurnLock,
   InMemoryNotificationRepository,
   FakeDispatchWatermark,
   InMemoryScheduledJobRepository,
@@ -76,6 +77,7 @@ describe('V2 calendar reminder happy path', () => {
 
     const createEvent = makeCreateCalendarEvent({
       calendarEvents,
+      users: { findById: async () => null },
       jobQueue,
       ids,
       clock,
@@ -161,6 +163,7 @@ describe('V2 whatsapp assistant happy path', () => {
     )
     const createEvent = makeCreateCalendarEvent({
       calendarEvents,
+      users: { findById: async () => null },
       jobQueue,
       ids,
       clock,
@@ -212,6 +215,7 @@ describe('V2 whatsapp assistant happy path', () => {
       clock,
       logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
       whatsappSession: new NoopWhatsappSessionWindow(),
+      turnLock: new InMemoryTurnLock(),
     })
 
     const pairing = await startPairing(USER_ID, PHONE)

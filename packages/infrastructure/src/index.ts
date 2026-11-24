@@ -19,6 +19,7 @@ export { PrismaEmailVerificationRepository } from '@/database/prisma-email-verif
 export { PrismaAnalyticsRepository } from '@/database/prisma-analytics-repository'
 export { PrismaNotificationRepository } from '@/database/prisma-notification-repository'
 export { PrismaPushDeviceRepository } from '@/database/prisma-push-device-repository'
+export { PrismaSessionRevocationStore } from '@/database/prisma-session-revocation-store'
 export { PrismaApiKeyRepository } from '@/database/prisma-api-key-repository'
 export { PrismaHealthProbe } from '@/database/prisma-health-probe'
 export { RandomTokenGenerator } from '@/security/random-token-generator'
@@ -193,6 +194,7 @@ export {
 } from '@/messaging/ai-sdk-agent-runner'
 export { createConversationStore } from '@/messaging/redis-conversation-store'
 export { createWhatsappSessionWindow } from '@/messaging/redis-whatsapp-session'
+export { createTurnLock } from '@/messaging/redis-turn-lock'
 export {
   GeminiTranscriber,
   GeminiVisionReader,

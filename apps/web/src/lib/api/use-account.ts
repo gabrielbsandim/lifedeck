@@ -6,6 +6,7 @@ import type { SetAssistantProfileInput, UserView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { browserTimeZone } from '@/lib/api/dates'
 import { sessionKey } from '@/lib/api/use-session'
+import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
 
 export function useRenameUser() {
   const queryClient = useQueryClient()
@@ -134,6 +135,7 @@ export function useSyncTimezone(user: UserView | null | undefined) {
 export function useUploadAvatar() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (image: Blob) =>
       apiRequest<UserView>('/api/v1/account/avatar', {
         method: 'POST',
@@ -155,6 +157,7 @@ export function useRemoveAvatar() {
 
 export function useChangePassword() {
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
       apiRequest<UserView>('/api/v1/account/password', {
         method: 'PATCH',
@@ -166,10 +169,11 @@ export function useChangePassword() {
 export function useSignOut() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: () =>
-      apiRequest<{ signedOut: boolean }>('/api/v1/sessions', {
-        method: 'DELETE',
-      }),
+    mutationFn: (scope: 'device' | 'all' = 'device') =>
+      apiRequest<{ signedOut: boolean }>(
+        scope === 'all' ? '/api/v1/sessions?scope=all' : '/api/v1/sessions',
+        { method: 'DELETE' },
+      ),
     onSuccess: () => {
       queryClient.setQueryData(sessionKey, null)
       queryClient.clear()

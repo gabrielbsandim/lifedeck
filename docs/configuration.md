@@ -89,8 +89,8 @@ Everything in V2 stays invisible in production until turned on. `true` enables i
 | --- | --- | --- |
 | `CRON_SECRET` | Bearer that authorizes the internal cron endpoints. | Generate: `openssl rand -base64 32`. On Vercel, cron already sends `Authorization: Bearer ${CRON_SECRET}` when set. |
 
-Schedules are already in `apps/web/vercel.json` (dispatch every 15 min, fan-out
-hourly). Alternative: point a QStash at the same endpoints.
+Schedules are already in `apps/web/vercel.json` (dispatch every 5 min, fan-out
+hourly, calendar maintenance every 6 h). Alternative: point a QStash at the same endpoints.
 
 | Variable | What it is | Where to get it |
 | --- | --- | --- |

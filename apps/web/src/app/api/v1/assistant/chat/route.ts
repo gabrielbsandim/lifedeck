@@ -124,3 +124,31 @@ export async function POST(request: Request) {
     return handleError(error)
   }
 }
+
+// The thread so far, so the chat survives a reload. It is the same history the
+// agent reads, shared with WhatsApp, so messages from either channel show up.
+export async function GET(request: Request) {
+  try {
+    const userId = await getUserIdFromRequest(request)
+    if (!userId) {
+      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    }
+    return ok(await getContainer().getAssistantHistory(userId))
+  } catch (error) {
+    return handleError(error)
+  }
+}
+
+// "New chat": without this a reload would bring back the thread just reset.
+export async function DELETE(request: Request) {
+  try {
+    const userId = await getUserIdFromRequest(request)
+    if (!userId) {
+      return fail('UNAUTHORIZED', 'Authentication required.', 401)
+    }
+    await getContainer().clearAssistantHistory(userId)
+    return ok({ cleared: true })
+  } catch (error) {
+    return handleError(error)
+  }
+}

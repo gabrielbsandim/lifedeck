@@ -492,6 +492,91 @@ describe('GoogleCalendarProvider', () => {
       expect(String(call(0)[0])).toContain('master-1_20260721')
     })
 
+    it('sends If-Match when the last synced etag is known', async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse({ id: 'r1', etag: '"e2"' }))
+      const result = await provider().pushEvent(
+        connection(),
+        localEvent({ externalId: 'r1', etag: '"e1"' }),
+      )
+      const headers = (call(0)[1] as { headers: Record<string, string> })
+        .headers
+      expect(headers['if-match']).toBe('"e1"')
+      expect(result).toEqual({ externalId: 'r1', etag: '"e2"' })
+    })
+
+    it('leaves a newer Google edit for the pull to adopt', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonResponse({}, 412))
+        .mockResolvedValueOnce(
+          jsonResponse({ id: 'r1', updated: '2026-07-20T13:00:00.000Z' }),
+        )
+      const result = await provider().pushEvent(
+        connection(),
+        localEvent({ externalId: 'r1', etag: '"e1"' }),
+      )
+      expect(result).toEqual({ externalId: 'r1', etag: '"e1"', skipped: true })
+      expect(call(1)[1].method).toBe('GET')
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+
+    it('overwrites an older Google copy after a precondition failure', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonResponse({}, 412))
+        .mockResolvedValueOnce(
+          jsonResponse({ id: 'r1', updated: '2026-07-20T11:00:00.000Z' }),
+        )
+        .mockResolvedValueOnce(jsonResponse({ id: 'r1', etag: '"e3"' }))
+      const result = await provider().pushEvent(
+        connection(),
+        localEvent({ externalId: 'r1', etag: '"e1"' }),
+      )
+      expect(result).toEqual({ externalId: 'r1', etag: '"e3"' })
+      expect(call(2)[1].method).toBe('PATCH')
+    })
+
+    it('re-PATCHes an override when Google has no newer edit', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonResponse({}, 412))
+        .mockResolvedValueOnce(jsonResponse({ id: 'inst' }))
+        .mockResolvedValueOnce(jsonResponse({ id: 'inst', etag: '"e9"' }))
+      const result = await provider().pushEvent(
+        connection(),
+        localEvent({
+          etag: '"e1"',
+          recurrenceMasterExternalId: 'master-1',
+          originalStartsAt: new Date('2026-07-21T09:00:00.000Z'),
+        }),
+      )
+      expect(result).toEqual({ externalId: 'inst', etag: '"e9"' })
+    })
+
+    it('skips an override when Google has the newer instance', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonResponse({}, 412))
+        .mockResolvedValueOnce(
+          jsonResponse({ id: 'inst', updated: '2026-07-21T00:00:00.000Z' }),
+        )
+      const result = await provider().pushEvent(
+        connection(),
+        localEvent({
+          etag: '"e1"',
+          recurrenceMasterExternalId: 'master-1',
+          originalStartsAt: new Date('2026-07-21T09:00:00.000Z'),
+        }),
+      )
+      expect(result).toMatchObject({ skipped: true })
+    })
+
+    it('surfaces any other failure on a conditional PATCH', async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse({}, 500))
+      await expect(
+        provider().pushEvent(
+          connection(),
+          localEvent({ externalId: 'r1', etag: '"e1"' }),
+        ),
+      ).rejects.toThrow('500')
+    })
+
     it('cancels an occurrence override with a status body', async () => {
       fetchMock.mockResolvedValueOnce(jsonResponse({ id: 'inst', etag: null }))
       await provider().pushEvent(

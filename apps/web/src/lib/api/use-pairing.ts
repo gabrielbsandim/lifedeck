@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api/client'
+import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
 
 export interface PairingResult {
   status: string
@@ -26,6 +27,7 @@ export const whatsappChannelKey = ['whatsapp-channel'] as const
 export function useStartWhatsappPairing() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (phone?: string) =>
       apiRequest<PairingResult>('/api/v1/messaging/whatsapp/pairing', {
         method: 'POST',

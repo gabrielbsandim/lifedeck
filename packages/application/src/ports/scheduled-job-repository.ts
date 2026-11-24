@@ -2,6 +2,11 @@ import type { ScheduledJob } from '@lifedeck/domain'
 
 export interface ScheduledJobRepository {
   save(job: ScheduledJob): Promise<void>
+  /**
+   * Inserts a new job unless another job already holds its dedup key, and says
+   * whether it was inserted. A job without a key is always inserted.
+   */
+  add(job: ScheduledJob): Promise<boolean>
   listDue(now: Date, limit: number): Promise<ScheduledJob[]>
   /**
    * Atomically pulls due jobs and leases them by pushing their run time to

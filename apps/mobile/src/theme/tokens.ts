@@ -6,7 +6,7 @@
 // tokens through the CSS variables in src/global.css, so both follow the device
 // light/dark setting. palette.json is the single source for both.
 import { useColorScheme } from 'react-native'
-import palette from './palette.json'
+import palette from '@/theme/palette.json'
 
 type TokenName = keyof (typeof palette)['light']
 

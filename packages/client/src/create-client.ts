@@ -1,4 +1,4 @@
-import { ApiError } from './api-error'
+import { ApiError } from '@/api-error'
 
 export type ApiPage<T> = { items: T[]; nextCursor: string | null }
 

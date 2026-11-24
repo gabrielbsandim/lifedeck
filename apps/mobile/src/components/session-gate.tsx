@@ -5,8 +5,11 @@
 // authenticated it renders nothing.
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import * as WebBrowser from 'expo-web-browser'
 import { AuthDialog } from '@/components/auth-dialog'
+import { LegalLinks } from '@/components/legal/legal-document'
 import { Button, Logo, TextField } from '@/components/ui'
+import { API_BASE_URL } from '@/lib/api/config'
 import { deviceTimeZone } from '@/lib/api/dates'
 import { useCreateGuest, useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
@@ -84,6 +87,13 @@ export function SessionGate() {
           {messages.auth.haveAccount}
         </Text>
       </Pressable>
+
+      {/* The gate covers the navigator, so the documents open in a browser. */}
+      <LegalLinks
+        onOpen={doc =>
+          void WebBrowser.openBrowserAsync(`${API_BASE_URL}/${doc}`)
+        }
+      />
 
       <AuthDialog
         open={signInOpen}

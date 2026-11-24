@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CalendarConnectionView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
+import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
 
 export const calendarConnectionsKey = ['calendar-connections'] as const
 
@@ -33,6 +34,7 @@ type ConnectResult = { connected: boolean; connectionId: string }
 export function useConnectAppleCalendar() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: { email: string; appPassword: string }) =>
       apiRequest<ConnectResult>('/api/v1/calendar/apple/connect', {
         method: 'POST',
@@ -48,6 +50,7 @@ export function useConnectAppleCalendar() {
 export function useConnectCalcomCalendar() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: { email: string; apiKey: string }) =>
       apiRequest<ConnectResult>('/api/v1/calendar/calcom/connect', {
         method: 'POST',

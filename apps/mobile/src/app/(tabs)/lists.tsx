@@ -77,7 +77,11 @@ function TodayCard() {
 
   return (
     <Link href="/" asChild>
-      <Pressable className="bg-brand-600 overflow-hidden rounded-2xl p-5">
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={`${messages.list.daily}, ${meta}`}
+        className="bg-brand-600 overflow-hidden rounded-2xl p-5"
+      >
         <View className="mb-3 flex-row items-center justify-between gap-3">
           <View className="rounded-full bg-white/20 px-2.5 py-1">
             <Text className="text-xs font-semibold text-white">
@@ -123,7 +127,11 @@ function ListSummaryCard({ list, index }: { list: ListView; index: number }) {
   const dot = DOT_COLORS[index % DOT_COLORS.length]
 
   return (
-    <Pressable onPress={() => router.push(`/lists/${list.id}`)}>
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={`${list.title}, ${shared ? messages.lists.sharedBadge : messages.lists.you}, ${done}/${total}`}
+      onPress={() => router.push(`/lists/${list.id}`)}
+    >
       <Card className="p-4">
         <View className="mb-3 flex-row items-center justify-between gap-3">
           <View className="min-w-0 flex-1 flex-row items-center gap-2.5">

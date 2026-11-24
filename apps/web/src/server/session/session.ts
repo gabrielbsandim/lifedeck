@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
+import { isSessionCurrent } from '@/server/session/session-validity'
 
 export const SESSION_COOKIE = 'lifedeck_session'
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7
@@ -32,16 +33,32 @@ export async function createSessionToken(
     .sign(getSecret())
 }
 
-export async function readSessionToken(token: string): Promise<string | null> {
+async function verifiedClaims(
+  token: string,
+): Promise<{ userId: string; issuedAt: number } | null> {
   try {
     // Pin the algorithm: never let the token header dictate how it is verified.
     const { payload } = await jwtVerify(token, getSecret(), {
       algorithms: ['HS256'],
     })
-    return payload.sub ?? null
+    if (!payload.sub || payload.iat === undefined) {
+      return null
+    }
+    return { userId: payload.sub, issuedAt: payload.iat }
   } catch {
     return null
   }
+}
+
+// The revocation lookup stays outside the try: a database error must surface as
+// a 500, not as a 401 that makes the app drop a valid session.
+export async function readSessionToken(token: string): Promise<string | null> {
+  const claims = await verifiedClaims(token)
+  if (!claims) {
+    return null
+  }
+  const current = await isSessionCurrent(claims.userId, claims.issuedAt)
+  return current ? claims.userId : null
 }
 
 export function sessionCookieOptions(maxAge: number): CookieOptions {

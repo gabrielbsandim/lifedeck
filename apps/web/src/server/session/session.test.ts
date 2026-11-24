@@ -10,6 +10,14 @@ import {
   readSessionToken,
   sessionCookieOptions,
 } from '@/server/session/session'
+import { clearSessionValidityCache } from '@/server/session/session-validity'
+import { SignJWT } from 'jose'
+
+const sessionsValidFrom = vi.fn<(userId: string) => Promise<Date | null>>()
+
+vi.mock('@/server/container', () => ({
+  getContainer: () => ({ sessionsValidFrom }),
+}))
 
 const USER_ID = 'a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f'
 const ISSUED_AT = new Date('2026-06-21T10:00:00.000Z')
@@ -31,6 +39,9 @@ describe('session', () => {
     process.env.AUTH_SECRET = 'test-secret-value-for-signing-tokens'
     vi.useFakeTimers()
     vi.setSystemTime(ISSUED_AT)
+    clearSessionValidityCache()
+    sessionsValidFrom.mockReset()
+    sessionsValidFrom.mockResolvedValue(null)
   })
 
   afterEach(() => {
@@ -41,6 +52,43 @@ describe('session', () => {
   it('round-trips a signed token', async () => {
     const token = await createSessionToken(USER_ID, ISSUED_AT)
     expect(await readSessionToken(token)).toBe(USER_ID)
+  })
+
+  it('rejects a token issued before the sessions were revoked', async () => {
+    const token = await createSessionToken(USER_ID, ISSUED_AT)
+    sessionsValidFrom.mockResolvedValue(new Date(ISSUED_AT.getTime() + 1000))
+    expect(await readSessionToken(token)).toBeNull()
+    expect(sessionsValidFrom).toHaveBeenCalledWith(USER_ID)
+  })
+
+  it('accepts a token issued in the same second as the revocation', async () => {
+    sessionsValidFrom.mockResolvedValue(new Date(ISSUED_AT.getTime() + 400))
+    const token = await createSessionToken(USER_ID, ISSUED_AT)
+    expect(await readSessionToken(token)).toBe(USER_ID)
+  })
+
+  it('looks the revocation up once per minute per user', async () => {
+    const token = await createSessionToken(USER_ID, ISSUED_AT)
+    await readSessionToken(token)
+    await readSessionToken(token)
+    expect(sessionsValidFrom).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(60_001)
+    await readSessionToken(token)
+    expect(sessionsValidFrom).toHaveBeenCalledTimes(2)
+  })
+
+  it('propagates a failed revocation lookup instead of signing out', async () => {
+    const token = await createSessionToken(USER_ID, ISSUED_AT)
+    sessionsValidFrom.mockRejectedValue(new Error('db down'))
+    await expect(readSessionToken(token)).rejects.toThrow('db down')
+  })
+
+  it('rejects a token without an issue time', async () => {
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: 'HS256' })
+      .setSubject(USER_ID)
+      .sign(new TextEncoder().encode(process.env.AUTH_SECRET))
+    expect(await readSessionToken(token)).toBeNull()
   })
 
   it('rejects a tampered token', async () => {

@@ -14,6 +14,7 @@ export default mergeConfig(
       // the gate until its routes are covered.
       'src/app/api/v1/internal/**/*.ts',
       'src/app/api/v1/account/assistant-profile/**/*.ts',
+      'src/app/api/v1/auth/web-handoff/**/*.ts',
     ],
     coverageExclude: [
       'src/**/*.test.{ts,tsx}',

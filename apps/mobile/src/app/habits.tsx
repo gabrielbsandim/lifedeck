@@ -23,6 +23,7 @@ import {
   useUpdateHabit,
 } from '@/lib/api/use-habits'
 import { useSession } from '@/lib/api/use-session'
+import { useWebCheckout } from '@/lib/billing/use-web-checkout'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { weekdayLabels } from '@/lib/weekdays'
 import { cn } from '@/lib/cn'
@@ -231,6 +232,7 @@ export default function HabitsScreen() {
   const { messages, locale } = useI18n()
   const colors = useThemeColors()
   const router = useRouter()
+  const checkout = useWebCheckout()
   const t = messages.habits
   const session = useSession()
   const list = useHabits()
@@ -280,15 +282,17 @@ export default function HabitsScreen() {
               {t.upsellBody}
             </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/billing')}
-            className="h-10 justify-center rounded-full bg-white px-5"
-          >
-            <Text className="text-brand-700 text-sm font-semibold">
-              {t.upsellCta}
-            </Text>
-          </Pressable>
+          {checkout.allowed ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/billing')}
+              className="h-10 justify-center rounded-full bg-white px-5"
+            >
+              <Text className="text-brand-700 text-sm font-semibold">
+                {t.upsellCta}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : (
         <Pressable

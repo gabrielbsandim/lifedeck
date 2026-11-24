@@ -11,7 +11,10 @@ function provider(): CalendarProvider {
   return {
     provider: 'google',
     exchangeCode: vi.fn(),
-    refreshAccessToken: vi.fn(),
+    refreshAccessToken: vi.fn().mockResolvedValue({
+      accessToken: 'access-2',
+      expiresAt: new Date('2026-06-24T11:00:00.000Z'),
+    }),
     listChanges: vi.fn(),
     pushEvent: vi.fn(),
     deleteEvent: vi.fn(),
@@ -48,6 +51,7 @@ describe('watchGoogleCalendar', () => {
     expect(result).toEqual({ watched: 1 })
     const stored = await calendarConnections.findByChannelId('chan-1')
     expect(stored?.ownerId).toBe(OWNER_ID)
+    expect(stored?.accessToken).toBe('access-2')
   })
 
   it('is a no-op when the user has no connection', async () => {

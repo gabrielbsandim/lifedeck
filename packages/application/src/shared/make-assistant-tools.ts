@@ -9,10 +9,15 @@ import {
 import type { Clock } from '@/ports/clock'
 import type { UserRepository } from '@/ports/user-repository'
 import type { WeatherProvider } from '@/ports/weather-provider'
-import type { AssistantTools } from '@/ports/assistant-tools'
+import type {
+  AssistantActivityLog,
+  AssistantTools,
+} from '@/ports/assistant-tools'
+import type { TaskView } from '@/dtos/task-dto'
 import { NotFoundError } from '@/errors/use-case-error'
 import type { makeGetDailyBoard } from '@/use-cases/get-daily-board'
 import type { makeListUserLists } from '@/use-cases/list-user-lists'
+import type { makeListListTasks } from '@/use-cases/list-list-tasks'
 import type { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 import type { makeFindFreeSlots } from '@/use-cases/find-free-slots'
 import type { makeCreateTask } from '@/use-cases/create-task'
@@ -32,7 +37,7 @@ import type { makeCreateHabit } from '@/use-cases/create-habit'
 import type { makeListHabits } from '@/use-cases/list-habits'
 import type { makeLogHabit } from '@/use-cases/log-habit'
 import { ForbiddenError } from '@/errors/use-case-error'
-import { findBestTitleMatch, isSameTitle } from '@/shared/activity-match'
+import { findBestTitleMatch, isLikelySameTitle } from '@/shared/activity-match'
 
 // Default heads-up (minutes) for an event the assistant creates without an
 // explicit reminder, so a WhatsApp-made event actually schedules an alert.
@@ -47,6 +52,7 @@ export type AssistantToolsDeps = {
   weather: WeatherProvider
   getDailyBoard: ReturnType<typeof makeGetDailyBoard>
   listUserLists: ReturnType<typeof makeListUserLists>
+  listListTasks: ReturnType<typeof makeListListTasks>
   listCalendarEvents: ReturnType<typeof makeListCalendarEvents>
   findFreeSlots: ReturnType<typeof makeFindFreeSlots>
   createTask: ReturnType<typeof makeCreateTask>
@@ -76,6 +82,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     weather,
     getDailyBoard,
     listUserLists,
+    listListTasks,
     listCalendarEvents,
     findFreeSlots,
     createTask,
@@ -105,6 +112,46 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     const user = await users.findById(asEntityId(userId))
     return user?.timezone ?? DEFAULT_TIME_ZONE
   }
+
+  // The tasks a new title is checked against: the target list, plus the
+  // pending tasks offered for carry-over when the target is today's board.
+  const addTaskTarget = async (
+    userId: string,
+    listId: string | undefined,
+  ): Promise<{
+    listId: string
+    candidates: TaskView[]
+    carryOverIds: Set<string>
+  }> => {
+    if (listId) {
+      return {
+        listId,
+        candidates: await listListTasks(userId, listId),
+        carryOverIds: new Set(),
+      }
+    }
+    const timezone = await timezoneOf(userId)
+    const board = await getDailyBoard(userId, civilDate(clock.now(), timezone))
+    const carried = board.carryOver.map(candidate => candidate.task)
+    return {
+      listId: board.list.id,
+      candidates: [...board.tasks, ...carried],
+      carryOverIds: new Set(carried.map(task => task.id)),
+    }
+  }
+
+  const UNDO: Record<
+    AssistantActivityLog['kind'],
+    (userId: string, log: AssistantActivityLog) => Promise<unknown>
+  > = {
+    habit: (userId, log) =>
+      logHabit(userId, log.id, { date: log.date, done: false }),
+    task: (userId, log) => updateTask(userId, log.id, { status: 'pending' }),
+    created: (userId, log) => deleteTask(userId, log.id),
+  }
+
+  const undoActivityLog = (userId: string, log: AssistantActivityLog) =>
+    UNDO[log.kind](userId, log)
 
   return {
     async getContext(userId) {
@@ -204,24 +251,25 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
       }
     },
     async addTask(userId, input) {
-      let listId = input.listId
-      if (!listId) {
-        const timezone = await timezoneOf(userId)
-        const date = civilDate(clock.now(), timezone)
-        const board = await getDailyBoard(userId, date)
-        listId = board.list.id
-        // The board is already loaded to resolve the list, so the duplicate
-        // check is free. Exact title match only: anything looser would refuse to
-        // add a task the user legitimately wants twice.
-        const existing = board.tasks.find(task =>
-          isSameTitle(task.title, input.title),
-        )
-        if (existing) {
-          if (input.completed && existing.status !== 'completed') {
-            await updateTask(userId, existing.id, { status: 'completed' })
-          }
-          return { id: existing.id, added: false, alreadyExisted: true }
+      const { listId, candidates, carryOverIds } = await addTaskTarget(
+        userId,
+        input.listId,
+      )
+      // A completed twin only counts when the user reports the task as done:
+      // "buy bread" again after today's bread is a new errand.
+      const existing = candidates.find(
+        task =>
+          (input.completed || task.status !== 'completed') &&
+          isLikelySameTitle(task.title, input.title),
+      )
+      if (existing) {
+        const id = carryOverIds.has(existing.id)
+          ? (await bringTaskToToday(userId, existing.id)).id
+          : existing.id
+        if (input.completed && existing.status !== 'completed') {
+          await updateTask(userId, id, { status: 'completed' })
         }
+        return { id, title: existing.title, added: false, alreadyExisted: true }
       }
       const task = await createTask(userId, { listId, title: input.title })
       // Reporting something already done is one intent, so it must not depend on
@@ -229,7 +277,12 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
       if (input.completed) {
         await updateTask(userId, task.id, { status: 'completed' })
       }
-      return { id: task.id, added: true, alreadyExisted: false }
+      return {
+        id: task.id,
+        title: input.title,
+        added: true,
+        alreadyExisted: false,
+      }
     },
     async logActivity(userId, input) {
       const timezone = await timezoneOf(userId)
@@ -237,8 +290,14 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
 
       // Habits first: a tracked habit is the more specific meaning of "I did X",
       // and logging it also keeps the streak honest.
-      const habits = (await listHabits(userId)).filter(view => view.active)
-      const habit = findBestTitleMatch(habits, input.title, view => view.title)
+      const habit =
+        input.as === 'task'
+          ? null
+          : findBestTitleMatch(
+              (await listHabits(userId)).filter(view => view.active),
+              input.title,
+              view => view.title,
+            )
       if (habit) {
         const view = await logHabit(userId, habit.id, { date })
         return {
@@ -267,6 +326,10 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
       })
       await updateTask(userId, created.id, { status: 'completed' })
       return { kind: 'created', id: created.id, title: input.title, date }
+    },
+    async undoActivity(userId, input) {
+      await undoActivityLog(userId, input)
+      return { ok: true }
     },
     async completeTask(userId, taskId) {
       await updateTask(userId, taskId, { status: 'completed' })

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   findBestTitleMatch,
+  isLikelySameTitle,
   isSameTitle,
   normalizeTitle,
   titleMatchScore,
   titleTokens,
+  verbStem,
 } from '@/shared/activity-match'
 
 describe('normalizeTitle', () => {
@@ -41,6 +43,14 @@ describe('titleMatchScore', () => {
     )
   })
 
+  it('matches short past-tense verbs through their stem', () => {
+    // August: "corri" and "nadei" never reached "Correr" and "Nadar".
+    expect(titleMatchScore('corri', 'Correr')).toBe(1)
+    expect(titleMatchScore('nadei hoje', 'Nadar')).toBe(1)
+    expect(titleMatchScore('li um pouco', 'Ler')).toBe(1)
+    expect(titleMatchScore('fiz yoga', 'Fazer yoga')).toBe(2)
+  })
+
   it('does not relate unrelated titles', () => {
     expect(titleMatchScore('Pagar o aluguel', 'Passear com Rhaenyra')).toBe(0)
     expect(titleMatchScore('treinei', 'Ler um livro')).toBe(0)
@@ -75,6 +85,31 @@ describe('findBestTitleMatch', () => {
     expect(
       findBestTitleMatch(tasks, 'Passear com Rhaenyra', t => t.title),
     ).toBe(tasks[0])
+  })
+})
+
+describe('verbStem', () => {
+  it('cuts a known ending but keeps a usable stem', () => {
+    expect(verbStem('treinei')).toBe('trein')
+    expect(verbStem('passeamos')).toBe('passe')
+    expect(verbStem('corri')).toBe('corr')
+    expect(verbStem('ler')).toBe('ler')
+    expect(verbStem('casa')).toBe('casa')
+  })
+})
+
+describe('isLikelySameTitle', () => {
+  it('equates titles that differ by conjugation and filler', () => {
+    expect(
+      isLikelySameTitle('passeamos com a Rhaenyra', 'Passear com Rhaenyra'),
+    ).toBe(true)
+    expect(isLikelySameTitle('Ir ao mercado', 'ir ao MERCADO')).toBe(true)
+  })
+
+  it('keeps a title with an extra distinctive word apart', () => {
+    expect(isLikelySameTitle('Comprar pão', 'Comprar pão integral')).toBe(false)
+    expect(isLikelySameTitle('Pagar aluguel', 'Pagar luz')).toBe(false)
+    expect(isLikelySameTitle('a o', 'de')).toBe(false)
   })
 })
 

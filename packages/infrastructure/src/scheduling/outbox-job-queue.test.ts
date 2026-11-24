@@ -76,4 +76,35 @@ describe('OutboxJobQueue', () => {
     const due = await repo.listDue(new Date('2026-06-24T09:30:00.000Z'), 10)
     expect(due).toHaveLength(1)
   })
+
+  it('drops a second job with the same dedup key and skips its wake', async () => {
+    const repo = new InMemoryScheduledJobRepository()
+    const scheduleWake = vi.fn().mockResolvedValue(undefined)
+    let next = 0
+    const queue = new OutboxJobQueue(
+      repo,
+      {
+        generate: () =>
+          asEntityId(`aaaaaaaa-aaaa-4aaa-8aaa-00000000000${next++}`),
+      },
+      { now: () => new Date('2026-06-24T08:00:00.000Z') },
+      { scheduleWake },
+      new FakeDispatchWatermark(),
+    )
+    const input = {
+      type: 'daily-digest',
+      payload: { userId: 'u1' },
+      runAt: new Date('2026-06-24T09:00:00.000Z'),
+      dedupKey: 'digest:u1:2026-06-24',
+    }
+
+    await queue.enqueue(input)
+    await queue.enqueue(input)
+    await queue.enqueue({ ...input, dedupKey: undefined })
+    await queue.enqueue({ ...input, dedupKey: undefined })
+
+    const due = await repo.listDue(new Date('2026-06-24T09:30:00.000Z'), 10)
+    expect(due).toHaveLength(3)
+    expect(scheduleWake).toHaveBeenCalledTimes(3)
+  })
 })

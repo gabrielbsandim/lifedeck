@@ -8,8 +8,8 @@
 // once and both callers share it.
 //
 // Deliberately simple: normalize, drop filler words, and treat two words as the
-// same when they share a long enough prefix (which is what Portuguese and Spanish
-// conjugation leaves intact). No stemmer, no fuzzy distance: those bring false
+// same when they share a long enough prefix or the same verb stem once a known
+// Portuguese or Spanish ending is cut. No fuzzy distance: that brings false
 // matches that would silently act on the wrong item.
 
 // Articles, prepositions and pronouns across the three languages the assistant
@@ -72,6 +72,52 @@ const STOPWORDS = new Set([
 const MIN_SHARED_PREFIX = 5
 // Below this a token is noise ("ir", "ao", "de") even when not a stopword.
 const MIN_TOKEN_LENGTH = 3
+// A stem shorter than this is too ambiguous to equate ("l" from "ler").
+const MIN_STEM_LENGTH = 3
+
+// Past-tense forms whose stem shares nothing with the infinitive, so neither the
+// prefix nor the suffix rule can reach it ("li" is the habit "Ler").
+const IRREGULAR_VERBS: Record<string, string> = {
+  li: 'ler',
+  leu: 'ler',
+  lemos: 'ler',
+  vi: 'ver',
+  viu: 'ver',
+  vimos: 'ver',
+  fiz: 'fazer',
+  fez: 'fazer',
+  fizemos: 'fazer',
+}
+
+// Verb endings, longest first so "amos" wins over "os". Cutting them leaves the
+// stem conjugation keeps: "corr|i" and "corr|er", "nad|ei" and "nad|ar".
+const VERB_ENDINGS = [
+  'aremos',
+  'eremos',
+  'iremos',
+  'avamos',
+  'iamos',
+  'aram',
+  'eram',
+  'iram',
+  'amos',
+  'emos',
+  'imos',
+  'ando',
+  'endo',
+  'indo',
+  'ado',
+  'ido',
+  'ava',
+  'ar',
+  'er',
+  'ir',
+  'ei',
+  'ou',
+  'eu',
+  'iu',
+  'i',
+]
 
 export function normalizeTitle(value: string): string {
   return value
@@ -86,11 +132,23 @@ export function normalizeTitle(value: string): string {
 export function titleTokens(value: string): string[] {
   return normalizeTitle(value)
     .split(' ')
+    .map(token => IRREGULAR_VERBS[token] ?? token)
     .filter(token => token.length >= MIN_TOKEN_LENGTH && !STOPWORDS.has(token))
+}
+
+export function verbStem(token: string): string {
+  const ending = VERB_ENDINGS.find(
+    suffix =>
+      token.endsWith(suffix) && token.length - suffix.length >= MIN_STEM_LENGTH,
+  )
+  return ending ? token.slice(0, -ending.length) : token
 }
 
 function tokensMatch(a: string, b: string): boolean {
   if (a === b) {
+    return true
+  }
+  if (verbStem(a) === verbStem(b)) {
     return true
   }
   const shorter = a.length <= b.length ? a : b
@@ -147,6 +205,24 @@ export function findBestTitleMatch<T>(
     }
   }
   return best
+}
+
+/**
+ * True when every word of each title pairs with a word of the other, so the two
+ * name the same thing up to conjugation and filler ("Passear com Rhaenyra" and
+ * "passeamos com a Rhaenyra"). Stricter than a match score: a title with an
+ * extra distinctive word ("Comprar pão integral") is a different task.
+ */
+export function isLikelySameTitle(a: string, b: string): boolean {
+  if (isSameTitle(a, b)) {
+    return true
+  }
+  const aTokens = titleTokens(a)
+  const bTokens = titleTokens(b)
+  if (aTokens.length === 0 || aTokens.length !== bTokens.length) {
+    return false
+  }
+  return titleMatchScore(a, b) === aTokens.length
 }
 
 /** True when two titles are the same once case, accents and punctuation are ignored. */

@@ -40,12 +40,12 @@ import {
 import { planName } from '@/lib/billing/plan-display'
 
 export type SectionKey =
-  | 'perfil'
-  | 'conexoes'
-  | 'preferencias'
-  | 'seguranca'
-  | 'plano'
-  | 'conta'
+  | 'profile'
+  | 'connections'
+  | 'preferences'
+  | 'security'
+  | 'plan'
+  | 'account'
 
 type SectionMeta = {
   key: SectionKey
@@ -56,38 +56,38 @@ type SectionMeta = {
 
 function sectionCatalog(messages: Messages): Record<SectionKey, SectionMeta> {
   return {
-    perfil: {
-      key: 'perfil',
+    profile: {
+      key: 'profile',
       label: messages.settings.profile,
       icon: <UserIcon size={16} />,
       iconClass: 'bg-brand-600',
     },
-    conexoes: {
-      key: 'conexoes',
+    connections: {
+      key: 'connections',
       label: messages.settings.connections,
       icon: <LinkIcon size={16} />,
       iconClass: 'bg-brand-600',
     },
-    preferencias: {
-      key: 'preferencias',
+    preferences: {
+      key: 'preferences',
       label: messages.settings.preferences,
       icon: <SlidersIcon size={16} />,
       iconClass: 'bg-tile',
     },
-    seguranca: {
-      key: 'seguranca',
+    security: {
+      key: 'security',
       label: messages.settings.security,
       icon: <LockIcon size={15} />,
       iconClass: 'bg-warning',
     },
-    plano: {
-      key: 'plano',
+    plan: {
+      key: 'plan',
       label: messages.settings.plan,
       icon: <DeckGlyph size={18} />,
       iconClass: 'from-brand-600 to-violet-500 bg-gradient-to-br',
     },
-    conta: {
-      key: 'conta',
+    account: {
+      key: 'account',
       label: messages.settings.account,
       icon: <UserIcon size={16} />,
       iconClass: 'bg-tile',
@@ -103,18 +103,18 @@ export function availableSections(
   const hasConnections = Boolean(
     user.features?.calendar || user.features?.whatsapp,
   )
-  const keys: SectionKey[] = ['perfil']
+  const keys: SectionKey[] = ['profile']
   if (hasConnections) {
-    keys.push('conexoes')
+    keys.push('connections')
   }
-  keys.push('preferencias')
+  keys.push('preferences')
   if (user.hasPassword) {
-    keys.push('seguranca')
+    keys.push('security')
   }
   if (user.features?.billing) {
-    keys.push('plano')
+    keys.push('plan')
   }
-  keys.push('conta')
+  keys.push('account')
   return keys.map(key => catalog[key])
 }
 
@@ -128,17 +128,17 @@ function SectionBody({
   onSignedOut: () => void
 }) {
   switch (section) {
-    case 'perfil':
+    case 'profile':
       return <ProfileSection user={user} />
-    case 'conexoes':
+    case 'connections':
       return <ConnectionsSection />
-    case 'preferencias':
+    case 'preferences':
       return <PreferencesSection user={user} />
-    case 'seguranca':
+    case 'security':
       return <SecuritySection />
-    case 'plano':
+    case 'plan':
       return <PlanSection />
-    case 'conta':
+    case 'account':
       return <AccountSection onSignedOut={onSignedOut} />
   }
 }
@@ -211,7 +211,7 @@ function MobileHub({
   hasBilling: boolean
 }) {
   const { messages } = useI18n()
-  const configKeys: SectionKey[] = ['conexoes', 'preferencias', 'seguranca']
+  const configKeys: SectionKey[] = ['connections', 'preferences', 'security']
   const configSections = sections.filter(s => configKeys.includes(s.key))
   const initials = user.displayName.slice(0, 2).toUpperCase()
 
@@ -219,7 +219,7 @@ function MobileHub({
     <div className="flex flex-col gap-4">
       <button
         type="button"
-        onClick={() => onSelect('perfil')}
+        onClick={() => onSelect('profile')}
         className="border-line bg-surface flex items-center gap-3 rounded-2xl border p-3.5 text-left shadow-sm transition-transform active:scale-[0.99]"
       >
         <span className="from-brand-600 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br to-violet-500 text-lg font-semibold text-white">
@@ -262,7 +262,7 @@ function MobileHub({
         ) : (
           <button
             type="button"
-            onClick={() => onSelect('plano')}
+            onClick={() => onSelect('plan')}
             className="border-line bg-surface flex items-center gap-3 rounded-2xl border p-3.5 text-left shadow-sm"
           >
             <span className="from-brand-600 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br to-violet-500">
@@ -337,7 +337,7 @@ function MobileHub({
             icon={<UserIcon size={16} />}
             iconClassName="bg-tile"
             label={messages.settings.account}
-            onClick={() => onSelect('conta')}
+            onClick={() => onSelect('account')}
           />
         </HubRowGroup>
       </SettingsGroup>
@@ -384,7 +384,7 @@ export function SettingsExperience() {
   const planLabel = planName(plan, messages)
   const hasBilling = Boolean(user.features?.billing)
   const goHome = () => router.push('/')
-  const desktopActive = active ?? 'perfil'
+  const desktopActive = active ?? 'profile'
   const activeLabel =
     sections.find(s => s.key === desktopActive)?.label ??
     messages.settings.title

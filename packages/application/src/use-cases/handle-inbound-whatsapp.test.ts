@@ -8,6 +8,9 @@ import {
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
+import { InMemoryTurnLock } from '@/testing/in-memory-turn-lock'
+import type { AgentReply, AgentRunInput } from '@/ports/agent-runner'
+import type { TurnLock } from '@/ports/turn-lock'
 import {
   MediaUnderstandingUnavailableError,
   QuotaExceededError,
@@ -32,9 +35,10 @@ type Options = {
   entitled?: boolean
   grants?: Entitlement[]
   consumeCredits?: (userId: string, operation: string) => Promise<unknown>
-  agentRun?: () => Promise<{ text: string }>
+  agentRun?: (input: AgentRunInput) => Promise<AgentReply>
   mediaAvailable?: boolean
   userLocale?: string
+  turnLock?: TurnLock
 }
 
 function setup(options: Options = {}) {
@@ -90,6 +94,7 @@ function setup(options: Options = {}) {
     clock: new FixedClock(NOW),
     logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
     whatsappSession: { markActive, isOpen: async () => false },
+    turnLock: options.turnLock ?? new InMemoryTurnLock(),
   })
   return {
     channelIdentities,
@@ -711,6 +716,70 @@ describe('handleInboundWhatsApp', () => {
     expect(ctx.sendText).toHaveBeenCalledWith(
       FROM,
       ASSISTANT_MEDIA_UNAVAILABLE_MESSAGE,
+    )
+  })
+
+  it('keeps what the tools changed beside the stored reply', async () => {
+    const recorded = [
+      { tool: 'logActivity', id: 'h1', title: 'Treinar', kind: 'habit' },
+    ]
+    const ctx = setup({
+      agentRun: async () => ({ text: 'Registrei.', recorded }),
+    })
+    await verified(ctx.channelIdentities)
+
+    await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'treinei',
+    })
+
+    const [, assistant] = await ctx.conversations.load(ID.user)
+    expect(assistant?.actions).toEqual(recorded)
+  })
+
+  it('runs two quick messages one after the other so the second sees the first', async () => {
+    const seen: number[] = []
+    const ctx = setup({
+      agentRun: async input => {
+        seen.push(input.history.length)
+        await new Promise(resolve => setTimeout(resolve, 5))
+        return { text: 'ok' }
+      },
+    })
+    await verified(ctx.channelIdentities)
+
+    await Promise.all([
+      ctx.handleInboundWhatsApp({
+        from: FROM,
+        kind: 'text',
+        text: 'passeamos',
+      }),
+      ctx.handleInboundWhatsApp({
+        from: FROM,
+        kind: 'text',
+        text: 'e treinei',
+      }),
+    ])
+
+    expect(seen).toEqual([0, 2])
+  })
+
+  it('answers busy without charging when an earlier turn holds the lock', async () => {
+    const ctx = setup({ turnLock: { acquire: async () => null } })
+    await verified(ctx.channelIdentities)
+
+    const result = await ctx.handleInboundWhatsApp({
+      from: FROM,
+      kind: 'text',
+      text: 'buy milk',
+    })
+
+    expect(result).toEqual({ action: 'busy' })
+    expect(ctx.consume).not.toHaveBeenCalled()
+    expect(ctx.sendText).toHaveBeenCalledWith(
+      FROM,
+      WHATSAPP_COPY.en.assistantBusy,
     )
   })
 })

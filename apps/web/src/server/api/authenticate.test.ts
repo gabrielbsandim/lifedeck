@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const authenticateApiKey = vi.fn()
 
 vi.mock('@/server/container', () => ({
-  getContainer: () => ({ authenticateApiKey }),
+  getContainer: () => ({
+    authenticateApiKey,
+    sessionsValidFrom: () => Promise.resolve(null),
+  }),
 }))
 
 import {

@@ -31,7 +31,7 @@ export function FindTimeDialog({
 
   const [durationMin, setDurationMin] = useState(60)
   const findTime = useFindTime()
-  const book = useCreateCalendarEvent(range)
+  const book = useCreateCalendarEvent(range, { inlineError: true })
   const slots: FreeSlotView[] = findTime.data ?? []
 
   const formatSlot = (iso: string): string =>

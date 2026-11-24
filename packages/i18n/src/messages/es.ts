@@ -40,6 +40,19 @@ export const es: Messages = {
     error: 'Algo salió mal.',
     retry: 'Intentar de nuevo',
     loadMore: 'Cargar más',
+    saveFailed: 'No se pudo guardar ese cambio. Inténtalo de nuevo.',
+    offline: 'Estás sin conexión. Revisa tu internet e inténtalo de nuevo.',
+    sessionEnded: 'Tu sesión terminó. Inicia sesión de nuevo para seguir.',
+    tooMany: 'Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.',
+    dismiss: 'Cerrar',
+  },
+  errorPage: {
+    notFoundTitle: 'Página no encontrada',
+    notFoundBody: 'El enlace puede estar roto o la página cambió de lugar.',
+    crashTitle: 'Algo salió mal',
+    crashBody:
+      'Esta pantalla tuvo un error inesperado. Tus datos están a salvo.',
+    backHome: 'Volver a Hoy',
   },
   recurring: {
     manage: 'Tareas recurrentes',
@@ -119,6 +132,12 @@ export const es: Messages = {
   },
   calendar: {
     title: 'Calendario',
+    upsellBadge: 'Plan Pro',
+    upsellTitle: 'Tu agenda junto a tus tareas',
+    upsellBody:
+      'Sincroniza Google, Apple y cal.com, y deja que el asistente agende por ti.',
+    upsellCta: 'Ver planes',
+    loadError: 'No se pudieron cargar tus eventos.',
     today: 'Hoy',
     month: 'Mes',
     week: 'Semana',
@@ -286,6 +305,8 @@ export const es: Messages = {
     awaitingPayment: 'Esperando tu pago…',
     cardNumber: 'Número de tarjeta',
     cardExpiry: 'Vencimiento',
+    cardExpiryYearPlaceholder: 'AAAA',
+    pixQrAlt: 'Código QR de Pix',
     cardCvv: 'CVV',
     cardHolder: 'Nombre en la tarjeta',
     postalCodeLabel: 'Código postal',
@@ -778,7 +799,11 @@ export const es: Messages = {
     signIn: 'Iniciar sesión',
     signInSubtitle: 'Bienvenido de nuevo. Entra en tus listas.',
     signOut: 'Cerrar sesión',
+    signOutEverywhere: 'Cerrar sesión en todas partes',
+    signOutEverywhereHint:
+      'Cierra todas las sesiones en todos los navegadores y dispositivos, incluida esta.',
     email: 'Correo',
+    emailPlaceholder: 'tu@ejemplo.com',
     password: 'Contraseña',
     showPassword: 'Mostrar contraseña',
     hidePassword: 'Ocultar contraseña',

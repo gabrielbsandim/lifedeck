@@ -21,6 +21,10 @@ Thanks for your interest in Lifedeck. This guide keeps the codebase consistent.
 3. Run `pnpm check` (lint + typecheck + format + coverage). It must pass.
 4. For UI changes, complete the responsiveness checklist in the PR template.
 5. Open a pull request describing the what and the why.
+6. A new Prisma migration folder takes the next three-digit number, as
+   `033_scheduled_job_dedup_key` follows `032_...`. Prisma replays folders in
+   name order, so an unpadded or reused number runs out of order on a fresh
+   database.
 
 ## Commit messages
 

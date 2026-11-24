@@ -1,17 +1,13 @@
 // Plans on mobile.
 //
-// Deliberately read-only: per the V4 plan, the app does not sell subscriptions
-// in-app (Apple and Google require their own in-app purchase for digital goods,
-// which is a V4.1 decision). It shows the current plan and what each tier
-// includes, then hands checkout to the web billing page in the system browser.
-// Entitlement reads work as-is, so an upgrade bought on the web unlocks here on
-// the next session refresh.
+// The app never sells in-app. Where store rules allow a purchase link (see
+// lib/billing/web-checkout.ts), the plan buttons open the web billing page
+// signed in as this account; everywhere else the screen is read-only. An
+// upgrade bought on the web unlocks here on the next session refresh.
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import * as WebBrowser from 'expo-web-browser'
 import { CheckIcon } from '@/components/icons'
 import { Badge, Button, Card, Screen, Tabs } from '@/components/ui'
-import { API_BASE_URL } from '@/lib/api/config'
 import {
   CURRENCY_BY_MARKET,
   MARKET_BY_CURRENCY,
@@ -25,6 +21,7 @@ import {
   type PaidPlan,
 } from '@/lib/billing/prices'
 import { planName } from '@/lib/billing/plan-display'
+import { useWebCheckout } from '@/lib/billing/use-web-checkout'
 import { useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useThemeColors } from '@/theme/tokens'
@@ -39,6 +36,7 @@ function PlanCard({
   current,
   recommended,
   onChoose,
+  isChoosing,
   chooseLabel,
   currentLabel,
 }: {
@@ -51,6 +49,7 @@ function PlanCard({
   current: boolean
   recommended?: boolean
   onChoose?: () => void
+  isChoosing?: boolean
   chooseLabel: string
   currentLabel: string
 }) {
@@ -86,7 +85,9 @@ function PlanCard({
         ))}
       </View>
       {onChoose && !current ? (
-        <Button onPress={onChoose}>{chooseLabel}</Button>
+        <Button onPress={onChoose} isLoading={isChoosing}>
+          {chooseLabel}
+        </Button>
       ) : null}
     </Card>
   )
@@ -97,6 +98,8 @@ export default function BillingScreen() {
   const t = messages.billing
   const p = t.promo
   const session = useSession()
+  const checkout = useWebCheckout()
+  const choose = checkout.allowed ? checkout.open : undefined
 
   const [interval, setInterval] = useState<Interval>('annual')
   const [currencyOverride, setCurrencyOverride] = useState<Currency | null>(
@@ -118,10 +121,6 @@ export default function BillingScreen() {
     }
     const eq = formatPrice(annualEquivalentMonthly(market, plan), currency)
     return t.eqApprox.replace('{amount}', eq)
-  }
-
-  function openWebCheckout() {
-    void WebBrowser.openBrowserAsync(`${API_BASE_URL}/settings/billing`)
   }
 
   return (
@@ -171,7 +170,8 @@ export default function BillingScreen() {
         bulletsHeading={p.moreThanFree}
         current={currentPlan === 'pro'}
         recommended
-        onChoose={openWebCheckout}
+        onChoose={choose}
+        isChoosing={checkout.isOpening}
         chooseLabel={t.subscribePlan.replace('{plan}', t.pro)}
         currentLabel={t.yourPlanBadge}
       />
@@ -184,7 +184,8 @@ export default function BillingScreen() {
         bullets={p.premiumBullets}
         bulletsHeading={p.moreThanPro}
         current={currentPlan === 'premium'}
-        onChoose={openWebCheckout}
+        onChoose={choose}
+        isChoosing={checkout.isOpening}
         chooseLabel={t.subscribePlan.replace('{plan}', t.premium)}
         currentLabel={t.yourPlanBadge}
       />
@@ -193,12 +194,21 @@ export default function BillingScreen() {
         <Text className="text-ink-700 text-sm font-semibold">
           {t.yourPlan}: {planName(currentPlan, messages)}
         </Text>
-        <Text className="text-ink-500 text-xs">{t.footerCancel}</Text>
-        <Pressable accessibilityRole="button" onPress={openWebCheckout}>
-          <Text className="text-brand-accent text-sm font-semibold">
-            {t.manage}
+        {choose ? (
+          <>
+            <Text className="text-ink-500 text-xs">{t.footerCancel}</Text>
+            <Pressable accessibilityRole="button" onPress={choose}>
+              <Text className="text-brand-accent text-sm font-semibold">
+                {t.manage}
+              </Text>
+            </Pressable>
+          </>
+        ) : null}
+        {checkout.failed ? (
+          <Text className="text-danger text-xs" accessibilityRole="alert">
+            {messages.common.error}
           </Text>
-        </Pressable>
+        ) : null}
       </Card>
 
       <Text className="text-ink-400 text-center text-xs">

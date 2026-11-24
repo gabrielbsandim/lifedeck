@@ -18,6 +18,15 @@ export class InMemoryTaskRepository implements TaskRepository {
       .sort((a, b) => a.position - b.position)
   }
 
+  async claimCarryForward(id: EntityId, at: Date): Promise<boolean> {
+    const task = this.store.get(id)
+    if (!task || task.toJSON().carriedForwardAt !== null) {
+      return false
+    }
+    task.markCarriedForward(at)
+    return true
+  }
+
   async delete(id: EntityId): Promise<void> {
     this.store.delete(id)
   }

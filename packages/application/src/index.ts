@@ -366,7 +366,10 @@ export type {
 export type {
   ConversationStore,
   ConversationTurn,
+  RecordedAction,
 } from '@/ports/conversation-store'
+export type { TurnLock, ReleaseTurnLock } from '@/ports/turn-lock'
+export { InMemoryTurnLock } from '@/testing/in-memory-turn-lock'
 export type {
   AssistantTools,
   AssistantContext,
@@ -376,6 +379,8 @@ export type {
   AssistantEventInput,
   AssistantEventUpdate,
   AssistantOccurrenceReschedule,
+  AssistantActivityLog,
+  AssistantActivityTarget,
 } from '@/ports/assistant-tools'
 export type {
   WeatherProvider,
@@ -397,6 +402,7 @@ export { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-i
 export { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 export type { NotificationRepository } from '@/ports/notification-repository'
 export type { PushDeviceRepository } from '@/ports/push-device-repository'
+export type { SessionRevocationStore } from '@/ports/session-revocation-store'
 export type {
   PushSender,
   PushMessage,
@@ -467,6 +473,7 @@ export { makeSignInWithEmail } from '@/use-cases/sign-in-with-email'
 export { makeSignInWithGoogle } from '@/use-cases/sign-in-with-google'
 export { makeGetGoogleAuthUrl } from '@/use-cases/get-google-auth-url'
 export { makeChangePassword } from '@/use-cases/change-password'
+export { makeRevokeSessions } from '@/use-cases/revoke-sessions'
 export { makeRenameUser } from '@/use-cases/rename-user'
 export { makeDeleteUser } from '@/use-cases/delete-user'
 export { makeCreateList } from '@/use-cases/create-list'
@@ -483,6 +490,11 @@ export { makeBringTaskToToday } from '@/use-cases/bring-task-to-today'
 export { makeSetCarryOverMode } from '@/use-cases/set-carry-over-mode'
 export { makeSetTimezone } from '@/use-cases/set-timezone'
 export { makeSetAssistantProfile } from '@/use-cases/set-assistant-profile'
+export {
+  makeGetAssistantHistory,
+  makeClearAssistantHistory,
+  type AssistantHistoryMessage,
+} from '@/use-cases/assistant-history'
 export {
   makeAssistantTools,
   type AssistantToolsDeps,
@@ -567,6 +579,7 @@ export { InMemoryNudgeLogRepository } from '@/testing/in-memory-nudge-log-reposi
 export { InMemoryShareLinkRepository } from '@/testing/in-memory-share-link-repository'
 export { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
 export { InMemoryPushDeviceRepository } from '@/testing/in-memory-push-device-repository'
+export { InMemorySessionRevocationStore } from '@/testing/in-memory-session-revocation-store'
 export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-repository'
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
 export { FakeDispatchWatermark } from '@/testing/fake-dispatch-watermark'

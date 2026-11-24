@@ -26,6 +26,7 @@ export class InMemoryNotificationRepository implements NotificationRepository {
     userId: EntityId,
     eventId: string,
     minutesBefore: string,
+    startsAt: string,
   ): Promise<boolean> {
     return [...this.items.values()].some(item => {
       const stored = item.toJSON()
@@ -33,7 +34,8 @@ export class InMemoryNotificationRepository implements NotificationRepository {
         item.userId === userId &&
         stored.type === 'event-reminder' &&
         stored.data.eventId === eventId &&
-        stored.data.minutesBefore === minutesBefore
+        stored.data.minutesBefore === minutesBefore &&
+        stored.data.startsAt === startsAt
       )
     })
   }

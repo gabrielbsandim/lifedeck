@@ -8,6 +8,17 @@ export class InMemoryScheduledJobRepository implements ScheduledJobRepository {
     this.items.set(job.id as string, job)
   }
 
+  async add(job: ScheduledJob): Promise<boolean> {
+    const taken = [...this.items.values()].some(
+      existing => job.dedupKey !== null && existing.dedupKey === job.dedupKey,
+    )
+    if (taken) {
+      return false
+    }
+    await this.save(job)
+    return true
+  }
+
   async listDue(now: Date, limit: number): Promise<ScheduledJob[]> {
     return [...this.items.values()]
       .filter(job => job.status === 'pending' && job.runAt <= now)

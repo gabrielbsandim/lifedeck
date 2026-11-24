@@ -78,6 +78,16 @@ export function zonedIso(instant: Date, timeZone: string): string {
   return `${date}T${time}${zoneOffset(instant, zone)}`
 }
 
+export type CivilTime = { hour: number; minute: number; second: number }
+
+export function civilTime(instant: Date, timeZone: string): CivilTime {
+  const [hour = 0, minute = 0, second = 0] = zonedIso(instant, timeZone)
+    .slice(11, 19)
+    .split(':')
+    .map(Number)
+  return { hour, minute, second }
+}
+
 /** The weekday name of `instant` in `timeZone` (e.g. `Saturday`). */
 export function zonedWeekday(instant: Date, timeZone: string): string {
   const zone = isTimeZone(timeZone) ? timeZone : DEFAULT_TIME_ZONE

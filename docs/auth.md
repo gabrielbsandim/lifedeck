@@ -2,7 +2,18 @@
 
 Lifedeck is no-account-first: every visitor starts as a guest, and a guest can be
 upgraded in place to a real account without losing any data. Sessions are signed
-`HttpOnly` cookies (jose, HS256); the cookie holds only the user id.
+`HttpOnly` cookies (jose, HS256); the cookie holds only the user id and the
+issue time, and native apps send the same JWT as a Bearer token.
+
+### Session revocation
+
+`users.sessions_valid_from` marks every token issued before it as dead.
+Changing the password sets it (the route answers with a fresh `{ data, token }`
+and cookie so the caller stays signed in), and so does
+`DELETE /api/v1/sessions?scope=all` ("Sign out everywhere"). The lookup is
+cached per instance for 60 seconds, so another instance honours a revocation
+within a minute. `iat` has one-second resolution: a token minted in the same
+second as the revocation survives it.
 
 ## Account states
 
@@ -45,6 +56,11 @@ through the `OAuthProvider` port (`GoogleOAuthProvider`), and then
 creates a new verified account. Requires `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET`; `GOOGLE_REDIRECT_URI` is optional and defaults to
 `<NEXT_PUBLIC_SITE_URL>/api/v1/auth/google/callback`.
+
+Native clients use single-use codes in Redis to cross between the app and a
+browser in both directions: `POST /api/v1/auth/native` after Google sign-in, and
+`/api/v1/auth/web-handoff` to open a web page (billing) as the same account. See
+[mobile.md](./mobile.md#auth).
 
 ## Account settings
 

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { getMessages } from '@lifedeck/i18n'
 import { MessagesProvider } from '@/lib/i18n/messages-provider'
-import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
+import { createWrapper } from '@/lib/api/test-utils'
 import { AssistantChat } from '@/components/assistant-chat'
 
 const push = vi.fn()
@@ -23,6 +23,28 @@ function renderChat() {
   )
 }
 
+type StoredTurn = { role: 'user' | 'assistant'; text: string }
+
+// The chat loads its history on mount (GET) and sends turns with POST; a single
+// canned response would answer both.
+function mockChat(
+  reply: unknown = { data: { text: '', actions: [] } },
+  { ok = true, status = 200, history = [] as StoredTurn[] } = {},
+) {
+  const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+    const method = init?.method ?? 'GET'
+    const body = method === 'GET' ? { data: history } : reply
+    const success = method === 'GET' || ok
+    return Promise.resolve({
+      ok: success,
+      status: success ? 200 : status,
+      json: async () => body,
+    })
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
 function type(value: string) {
   fireEvent.change(screen.getByPlaceholderText(en.assistant.inputPlaceholder), {
     target: { value },
@@ -35,14 +57,53 @@ describe('AssistantChat', () => {
     push.mockClear()
   })
 
-  it('shows the welcome message and suggestion chips on an empty thread', () => {
+  it('shows the welcome message and suggestion chips on an empty thread', async () => {
+    mockChat()
     renderChat()
-    expect(screen.getByText(en.assistant.welcomeTitle)).toBeInTheDocument()
+    expect(
+      await screen.findByText(en.assistant.welcomeTitle),
+    ).toBeInTheDocument()
     expect(screen.getByText(en.assistant.chips.addTask)).toBeInTheDocument()
   })
 
+  it('restores the earlier thread after a reload', async () => {
+    mockChat(undefined, {
+      history: [
+        { role: 'user', text: 'buy milk' },
+        { role: 'assistant', text: 'Added "Milk".' },
+      ],
+    })
+    renderChat()
+
+    expect(await screen.findByText('Added "Milk".')).toBeInTheDocument()
+    expect(screen.getByText('buy milk')).toBeInTheDocument()
+    expect(
+      screen.queryByText(en.assistant.welcomeTitle),
+    ).not.toBeInTheDocument()
+  })
+
+  it('clears the stored thread on "new conversation"', async () => {
+    const fetchMock = mockChat(undefined, {
+      history: [{ role: 'assistant', text: 'Hello again.' }],
+    })
+    renderChat()
+    await screen.findByText('Hello again.')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.assistant.newConversation }),
+    )
+
+    expect(
+      await screen.findByText(en.assistant.welcomeTitle),
+    ).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/assistant/chat',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
   it('sends a typed message and renders the reply with an action card', async () => {
-    mockFetchOnce({
+    mockChat({
       data: {
         text: 'Added it.',
         actions: [
@@ -65,15 +126,16 @@ describe('AssistantChat', () => {
   })
 
   it('sends a chip tap as a message', async () => {
-    mockFetchOnce({ data: { text: 'On it.', actions: [] } })
+    mockChat({ data: { text: 'On it.', actions: [] } })
     renderChat()
 
-    fireEvent.click(screen.getByText(en.assistant.chips.today))
+    fireEvent.click(await screen.findByText(en.assistant.chips.today))
 
     expect(await screen.findByText('On it.')).toBeInTheDocument()
   })
 
   it('shows the mic when the field is empty and the send button once typing', () => {
+    mockChat()
     renderChat()
     expect(screen.getByLabelText(en.assistant.recordAudio)).toBeInTheDocument()
 
@@ -88,7 +150,7 @@ describe('AssistantChat', () => {
     const original = URL.createObjectURL
     URL.createObjectURL = () => 'blob:mock'
     try {
-      mockFetchOnce({ data: { text: 'Nice photo.', actions: [] } })
+      mockChat({ data: { text: 'Nice photo.', actions: [] } })
       const { container } = renderChat()
 
       const fileInput = container.querySelector(
@@ -112,10 +174,9 @@ describe('AssistantChat', () => {
   })
 
   it('shows an error with a retry when the request fails', async () => {
-    mockFetchOnce(
+    mockChat(
       { error: { code: 'INTERNAL_ERROR', message: 'boom' } },
-      false,
-      500,
+      { ok: false, status: 500 },
     )
     renderChat()
 
@@ -129,10 +190,9 @@ describe('AssistantChat', () => {
   })
 
   it('shows the Pro upsell when the assistant is locked', async () => {
-    mockFetchOnce(
+    mockChat(
       { error: { code: 'ASSISTANT_LOCKED', message: 'locked' } },
-      false,
-      403,
+      { ok: false, status: 403 },
     )
     renderChat()
 

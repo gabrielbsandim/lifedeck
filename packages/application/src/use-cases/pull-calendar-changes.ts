@@ -13,19 +13,25 @@ import type {
   ExternalCalendarEvent,
 } from '@/ports/calendar-provider'
 import type { JobQueue } from '@/ports/job-queue'
-import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
+import type { Logger } from '@/ports/logger'
+import { makeEnsureFreshCalendarToken } from '@/shared/fresh-calendar-token'
+import type { UserRepository } from '@/ports/user-repository'
+import { ownerZoneFor, upcomingReminderJobs } from '@/shared/reminder-schedule'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
   calendarEvents: CalendarEventRepository
   providers: CalendarProviderRegistry
   jobQueue: JobQueue
+  users: Pick<UserRepository, 'findById'>
   ids: IdGenerator
   clock: Clock
+  logger?: Logger
 }
 
 export type CalendarPullResult = {
   applied: number
+  failed: number
 }
 
 export function makePullCalendarChanges({
@@ -33,28 +39,22 @@ export function makePullCalendarChanges({
   calendarEvents,
   providers,
   jobQueue,
+  users,
   ids,
   clock,
+  logger,
 }: Dependencies) {
-  // Arm a reminder job for each of the event's offsets whose fire time is still
-  // in the future, mirroring create/update-calendar-event. deliverReminder
-  // dedups against already-delivered notifications, so re-arming on every sync
-  // that applies a change never double-delivers.
+  const ensureFreshToken = makeEnsureFreshCalendarToken({
+    calendarConnections,
+    clock,
+  })
+
+  // deliverReminder dedups per occurrence, so re-arming on every sync that
+  // applies a change never double-delivers.
   async function armReminders(event: CalendarEvent): Promise<void> {
-    const startsAt = event.startsAt.getTime()
-    for (const minutesBefore of event.reminders) {
-      const fireAt = startsAt - minutesBefore * MINUTE_MS
-      if (fireAt > clock.now().getTime()) {
-        await jobQueue.enqueue({
-          type: REMINDER_JOB,
-          payload: {
-            eventId: event.id as string,
-            userId: event.ownerId as string,
-            minutesBefore,
-          },
-          runAt: new Date(fireAt),
-        })
-      }
+    const ownerZone = await ownerZoneFor(users, event)
+    for (const job of upcomingReminderJobs(event, clock.now(), ownerZone)) {
+      await jobQueue.enqueue(job)
     }
   }
 
@@ -74,31 +74,28 @@ export function makePullCalendarChanges({
     }
 
     let applied = 0
+    let failed = 0
     for (const connection of connections) {
       try {
         applied += await pullConnection(connection)
-      } catch {
+      } catch (error) {
         // One connection failing (e.g. a revoked grant) must not block the
-        // user's other calendars. The periodic reconcile retries this one.
+        // user's other calendars; the caller decides whether to retry.
+        failed += 1
+        logger?.warn('calendar_pull_failed', {
+          connectionId: connection.id as string,
+          provider: connection.provider,
+          error: error instanceof Error ? error.message : String(error),
+        })
       }
     }
-    return { applied }
+    return { applied, failed }
 
     async function pullConnection(
       connection: CalendarConnection,
     ): Promise<number> {
       const provider = providers.get(connection.provider)
-      if (connection.needsRefresh(clock.now()) && connection.refreshToken) {
-        const refreshed = await provider.refreshAccessToken(
-          connection.refreshToken,
-        )
-        connection.refreshAccess(
-          refreshed.accessToken,
-          refreshed.expiresAt,
-          clock.now(),
-        )
-        await calendarConnections.save(connection)
-      }
+      await ensureFreshToken(connection, provider)
 
       // Drop the cursor so the provider returns a full window, not just deltas.
       if (force) {

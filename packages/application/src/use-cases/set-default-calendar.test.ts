@@ -1,3 +1,4 @@
+import { FakeUnitOfWork } from '@/testing/fakes'
 import { describe, expect, it } from 'vitest'
 import { CalendarConnection, asEntityId } from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -35,6 +36,7 @@ describe('setDefaultCalendar', () => {
   it('moves the default to the target and clears the previous one', async () => {
     const repo = await repoWithTwo()
     const setDefault = makeSetDefaultCalendar({
+      unitOfWork: new FakeUnitOfWork(),
       calendarConnections: repo,
       clock: { now: () => LATER },
     })
@@ -49,6 +51,7 @@ describe('setDefaultCalendar', () => {
   it('throws when the target is not owned by the user', async () => {
     const repo = await repoWithTwo()
     const setDefault = makeSetDefaultCalendar({
+      unitOfWork: new FakeUnitOfWork(),
       calendarConnections: repo,
       clock: { now: () => LATER },
     })

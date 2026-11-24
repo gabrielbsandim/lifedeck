@@ -32,6 +32,7 @@ import {
   type AssistantAction,
   type AssistantSendInput,
 } from '@/lib/api/use-assistant'
+import { useWebCheckout } from '@/lib/billing/use-web-checkout'
 import { useVoiceRecorder } from '@/lib/media/use-voice-recorder'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { cn } from '@/lib/cn'
@@ -68,6 +69,7 @@ export default function AssistantScreen() {
   const insets = useSafeAreaInsets()
   const t = messages.assistant
   const router = useRouter()
+  const checkout = useWebCheckout()
   const send = useSendAssistantMessage()
   const voice = useVoiceRecorder()
 
@@ -345,7 +347,9 @@ export default function AssistantScreen() {
             <UpsellCard
               key={item.id}
               variant={item.variant}
-              onUpgrade={() => router.push('/billing')}
+              onUpgrade={
+                checkout.allowed ? () => router.push('/billing') : undefined
+              }
             />
           )
         })}
@@ -479,7 +483,7 @@ function UpsellCard({
   onUpgrade,
 }: {
   variant: 'locked' | 'quota'
-  onUpgrade: () => void
+  onUpgrade?: () => void
 }) {
   const { messages } = useI18n()
   const t = messages.assistant
@@ -498,15 +502,17 @@ function UpsellCard({
           {variant === 'locked' ? t.lockedBody : t.quotaBody}
         </Text>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onUpgrade}
-        className="h-[42px] justify-center rounded-full bg-white px-5"
-      >
-        <Text className="text-brand-700 text-[14px] font-semibold">
-          {t.upgrade}
-        </Text>
-      </Pressable>
+      {onUpgrade ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onUpgrade}
+          className="h-[42px] justify-center rounded-full bg-white px-5"
+        >
+          <Text className="text-brand-700 text-[14px] font-semibold">
+            {t.upgrade}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   )
 }

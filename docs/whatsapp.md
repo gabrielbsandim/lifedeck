@@ -118,8 +118,10 @@ creating:
   tomorrow?" asks need no location; the assistant offers to save it after the
   user first names a place and none is stored.
 - **Tasks**: `addTask` (defaults to today's list, or a given `listId`; reuses a
-  same-titled task already on that day instead of duplicating it, and takes
-  `completed` for something the user has already done), `completeTask`,
+  task naming the same thing on that list, conjugation and filler aside
+  (`isLikelySameTitle`), or still pending from yesterday, which it brings to
+  today; takes `completed` for something the user has already done),
+  `completeTask`,
   `reopenTask`, `renameTask`, `deleteTask`, `moveTaskToToday`.
 - **Already did it**: `logActivity` takes the activity in the user's own words
   ("treinei ontem", "passeamos com a Rhaenyra") plus an optional date. It matches
@@ -128,13 +130,25 @@ creating:
   completing the task it finds, and only creating an already-completed task when
   nothing matches. One call, so the model cannot land halfway: the recurring
   failure was a task added but left pending, or a confirmation with nothing
-  recorded at all.
+  recorded at all. `as: 'habit' | 'task'` restricts it to one meaning when the
+  user has said which.
+- **Corrections**: `undoActivity` reverts one `logActivity` result (un-logs the
+  habit, reopens the task, deletes the task it created), so "no, that was the
+  walk" fixes the record instead of adding a second one.
 - **Lists / subtasks**: `createList`, `addSubtask`, `completeSubtask`.
 - **Calendar**: `addEvent` (with description/location/all-day/reminders),
   `updateEvent` (also reschedule), `deleteEvent`.
 
 Mutations reference an entity by id, so the model reads first (`getToday` /
-`getAgenda` / `getLists`) then acts. Each call inherits the same authorization and
+`getAgenda` / `getLists`) then acts. Each stored assistant turn also keeps what
+its mutating tools changed (`RecordedAction`: tool, id, title, kind, date), and
+the runner shows it to the model as an `[Action log: ...]` line, so a follow-up
+can act on "the task I just created" by id. A delivered habit check-in is stored
+the same way, with the habit id, so a bare "sim" logs the right habit.
+
+Turns run one at a time per user (`TurnLock`, Upstash `SET NX` with a 60 s TTL).
+A second message waits up to 20 s for the first to finish, so it sees the first
+one's history; past that it gets the busy reply and is not charged. Each call inherits the same authorization and
 validation the REST API enforces.
 
 ### Verified confirmations

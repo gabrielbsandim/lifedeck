@@ -22,6 +22,7 @@ describe('ScheduledJob', () => {
     expect(props.status).toBe('pending')
     expect(props.attempts).toBe(0)
     expect(props.lastError).toBeNull()
+    expect(job.dedupKey).toBeNull()
     expect(job.type).toBe('daily-digest')
     expect(job.payload).toEqual({ userId: 'u1' })
   })

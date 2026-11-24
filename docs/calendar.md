@@ -108,14 +108,16 @@ cron endpoints, both guarded by `isAuthorizedCron`
   the jobs (their run time is pushed forward), so two overlapping runs never process
   the same job twice.
 - `POST /api/v1/internal/fan-out-jobs` runs `runScheduledFanOut`, which fans out
-  three enqueuers: `enqueueDailyDigests` (a digest per user at their local morning),
+  the per-user enqueuers: `enqueueDailyDigests` (a digest per user at their local
+  morning), `enqueueDailyBriefs`, `enqueueHabitCheckins` and `enqueueNudges`.
+- `POST /api/v1/internal/calendar-maintenance` runs `runCalendarMaintenance`:
   `reconcileCalendars` (a `calendar-pull` per connection, catching missed
-  notifications), and `renewCalendarChannels` (a `calendar-watch` per channel within
+  notifications) and `renewCalendarChannels` (a `calendar-watch` per channel within
   24h of expiry).
 
-Both endpoints also accept `GET` so Vercel Cron (which issues GET) can drive them.
-`apps/web/vercel.json` declares the schedules: `dispatch-jobs` every minute and
-`fan-out-jobs` every 15 minutes. Vercel attaches `Authorization: Bearer $CRON_SECRET`
+All three endpoints also accept `GET` so Vercel Cron (which issues GET) can drive
+them. `apps/web/vercel.json` declares the schedules: `dispatch-jobs` every 5
+minutes, `fan-out-jobs` hourly and `calendar-maintenance` every 6 hours. Vercel attaches `Authorization: Bearer $CRON_SECRET`
 automatically when `CRON_SECRET` is set. A QStash schedule pointed at either endpoint
 works the same way.
 

@@ -25,8 +25,12 @@ export class OutboxJobQueue implements JobQueue {
       payload: input.payload,
       runAt: input.runAt,
       createdAt: this.clock.now(),
+      dedupKey: input.dedupKey ?? null,
     })
-    await this.scheduledJobs.save(job)
+    const added = await this.scheduledJobs.add(job)
+    if (!added) {
+      return
+    }
     // Persist first (the outbox), then request an on-time wake and lower the
     // watermark that gates the fallback sweep. Both are best-effort: if they
     // fail, the fallback cron still drains the saved job.

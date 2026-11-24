@@ -12,7 +12,7 @@ vi.mock('@/server/session/session', () => ({
   getUserIdFromRequest: (request: Request) => getUserIdFromRequest(request),
 }))
 
-import { PATCH } from './route'
+import { PATCH } from '@/app/api/v1/account/assistant-profile/route'
 
 function jsonRequest(body: unknown): Request {
   return new Request('https://app.test/api/v1/account/assistant-profile', {

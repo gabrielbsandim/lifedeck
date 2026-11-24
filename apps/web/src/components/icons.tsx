@@ -266,3 +266,11 @@ export function UndoIcon(props: IconProps) {
     </Stroke>
   )
 }
+
+export function HabitIcon(props: IconProps) {
+  return (
+    <Stroke {...props}>
+      <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM9 12l2 2 4-4" />
+    </Stroke>
+  )
+}

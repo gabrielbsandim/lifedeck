@@ -1,4 +1,8 @@
-import type { AiOperation, MessageLanguage } from '@lifedeck/domain'
+import type {
+  AiOperation,
+  Entitlement,
+  MessageLanguage,
+} from '@lifedeck/domain'
 import {
   MediaUnderstandingUnavailableError,
   QuotaExceededError,
@@ -9,6 +13,7 @@ import type { EntitlementService } from '@/ports/entitlement-service'
 import type { Logger } from '@/ports/logger'
 import type { MediaPayload } from '@/ports/messaging-channel'
 import type { Transcriber } from '@/ports/transcriber'
+import type { TurnLock } from '@/ports/turn-lock'
 import type { VisionReader } from '@/ports/vision-reader'
 
 // The in-app assistant chat: the SAME agent the user talks to over WhatsApp,
@@ -106,6 +111,7 @@ type Dependencies = {
   transcriber: Transcriber
   visionReader: VisionReader
   logger: Logger
+  turnLock: TurnLock
 }
 
 export function makeHandleInAppMessage({
@@ -117,6 +123,7 @@ export function makeHandleInAppMessage({
   transcriber,
   visionReader,
   logger,
+  turnLock,
 }: Dependencies) {
   return async function handleInAppMessage(
     message: InAppMessage,
@@ -137,6 +144,24 @@ export function makeHandleInAppMessage({
       return { status: 'unconfigured' }
     }
 
+    // Taken before metering, so a message that waits out the lock and gives up
+    // is never charged.
+    const release = await turnLock.acquire(userId)
+    if (!release) {
+      return { status: 'busy' }
+    }
+    try {
+      return await runTurn(message, granted)
+    } finally {
+      await release()
+    }
+  }
+
+  async function runTurn(
+    message: InAppMessage,
+    granted: Entitlement[],
+  ): Promise<InAppAssistantResult> {
+    const { userId } = message
     const pro = message.kind === 'text' && wantsProModel(granted, message.text)
     const operation: AiOperation = pro
       ? 'assistantPro'
@@ -259,7 +284,7 @@ export function makeHandleInAppMessage({
     try {
       await conversations.append(userId, [
         { role: 'user', content: userTurn },
-        { role: 'assistant', content: replyText },
+        { role: 'assistant', content: replyText, actions: reply.recorded },
       ])
     } catch (error) {
       logger.error('in_app_history_append_failed', {

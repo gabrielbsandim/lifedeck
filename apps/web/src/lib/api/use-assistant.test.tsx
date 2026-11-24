@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useSendAssistantMessage } from '@/lib/api/use-assistant'
+import {
+  assistantHistoryKey,
+  useAssistantHistory,
+  useClearAssistantHistory,
+  useSendAssistantMessage,
+} from '@/lib/api/use-assistant'
 import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
 
 describe('useSendAssistantMessage', () => {
@@ -96,5 +101,46 @@ describe('useSendAssistantMessage', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(invalidate).not.toHaveBeenCalled()
+  })
+})
+
+describe('assistant history hooks', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('loads the stored thread', async () => {
+    const history = [{ role: 'user', text: 'hi' }]
+    const fetchMock = mockFetchOnce({ data: history })
+    const { Wrapper } = createWrapper()
+
+    const { result } = renderHook(() => useAssistantHistory(), {
+      wrapper: Wrapper,
+    })
+
+    await waitFor(() => expect(result.current.data).toEqual(history))
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/assistant/chat',
+      expect.anything(),
+    )
+  })
+
+  it('clears the thread and empties the cached copy', async () => {
+    const fetchMock = mockFetchOnce({ data: { cleared: true } })
+    const { Wrapper, queryClient } = createWrapper()
+    queryClient.setQueryData(assistantHistoryKey, [
+      { role: 'user', text: 'old' },
+    ])
+
+    const { result } = renderHook(() => useClearAssistantHistory(), {
+      wrapper: Wrapper,
+    })
+    await result.current.mutateAsync()
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/assistant/chat',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+    expect(queryClient.getQueryData(assistantHistoryKey)).toEqual([])
   })
 })

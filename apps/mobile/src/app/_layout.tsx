@@ -1,10 +1,14 @@
 import '../global.css'
 
-import { useColorScheme, View } from 'react-native'
-import { Stack } from 'expo-router'
+import { Text, useColorScheme, View } from 'react-native'
+import { Stack, type ErrorBoundaryProps } from 'expo-router'
+import { getLocales } from 'expo-localization'
 import { StatusBar } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { detectLocale, getMessages } from '@lifedeck/i18n'
+import { GetStartedSheet } from '@/components/get-started-sheet'
 import { SessionGate } from '@/components/session-gate'
+import { Button, Logo } from '@/components/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { usePushNotifications } from '@/lib/notifications/use-push-notifications'
 import { useOtaUpdates } from '@/lib/updates/use-ota-updates'
@@ -70,6 +74,15 @@ function RootStack() {
         name="share/[token]"
         options={{ title: messages.list.shared }}
       />
+      <Stack.Screen
+        name="terms"
+        options={{ title: messages.legal.terms.title }}
+      />
+      <Stack.Screen
+        name="privacy"
+        options={{ title: messages.legal.privacy.title }}
+      />
+      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
   )
 }
@@ -84,8 +97,36 @@ export default function RootLayout() {
         <View style={{ flex: 1 }}>
           <RootStack />
           <SessionGate />
+          <GetStartedSheet />
         </View>
       </AppProviders>
     </GestureHandlerRootView>
+  )
+}
+
+// Replaces the whole tree when a render throws, so it cannot lean on the
+// providers above it: the copy is resolved straight from the device locale.
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  const messages = getMessages(
+    detectLocale(getLocales()[0]?.languageTag ?? null),
+  )
+  const t = messages.errorPage
+
+  return (
+    <View className="bg-bg flex-1 justify-center gap-4 px-6">
+      <Logo withWordmark size={28} />
+      <View className="mt-8 gap-2">
+        <Text
+          accessibilityRole="header"
+          className="text-ink-900 text-2xl font-bold"
+        >
+          {t.crashTitle}
+        </Text>
+        <Text className="text-ink-500 text-sm">{t.crashBody}</Text>
+      </View>
+      <Button className="self-start" onPress={() => void retry()}>
+        {messages.common.retry}
+      </Button>
+    </View>
   )
 }

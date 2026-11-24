@@ -10,6 +10,7 @@ import { base64ToBytes } from '@/lib/api/base64'
 import { apiRequest } from '@/lib/api/client'
 import { deviceTimeZone } from '@/lib/api/dates'
 import { clearSessionToken } from '@/lib/api/session-token'
+import { changePasswordSession } from '@/lib/api/sessions'
 import { unregisterFromPush } from '@/lib/notifications/push-registration'
 import { sessionKey } from '@/lib/api/use-session'
 
@@ -191,20 +192,16 @@ export function useRemoveAvatar() {
 
 export function useChangePassword() {
   return useMutation({
-    mutationFn: (input: { currentPassword: string; newPassword: string }) =>
-      apiRequest<UserView>('/api/v1/account/password', {
-        method: 'PATCH',
-        body: JSON.stringify(input),
-      }),
+    mutationFn: changePasswordSession,
   })
 }
 
 export function useSignOut() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (scope: 'device' | 'all' = 'device') => {
       const result = await apiRequest<{ signedOut: boolean }>(
-        '/api/v1/sessions',
+        scope === 'all' ? '/api/v1/sessions?scope=all' : '/api/v1/sessions',
         { method: 'DELETE' },
       )
       // Before the token is dropped: unregistering is an authenticated call.

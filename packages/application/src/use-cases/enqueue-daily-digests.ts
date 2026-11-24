@@ -1,4 +1,4 @@
-import { civilHour, isDeliverableEmail } from '@lifedeck/domain'
+import { civilDate, civilHour, isDeliverableEmail } from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { JobQueue } from '@/ports/job-queue'
 import type { UserRepository } from '@/ports/user-repository'
@@ -35,6 +35,7 @@ export function makeEnqueueDailyDigests({
         type: DAILY_DIGEST_JOB,
         payload: { userId: user.id as string },
         runAt: now,
+        dedupKey: `${DAILY_DIGEST_JOB}:${user.id}:${civilDate(now, user.timezone)}`,
       })
       enqueued += 1
     }

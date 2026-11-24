@@ -1,16 +1,25 @@
 import { asEntityId } from '@lifedeck/domain'
+import type { Clock } from '@/ports/clock'
 import type { CalendarConnectionRepository } from '@/ports/calendar-connection-repository'
 import type { CalendarProviderRegistry } from '@/ports/calendar-provider'
+import { makeEnsureFreshCalendarToken } from '@/shared/fresh-calendar-token'
 
 type Dependencies = {
   calendarConnections: CalendarConnectionRepository
   providers: CalendarProviderRegistry
+  clock: Clock
 }
 
 export function makeDeleteRemoteCalendarEvent({
   calendarConnections,
   providers,
+  clock,
 }: Dependencies) {
+  const ensureFreshToken = makeEnsureFreshCalendarToken({
+    calendarConnections,
+    clock,
+  })
+
   return async function deleteRemoteCalendarEvent(
     ownerId: string,
     externalId: string,
@@ -30,6 +39,7 @@ export function makeDeleteRemoteCalendarEvent({
     if (provider.writable === false) {
       return { deleted: false }
     }
+    await ensureFreshToken(connection, provider)
     await provider.deleteEvent(connection, externalId)
     return { deleted: true }
   }

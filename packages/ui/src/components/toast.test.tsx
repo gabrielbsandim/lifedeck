@@ -11,6 +11,12 @@ describe('Toast', () => {
 
   it('renders an error toast', () => {
     render(<Toast tone="error">Could not save</Toast>)
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not save')
     expect(screen.getByText('!')).toBeInTheDocument()
+  })
+
+  it('renders an action next to the message', () => {
+    render(<Toast action={<button type="button">Dismiss</button>}>Saved</Toast>)
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument()
   })
 })

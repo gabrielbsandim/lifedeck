@@ -14,6 +14,7 @@ import { InMemoryHabitLogRepository } from '@/testing/in-memory-habit-log-reposi
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryProactiveSendGuard } from '@/testing/in-memory-proactive-send-guard'
 import { InMemoryNotificationRepository } from '@/testing/in-memory-notification-repository'
+import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
 import { testPublishNotification } from '@/testing/test-publish-notification'
 import { FixedClock, ID } from '@/testing/fakes'
 
@@ -34,6 +35,7 @@ async function setup(options?: {
   ownerId?: EntityId
   delivered?: boolean
   now?: Date
+  conversations?: InMemoryConversationStore
 }) {
   const habits = new InMemoryHabitRepository()
   const habitLogs = new InMemoryHabitLogRepository()
@@ -72,6 +74,8 @@ async function setup(options?: {
     .fn()
     .mockResolvedValue({ delivered: options?.delivered ?? true })
   const notifications = new InMemoryNotificationRepository()
+  const conversations =
+    options?.conversations ?? new InMemoryConversationStore()
   const sendHabitCheckin = makeSendHabitCheckin({
     habits,
     habitLogs,
@@ -85,12 +89,18 @@ async function setup(options?: {
     sendProactiveMessage,
     sendGuard: new InMemoryProactiveSendGuard(options?.cap ?? 3),
     publishNotification: testPublishNotification(notifications),
+    conversations,
     ids: { generate: () => asEntityId(NOTIFICATION_ID) },
     clock: new FixedClock(options?.now ?? NOW),
     checkinTemplate: options?.checkinTemplate,
   })
 
-  return { sendHabitCheckin, sendProactiveMessage, notifications }
+  return {
+    sendHabitCheckin,
+    sendProactiveMessage,
+    notifications,
+    conversations,
+  }
 }
 
 describe('sendHabitCheckin', () => {
@@ -207,5 +217,39 @@ describe('sendHabitCheckin', () => {
     await sendHabitCheckin(ID.user, HABIT)
 
     expect(await notifications.listByUser(ID.user, 10)).toEqual([])
+  })
+
+  it('puts a delivered check-in in the conversation so a bare reply has context', async () => {
+    // August: "treinei" right after a check-in was not tied to the habit asked about.
+    const { sendHabitCheckin, conversations } = await setup()
+
+    await sendHabitCheckin(ID.user, HABIT)
+
+    const [turn] = await conversations.load(ID.user)
+    expect(turn?.role).toBe('assistant')
+    expect(turn?.content).toContain('Meditate')
+    expect(turn?.actions).toEqual([
+      { tool: 'habitCheckin', id: HABIT, title: 'Meditate' },
+    ])
+  })
+
+  it('keeps an undelivered check-in out of the conversation', async () => {
+    const { sendHabitCheckin, conversations } = await setup({
+      delivered: false,
+    })
+
+    await sendHabitCheckin(ID.user, HABIT)
+
+    expect(await conversations.load(ID.user)).toEqual([])
+  })
+
+  it('still reports the send when the history store fails', async () => {
+    const conversations = new InMemoryConversationStore()
+    conversations.append = async () => {
+      throw new Error('redis down')
+    }
+    const { sendHabitCheckin } = await setup({ conversations })
+
+    expect(await sendHabitCheckin(ID.user, HABIT)).toEqual({ sent: true })
   })
 })

@@ -55,6 +55,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
     userId: EntityId,
     eventId: string,
     minutesBefore: string,
+    startsAt: string,
   ): Promise<boolean> {
     const count = await this.prisma.notification.count({
       where: {
@@ -63,6 +64,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
         AND: [
           { data: { path: ['eventId'], equals: eventId } },
           { data: { path: ['minutesBefore'], equals: minutesBefore } },
+          { data: { path: ['startsAt'], equals: startsAt } },
         ],
       },
     })

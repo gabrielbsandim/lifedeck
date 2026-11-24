@@ -16,6 +16,7 @@ function fromPrisma(record: {
   status: string
   attempts: number
   lastError: string | null
+  dedupKey: string | null
   createdAt: Date
 }): ScheduledJobRecord {
   return {
@@ -26,6 +27,7 @@ function fromPrisma(record: {
     status: record.status as ScheduledJobStatus,
     attempts: record.attempts,
     lastError: record.lastError,
+    dedupKey: record.dedupKey,
     createdAt: record.createdAt,
   }
 }
@@ -46,6 +48,7 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
         status: record.status,
         attempts: record.attempts,
         lastError: record.lastError,
+        dedupKey: record.dedupKey,
         createdAt: record.createdAt,
       },
       update: {
@@ -55,6 +58,27 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
         lastError: record.lastError,
       },
     })
+  }
+
+  async add(job: ScheduledJob): Promise<boolean> {
+    const record = toScheduledJobRecord(job)
+    // ON CONFLICT DO NOTHING on the unique dedup key, so two concurrent
+    // enqueuers race safely and exactly one row lands.
+    const { count } = await this.prisma.scheduledJob.createMany({
+      data: {
+        id: record.id,
+        type: record.type,
+        payload: record.payload as Prisma.InputJsonValue,
+        runAt: record.runAt,
+        status: record.status,
+        attempts: record.attempts,
+        lastError: record.lastError,
+        dedupKey: record.dedupKey,
+        createdAt: record.createdAt,
+      },
+      skipDuplicates: true,
+    })
+    return count === 1
   }
 
   async listDue(now: Date, limit: number): Promise<ScheduledJob[]> {
@@ -89,6 +113,7 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
         status: string
         attempts: number
         last_error: string | null
+        dedup_key: string | null
         created_at: Date
       }>
     >(Prisma.sql`
@@ -101,7 +126,7 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
         LIMIT ${limit}
         FOR UPDATE SKIP LOCKED
       )
-      RETURNING id, type, payload, run_at, status, attempts, last_error, created_at
+      RETURNING id, type, payload, run_at, status, attempts, last_error, dedup_key, created_at
     `)
     return rows.map(row =>
       toDomainScheduledJob(
@@ -113,6 +138,7 @@ export class PrismaScheduledJobRepository implements ScheduledJobRepository {
           status: row.status,
           attempts: row.attempts,
           lastError: row.last_error,
+          dedupKey: row.dedup_key,
           createdAt: row.created_at,
         }),
       ),

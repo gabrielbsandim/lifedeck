@@ -26,6 +26,7 @@ import {
 } from '@/components/settings/settings-sections'
 import { planName } from '@/lib/billing/plan-display'
 import { useSession } from '@/lib/api/use-session'
+import { useWebCheckout } from '@/lib/billing/use-web-checkout'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useThemeColors } from '@/theme/tokens'
 
@@ -51,6 +52,7 @@ export default function ProfileScreen() {
   const colors = useThemeColors()
   const router = useRouter()
   const session = useSession()
+  const checkout = useWebCheckout()
   const user = session.data
   const [authOpen, setAuthOpen] = useState(false)
 
@@ -115,44 +117,42 @@ export default function ProfileScreen() {
         </Card>
       </Pressable>
 
-      {hasBilling ? (
-        isFree ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/billing')}
-            className="bg-brand-600 gap-2 rounded-2xl p-4"
-          >
-            <Text className="text-[11px] font-bold text-white/70">
-              {messages.settings.planWord.toUpperCase()}{' '}
-              {planLabel.toUpperCase()}
+      {hasBilling && isFree && checkout.allowed ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/billing')}
+          className="bg-brand-600 gap-2 rounded-2xl p-4"
+        >
+          <Text className="text-[11px] font-bold text-white/70">
+            {messages.settings.planWord.toUpperCase()} {planLabel.toUpperCase()}
+          </Text>
+          <Text className="text-[13px] text-white/90">
+            {messages.settings.teaserFree}
+          </Text>
+          <View className="mt-1 self-start rounded-full bg-white px-4 py-1.5">
+            <Text className="text-brand-700 text-[13px] font-semibold">
+              {messages.billing.seePlans}
             </Text>
-            <Text className="text-[13px] text-white/90">
-              {messages.settings.teaserFree}
-            </Text>
-            <View className="mt-1 self-start rounded-full bg-white px-4 py-1.5">
-              <Text className="text-brand-700 text-[13px] font-semibold">
-                {messages.billing.seePlans}
+          </View>
+        </Pressable>
+      ) : null}
+      {hasBilling && !isFree ? (
+        <Pressable accessibilityRole="button" onPress={() => open('plano')}>
+          <Card className="flex-row items-center gap-3 p-3.5">
+            <View className="bg-brand-600 h-10 w-10 items-center justify-center rounded-xl">
+              <DeckGlyph size={22} color="#ffffff" />
+            </View>
+            <View className="min-w-0 flex-1 gap-0.5">
+              <Text className="text-ink-900 text-[15px] font-semibold">
+                {messages.settings.planWord} {planLabel}
+              </Text>
+              <Text className="text-ink-500 text-[13px]">
+                {messages.settings.teaserPaid}
               </Text>
             </View>
-          </Pressable>
-        ) : (
-          <Pressable accessibilityRole="button" onPress={() => open('plano')}>
-            <Card className="flex-row items-center gap-3 p-3.5">
-              <View className="bg-brand-600 h-10 w-10 items-center justify-center rounded-xl">
-                <DeckGlyph size={22} color="#ffffff" />
-              </View>
-              <View className="min-w-0 flex-1 gap-0.5">
-                <Text className="text-ink-900 text-[15px] font-semibold">
-                  {messages.settings.planWord} {planLabel}
-                </Text>
-                <Text className="text-ink-500 text-[13px]">
-                  {messages.settings.teaserPaid}
-                </Text>
-              </View>
-              <ChevronRightIcon size={16} color={colors.ink['300']} />
-            </Card>
-          </Pressable>
-        )
+            <ChevronRightIcon size={16} color={colors.ink['300']} />
+          </Card>
+        </Pressable>
       ) : null}
 
       <Group title={messages.settings.hubConfig}>

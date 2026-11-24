@@ -168,9 +168,20 @@ describe('account hooks', () => {
     const fetchMock = mockFetchOnce({ data: { signedOut: true } })
     const { Wrapper } = createWrapper()
     const { result } = renderHook(() => useSignOut(), { wrapper: Wrapper })
-    await result.current.mutateAsync()
+    await result.current.mutateAsync(undefined)
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/sessions',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('signs out everywhere with scope=all', async () => {
+    const fetchMock = mockFetchOnce({ data: { signedOut: true } })
+    const { Wrapper } = createWrapper()
+    const { result } = renderHook(() => useSignOut(), { wrapper: Wrapper })
+    await result.current.mutateAsync('all')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/sessions?scope=all',
       expect.objectContaining({ method: 'DELETE' }),
     )
   })

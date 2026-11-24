@@ -13,7 +13,10 @@ function provider(
   return {
     provider: 'google',
     exchangeCode: vi.fn(),
-    refreshAccessToken: vi.fn(),
+    refreshAccessToken: vi.fn().mockResolvedValue({
+      accessToken: 'access-2',
+      expiresAt: new Date('2026-06-24T11:00:00.000Z'),
+    }),
     listChanges: vi.fn(),
     pushEvent: vi.fn(),
     deleteEvent,
@@ -39,15 +42,18 @@ describe('deleteRemoteCalendarEvent', () => {
     const remove = makeDeleteRemoteCalendarEvent({
       calendarConnections,
       providers: { get: () => provider(deleteEvent) },
+      clock: { now: () => NOW },
     })
     expect(await remove(OWNER_ID, 'g-1')).toEqual({ deleted: true })
-    expect(deleteEvent).toHaveBeenCalled()
+    const [usedConnection] = deleteEvent.mock.calls[0] as [CalendarConnection]
+    expect(usedConnection.accessToken).toBe('access-2')
   })
 
   it('is a no-op when no calendar is connected', async () => {
     const remove = makeDeleteRemoteCalendarEvent({
       calendarConnections: new InMemoryCalendarConnectionRepository(),
       providers: { get: () => provider() },
+      clock: { now: () => NOW },
     })
     expect(await remove(OWNER_ID, 'g-1')).toEqual({ deleted: false })
   })

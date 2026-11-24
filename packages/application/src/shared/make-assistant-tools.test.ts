@@ -35,7 +35,11 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
     getDailyBoard: vi.fn(async () => ({
       list: { id: 'list-1' },
       tasks: [{ id: 'task-1', title: 'Buy milk', status: 'pending' }],
+      carryOver: [],
     })) as unknown as AssistantToolsDeps['getDailyBoard'],
+    listListTasks: vi.fn(
+      async () => [],
+    ) as unknown as AssistantToolsDeps['listListTasks'],
     listUserLists: vi.fn(async () => ({
       items: [{ id: 'list-1', title: 'Today' }],
     })) as unknown as AssistantToolsDeps['listUserLists'],
@@ -142,7 +146,12 @@ describe('makeAssistantTools', () => {
 
     const result = await tools.addTask(USER_ID, { title: 'Call the vet' })
 
-    expect(result).toEqual({ id: 'task-1', added: true, alreadyExisted: false })
+    expect(result).toEqual({
+      id: 'task-1',
+      title: 'Call the vet',
+      added: true,
+      alreadyExisted: false,
+    })
     expect(deps.createTask).toHaveBeenCalledWith(USER_ID, {
       listId: 'list-1',
       title: 'Call the vet',
@@ -157,9 +166,95 @@ describe('makeAssistantTools', () => {
 
     expect(result).toEqual({
       id: 'task-1',
+      title: 'Buy milk',
       added: false,
       alreadyExisted: true,
     })
+    expect(deps.createTask).not.toHaveBeenCalled()
+  })
+
+  it('completes the existing task when a correction names it in other words', async () => {
+    // August: told the walk was a task, the assistant added a second, pending one.
+    const { tools, deps } = build({
+      getDailyBoard: vi.fn(async () => ({
+        list: { id: 'list-1' },
+        tasks: [
+          { id: 'task-walk', title: 'Passear com Rhaenyra', status: 'pending' },
+        ],
+        carryOver: [],
+      })) as unknown as AssistantToolsDeps['getDailyBoard'],
+    })
+
+    const result = await tools.addTask(USER_ID, {
+      title: 'passeamos com a Rhaenyra',
+      completed: true,
+    })
+
+    expect(result).toEqual({
+      id: 'task-walk',
+      title: 'Passear com Rhaenyra',
+      added: false,
+      alreadyExisted: true,
+    })
+    expect(deps.createTask).not.toHaveBeenCalled()
+    expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-walk', {
+      status: 'completed',
+    })
+  })
+
+  it('brings a pending task from yesterday instead of adding a copy', async () => {
+    const { tools, deps } = build({
+      getDailyBoard: vi.fn(async () => ({
+        list: { id: 'list-1' },
+        tasks: [],
+        carryOver: [
+          {
+            task: { id: 'old-1', title: 'Pagar a luz', status: 'pending' },
+            fromDate: '2026-07-18',
+          },
+        ],
+      })) as unknown as AssistantToolsDeps['getDailyBoard'],
+      bringTaskToToday: vi.fn(async () => ({
+        id: 'today-1',
+      })) as unknown as AssistantToolsDeps['bringTaskToToday'],
+    })
+
+    const result = await tools.addTask(USER_ID, { title: 'pagar luz' })
+
+    expect(deps.bringTaskToToday).toHaveBeenCalledWith(USER_ID, 'old-1')
+    expect(result).toMatchObject({ id: 'today-1', alreadyExisted: true })
+    expect(deps.createTask).not.toHaveBeenCalled()
+  })
+
+  it('adds a new errand when only a completed twin exists', async () => {
+    const { tools, deps } = build({
+      getDailyBoard: vi.fn(async () => ({
+        list: { id: 'list-1' },
+        tasks: [{ id: 'done-1', title: 'Buy milk', status: 'completed' }],
+        carryOver: [],
+      })) as unknown as AssistantToolsDeps['getDailyBoard'],
+    })
+
+    const result = await tools.addTask(USER_ID, { title: 'Buy milk' })
+
+    expect(result.added).toBe(true)
+    expect(deps.createTask).toHaveBeenCalled()
+  })
+
+  it('checks an explicit list for a duplicate', async () => {
+    const { tools, deps } = build({
+      listListTasks: vi.fn(async () => [
+        { id: 'groc-1', title: 'Comprar pão', status: 'pending' },
+      ]) as unknown as AssistantToolsDeps['listListTasks'],
+    })
+
+    const result = await tools.addTask(USER_ID, {
+      title: 'comprar pao',
+      listId: 'list-9',
+    })
+
+    expect(deps.listListTasks).toHaveBeenCalledWith(USER_ID, 'list-9')
+    expect(result).toMatchObject({ id: 'groc-1', alreadyExisted: true })
     expect(deps.createTask).not.toHaveBeenCalled()
   })
 
@@ -288,6 +383,68 @@ describe('makeAssistantTools', () => {
       expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-1', {
         status: 'completed',
       })
+    })
+
+    it('skips habits when the user said it was a task', async () => {
+      const { tools, deps } = build({
+        listHabits: vi.fn(async () => [
+          { id: 'habit-1', title: 'Passear', active: true },
+        ]) as unknown as AssistantToolsDeps['listHabits'],
+        getDailyBoard: vi.fn(async () => ({
+          list: { id: 'list-1' },
+          tasks: [
+            {
+              id: 'task-walk',
+              title: 'Passear com Rhaenyra',
+              status: 'pending',
+            },
+          ],
+          carryOver: [],
+        })) as unknown as AssistantToolsDeps['getDailyBoard'],
+      })
+
+      const result = await tools.logActivity(USER_ID, {
+        title: 'passeamos com a Rhaenyra',
+        as: 'task',
+      })
+
+      expect(deps.listHabits).not.toHaveBeenCalled()
+      expect(deps.logHabit).not.toHaveBeenCalled()
+      expect(result).toMatchObject({ kind: 'task', id: 'task-walk' })
+    })
+
+    it('undoes each kind of logged activity', async () => {
+      const { tools, deps } = build()
+      const date = '2026-07-19'
+
+      await tools.undoActivity(USER_ID, {
+        kind: 'habit',
+        id: 'habit-1',
+        title: 'Passear',
+        date,
+      })
+      await tools.undoActivity(USER_ID, {
+        kind: 'task',
+        id: 'task-1',
+        title: 'Buy milk',
+        date,
+      })
+      const result = await tools.undoActivity(USER_ID, {
+        kind: 'created',
+        id: 'task-2',
+        title: 'Walk',
+        date,
+      })
+
+      expect(result).toEqual({ ok: true })
+      expect(deps.logHabit).toHaveBeenCalledWith(USER_ID, 'habit-1', {
+        date,
+        done: false,
+      })
+      expect(deps.updateTask).toHaveBeenCalledWith(USER_ID, 'task-1', {
+        status: 'pending',
+      })
+      expect(deps.deleteTask).toHaveBeenCalledWith(USER_ID, 'task-2')
     })
 
     it('ignores an archived habit and falls through to tasks', async () => {

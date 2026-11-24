@@ -1,10 +1,14 @@
 'use client'
 
+import type { ReactNode } from 'react'
+import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/messages-provider'
+import { activeMobileTab, type MobileTab } from '@/lib/navigation/active-tab'
 import {
   CalendarIcon,
+  HabitIcon,
   ListsIcon,
   SparkleIcon,
   UserIcon,
@@ -15,17 +19,33 @@ const tabClass = (active: boolean) =>
     active ? 'text-brand-accent' : 'text-ink-400'
   }`
 
+function PlainTab({
+  href,
+  active,
+  icon,
+  label,
+}: {
+  href: Route
+  active: boolean
+  icon: ReactNode
+  label: string
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? 'page' : undefined}
+      className={tabClass(active)}
+    >
+      {icon}
+      {label}
+    </Link>
+  )
+}
+
 export function MobileTabBar() {
   const { messages } = useI18n()
-  const pathname = usePathname()
-
-  // The Profile tab now opens the full settings hub, which also surfaces the
-  // tools (Analytics, Recurring, Developers) that used to live in a sheet.
-  const onProfileRoute =
-    pathname.startsWith('/settings') ||
-    pathname.startsWith('/analytics') ||
-    pathname.startsWith('/recurring') ||
-    pathname.startsWith('/developers')
+  const active: MobileTab | null = activeMobileTab(usePathname())
+  const onAssistant = active === 'assistant'
 
   return (
     <nav
@@ -33,55 +53,48 @@ export function MobileTabBar() {
       className="border-line bg-surface/90 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-lg lg:hidden"
     >
       <div className="mx-auto flex max-w-2xl items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)] pt-1">
-        <Link
+        <PlainTab
           href="/"
-          aria-current={pathname === '/' ? 'page' : undefined}
-          className={tabClass(pathname === '/')}
-        >
-          <CalendarIcon size={22} />
-          {messages.nav.today}
-        </Link>
-
-        <Link
+          active={active === 'today'}
+          icon={<CalendarIcon size={22} />}
+          label={messages.nav.today}
+        />
+        <PlainTab
           href="/lists"
-          aria-current={pathname.startsWith('/lists') ? 'page' : undefined}
-          className={tabClass(pathname.startsWith('/lists'))}
-        >
-          <ListsIcon size={22} />
-          {messages.nav.lists}
-        </Link>
+          active={active === 'lists'}
+          icon={<ListsIcon size={22} />}
+          label={messages.nav.lists}
+        />
 
         <Link
           href="/generate"
-          aria-current={pathname.startsWith('/generate') ? 'page' : undefined}
+          aria-current={onAssistant ? 'page' : undefined}
           className="flex flex-1 flex-col items-center justify-center gap-1 py-1.5 text-[11px] font-medium"
         >
           <span
             className={`from-brand-600 flex h-[38px] w-[38px] items-center justify-center rounded-full bg-gradient-to-br to-violet-500 text-white shadow-[0_4px_12px_oklch(0.52_0.22_280/0.4)] transition-transform active:scale-95 ${
-              pathname.startsWith('/generate') ? 'brightness-95' : ''
+              onAssistant ? 'brightness-95' : ''
             }`}
           >
             <SparkleIcon size={20} />
           </span>
-          <span
-            className={
-              pathname.startsWith('/generate')
-                ? 'text-brand-accent'
-                : 'text-ink-400'
-            }
-          >
+          <span className={onAssistant ? 'text-brand-accent' : 'text-ink-400'}>
             {messages.nav.generate}
           </span>
         </Link>
 
-        <Link
+        <PlainTab
+          href="/habits"
+          active={active === 'habits'}
+          icon={<HabitIcon size={22} />}
+          label={messages.nav.habits}
+        />
+        <PlainTab
           href="/settings"
-          aria-current={onProfileRoute ? 'page' : undefined}
-          className={tabClass(onProfileRoute)}
-        >
-          <UserIcon size={22} />
-          {messages.nav.profile}
-        </Link>
+          active={active === 'profile'}
+          icon={<UserIcon size={22} />}
+          label={messages.nav.profile}
+        />
       </div>
     </nav>
   )

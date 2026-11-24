@@ -20,12 +20,18 @@ vi.mock('@/server/db/warm-db', () => ({
   warmDb: () => warmDb(),
 }))
 
-import { POST as dispatchPost, GET as dispatchGet } from './dispatch-jobs/route'
-import { POST as fanOutPost, GET as fanOutGet } from './fan-out-jobs/route'
+import {
+  POST as dispatchPost,
+  GET as dispatchGet,
+} from '@/app/api/v1/internal/dispatch-jobs/route'
+import {
+  POST as fanOutPost,
+  GET as fanOutGet,
+} from '@/app/api/v1/internal/fan-out-jobs/route'
 import {
   POST as calendarPost,
   GET as calendarGet,
-} from './calendar-maintenance/route'
+} from '@/app/api/v1/internal/calendar-maintenance/route'
 
 const SECRET = 'cron-secret'
 

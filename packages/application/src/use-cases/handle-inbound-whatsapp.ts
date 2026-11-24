@@ -3,6 +3,7 @@ import {
   normalizePhone,
   toMessageLanguage,
   type AiOperation,
+  type Entitlement,
   type MessageLanguage,
 } from '@lifedeck/domain'
 import {
@@ -17,6 +18,7 @@ import type { ConversationStore } from '@/ports/conversation-store'
 import type { EntitlementService } from '@/ports/entitlement-service'
 import type { MessagingChannel } from '@/ports/messaging-channel'
 import type { Transcriber } from '@/ports/transcriber'
+import type { TurnLock } from '@/ports/turn-lock'
 import type { UserRepository } from '@/ports/user-repository'
 import type { VisionReader } from '@/ports/vision-reader'
 import type { WhatsappSessionWindow } from '@/ports/whatsapp-session'
@@ -126,6 +128,7 @@ export type InboundWhatsappAction =
   | 'denied'
   | 'quota'
   | 'unconfigured'
+  | 'busy'
   | 'error'
 
 export type InboundWhatsappResult = {
@@ -206,6 +209,7 @@ type Dependencies = {
   // Opens the WhatsApp 24h window so reminders can later be sent as plain text
   // (no template) while the user is in an active conversation.
   whatsappSession: WhatsappSessionWindow
+  turnLock: TurnLock
 }
 
 export function makeHandleInboundWhatsApp({
@@ -222,6 +226,7 @@ export function makeHandleInboundWhatsApp({
   clock,
   logger,
   whatsappSession,
+  turnLock,
 }: Dependencies) {
   return async function handleInboundWhatsApp(
     message: InboundWhatsappMessage,
@@ -307,6 +312,26 @@ export function makeHandleInboundWhatsApp({
       return { action: 'unconfigured' }
     }
 
+    // Taken before metering, so a message that waits out the lock and gives up
+    // is never charged.
+    const release = await turnLock.acquire(userId)
+    if (!release) {
+      await messaging.sendText(message.from, copy.assistantBusy)
+      return { action: 'busy' }
+    }
+    try {
+      return await runTurn(userId, message, copy, granted)
+    } finally {
+      await release()
+    }
+  }
+
+  async function runTurn(
+    userId: string,
+    message: AssistMessage,
+    copy: WhatsappCopy,
+    granted: Entitlement[],
+  ): Promise<InboundWhatsappResult> {
     const pro = message.kind === 'text' && wantsProModel(granted, message.text)
     const operation: AiOperation = pro
       ? 'assistantPro'
@@ -445,7 +470,7 @@ export function makeHandleInboundWhatsApp({
     try {
       await conversations.append(userId, [
         { role: 'user', content: userTurn },
-        { role: 'assistant', content: replyText },
+        { role: 'assistant', content: replyText, actions: reply.recorded },
       ])
     } catch (error) {
       logger.error('whatsapp_history_append_failed', {

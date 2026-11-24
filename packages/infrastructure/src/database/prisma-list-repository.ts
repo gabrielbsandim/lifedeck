@@ -82,6 +82,18 @@ export class PrismaListRepository implements ListRepository {
     }))
   }
 
+  async ensureDaily(list: List): Promise<List> {
+    const record = toListRecord(list)
+    // ON CONFLICT DO NOTHING on (owner_id, type, reference_date): a racing
+    // load inserts nothing and reads back the list that won.
+    await this.prisma.list.createMany({ data: record, skipDuplicates: true })
+    const stored = await this.findDailyByOwnerAndDate(
+      list.ownerId,
+      record.referenceDate as Date,
+    )
+    return stored ?? list
+  }
+
   async findDailyByOwnerAndDate(
     ownerId: EntityId,
     referenceDate: Date,

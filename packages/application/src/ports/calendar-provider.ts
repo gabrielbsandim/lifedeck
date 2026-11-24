@@ -82,10 +82,12 @@ export interface CalendarProvider {
   exchangeCode(code: string, redirectUri: string): Promise<OAuthTokens>
   refreshAccessToken(refreshToken: string): Promise<RefreshedToken>
   listChanges(connection: CalendarConnection): Promise<CalendarSyncPage>
+  // `skipped` means the remote copy changed after the last sync and is newer,
+  // so the push left it for the next pull to adopt.
   pushEvent(
     connection: CalendarConnection,
     event: CalendarEvent,
-  ): Promise<{ externalId: string; etag: string | null }>
+  ): Promise<{ externalId: string; etag: string | null; skipped?: boolean }>
   deleteEvent(connection: CalendarConnection, externalId: string): Promise<void>
   watch(
     connection: CalendarConnection,

@@ -18,8 +18,8 @@ Lifedeck combines daily productivity planning with standalone shareable checklis
 
 - **Frictionless Guest Onboarding:** Start organizing immediately by entering a name. Upgrade to a permanent account anytime (Email/Password with code verification or Google OAuth) without losing state.
 - **Time-Zone & Civil Day Aware:** Daily boards, morning digests, and streak counters strictly honor the user's local civil day, auto-detected from the browser and manually overridable.
-- **AI-Powered List Synthesis:** Describe any project or routine in natural language and receive an editable, structured checklist in seconds.
-- **Sharing & Real-time Collaboration:** Invite team members to collaborate with granular permissions or publish read-only public links.
+- **AI Assistant:** Chat in the app or on WhatsApp to create and complete tasks, lists and habits in natural language; `POST /api/v1/lists/generate` turns a description into a structured checklist.
+- **Sharing & Collaboration:** Invite team members with granular permissions or publish read-only public links; shared boards refresh every 10 seconds while open.
 - **White-Label REST API (`/api/v1`):** Complete OpenAPI 3.1 specification rendered with Scalar, designed for headless embedding and third-party integrations.
 - **Trilingual Localization:** First-class support for English, Portuguese, and Spanish, negotiated automatically via `Accept-Language` headers with zero client bundle overhead.
 - **Cross-Platform Parity:** Web client (Next.js 16) and mobile client (Expo SDK 57 / React Native) consuming the same domain use cases and API contracts.

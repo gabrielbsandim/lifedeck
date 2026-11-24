@@ -62,6 +62,7 @@ describe('enqueueDailyBriefs', () => {
       type: DAILY_BRIEF_JOB,
       payload: { userId: ID.user as string },
       runAt: NOW,
+      dedupKey: 'daily-brief:a1c8f2e4-5b6d-4c7e-8f90-1a2b3c4d5e6f:2026-06-22',
     })
   })
 

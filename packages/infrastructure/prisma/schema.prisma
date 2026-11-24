@@ -56,6 +56,7 @@ model User {
   reminderEmail    Boolean @default(false) @map("reminder_email")
   reminderWhatsapp Boolean @default(true) @map("reminder_whatsapp")
   assistantProfile Json?   @map("assistant_profile")
+  sessionsValidFrom DateTime? @map("sessions_valid_from")
   createdAt     DateTime  @default(now()) @map("created_at")
 
   ownedLists        List[]             @relation("ListOwner")
@@ -153,6 +154,7 @@ model List {
   members ListMember[]
   shares  ShareLink[]
 
+  @@unique([ownerId, type, referenceDate])
   @@index([ownerId, createdAt])
   @@map("lists")
 }
@@ -291,6 +293,7 @@ model ScheduledJob {
   status    String   @default("pending")
   attempts  Int      @default(0)
   lastError String?  @map("last_error")
+  dedupKey  String?  @unique @map("dedup_key")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([status, runAt])
@@ -379,7 +382,7 @@ model CalendarEvent {
 
   @@index([ownerId, startsAt])
   @@index([ownerId, externalId])
-  @@index([connectionId, externalId])
+  @@unique([connectionId, externalId])
   @@index([ownerId, recurrenceMasterExternalId])
   @@map("calendar_events")
 }

@@ -4,10 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UserView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { sessionKey } from '@/lib/api/use-session'
+import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
 
 export function useRegister() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: { email: string; password: string }) =>
       apiRequest<UserView>('/api/v1/auth/register', {
         method: 'POST',
@@ -20,6 +22,7 @@ export function useRegister() {
 export function useVerifyEmail() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: { code: string }) =>
       apiRequest<UserView>('/api/v1/auth/verify', {
         method: 'POST',
@@ -39,6 +42,7 @@ export function useResendCode() {
 export function useSignIn() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: INLINE_ERROR,
     mutationFn: (input: { email: string; password: string }) =>
       apiRequest<UserView>('/api/v1/auth/sign-in', {
         method: 'POST',

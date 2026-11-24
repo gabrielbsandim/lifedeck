@@ -52,6 +52,13 @@ const ASSISTANT_LIMIT: LimiterConfig = {
   prefix: 'lifedeck/ratelimit/assistant',
 }
 
+// Unauthenticated endpoints (shared boards, web vitals), keyed by client IP.
+const PUBLIC_LIMIT: LimiterConfig = {
+  requests: 60,
+  window: '60 s',
+  prefix: 'lifedeck/ratelimit/public',
+}
+
 export type RateLimitResult = {
   ok: boolean
   limit: number
@@ -154,6 +161,12 @@ export function checkAssistantRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
   return check(ASSISTANT_LIMIT, identifier)
+}
+
+export function checkPublicRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return check(PUBLIC_LIMIT, identifier)
 }
 
 export function clientIp(request: Request): string {

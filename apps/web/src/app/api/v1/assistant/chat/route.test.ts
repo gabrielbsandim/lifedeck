@@ -2,11 +2,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const handleInAppMessage = vi.fn()
+const getAssistantHistory = vi.fn()
+const clearAssistantHistory = vi.fn()
 const getUserIdFromRequest = vi.fn()
 const checkAssistantRateLimit = vi.fn()
 
 vi.mock('@/server/container', () => ({
-  getContainer: () => ({ handleInAppMessage }),
+  getContainer: () => ({
+    handleInAppMessage,
+    getAssistantHistory,
+    clearAssistantHistory,
+  }),
 }))
 
 vi.mock('@/server/session/session', () => ({
@@ -18,7 +24,7 @@ vi.mock('@/server/api/rate-limit', () => ({
   rateLimitHeaders: () => ({}),
 }))
 
-import { POST } from './route'
+import { DELETE, GET, POST } from '@/app/api/v1/assistant/chat/route'
 
 function jsonRequest(body: unknown): Request {
   return new Request('https://app.test/api/v1/assistant/chat', {
@@ -189,5 +195,51 @@ describe('assistant chat route', () => {
     handleInAppMessage.mockResolvedValue({ status: 'error' })
     const response = await POST(jsonRequest({ text: 'hi' }))
     expect(response.status).toBe(500)
+  })
+})
+
+describe('assistant chat history route', () => {
+  const url = 'https://app.test/api/v1/assistant/chat'
+
+  it('returns the stored thread for the signed-in user', async () => {
+    getAssistantHistory.mockResolvedValue([{ role: 'user', text: 'hi' }])
+
+    const response = await GET(new Request(url))
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      data: [{ role: 'user', text: 'hi' }],
+    })
+    expect(getAssistantHistory).toHaveBeenCalledWith('user-1')
+  })
+
+  it('clears the thread on DELETE', async () => {
+    clearAssistantHistory.mockResolvedValue(undefined)
+
+    const response = await DELETE(new Request(url, { method: 'DELETE' }))
+
+    expect(response.status).toBe(200)
+    expect(clearAssistantHistory).toHaveBeenCalledWith('user-1')
+  })
+
+  it('rejects both without a session', async () => {
+    getUserIdFromRequest.mockResolvedValue(null)
+
+    expect((await GET(new Request(url))).status).toBe(401)
+    expect((await DELETE(new Request(url, { method: 'DELETE' }))).status).toBe(
+      401,
+    )
+    expect(getAssistantHistory).not.toHaveBeenCalled()
+    expect(clearAssistantHistory).not.toHaveBeenCalled()
+  })
+
+  it('maps a store failure to a 500', async () => {
+    getAssistantHistory.mockRejectedValue(new Error('redis down'))
+    clearAssistantHistory.mockRejectedValue(new Error('redis down'))
+
+    expect((await GET(new Request(url))).status).toBe(500)
+    expect((await DELETE(new Request(url, { method: 'DELETE' }))).status).toBe(
+      500,
+    )
   })
 })

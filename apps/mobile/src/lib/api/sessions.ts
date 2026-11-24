@@ -2,9 +2,9 @@
 // have no cookie jar), so they read the `{ data, token }` envelope directly
 // instead of the generic apiRequest, and persist the token to the keychain.
 import type { GuestSignInInput, UserView } from '@lifedeck/application'
-import { API_BASE_URL, API_PREFIX } from './config'
-import { ApiError } from './client'
-import { setSessionToken } from './session-token'
+import { API_BASE_URL, API_PREFIX } from '@/lib/api/config'
+import { ApiError } from '@/lib/api/client'
+import { getSessionToken, setSessionToken } from '@/lib/api/session-token'
 
 type SessionEnvelope = { data: UserView; token: string }
 
@@ -25,10 +25,18 @@ async function failFrom(response: Response): Promise<ApiError> {
   return new ApiError(response.status, code, message)
 }
 
-async function issueSession(path: string, body: unknown): Promise<UserView> {
+async function issueSession(
+  path: string,
+  body: unknown,
+  init: { method: string; authorization?: string } = { method: 'POST' },
+): Promise<UserView> {
+  const headers: Record<string, string> = { 'content-type': 'application/json' }
+  if (init.authorization) {
+    headers.authorization = init.authorization
+  }
   const response = await fetch(`${API_BASE_URL}${API_PREFIX}${path}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    method: init.method,
+    headers,
     body: JSON.stringify(body),
   })
   if (!response.ok) {
@@ -54,4 +62,17 @@ export function signInSession(input: {
 // session token itself never travels through the custom-scheme URL.
 export function exchangeNativeAuthCode(code: string): Promise<UserView> {
   return issueSession('/auth/native', { code })
+}
+
+// A password change revokes every session, this one included, and answers with
+// the replacement token, which has to land in the keychain before the next call.
+export async function changePasswordSession(input: {
+  currentPassword: string
+  newPassword: string
+}): Promise<UserView> {
+  const token = await getSessionToken()
+  return issueSession('/account/password', input, {
+    method: 'PATCH',
+    authorization: token ? `Bearer ${token}` : undefined,
+  })
 }

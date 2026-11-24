@@ -12,8 +12,11 @@ import { cn } from '@lifedeck/ui'
 import { ApiError } from '@/lib/api/client'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
+  useAssistantHistory,
+  useClearAssistantHistory,
   useSendAssistantMessage,
   type AssistantAction,
+  type AssistantHistoryMessage,
   type AssistantSendInput,
 } from '@/lib/api/use-assistant'
 import { CalendarIcon, CheckIcon, SparkleIcon } from '@/components/icons'
@@ -43,6 +46,12 @@ const BCP47: Record<string, string> = {
   es: 'es-ES',
 }
 
+function historyItem(message: AssistantHistoryMessage): ChatItem {
+  return message.role === 'user'
+    ? { id: nextId(), kind: 'user', text: message.text }
+    : { id: nextId(), kind: 'assistant', text: message.text }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
@@ -56,6 +65,8 @@ export function AssistantChat() {
   const t = messages.assistant
   const router = useRouter()
   const send = useSendAssistantMessage()
+  const history = useAssistantHistory()
+  const clearHistory = useClearAssistantHistory()
 
   const [items, setItems] = useState<ChatItem[]>([])
   const [input, setInput] = useState('')
@@ -71,8 +82,21 @@ export function AssistantChat() {
   const shouldSend = useRef(false)
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
   const bottom = useRef<HTMLDivElement>(null)
+  const seeded = useRef(false)
+
+  // Seed once, from a fresh fetch: cached data from an earlier visit would miss
+  // the turns sent since, and a later refetch must not wipe the live thread.
+  useEffect(() => {
+    if (seeded.current || !history.isSuccess || history.isFetching) {
+      return
+    }
+    seeded.current = true
+    const restored = history.data.map(historyItem)
+    setItems(prev => (prev.length > 0 ? prev : restored))
+  }, [history.isSuccess, history.isFetching, history.data])
 
   const isEmpty = items.length === 0
+  const showIntro = isEmpty && !history.isPending
   const pending = send.isPending
 
   useEffect(() => {
@@ -234,6 +258,7 @@ export function AssistantChat() {
   }
 
   function reset() {
+    clearHistory.mutate()
     setItems([])
     setInput('')
     setLocked(false)
@@ -270,8 +295,12 @@ export function AssistantChat() {
       </div>
 
       {/* Thread */}
-      <div className="flex flex-1 flex-col gap-3">
-        {isEmpty && (
+      <div
+        role="log"
+        aria-label={t.name}
+        className="flex flex-1 flex-col gap-3"
+      >
+        {showIntro && (
           <>
             <AssistantRow>
               <div className="text-ink-800 text-[14.5px] leading-snug">

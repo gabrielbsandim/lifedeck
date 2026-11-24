@@ -12,6 +12,7 @@ export type ScheduledJobRecord = {
   status: ScheduledJobStatus
   attempts: number
   lastError: string | null
+  dedupKey: string | null
   createdAt: Date
 }
 
@@ -24,6 +25,7 @@ export function toDomainScheduledJob(record: ScheduledJobRecord): ScheduledJob {
     status: record.status,
     attempts: record.attempts,
     lastError: record.lastError,
+    dedupKey: record.dedupKey,
     createdAt: record.createdAt,
   })
 }
@@ -38,6 +40,7 @@ export function toScheduledJobRecord(job: ScheduledJob): ScheduledJobRecord {
     status: props.status,
     attempts: props.attempts,
     lastError: props.lastError,
+    dedupKey: props.dedupKey,
     createdAt: props.createdAt,
   }
 }

@@ -1,4 +1,10 @@
-import { asEntityId } from '@lifedeck/domain'
+import {
+  DEFAULT_TIME_ZONE,
+  asEntityId,
+  civilDate,
+  civilTime,
+  zonedWallTimeToInstant,
+} from '@lifedeck/domain'
 import {
   updateCalendarEventSchema,
   type CalendarEventView,
@@ -9,21 +15,20 @@ import { NotFoundError } from '@/errors/use-case-error'
 import type { Clock } from '@/ports/clock'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { JobQueue } from '@/ports/job-queue'
+import type { UserRepository } from '@/ports/user-repository'
 import { CALENDAR_PUSH_JOB } from '@/use-cases/calendar-sync-jobs'
-import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
-
-function utcMidnightMs(date: Date): number {
-  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-}
+import { ownerZoneFor, upcomingReminderJobs } from '@/shared/reminder-schedule'
 
 type Dependencies = {
   calendarEvents: CalendarEventRepository
+  users: Pick<UserRepository, 'findById'>
   jobQueue: JobQueue
   clock: Clock
 }
 
 export function makeUpdateCalendarEvent({
   calendarEvents,
+  users,
   jobQueue,
   clock,
 }: Dependencies) {
@@ -47,10 +52,19 @@ export function makeUpdateCalendarEvent({
     // duration, so the whole series moves in time without changing which days
     // it lands on.
     if (event.recurrence && startsAt && endsAt) {
-      const anchor = utcMidnightMs(event.startsAt)
-      const timeOfDay = startsAt.getTime() - utcMidnightMs(startsAt)
+      const owner = await users.findById(asEntityId(ownerId))
+      const zone = event.allDay
+        ? DEFAULT_TIME_ZONE
+        : (owner?.timezone ?? DEFAULT_TIME_ZONE)
+      const wall = civilTime(startsAt, zone)
       const duration = endsAt.getTime() - startsAt.getTime()
-      startsAt = new Date(anchor + timeOfDay)
+      startsAt = zonedWallTimeToInstant(
+        civilDate(event.startsAt, zone),
+        wall.hour,
+        wall.minute,
+        wall.second,
+        zone,
+      )
       endsAt = new Date(startsAt.getTime() + duration)
     }
 
@@ -76,23 +90,11 @@ export function makeUpdateCalendarEvent({
       runAt: clock.now(),
     })
 
-    // Re-arm reminders for the (possibly edited) offsets and times. The handler
-    // dedups against already-delivered notifications, so the overlap with jobs
-    // armed at create time never double-delivers.
-    const reminderAnchor = event.startsAt.getTime()
-    for (const minutesBefore of event.reminders) {
-      const fireAt = reminderAnchor - minutesBefore * MINUTE_MS
-      if (fireAt > clock.now().getTime()) {
-        await jobQueue.enqueue({
-          type: REMINDER_JOB,
-          payload: {
-            eventId: event.id as string,
-            userId: ownerId,
-            minutesBefore,
-          },
-          runAt: new Date(fireAt),
-        })
-      }
+    // Re-arm reminders for the (possibly edited) offsets and times. Delivery
+    // dedups per occurrence, so overlapping jobs never double-deliver.
+    const ownerZone = await ownerZoneFor(users, event)
+    for (const job of upcomingReminderJobs(event, clock.now(), ownerZone)) {
+      await jobQueue.enqueue(job)
     }
 
     return toCalendarEventView(event)

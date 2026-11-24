@@ -13,6 +13,9 @@ export type ScheduledJobProps = {
   status: ScheduledJobStatus
   attempts: number
   lastError: string | null
+  // Set by the enqueuer when the same job must never run twice, such as one
+  // digest per user per local day. Unique across the table.
+  dedupKey: string | null
   createdAt: Date
 }
 
@@ -25,6 +28,7 @@ export class ScheduledJob {
     payload: Record<string, unknown>
     runAt: Date
     createdAt: Date
+    dedupKey?: string | null
   }): ScheduledJob {
     return new ScheduledJob({
       id: input.id,
@@ -34,6 +38,7 @@ export class ScheduledJob {
       status: 'pending',
       attempts: 0,
       lastError: null,
+      dedupKey: input.dedupKey ?? null,
       createdAt: input.createdAt,
     })
   }
@@ -64,6 +69,10 @@ export class ScheduledJob {
 
   get attempts(): number {
     return this.props.attempts
+  }
+
+  get dedupKey(): string | null {
+    return this.props.dedupKey
   }
 
   lease(until: Date): void {

@@ -1,8 +1,10 @@
+import { asEntityId } from '@lifedeck/domain'
 import {
   makeAssistantTools,
   makeAuthenticateApiKey,
   makeBringTaskToToday,
   makeChangePassword,
+  makeRevokeSessions,
   makeConnectGoogleCalendar,
   makeConnectCalendarWithCredentials,
   makeListCalendarConnections,
@@ -112,6 +114,8 @@ import {
   makeSetReminderPreferences,
   makeSetTimezone,
   makeSetAssistantProfile,
+  makeGetAssistantHistory,
+  makeClearAssistantHistory,
   makeSetAvatar,
   makeRemoveAvatar,
   makeSignInWithEmail,
@@ -124,6 +128,7 @@ import {
   type ApiKeyRepository,
   type EmailSender,
   type KeyHasher,
+  type Logger,
   type EmailVerificationRepository,
   type HealthProbe,
   type ListGenerator,
@@ -131,6 +136,7 @@ import {
   type MembershipRepository,
   type NotificationRepository,
   type PushDeviceRepository,
+  type SessionRevocationStore,
   type PushSender,
   type OAuthProvider,
   type PasswordHasher,
@@ -153,6 +159,7 @@ import {
   type MessagingChannel,
   type ConversationStore,
   type WhatsappSessionWindow,
+  type TurnLock,
   type Transcriber,
   type VisionReader,
   type TaskRepository,
@@ -176,6 +183,7 @@ import {
   PrismaMembershipRepository,
   PrismaNotificationRepository,
   PrismaPushDeviceRepository,
+  PrismaSessionRevocationStore,
   PrismaRecurringTaskRepository,
   PrismaHabitRepository,
   PrismaHabitLogRepository,
@@ -205,6 +213,7 @@ import {
   createAgentRunner,
   createConversationStore,
   createWhatsappSessionWindow,
+  createTurnLock,
   createTranscriber,
   createVisionReader,
   createPushSender,
@@ -252,6 +261,8 @@ type Container = {
   signInWithGoogle: ReturnType<typeof makeSignInWithGoogle>
   getGoogleAuthUrl: ReturnType<typeof makeGetGoogleAuthUrl>
   changePassword: ReturnType<typeof makeChangePassword>
+  revokeSessions: ReturnType<typeof makeRevokeSessions>
+  sessionsValidFrom: (userId: string) => Promise<Date | null>
   renameUser: ReturnType<typeof makeRenameUser>
   deleteUser: ReturnType<typeof makeDeleteUser>
   exportUserData: ReturnType<typeof makeExportUserData>
@@ -267,6 +278,8 @@ type Container = {
   setReminderPreferences: ReturnType<typeof makeSetReminderPreferences>
   setTimezone: ReturnType<typeof makeSetTimezone>
   setAssistantProfile: ReturnType<typeof makeSetAssistantProfile>
+  getAssistantHistory: ReturnType<typeof makeGetAssistantHistory>
+  clearAssistantHistory: ReturnType<typeof makeClearAssistantHistory>
   setAvatar: ReturnType<typeof makeSetAvatar>
   removeAvatar: ReturnType<typeof makeRemoveAvatar>
   createRecurringTask: ReturnType<typeof makeCreateRecurringTask>
@@ -366,6 +379,7 @@ type Repositories = {
   analytics: AnalyticsRepository
   notifications: NotificationRepository
   pushDevices: PushDeviceRepository
+  sessions: SessionRevocationStore
   apiKeys: ApiKeyRepository
   scheduledJobs: ScheduledJobRepository
   subscriptions: SubscriptionRepository
@@ -392,6 +406,7 @@ type Services = {
   messaging: MessagingChannel
   conversations: ConversationStore
   whatsappSession: WhatsappSessionWindow
+  turnLock: TurnLock
   transcriber: Transcriber
   visionReader: VisionReader
   push: PushSender
@@ -413,6 +428,7 @@ function build(
     analytics,
     notifications,
     pushDevices,
+    sessions,
     apiKeys,
     scheduledJobs,
     subscriptions,
@@ -438,6 +454,7 @@ function build(
     messaging,
     conversations,
     whatsappSession,
+    turnLock,
     transcriber,
     visionReader,
     push,
@@ -503,6 +520,11 @@ function build(
     jobScheduler,
     dispatchWatermark,
   )
+  const appLogger: Logger = {
+    error: (message, meta) => log('error', message, meta),
+    warn: (message, meta) => log('warn', message, meta),
+    info: (message, meta) => log('info', message, meta),
+  }
   // One adapter per provider; sync use cases resolve by connection.provider so a
   // user's Google, Apple, and cal.com calendars all flow through one path.
   const calendarProviders: CalendarProviderRegistry = {
@@ -524,8 +546,10 @@ function build(
     calendarEvents,
     providers: calendarProviders,
     jobQueue,
+    users,
     ids,
     clock,
+    logger: appLogger,
   })
   const pushCalendarEvent = makePushCalendarEvent({
     calendarConnections,
@@ -536,6 +560,7 @@ function build(
   const deleteRemoteCalendarEvent = makeDeleteRemoteCalendarEvent({
     calendarConnections,
     providers: calendarProviders,
+    clock,
   })
   // Single path for assistant-initiated WhatsApp; V3's brief/nudge/check-in
   // reuse it. Reminders delegate their WhatsApp delivery here.
@@ -543,11 +568,7 @@ function build(
     channelIdentities,
     messaging,
     whatsappSession,
-    logger: {
-      error: (message, meta) => log('error', message, meta),
-      warn: (message, meta) => log('warn', message, meta),
-      info: (message, meta) => log('info', message, meta),
-    },
+    logger: appLogger,
   })
   // Every in-app notification goes through here, so push mirrors the bell
   // without each use case having to know push exists.
@@ -555,11 +576,7 @@ function build(
     notifications,
     pushDevices,
     push,
-    logger: {
-      error: (message, meta) => log('error', message, meta),
-      warn: (message, meta) => log('warn', message, meta),
-      info: (message, meta) => log('info', message, meta),
-    },
+    logger: appLogger,
   })
   const deliverReminder = makeDeliverReminder({
     calendarEvents,
@@ -621,11 +638,7 @@ function build(
     scheduledJobs,
     clock,
     watermark: dispatchWatermark,
-    logger: {
-      error: (message, meta) => log('error', message, meta),
-      warn: (message, meta) => log('warn', message, meta),
-      info: (message, meta) => log('info', message, meta),
-    },
+    logger: appLogger,
     handlers: {
       [DAILY_DIGEST_JOB]: async payload => {
         await sendDailyDigest(String(payload.userId))
@@ -640,9 +653,14 @@ function build(
         await sendNudge(String(payload.userId))
       },
       [CALENDAR_PULL_JOB]: async payload => {
-        await pullCalendarChanges(String(payload.userId), {
+        const result = await pullCalendarChanges(String(payload.userId), {
           force: payload.force === true,
         })
+        // Throwing hands the job back to the dispatcher's backoff, so a
+        // transient Google failure is retried instead of being marked done.
+        if (result.failed > 0) {
+          throw new Error(`${result.failed} calendar connection(s) failed`)
+        }
       },
       [CALENDAR_PUSH_JOB]: async payload => {
         await pushCalendarEvent(String(payload.userId), String(payload.eventId))
@@ -662,6 +680,7 @@ function build(
           String(payload.eventId),
           String(payload.userId),
           Number(payload.minutesBefore),
+          payload.occurrenceStart ? String(payload.occurrenceStart) : undefined,
         )
       },
     },
@@ -744,16 +763,21 @@ function build(
     memberships,
     clock,
   })
-  const listCalendarEvents = makeListCalendarEvents({ calendarEvents })
+  const listCalendarEvents = makeListCalendarEvents({
+    calendarEvents,
+    users,
+  })
   const findFreeSlots = makeFindFreeSlots({ users, listCalendarEvents, clock })
   const createCalendarEvent = makeCreateCalendarEvent({
     calendarEvents,
+    users,
     jobQueue,
     ids,
     clock,
   })
   const updateCalendarEvent = makeUpdateCalendarEvent({
     calendarEvents,
+    users,
     jobQueue,
     clock,
   })
@@ -811,6 +835,7 @@ function build(
     sendProactiveMessage,
     sendGuard: proactiveSendGuard,
     publishNotification,
+    conversations,
     ids,
     clock,
     checkinTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.habitCheckin),
@@ -829,12 +854,19 @@ function build(
     nudgeTemplate: whatsappTemplate(WHATSAPP_TEMPLATES.nudge),
   })
 
+  const listListTasks = makeListListTasks({
+    tasks,
+    subtasks,
+    lists,
+    memberships,
+  })
   const assistantTools = makeAssistantTools({
     users,
     clock,
     weather: weatherProvider,
     getDailyBoard,
     listUserLists,
+    listListTasks,
     listCalendarEvents,
     findFreeSlots,
     createTask,
@@ -859,7 +891,7 @@ function build(
     createTask,
     updateTask,
     deleteTask,
-    listListTasks: makeListListTasks({ tasks, subtasks, lists, memberships }),
+    listListTasks,
     createSubtask,
     listSubtasks: makeListSubtasks({ subtasks, tasks, lists, memberships }),
     updateSubtask,
@@ -897,7 +929,9 @@ function build(
     signInWithEmail: makeSignInWithEmail({ users, hasher }),
     signInWithGoogle: makeSignInWithGoogle({ users, oauth, ids, clock }),
     getGoogleAuthUrl: makeGetGoogleAuthUrl({ oauth }),
-    changePassword: makeChangePassword({ users, hasher }),
+    changePassword: makeChangePassword({ users, hasher, sessions, clock }),
+    revokeSessions: makeRevokeSessions({ sessions, clock }),
+    sessionsValidFrom: userId => sessions.validFrom(asEntityId(userId)),
     renameUser: makeRenameUser({ users }),
     deleteUser: makeDeleteUser({ users, conversations }),
     exportUserData: makeExportUserData({
@@ -924,6 +958,8 @@ function build(
     setReminderPreferences: makeSetReminderPreferences({ users }),
     setTimezone: makeSetTimezone({ users }),
     setAssistantProfile,
+    getAssistantHistory: makeGetAssistantHistory({ conversations }),
+    clearAssistantHistory: makeClearAssistantHistory({ conversations }),
     setAvatar: makeSetAvatar({ users, fileStorage }),
     removeAvatar: makeRemoveAvatar({ users, fileStorage }),
     createRecurringTask: makeCreateRecurringTask({
@@ -1069,10 +1105,12 @@ function build(
       calendarConnections,
       calendarEvents,
       clock,
+      unitOfWork,
     }),
     setDefaultCalendar: makeSetDefaultCalendar({
       calendarConnections,
       clock,
+      unitOfWork,
     }),
     pullCalendarChanges,
     pushCalendarEvent,
@@ -1105,12 +1143,9 @@ function build(
       transcriber,
       visionReader,
       clock,
-      logger: {
-        error: (message, meta) => log('error', message, meta),
-        warn: (message, meta) => log('warn', message, meta),
-        info: (message, meta) => log('info', message, meta),
-      },
+      logger: appLogger,
       whatsappSession,
+      turnLock,
     }),
     handleInAppMessage: makeHandleInAppMessage({
       entitlements: entitlementService,
@@ -1120,11 +1155,8 @@ function build(
       conversations,
       transcriber,
       visionReader,
-      logger: {
-        error: (message, meta) => log('error', message, meta),
-        warn: (message, meta) => log('warn', message, meta),
-        info: (message, meta) => log('info', message, meta),
-      },
+      logger: appLogger,
+      turnLock,
     }),
     entitlements: entitlementService,
   }
@@ -1212,6 +1244,7 @@ export function getContainer(): Container {
         analytics: new PrismaAnalyticsRepository(db),
         notifications: new PrismaNotificationRepository(db),
         pushDevices: new PrismaPushDeviceRepository(db),
+        sessions: new PrismaSessionRevocationStore(db),
         apiKeys: new PrismaApiKeyRepository(db),
         scheduledJobs: new PrismaScheduledJobRepository(db),
         subscriptions: new PrismaSubscriptionRepository(db),
@@ -1241,6 +1274,7 @@ export function getContainer(): Container {
         messaging: createMessagingChannel(),
         conversations: createConversationStore(),
         whatsappSession: createWhatsappSessionWindow(),
+        turnLock: createTurnLock(),
         transcriber: createTranscriber(),
         visionReader: createVisionReader(),
         push: createPushSender(),

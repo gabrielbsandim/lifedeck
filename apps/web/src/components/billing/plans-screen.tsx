@@ -498,15 +498,10 @@ function Showcase() {
                   <div className="ldp-wa-time">18:40</div>
                 </div>
                 <div className="ldp-nudge-actions">
-                  <button
-                    type="button"
-                    className="ldp-nudge-btn ldp-nudge-btn--yes"
-                  >
+                  <span className="ldp-nudge-btn ldp-nudge-btn--yes">
                     {p.showNudgeYes}
-                  </button>
-                  <button type="button" className="ldp-nudge-btn">
-                    {p.showNudgeNo}
-                  </button>
+                  </span>
+                  <span className="ldp-nudge-btn">{p.showNudgeNo}</span>
                 </div>
               </div>
             </div>

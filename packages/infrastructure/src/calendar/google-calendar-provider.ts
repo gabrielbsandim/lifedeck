@@ -246,7 +246,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async pushEvent(
     connection: CalendarConnection,
     event: CalendarEvent,
-  ): Promise<{ externalId: string; etag: string | null }> {
+  ): Promise<{ externalId: string; etag: string | null; skipped?: boolean }> {
     const props = event.toJSON()
 
     // Occurrence override: PATCH the specific instance of the series. The
@@ -270,12 +270,15 @@ export class GoogleCalendarProvider implements CalendarProvider {
             location: props.location ?? undefined,
             ...slotFor(event),
           }
-      const result = await this.api<GoogleEvent>(
-        'PATCH',
+      const result = await this.patchUnlessNewer(
         path,
         connection.accessToken,
         body,
+        event,
       )
+      if (!result) {
+        return { externalId: instanceId, etag: event.etag, skipped: true }
+      }
       return { externalId: result.id ?? instanceId, etag: result.etag ?? null }
     }
 
@@ -289,15 +292,55 @@ export class GoogleCalendarProvider implements CalendarProvider {
         : {}),
     }
     const path = `/calendars/${encodeURIComponent(connection.calendarId)}/events`
-    const result = event.externalId
-      ? await this.api<GoogleEvent>(
-          'PATCH',
-          `${path}/${encodeURIComponent(event.externalId)}`,
-          connection.accessToken,
-          body,
-        )
-      : await this.api<GoogleEvent>('POST', path, connection.accessToken, body)
+    if (!event.externalId) {
+      const created = await this.api<GoogleEvent>(
+        'POST',
+        path,
+        connection.accessToken,
+        body,
+      )
+      return { externalId: created.id, etag: created.etag ?? null }
+    }
+    const result = await this.patchUnlessNewer(
+      `${path}/${encodeURIComponent(event.externalId)}`,
+      connection.accessToken,
+      body,
+      event,
+    )
+    if (!result) {
+      return { externalId: event.externalId, etag: event.etag, skipped: true }
+    }
     return { externalId: result.id, etag: result.etag ?? null }
+  }
+
+  // If-Match keeps a push from silently overwriting an edit made in Google.
+  // On a mismatch the newer side wins: a newer remote copy is left for the pull
+  // to adopt (null), an older one is overwritten.
+  private async patchUnlessNewer(
+    path: string,
+    accessToken: string,
+    body: unknown,
+    event: CalendarEvent,
+  ): Promise<GoogleEvent | null> {
+    const etag = event.etag
+    if (!etag) {
+      return this.api<GoogleEvent>('PATCH', path, accessToken, body)
+    }
+    try {
+      return await this.api<GoogleEvent>('PATCH', path, accessToken, body, {
+        'if-match': etag,
+      })
+    } catch (error) {
+      if (!(error instanceof PreconditionFailedError)) {
+        throw error
+      }
+    }
+    const remote = await this.api<GoogleEvent>('GET', path, accessToken)
+    const remoteUpdated = remote.updated ? Date.parse(remote.updated) : 0
+    if (remoteUpdated > event.toJSON().updatedAt.getTime()) {
+      return null
+    }
+    return this.api<GoogleEvent>('PATCH', path, accessToken, body)
   }
 
   async deleteEvent(
@@ -420,17 +463,22 @@ export class GoogleCalendarProvider implements CalendarProvider {
     path: string,
     accessToken: string,
     body?: unknown,
+    extraHeaders: Record<string, string> = {},
   ): Promise<T> {
     const response = await httpFetch(`${CALENDAR_API}${path}`, {
       method,
       headers: {
         authorization: `Bearer ${accessToken}`,
         'content-type': 'application/json',
+        ...extraHeaders,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     })
     if (response.status === 410) {
       throw new GoneError()
+    }
+    if (response.status === 412) {
+      throw new PreconditionFailedError()
     }
     if (!response.ok && response.status !== 404) {
       throw new Error(`Google Calendar request failed (${response.status})`)
@@ -443,6 +491,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
       return {} as T
     }
     return response.json() as Promise<T>
+  }
+}
+
+class PreconditionFailedError extends Error {
+  constructor() {
+    super('Google event changed since it was last synced.')
+    this.name = 'PreconditionFailedError'
   }
 }
 

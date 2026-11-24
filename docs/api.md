@@ -76,7 +76,9 @@ API-key requests are rate limited **per key** (sliding window, 60 requests per
 60 seconds by default). Cookie-authenticated (first-party UI) traffic is rate
 limited **per user** under a looser session window (240 requests per 60
 seconds), and AI list generation carries a tight **per-user** throttle (6
-requests per 60 seconds) on top of that. Responses carry `X-RateLimit-Limit`,
+requests per 60 seconds) on top of that. The unauthenticated
+`GET /shared/{token}` and `POST /vitals` are limited **per IP** (60 requests per
+60 seconds). Responses carry `X-RateLimit-Limit`,
 `X-RateLimit-Remaining`, and `X-RateLimit-Reset`; exceeding any window returns
 `429 RATE_LIMITED`. Rate limiting is backed by Upstash Redis and is a no-op when
 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset (local dev).
@@ -120,6 +122,7 @@ so request/response shapes in `/docs` cannot drift from runtime behavior.
 | 404  | `NOT_FOUND`        | The requested resource is missing.   |
 | 401  | `UNAUTHORIZED`     | Missing or invalid credentials.      |
 | 429  | `RATE_LIMITED`     | Too many requests.                   |
+| 503  | `SERVICE_UNAVAILABLE` | A dependency (Redis) is down.     |
 | 500  | `INTERNAL_ERROR`   | Unexpected server error.             |
 
 ## Endpoint examples

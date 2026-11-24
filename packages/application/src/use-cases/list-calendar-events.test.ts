@@ -1,10 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { CalendarEvent, ValidationError, asEntityId } from '@lifedeck/domain'
+import {
+  CalendarEvent,
+  User,
+  ValidationError,
+  asEntityId,
+} from '@lifedeck/domain'
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { makeListCalendarEvents } from '@/use-cases/list-calendar-events'
 
 const NOW = new Date('2026-06-24T10:00:00.000Z')
 const OWNER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
+const noUser = { findById: async () => null }
+
+function ownerIn(timezone: string) {
+  const user = User.createGuest({
+    id: asEntityId(OWNER_ID),
+    displayName: 'Owner',
+    locale: 'pt-BR',
+    timezone,
+    createdAt: NOW,
+  })
+  return { findById: async () => user }
+}
 
 function eventAt(id: string, startsAt: string, endsAt: string): CalendarEvent {
   return CalendarEvent.create({
@@ -33,7 +50,7 @@ async function setup() {
       '2026-07-10T10:00:00.000Z',
     ),
   )
-  const list = makeListCalendarEvents({ calendarEvents })
+  const list = makeListCalendarEvents({ calendarEvents, users: noUser })
   return { list }
 }
 
@@ -113,10 +130,39 @@ function override(
 }
 
 describe('listCalendarEvents recurrence expansion', () => {
+  it("expands in the owner's timezone so a late event keeps its weekday", async () => {
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    // Tuesday 22:00 in Sao Paulo, stored as Wednesday 01:00 UTC.
+    await calendarEvents.save(
+      CalendarEvent.create({
+        id: asEntityId(MASTER_ID),
+        ownerId: asEntityId(OWNER_ID),
+        title: 'Late class',
+        startsAt: new Date('2026-07-01T01:00:00.000Z'),
+        endsAt: new Date('2026-07-01T02:00:00.000Z'),
+        recurrence: { freq: 'weekly', interval: 1, startDate: '2026-07-01' },
+        now: NOW,
+      }),
+    )
+    const list = makeListCalendarEvents({
+      calendarEvents,
+      users: ownerIn('America/Sao_Paulo'),
+    })
+
+    const views = await list(OWNER_ID, {
+      from: '2026-07-06T03:00:00.000Z',
+      to: '2026-07-13T03:00:00.000Z',
+    })
+
+    expect(views.map(view => view.startsAt)).toEqual([
+      '2026-07-08T01:00:00.000Z',
+    ])
+  })
+
   it('expands a weekly master into one occurrence per firing day', async () => {
     const calendarEvents = new InMemoryCalendarEventRepository()
     await calendarEvents.save(weeklyMaster())
-    const list = makeListCalendarEvents({ calendarEvents })
+    const list = makeListCalendarEvents({ calendarEvents, users: noUser })
 
     const views = await list(OWNER_ID, JULY)
 
@@ -149,7 +195,7 @@ describe('listCalendarEvents recurrence expansion', () => {
         },
       ),
     )
-    const list = makeListCalendarEvents({ calendarEvents })
+    const list = makeListCalendarEvents({ calendarEvents, users: noUser })
 
     const views = await list(OWNER_ID, JULY)
     const fifteenth = views.filter(view =>
@@ -173,7 +219,7 @@ describe('listCalendarEvents recurrence expansion', () => {
         },
       ),
     )
-    const list = makeListCalendarEvents({ calendarEvents })
+    const list = makeListCalendarEvents({ calendarEvents, users: noUser })
 
     const views = await list(OWNER_ID, JULY)
     expect(views.some(view => view.startsAt.startsWith('2026-07-22'))).toBe(
@@ -197,7 +243,7 @@ describe('listCalendarEvents recurrence expansion', () => {
         },
       ),
     )
-    const list = makeListCalendarEvents({ calendarEvents })
+    const list = makeListCalendarEvents({ calendarEvents, users: noUser })
 
     const views = await list(OWNER_ID, JULY)
     const moved = views.find(view => view.title === 'English (early)')

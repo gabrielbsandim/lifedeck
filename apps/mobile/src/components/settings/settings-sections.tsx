@@ -1,10 +1,12 @@
 // RN port of apps/web/src/components/settings/settings-sections.tsx. Each
 // section is the same set of controls, backed by the same hooks.
 import { useMemo, useState } from 'react'
-import { Linking, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { CheckSquareIcon, DeckGlyph } from '@/components/icons'
+import { LegalLinks } from '@/components/legal/legal-document'
 import { AssistantMemoryCard } from '@/components/settings/assistant-memory-card'
 import { ConnectionsPanel } from '@/components/settings/connections-panel'
 import {
@@ -18,7 +20,7 @@ import {
   Tabs,
   TextField,
 } from '@/components/ui'
-import { API_BASE_URL, API_PREFIX } from '@/lib/api/config'
+import { shareDataExport } from '@/lib/api/data-export'
 import { deviceTimeZone } from '@/lib/api/dates'
 import {
   useChangePassword,
@@ -44,6 +46,7 @@ import {
   renewLine,
   subscriptionBadge,
 } from '@/lib/billing/plan-display'
+import { useWebCheckout } from '@/lib/billing/use-web-checkout'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useThemeColors } from '@/theme/tokens'
 
@@ -450,6 +453,7 @@ export function PlanSection() {
   const { messages, locale } = useI18n()
   const router = useRouter()
   const session = useSession()
+  const checkout = useWebCheckout()
   const plan = session.data?.plan ?? 'free'
   const isPaid = plan !== 'free'
   const subscription = useSubscription(isPaid)
@@ -483,13 +487,15 @@ export function PlanSection() {
               : messages.billing.freeDesc}
           </Text>
         </View>
-        <Button
-          variant="ghost"
-          className="border-brand-300 h-9 border"
-          onPress={() => router.push('/billing')}
-        >
-          {isPaid ? messages.billing.changePlan : messages.billing.seePlans}
-        </Button>
+        {checkout.allowed ? (
+          <Button
+            variant="ghost"
+            className="border-brand-300 h-9 border"
+            onPress={() => router.push('/billing')}
+          >
+            {isPaid ? messages.billing.changePlan : messages.billing.seePlans}
+          </Button>
+        ) : null}
       </Card>
 
       {showCancel ? (
@@ -538,8 +544,13 @@ export function PlanSection() {
 
 export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
   const { messages } = useI18n()
+  const router = useRouter()
   const signOut = useSignOut()
+  const signOutEverywhere = useSignOut()
   const deleteAccount = useDeleteAccount()
+  const exportData = useMutation({
+    mutationFn: () => shareDataExport(messages.auth.exportData),
+  })
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   return (
@@ -556,15 +567,19 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
         <Button
           variant="ghost"
           className="border-line h-9 border"
-          // The export is a signed-in download; opening it in the browser is
-          // the only way to hand the file to the OS, and the browser session
-          // carries its own cookie.
-          onPress={() =>
-            void Linking.openURL(`${API_BASE_URL}${API_PREFIX}/account/export`)
-          }
+          isLoading={exportData.isPending}
+          onPress={() => exportData.mutate()}
         >
           {messages.auth.exportData}
         </Button>
+        {exportData.isError ? (
+          <Text
+            className="text-danger w-full text-xs"
+            accessibilityRole="alert"
+          >
+            {messages.common.error}
+          </Text>
+        ) : null}
       </Card>
 
       <Card className="flex-row items-center justify-between gap-3 p-4">
@@ -578,6 +593,27 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
           onPress={() => signOut.mutate(undefined, { onSuccess: onSignedOut })}
         >
           {messages.auth.signOut}
+        </Button>
+      </Card>
+
+      <Card className="flex-row flex-wrap items-center justify-between gap-3 p-4">
+        <View className="min-w-0 flex-1">
+          <Text className="text-ink-900 text-sm font-semibold">
+            {messages.auth.signOutEverywhere}
+          </Text>
+          <Text className="text-ink-400 mt-0.5 text-xs">
+            {messages.auth.signOutEverywhereHint}
+          </Text>
+        </View>
+        <Button
+          variant="ghost"
+          className="border-line h-9 border"
+          isLoading={signOutEverywhere.isPending}
+          onPress={() =>
+            signOutEverywhere.mutate('all', { onSuccess: onSignedOut })
+          }
+        >
+          {messages.auth.signOutEverywhere}
         </Button>
       </Card>
 
@@ -621,6 +657,8 @@ export function AccountSection({ onSignedOut }: { onSignedOut: () => void }) {
           </Button>
         )}
       </View>
+
+      <LegalLinks onOpen={doc => router.push(`/${doc}`)} />
     </View>
   )
 }

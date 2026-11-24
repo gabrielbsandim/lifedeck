@@ -5,7 +5,9 @@ text description, and a language model returns a complete, editable checklist.
 This page records the contract and the architectural decisions.
 
 Status: implemented (Phase 6.5). The port, `generateList` use case, `AiSdkListGenerator`
-adapter, `POST /api/v1/lists/generate` endpoint, and the `/generate` UI all ship.
+adapter and `POST /api/v1/lists/generate` endpoint ship. The original `/generate`
+draft editor was removed in V4; that route now renders the assistant chat, and the
+endpoint stays for API clients.
 Two items from the original design are deferred: token-by-token streaming of the
 draft (folded into the Phase 7 motion pass) and rate limiting / per-plan quotas
 (waiting on the billing model).

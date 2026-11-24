@@ -6,9 +6,11 @@ import {
   buildAssistantToolset,
   buildSystemPrompt,
   claimsUnbackedAction,
+  collectRecordedActions,
   collectToolNames,
   createAgentRunner,
   gateTools,
+  renderTurn,
 } from '@/messaging/ai-sdk-agent-runner'
 
 // Keep the real `tool`/`stepCountIs` so the toolset builds normally; only
@@ -48,6 +50,7 @@ function spyTools(overrides: Partial<AssistantTools> = {}): AssistantTools {
       date: '2026-07-19',
       currentStreak: 3,
     }),
+    undoActivity: method({ ok: true }),
     completeTask: method({ ok: true }),
     reopenTask: method({ ok: true }),
     renameTask: method({ ok: true }),
@@ -159,6 +162,22 @@ describe('buildAssistantToolset', () => {
       title: 'treinei',
       date: '2026-07-19',
     })
+
+    await run(toolset.logActivity, { title: 'passeamos', as: 'task' })
+    expect(tools.logActivity).toHaveBeenLastCalledWith(USER_ID, {
+      title: 'passeamos',
+      date: undefined,
+      as: 'task',
+    })
+
+    const log = {
+      kind: 'habit',
+      id: 'h1',
+      title: 'Passear',
+      date: '2026-07-19',
+    }
+    await run(toolset.undoActivity, log)
+    expect(tools.undoActivity).toHaveBeenCalledWith(USER_ID, log)
 
     await run(toolset.completeTask, { taskId: 't1' })
     expect(tools.completeTask).toHaveBeenCalledWith(USER_ID, 't1')
@@ -332,6 +351,7 @@ describe('AiSdkAgentRunner.run', () => {
     expect(reply).toEqual({
       text: 'assistant reply',
       actions: [],
+      recorded: [],
       toolCalls: [],
     })
 
@@ -390,6 +410,39 @@ describe('AiSdkAgentRunner.run', () => {
         result: { id: 'e1', added: true },
       },
     ])
+    expect(reply.recorded).toEqual([
+      { tool: 'addTask', id: 't1', title: 'Buy milk' },
+      { tool: 'addEvent', id: 'e1', title: 'Lunch' },
+    ])
+  })
+
+  it('shows the model the action log of an earlier reply', async () => {
+    await runner().run({
+      userId: USER_ID,
+      message: 'não, era a tarefa',
+      history: [
+        { role: 'user', content: 'passeamos com a Rhaenyra' },
+        {
+          role: 'assistant',
+          content: 'Registrei o hábito Passear.',
+          actions: [
+            {
+              tool: 'logActivity',
+              id: 'h1',
+              title: 'Passear',
+              kind: 'habit',
+              date: '2026-07-19',
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(genCall().messages?.[1]).toEqual({
+      role: 'assistant',
+      content:
+        'Registrei o hábito Passear.\n\n[Action log: logActivity habit "Passear" id=h1 date=2026-07-19]',
+    })
   })
 
   it('selects the pro model when the pro tier is requested', async () => {
@@ -587,5 +640,81 @@ describe('createAgentRunner', () => {
       history: [],
     })
     expect(voiceReply.text).toContain('[voice message]')
+  })
+})
+
+describe('collectRecordedActions', () => {
+  it('records mutations by result id, falling back to the input id', () => {
+    const recorded = collectRecordedActions([
+      {
+        toolResults: [
+          { toolName: 'getToday', input: {}, output: { tasks: [] } },
+          {
+            toolName: 'completeTask',
+            input: { taskId: 't1' },
+            output: { ok: true },
+          },
+          {
+            toolName: 'logActivity',
+            input: { title: 'corri' },
+            output: {
+              kind: 'habit',
+              id: 'h1',
+              title: 'Correr',
+              date: '2026-07-19',
+            },
+          },
+          {
+            toolName: 'updateAssistantMemory',
+            input: { homeLocation: 'Rio' },
+            output: { ok: true, memory: '' },
+          },
+          {
+            toolName: 'logHabit',
+            input: { habitId: 'h2', date: '2026-07-18' },
+            output: null,
+          },
+        ],
+      },
+    ])
+
+    expect(recorded).toEqual([
+      { tool: 'completeTask', id: 't1', title: '' },
+      {
+        tool: 'logActivity',
+        id: 'h1',
+        title: 'Correr',
+        kind: 'habit',
+        date: '2026-07-19',
+      },
+      { tool: 'logHabit', id: 'h2', title: '', date: '2026-07-18' },
+    ])
+  })
+
+  it('handles a turn with no steps', () => {
+    expect(collectRecordedActions()).toEqual([])
+    expect(collectRecordedActions([{}])).toEqual([])
+  })
+})
+
+describe('renderTurn', () => {
+  it('passes a user turn and a reply without actions through unchanged', () => {
+    expect(renderTurn({ role: 'user', content: 'hi' })).toEqual({
+      role: 'user',
+      content: 'hi',
+    })
+    expect(
+      renderTurn({ role: 'assistant', content: 'ok', actions: [] }),
+    ).toEqual({ role: 'assistant', content: 'ok' })
+  })
+
+  it('appends a check-in to the reply as an action the model can act on', () => {
+    expect(
+      renderTurn({
+        role: 'assistant',
+        content: 'Treinou hoje?',
+        actions: [{ tool: 'habitCheckin', id: 'h1', title: 'Treinar' }],
+      }).content,
+    ).toBe('Treinou hoje?\n\n[Action log: habitCheckin "Treinar" id=h1]')
   })
 })

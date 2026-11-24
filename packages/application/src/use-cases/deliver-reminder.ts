@@ -1,4 +1,9 @@
-import { asEntityId, toMessageLanguage } from '@lifedeck/domain'
+import {
+  DEFAULT_TIME_ZONE,
+  asEntityId,
+  toMessageLanguage,
+  type CalendarEvent,
+} from '@lifedeck/domain'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
@@ -13,6 +18,11 @@ import type { NotificationRepository } from '@/ports/notification-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type { JobQueue } from '@/ports/job-queue'
 import { MINUTE_MS, REMINDER_JOB } from '@/use-cases/reminder-jobs'
+import {
+  isOccurrenceOf,
+  nextOccurrenceStart,
+  reminderJob,
+} from '@/shared/reminder-schedule'
 
 export type ReminderTemplate = {
   name: string
@@ -49,10 +59,49 @@ export function makeDeliverReminder({
   clock,
   reminderTemplate,
 }: Dependencies) {
+  // A series re-arms itself: once one occurrence is handled, queue the next.
+  async function armNextOccurrence(
+    event: CalendarEvent,
+    minutesBefore: number,
+    after: Date,
+    ownerZone: string,
+  ): Promise<void> {
+    if (!event.recurrence) {
+      return
+    }
+    const earliest = Math.max(
+      after.getTime(),
+      clock.now().getTime() + minutesBefore * MINUTE_MS,
+    )
+    const next = nextOccurrenceStart(event, new Date(earliest), ownerZone)
+    if (next) {
+      await jobQueue.enqueue(reminderJob(event, minutesBefore, next))
+    }
+  }
+
+  // An edited or cancelled occurrence is stored as its own row with its own
+  // reminder jobs, so the series must stay quiet for that slot.
+  async function hasOverride(
+    event: CalendarEvent,
+    occurrence: Date,
+  ): Promise<boolean> {
+    if (!event.recurrence || !event.externalId) {
+      return false
+    }
+    const overrides = await calendarEvents.listOverridesByMasterExternalIds(
+      event.ownerId,
+      [event.externalId],
+    )
+    return overrides.some(
+      override => override.originalStartsAt?.getTime() === occurrence.getTime(),
+    )
+  }
+
   return async function deliverReminder(
     eventId: string,
     userId: string,
     minutesBefore: number,
+    occurrenceStart?: string,
   ): Promise<ReminderResult> {
     const event = await calendarEvents.findById(asEntityId(eventId))
     // The event was deleted, or this reminder offset was removed: drop it.
@@ -61,39 +110,52 @@ export function makeDeliverReminder({
     }
 
     const props = event.toJSON()
-    const fireAt = props.startsAt.getTime() - minutesBefore * MINUTE_MS
+    // Loaded before publishing rather than after: the push alert carries a time
+    // formatted in the user's locale and timezone, so their preferences have to
+    // be known by then.
+    const user = await users.findById(asEntityId(userId))
+    const ownerZone = user?.timezone ?? DEFAULT_TIME_ZONE
+    const occurrence = occurrenceStart
+      ? new Date(occurrenceStart)
+      : props.startsAt
     const now = clock.now().getTime()
 
-    // The event was moved later: re-arm the reminder for its new time.
-    if (now < fireAt - MINUTE_MS) {
-      await jobQueue.enqueue({
-        type: REMINDER_JOB,
-        payload: { eventId, userId, minutesBefore },
-        runAt: new Date(fireAt),
-      })
+    // The series was edited and this slot is no longer one of its occurrences.
+    if (event.recurrence && !isOccurrenceOf(event, occurrence, ownerZone)) {
+      await armNextOccurrence(event, minutesBefore, clock.now(), ownerZone)
       return { delivered: false, rescheduled: true }
     }
 
-    // The event has already started: a late reminder is noise, skip it.
-    if (now > props.startsAt.getTime()) {
+    const fireAt = occurrence.getTime() - minutesBefore * MINUTE_MS
+    // The event was moved later: re-arm the reminder for its new time.
+    if (!event.recurrence && now < fireAt - MINUTE_MS) {
+      await jobQueue.enqueue(reminderJob(event, minutesBefore, occurrence))
+      return { delivered: false, rescheduled: true }
+    }
+
+    // The occurrence has already started: a late reminder is noise, skip it.
+    if (now > occurrence.getTime()) {
+      await armNextOccurrence(event, minutesBefore, occurrence, ownerZone)
       return { delivered: false }
     }
 
+    if (await hasOverride(event, occurrence)) {
+      await armNextOccurrence(event, minutesBefore, occurrence, ownerZone)
+      return { delivered: false }
+    }
+
+    const startsAtIso = occurrence.toISOString()
     // An edit can leave more than one job for the same offset; deliver once.
     const alreadyDelivered = await notifications.hasReminder(
       asEntityId(userId),
       eventId,
       String(minutesBefore),
+      startsAtIso,
     )
     if (alreadyDelivered) {
       return { delivered: false }
     }
 
-    // Loaded before publishing rather than after: the push alert carries a time
-    // formatted in the user's locale and timezone, so their preferences have to
-    // be known by then.
-    const user = await users.findById(asEntityId(userId))
-    const startsAtIso = props.startsAt.toISOString()
     // A localized, timezone-aware time rather than a raw ISO timestamp; the push
     // alert, the free-form WhatsApp text and the template all render it as-is.
     const when = user
@@ -160,6 +222,7 @@ export function makeDeliverReminder({
       })
     }
 
+    await armNextOccurrence(event, minutesBefore, occurrence, ownerZone)
     return { delivered: true }
   }
 }

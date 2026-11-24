@@ -114,7 +114,7 @@ export function AuthDialog({
             value={email}
             onChange={event => setEmail(event.target.value)}
             label={messages.auth.email}
-            placeholder="you@example.com"
+            placeholder={messages.auth.emailPlaceholder}
             autoComplete="email"
             autoFocus
           />

@@ -8,6 +8,7 @@ export interface NotificationRepository {
     userId: EntityId,
     eventId: string,
     minutesBefore: string,
+    startsAt: string,
   ): Promise<boolean>
   countUnread(userId: EntityId): Promise<number>
   markAllRead(userId: EntityId, now: Date): Promise<void>

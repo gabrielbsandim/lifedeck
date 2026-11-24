@@ -23,6 +23,7 @@ import {
   checkAuthRateLimit,
   checkGenerateRateLimit,
   checkGuestSessionRateLimit,
+  checkPublicRateLimit,
   checkRateLimit,
   checkSessionRateLimit,
   checkWhatsappRateLimit,
@@ -81,6 +82,11 @@ describe('rate limit', () => {
     const result = await checkAssistantRateLimit('assistant:abc')
     expect(result.ok).toBe(true)
     expect(result.limit).toBe(15)
+  })
+
+  it('allows public traffic when Upstash is not configured', async () => {
+    const result = await checkPublicRateLimit('shared:1.2.3.4')
+    expect(result).toEqual({ ok: true, limit: 60, remaining: 60, reset: 0 })
   })
 
   it('prefers the platform x-real-ip over a spoofable x-forwarded-for', () => {

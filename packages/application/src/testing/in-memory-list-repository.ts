@@ -40,10 +40,26 @@ export class InMemoryListRepository implements ListRepository {
     }))
   }
 
+  // Synchronous on purpose: no await between the lookup and the insert, so
+  // concurrent callers behave like the unique index in Postgres.
+  async ensureDaily(list: List): Promise<List> {
+    const referenceDate = list.toJSON().referenceDate as Date
+    const existing = this.dailyFor(list.ownerId, referenceDate)
+    if (existing) {
+      return existing
+    }
+    this.store.set(list.id, list)
+    return list
+  }
+
   async findDailyByOwnerAndDate(
     ownerId: EntityId,
     referenceDate: Date,
   ): Promise<List | null> {
+    return this.dailyFor(ownerId, referenceDate)
+  }
+
+  private dailyFor(ownerId: EntityId, referenceDate: Date): List | null {
     const target = referenceDate.getTime()
     const match = [...this.store.values()].find(list => {
       const props = list.toJSON()

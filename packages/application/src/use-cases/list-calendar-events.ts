@@ -1,6 +1,7 @@
 import {
+  DEFAULT_TIME_ZONE,
   asEntityId,
-  occurrencesBetween,
+  recurringInstantsBetween,
   type CalendarEvent,
 } from '@lifedeck/domain'
 import {
@@ -11,13 +12,11 @@ import {
 import { toCalendarEventView } from '@/mappers/calendar-event-mapper'
 import { ValidationError } from '@lifedeck/domain'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
+import type { UserRepository } from '@/ports/user-repository'
 
 type Dependencies = {
   calendarEvents: CalendarEventRepository
-}
-
-function utcMidnightMs(date: Date): number {
-  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  users: Pick<UserRepository, 'findById'>
 }
 
 function overrideKey(
@@ -62,7 +61,10 @@ function overrideOccurrenceView(
   }
 }
 
-export function makeListCalendarEvents({ calendarEvents }: Dependencies) {
+export function makeListCalendarEvents({
+  calendarEvents,
+  users,
+}: Dependencies) {
   return async function listCalendarEvents(
     ownerId: string,
     query: ListCalendarEventsQuery,
@@ -101,6 +103,9 @@ export function makeListCalendarEvents({ calendarEvents }: Dependencies) {
       }
     }
 
+    const user = masters.length > 0 ? await users.findById(owner) : null
+    const ownerZone = user?.timezone ?? DEFAULT_TIME_ZONE
+
     const views: CalendarEventView[] = singles.map(toCalendarEventView)
     const usedOverrideIds = new Set<string>()
 
@@ -110,11 +115,17 @@ export function makeListCalendarEvents({ calendarEvents }: Dependencies) {
         continue
       }
       const props = master.toJSON()
-      const duration = props.endsAt.getTime() - props.startsAt.getTime()
-      const timeOfDay = props.startsAt.getTime() - utcMidnightMs(props.startsAt)
+      // All-day events are stored at UTC midnight, so they expand in UTC.
+      const instants = recurringInstantsBetween({
+        rule,
+        firstStartsAt: props.startsAt,
+        durationMs: props.endsAt.getTime() - props.startsAt.getTime(),
+        from: fromDate,
+        to: toDate,
+        timeZone: props.allDay ? DEFAULT_TIME_ZONE : ownerZone,
+      })
 
-      for (const day of occurrencesBetween(rule, fromDate, toDate)) {
-        const startsAt = new Date(day.getTime() + timeOfDay)
+      for (const { startsAt, endsAt } of instants) {
         const key = master.externalId
           ? overrideKey(master.externalId, startsAt.getTime())
           : null
@@ -127,13 +138,7 @@ export function makeListCalendarEvents({ calendarEvents }: Dependencies) {
           views.push(overrideOccurrenceView(override, master))
           continue
         }
-        views.push(
-          virtualOccurrenceView(
-            master,
-            startsAt,
-            new Date(startsAt.getTime() + duration),
-          ),
-        )
+        views.push(virtualOccurrenceView(master, startsAt, endsAt))
       }
     }
 

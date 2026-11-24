@@ -53,11 +53,13 @@ src/
 ├── lib/
 │   ├── api/              Data hooks (ported from apps/web/src/lib/api)
 │   ├── auth/             Native Google sign-in
-│   ├── billing/          Price book + plan display (shared logic, copied)
+│   ├── billing/          Price book, plan display, web checkout gate
 │   ├── calendar/         Calendar range math (shared logic, copied)
 │   ├── i18n/             MessagesProvider over @lifedeck/i18n
+│   ├── legal/            Terms and Privacy markup parser
 │   ├── media/            Voice recording
 │   ├── notifications/    Push permission, registration and tap routing
+│   ├── onboarding/       When the get-started sheet opens
 │   └── updates/          Over-the-air update checks
 └── theme/                Token palette + useThemeColors()
 ```
@@ -194,7 +196,8 @@ the other one off.
 ## Testing
 
 `pnpm test` runs vitest over the app's **pure** modules (date math, calendar
-ranges, base64, weekday labels, `cn`, prices) at the workspace-wide 95% gate.
+ranges, base64, weekday labels, `cn`, prices, the web checkout gate, the
+get-started rule, the legal markup parser) at the workspace-wide 95% gate.
 Screens are React Native trees that need a native renderer (jest-expo / React
 Native Testing Library) rather than jsdom; today they are covered by typecheck,
 lint and the bundle. `vitest.config.ts` records the scope.
@@ -212,12 +215,38 @@ the token in Redis under a 2-minute one-time code and redirects to
 over HTTPS. The token never travels through the custom-scheme URL, which any app
 on the device could claim.
 
+The reverse trip, app to browser, works the same way. `POST
+/api/v1/auth/web-handoff` (Bearer) returns a URL with a one-minute, single-use
+code; the system browser opens it, `GET /api/v1/auth/web-handoff` trades the
+code for a session cookie and redirects to the page. Only the destinations in
+`WEB_HANDOFF_DESTINATIONS` (today `/settings/billing`) are accepted, so the code
+cannot become an open redirect. A spent code falls back to sign-in for that page.
+
+## Account data and legal pages
+
+- **Export** downloads `/api/v1/account/export` with the Bearer token, writes it
+  to the cache directory and opens the system share sheet
+  (`lib/api/data-export.ts`). Opening the URL in a browser cannot work: the
+  browser has no session.
+- **Terms and Privacy** are native routes (`/terms`, `/privacy`) rendered from
+  the same `messages.legal` copy as the web pages. From the sign-in gate, which
+  covers the navigator, they open in the in-app browser instead.
+- **First run:** `GetStartedSheet` mirrors the web onboarding modal (connect
+  Google Calendar and WhatsApp) and remembers a dismissal in the keychain.
+- **Errors:** `app/+not-found.tsx` handles unknown deep links, and the root
+  layout exports an `ErrorBoundary` that resolves its copy from the device
+  locale, since it replaces the providers when it renders.
+
 ## Not in the app yet
 
 - **In-app purchases.** Apple and Google require IAP for digital goods, so the
-  billing screen is read-only and hands checkout to the web. Blocked on store
-  accounts rather than on effort; v4-plan.md §12 has the design and the
-  blockers.
+  app never sells. Every upgrade button and the billing screen's plan buttons
+  go through `useWebCheckout()`, which shows them only when the build sets
+  `EXPO_PUBLIC_WEB_CHECKOUT=on` and the store allows a purchase link in the
+  device region (`lib/billing/web-checkout.ts`: Brazil on iOS since the 2026
+  CADE settlement; Android pending a check of Play's rules). Elsewhere the
+  billing screen is read-only. Native IAP is blocked on store accounts rather
+  than on effort; v4-plan.md §12 has the design and the blockers.
 - **Universal links.** Deep links use the `lifedeck://` scheme; associating the
   web domain needs the store build.
 - **Offline.** The app is an online thin client with the React Query cache only.

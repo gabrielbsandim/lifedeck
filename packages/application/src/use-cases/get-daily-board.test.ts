@@ -289,6 +289,40 @@ describe('getDailyBoard', () => {
     expect(await tasks.listByList(TODAY_LIST)).toHaveLength(1)
   })
 
+  it('converges two concurrent first loads on one list and one copy', async () => {
+    const lists = new InMemoryListRepository()
+    const tasks = new InMemoryTaskRepository()
+    const users = await makeUserRepo('auto')
+    await seedPriorDay(lists, tasks)
+    const getDailyBoard = makeGetDailyBoard({
+      lists,
+      tasks,
+      subtasks: new InMemorySubtaskRepository(),
+      recurringTasks: new InMemoryRecurringTaskRepository(),
+      users,
+      ids: new SequentialIdGenerator([
+        TODAY_LIST,
+        asEntityId('99999999-9999-4999-8999-999999999991'),
+        asEntityId('99999999-9999-4999-8999-999999999992'),
+        asEntityId('99999999-9999-4999-8999-999999999993'),
+      ]),
+      clock: new FixedClock(NOW),
+      unitOfWork: new FakeUnitOfWork(),
+    })
+
+    const [first, second] = await Promise.all([
+      getDailyBoard(ID.user, '2026-06-21'),
+      getDailyBoard(ID.user, '2026-06-21'),
+    ])
+
+    expect(first.list.id).toBe(second.list.id)
+    const daily = (await lists.listByOwner(ID.user)).filter(
+      list => list.toJSON().type === 'daily',
+    )
+    expect(daily).toHaveLength(2)
+    expect(await tasks.listByList(asEntityId(first.list.id))).toHaveLength(1)
+  })
+
   it('copies subtasks onto the carried task, preserving their status', async () => {
     const COPY = asEntityId('ffffffff-ffff-4fff-8fff-ffffffffffff')
     const SUB_A = asEntityId('11111111-1111-4111-8111-111111111111')

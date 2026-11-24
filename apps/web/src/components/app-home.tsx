@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { Route } from 'next'
+import { useRouter } from 'next/navigation'
 import { Skeleton } from '@lifedeck/ui'
 import { useSession } from '@/lib/api/use-session'
 import { useSyncTimezone } from '@/lib/api/use-account'
 import { todayIso } from '@/lib/api/dates'
+import { returnToFrom } from '@/lib/navigation/return-to'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { DailyBoard } from '@/components/daily-board'
 import { OnboardingModal } from '@/components/onboarding-modal'
@@ -18,6 +21,17 @@ export function AppHome() {
   const session = useSession()
   useSyncTimezone(session.data)
   const [date, setDate] = useState(() => todayIso())
+  const router = useRouter()
+  const signedIn = Boolean(session.data)
+
+  // Read from the URL directly: useSearchParams would force a Suspense boundary
+  // around the whole home page.
+  useEffect(() => {
+    const target = signedIn ? returnToFrom(window.location.search) : null
+    if (target) {
+      router.replace(target as Route)
+    }
+  }, [signedIn, router])
 
   if (session.isPending) {
     return (

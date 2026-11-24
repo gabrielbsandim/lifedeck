@@ -39,8 +39,34 @@ Tailwind utility classes; the `cn` helper merges and de-duplicates classes.
   hover.
 - **Navigation.** Desktop uses the left `AppSidebar` (with the account pinned at
   the bottom). Below `lg`, a fixed `MobileTabBar` gives a native, app-like bottom
-  bar (Today / Lists / Generate / Profile); the Profile tab opens a bottom sheet
-  holding Analytics, Recurring tasks, Developers, and account settings.
+  bar (Today / Lists / Assistant / Habits / Profile). The Profile tab opens the
+  settings hub, which also holds Calendar, Analytics, Recurring tasks and
+  Developers; those pages light up Profile (`activeMobileTab` in
+  `lib/navigation/active-tab.ts`).
+- **Sign-in round trip.** `RequireAuth` sends a signed-out visitor to
+  `/?returnTo=<path>`, and the home screen returns there once a session exists.
+  Only same-origin paths pass (`safeReturnTo`), so the parameter cannot become an
+  open redirect.
+
+## Errors
+
+- **Failed saves** surface in one place: the `QueryClient` built by
+  `createAppQueryClient` (`lib/api/mutation-feedback.ts`) reports every failed
+  mutation to a toast rendered by `Providers` (`MutationToast`, bottom of the
+  screen above the tab bar, `role="alert"`, auto-dismiss after 6 s). The message
+  says why in plain words: offline, session ended (401), too many requests (429),
+  or a generic "couldn't save".
+- A screen that already shows the error next to its own form marks the hook with
+  `meta: INLINE_ERROR` so the toast stays quiet (sign-in, checkout, calendar
+  connect, find time, the assistant chat). Add it only when the inline message
+  exists.
+- **Crashes and unknown routes** use the branded `StatusPage`: `app/error.tsx`
+  (retry plus home, reported to Sentry), `app/global-error.tsx` (when the root
+  layout itself fails, locale from the browser) and `app/not-found.tsx` (404).
+- **Loading is not empty.** A screen shows a skeleton while its query is pending
+  and an error with retry when it fails; the empty state is only for a real empty
+  result. A paid screen a free user can reach shows an upgrade card, never a
+  blank page (Calendar).
 
 ## Breakpoints (responsiveness contract)
 
