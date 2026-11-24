@@ -285,6 +285,8 @@ jobs:
             | jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl')
           curl -fsSL "$url" -o "$RUNNER_TEMP/app-release.aab"
           echo "aab=$RUNNER_TEMP/app-release.aab" >> "$GITHUB_OUTPUT"
+          $NODE_RUN src/lib/store/store-assets.ts --expand "$RUNNER_TEMP/whatsnew"
+          echo "whatsnew=$RUNNER_TEMP/whatsnew" >> "$GITHUB_OUTPUT"
 
       - name: Send the bundle to the Play production track as a draft
         if: steps.android.outputs.aab != ''
@@ -294,7 +296,7 @@ jobs:
           packageName: com.lifedeck.app
           releaseFiles: ${{ steps.android.outputs.aab }}
           releaseName: ${{ needs.publish.outputs.tag }}
-          whatsNewDirectory: apps/mobile/distribution/whatsnew
+          whatsNewDirectory: ${{ steps.android.outputs.whatsnew }}
           track: production
           status: draft
 

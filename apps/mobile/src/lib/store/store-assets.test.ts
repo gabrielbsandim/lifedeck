@@ -1,4 +1,6 @@
+import { mkdtempSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import os from 'node:os'
 import path from 'node:path'
 import { SUPPORTED_LOCALES } from '@lifedeck/i18n'
 import { describe, expect, it, vi } from 'vitest'
@@ -19,8 +21,8 @@ const shipped = diskFiles(root)
 
 const listing = (over: Partial<Listing> = {}): Listing => ({
   app: 'en',
-  play: 'en-US',
-  apple: 'en-US',
+  play: ['en-US', 'en-GB'],
+  apple: ['en-US'],
   name: 'Lifedeck',
   subtitle: 'Your day',
   promoText: 'Plan the day',
@@ -34,6 +36,7 @@ const files = (over: Partial<StoreFiles> = {}): StoreFiles => ({
   listings: () => [listing()],
   whatsnew: () => 'Fixes',
   diffExitCode: () => 1,
+  writeWhatsnew: vi.fn(),
   ...over,
 })
 
@@ -60,10 +63,12 @@ describe('shipped store assets', () => {
       apple: { info: Record<string, { title: string; keywords: string[] }> }
     }
     for (const entry of shipped.listings()) {
-      expect(config.apple.info[entry.apple]).toMatchObject({
-        title: entry.name,
-        keywords: entry.keywords,
-      })
+      for (const locale of entry.apple) {
+        expect(config.apple.info[locale]).toMatchObject({
+          title: entry.name,
+          keywords: entry.keywords,
+        })
+      }
     }
   })
 
@@ -71,6 +76,12 @@ describe('shipped store assets', () => {
     expect(shipped.diffExitCode('pt-BR', 'HEAD')).toBe(0)
     expect(shipped.diffExitCode('pt-BR', 'no-such-ref')).toBeGreaterThan(1)
     expect(shipped.whatsnew('xx-XX')).toBeUndefined()
+  })
+
+  it('writes expanded notes to disk', () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'whatsnew-'))
+    shipped.writeWhatsnew(dir, 'en-GB', 'Fixes')
+    expect(readFileSync(path.join(dir, 'whatsnew-en-GB'), 'utf8')).toBe('Fixes')
   })
 })
 
@@ -84,6 +95,13 @@ describe('listingProblems', () => {
       'en name is blank',
       'en shortDescription has 81 characters, the store takes 80',
       'en keywords is blank',
+    ])
+  })
+
+  it('needs a locale in each store', () => {
+    expect(listingProblems(listing({ play: [], apple: [] }))).toEqual([
+      'en has no play locale',
+      'en has no apple locale',
     ])
   })
 
@@ -145,6 +163,21 @@ describe('runStoreCheck', () => {
     const out = output()
     expect(runStoreCheck([], files({ whatsnew: () => undefined }), out)).toBe(1)
     expect(out.error).toHaveBeenCalledWith('whatsnew-en-US is missing')
+  })
+
+  it('copies the notes to every Play locale', () => {
+    const out = output()
+    const writeWhatsnew = vi.fn()
+    expect(
+      runStoreCheck(['--expand', 'out'], files({ writeWhatsnew }), out),
+    ).toBe(0)
+    expect(writeWhatsnew.mock.calls).toEqual([
+      ['out', 'en-US', 'Fixes'],
+      ['out', 'en-GB', 'Fixes'],
+    ])
+    expect(out.log).toHaveBeenCalledWith('Wrote 2 Play release notes to out.')
+    expect(runStoreCheck(['--expand'], files(), out)).toBe(1)
+    expect(out.error).toHaveBeenCalledWith('--expand needs a directory')
   })
 
   it('needs a ref after --since', () => {

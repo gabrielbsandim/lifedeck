@@ -203,8 +203,12 @@ Published under the GBS Tecnologia company accounts.
   the user can retry.
 - **Listing and release notes**: `distribution/listing.json` holds the store
   copy per app locale (name, subtitle, promo text, short description, keywords,
-  description) with its Play and App Store locale codes;
-  `distribution/whatsnew/whatsnew-<play locale>` holds the Play notes.
+  description) with the Play and App Store locale codes that reuse it. Both
+  stores match the exact variant and otherwise fall back to the primary
+  language, pt-BR, so `en-GB` or `es-ES` users only read English or Spanish
+  when those variants are listed. `distribution/whatsnew/whatsnew-<first play
+  locale>` holds the Play notes of that language; `store:check --expand <dir>`
+  copies them to every Play locale for the upload.
   `store.config.js` turns the listing into EAS Metadata for the App Store
   (`eas metadata:push`, `metadataPath` in `eas.json`); the Play listing is kept
   in the console from the same file. The copy names no price and no way to pay,
@@ -216,6 +220,38 @@ Published under the GBS Tecnologia company accounts.
 - **Credentials**: App Store Connect team key "Lifedeck EAS" (`ASC_API_KEY_P8`,
   `ASC_API_KEY_ID`, `ASC_API_KEY_ISSUER_ID`) and the GBS Play service account
   `play-publisher@kapi-d6f2d` (`PLAY_SERVICE_ACCOUNT`), all GitHub secrets.
+
+### Review answers
+
+What the consoles ask outside the listing. The age rating is in
+`store.config.js` (`advisory`, 4+); the rest is typed into the consoles from
+here, because the review contact is personal data and this repository is public.
+
+**App Privacy (App Store) and Data safety (Play)** follow the privacy manifest.
+Every type below is collected, linked to the account, used only for app
+functionality, never for tracking, never shared with third parties, sent over
+HTTPS, and deleted with the account (in the app or at `/delete-account`). No
+advertising, analytics or crash SDK runs in the app.
+
+| Data | Why |
+| --- | --- |
+| Name, email address | the account, sign-in |
+| Phone number | optional WhatsApp pairing for the assistant |
+| User ID | the account id |
+| Device ID | the push token |
+| Photos | profile photo, pictures sent to the assistant (optional) |
+| Audio | voice notes sent to the assistant (optional) |
+| Other user content | tasks, lists, habits, calendar events, bookings |
+
+**Notes for the reviewer** (App Review Information, Notes; Play, App access):
+
+> No account is needed. The app opens in guest mode: pick a name and every
+> feature is available. To see the signed-in state, use Sign in with Apple, or
+> register with any email (a 6-digit code arrives by email). Plans are not sold
+> in the app. Account deletion: Profile, Account, Delete account.
+
+**Sign-in required**: no, so no demo account. Play "App access": all
+functionality is available without special access.
 
 ## Push notifications
 

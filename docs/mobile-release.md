@@ -7,7 +7,8 @@ workflow is `.github/workflows/mobile-release.yml`; the version logic is
 ## Cutting a release
 
 1. Rewrite `apps/mobile/distribution/whatsnew/whatsnew-<locale>` for every
-   locale and commit it to `main`. `pnpm -C apps/mobile store:check --since
+   app language (one file each, named after its first Play locale; the
+   workflow copies it to the other variants) and commit it to `main`. `pnpm -C apps/mobile store:check --since
    <last tag>` fails while a file is unchanged.
 2. `gh workflow run mobile-release.yml` (add `-f bump=minor` to force a digit).
    It reads the Conventional Commits since the last `v*` tag that touch the app

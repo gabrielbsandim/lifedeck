@@ -1,12 +1,14 @@
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// One entry per app language. The first Play locale names the notes file the
+// release writer edits; every other locale gets a copy at upload.
 export type Listing = {
   app: string
-  play: string
-  apple: string
+  play: string[]
+  apple: string[]
   name: string
   subtitle: string
   promoText: string
@@ -40,12 +42,15 @@ export type StoreFiles = {
   listings: () => Listing[]
   whatsnew: (play: string) => string | undefined
   diffExitCode: (play: string, since: string) => number
+  writeWhatsnew: (dir: string, play: string, text: string) => void
 }
 
 const length = (text: string) => [...text].length
 
 export const whatsnewFile = (play: string) =>
   `distribution/whatsnew/whatsnew-${play}`
+
+export const primaryPlay = (listing: Listing) => listing.play[0] ?? listing.app
 
 export function listingText(listing: Listing): Record<LimitedField, string> {
   return {
@@ -58,20 +63,31 @@ export function listingText(listing: Listing): Record<LimitedField, string> {
   }
 }
 
+function localeProblems(listing: Listing): string[] {
+  return (['play', 'apple'] as const).flatMap(store =>
+    listing[store].length === 0
+      ? [`${listing.app} has no ${store} locale`]
+      : [],
+  )
+}
+
 export function listingProblems(listing: Listing): string[] {
   const text = listingText(listing)
-  return (Object.keys(LISTING_LIMITS) as LimitedField[]).flatMap(field => {
-    const size = length(text[field].trim())
-    if (size === 0) {
-      return [`${listing.app} ${field} is blank`]
-    }
-    if (size > LISTING_LIMITS[field]) {
-      return [
-        `${listing.app} ${field} has ${size} characters, the store takes ${LISTING_LIMITS[field]}`,
-      ]
-    }
-    return []
-  })
+  const fields = (Object.keys(LISTING_LIMITS) as LimitedField[]).flatMap(
+    field => {
+      const size = length(text[field].trim())
+      if (size === 0) {
+        return [`${listing.app} ${field} is blank`]
+      }
+      if (size > LISTING_LIMITS[field]) {
+        return [
+          `${listing.app} ${field} has ${size} characters, the store takes ${LISTING_LIMITS[field]}`,
+        ]
+      }
+      return []
+    },
+  )
+  return [...localeProblems(listing), ...fields]
 }
 
 export function whatsnewProblem(
@@ -112,20 +128,26 @@ export function storeAssetProblems(
   since?: string,
 ): string[] {
   return files.listings().flatMap(listing => {
+    const play = primaryPlay(listing)
     const stale =
       since === undefined
         ? undefined
-        : staleProblem(
-            listing.play,
-            since,
-            files.diffExitCode(listing.play, since),
-          )
+        : staleProblem(play, since, files.diffExitCode(play, since))
     return [
       ...listingProblems(listing),
-      whatsnewProblem(listing.play, files.whatsnew(listing.play)),
+      whatsnewProblem(play, files.whatsnew(play)),
       stale,
     ].filter((problem): problem is string => problem !== undefined)
   })
+}
+
+// upload-google-play reads one whatsnew-<locale> file per Play locale.
+export function expandWhatsnew(files: StoreFiles, dir: string): number {
+  return files.listings().reduce((written, listing) => {
+    const text = files.whatsnew(primaryPlay(listing)) ?? ''
+    listing.play.forEach(play => files.writeWhatsnew(dir, play, text))
+    return written + listing.play.length
+  }, 0)
 }
 
 export function diskFiles(root: string): StoreFiles {
@@ -144,6 +166,10 @@ export function diskFiles(root: string): StoreFiles {
         ['diff', '--quiet', since, 'HEAD', '--', whatsnewFile(play)],
         { cwd: root },
       ).status ?? 2,
+    writeWhatsnew: (dir, play, text) => {
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(path.join(dir, `whatsnew-${play}`), text)
+    },
   }
 }
 
@@ -165,8 +191,27 @@ export function runStoreCheck(
     output.error(problems.join('\n'))
     return 1
   }
+  const expand = argv.indexOf('--expand')
+  if (expand !== -1) {
+    return expandTo(files, argv[expand + 1], output)
+  }
   output.log(
     `Store listing and notes are ready for ${files.listings().length} locales.`,
+  )
+  return 0
+}
+
+function expandTo(
+  files: StoreFiles,
+  dir: string | undefined,
+  output: Output,
+): number {
+  if (!dir) {
+    output.error('--expand needs a directory')
+    return 1
+  }
+  output.log(
+    `Wrote ${expandWhatsnew(files, dir)} Play release notes to ${dir}.`,
   )
   return 0
 }

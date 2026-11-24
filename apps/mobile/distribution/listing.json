@@ -1,8 +1,8 @@
 [
   {
     "app": "pt",
-    "play": "pt-BR",
-    "apple": "pt-BR",
+    "play": ["pt-BR"],
+    "apple": ["pt-BR"],
     "name": "Lifedeck: rotina e tarefas",
     "subtitle": "Seu dia já planejado",
     "promoText": "Acorde com o dia já planejado: listas, hábitos e agenda num só lugar, com um assistente que lembra de você e te avisa no WhatsApp.",
@@ -55,8 +55,8 @@
   },
   {
     "app": "en",
-    "play": "en-US",
-    "apple": "en-US",
+    "play": ["en-US", "en-GB", "en-AU", "en-CA", "en-IN", "en-SG", "en-ZA"],
+    "apple": ["en-US", "en-GB", "en-AU", "en-CA"],
     "name": "Lifedeck: Daily Planner",
     "subtitle": "Your day, already planned",
     "promoText": "Wake up to a day that is already planned: lists, habits and calendar in one place, with an assistant that remembers you and reaches you on WhatsApp.",
@@ -109,8 +109,8 @@
   },
   {
     "app": "es",
-    "play": "es-419",
-    "apple": "es-MX",
+    "play": ["es-419", "es-ES", "es-US"],
+    "apple": ["es-MX", "es-ES"],
     "name": "Lifedeck: rutina y tareas",
     "subtitle": "Tu día ya planeado",
     "promoText": "Despierta con el día ya planeado: listas, hábitos y agenda en un solo lugar, con un asistente que te recuerda y te avisa por WhatsApp.",
