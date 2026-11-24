@@ -134,6 +134,11 @@ The `fingerprint` runtime version keeps the two honest: a bundle whose native
 fingerprint differs from the installed build is never offered to it, so an OTA
 cannot land on a binary that lacks the native code it needs.
 
+Store releases go through `Mobile release`, which versions from the commits,
+tags, and picks a store build or an OTA per platform from that fingerprint.
+`fingerprint.config.js` keeps the version fields out of it, so a bump alone is
+not native. Steps, first release and rollback: [mobile-release.md](mobile-release.md).
+
 ### One-time setup
 
 1. Create an Expo account, then from `apps/mobile` run `eas init`. It writes the

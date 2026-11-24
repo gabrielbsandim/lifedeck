@@ -1,0 +1,320 @@
+name: Mobile release
+
+# Run with: gh workflow run mobile-release.yml [-f bump=minor] [-f version=1.0.0]
+# It opens the release pull request with the next version. Merging it tags the
+# release and ships each platform: a store build when the native fingerprint
+# has no store build yet, an OTA to the production branch when it has.
+# Runbook: docs/mobile-release.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Which digit to move. `auto` reads the commits.'
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+      version:
+        description: 'Pin X.Y.Z instead. Required for the first release.'
+        type: string
+        default: ''
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: mobile-release
+  cancel-in-progress: false
+
+env:
+  NODE_RUN: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
+
+jobs:
+  prepare:
+    name: Prepare the release pull request
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Exit 2 means no app change since the last tag, so there is nothing to ship.
+      - name: Work out the next version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+          PINNED: ${{ inputs.version }}
+        run: |
+          args=(--bump "$BUMP" --notes-file "$RUNNER_TEMP/notes.md" --write)
+          if [ -n "$PINNED" ]; then
+            args+=(--version "$PINNED")
+          fi
+          set +e
+          $NODE_RUN src/lib/release/release-version.ts "${args[@]}" > "$RUNNER_TEMP/version.json"
+          status=$?
+          set -e
+          if [ "$status" -eq 2 ]; then
+            echo "No app change since the last tag, nothing to release." >> "$GITHUB_STEP_SUMMARY"
+            echo "app=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
+          cat "$RUNNER_TEMP/version.json"
+          {
+            echo "app=true"
+            echo "tag=$(jq -r .tag "$RUNNER_TEMP/version.json")"
+            echo "previous=$(jq -r '.previous // empty' "$RUNNER_TEMP/version.json")"
+            echo "bump=$(jq -r .bump "$RUNNER_TEMP/version.json")"
+            echo "commits=$(jq -r .commits "$RUNNER_TEMP/version.json")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit the bump on the release branch
+        if: steps.version.outputs.app == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "release/$TAG"
+          git add app.json
+          git commit -m "build: release $TAG"
+          git push --force origin "release/$TAG"
+
+      - name: Write the pull request body
+        if: steps.version.outputs.app == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+          BUMP: ${{ steps.version.outputs.bump }}
+          COMMITS: ${{ steps.version.outputs.commits }}
+        run: |
+          {
+            if [ -n "$PREVIOUS" ]; then
+              echo "Release **$TAG**, a \`$BUMP\` bump from \`v$PREVIOUS\`, covering $COMMITS commits."
+            else
+              echo "Release **$TAG**, the first store release."
+            fi
+            echo
+            cat <<'EOF'
+          Merging tags the release and ships it: a store build for a platform whose
+          native fingerprint has no store build yet, an OTA to `production` for the
+          rest. See `docs/mobile-release.md`.
+
+          ---
+
+          EOF
+            cat "$RUNNER_TEMP/notes.md"
+          } > "$RUNNER_TEMP/body.md"
+
+      - name: Open or refresh the release pull request
+        if: steps.version.outputs.app == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh label create release --color 5319E7 \
+            --description 'Mobile release pull request' --force
+          pr=$(gh pr list --base main --head "release/$TAG" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$pr" ]; then
+            gh pr create --base main --head "release/$TAG" \
+              --title "release: $TAG" --body-file "$RUNNER_TEMP/body.md" --label release
+            exit 0
+          fi
+          gh pr edit "$pr" --title "release: $TAG" --body-file "$RUNNER_TEMP/body.md" --add-label release
+
+      # A pull request opened with GITHUB_TOKEN starts no workflow; a dispatch
+      # does, and its checks land on the head commit the pull request shows.
+      - name: Start the gates on the release branch
+        if: steps.version.outputs.app == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: gh workflow run ci.yml --ref "release/$TAG"
+
+      - name: Check the store notes were rewritten
+        if: steps.version.outputs.app == 'true' && steps.version.outputs.previous != ''
+        env:
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+        run: $NODE_RUN src/lib/store/store-assets.ts --since "v$PREVIOUS"
+
+  publish:
+    name: Tag and publish the release
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      previous: ${{ steps.release.outputs.previous }}
+      fresh: ${{ steps.release.outputs.fresh }}
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The notes are read before the tag exists, so their range ends at it.
+      - name: Tag and publish the GitHub release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          version=$(jq -r .expo.version app.json)
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "$tag already exists, so this merge ships nothing." >> "$GITHUB_STEP_SUMMARY"
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          $NODE_RUN src/lib/release/release-version.ts \
+            --version "$version" --notes-file "$RUNNER_TEMP/notes.md" > "$RUNNER_TEMP/version.json"
+          echo "previous=$(jq -r '.previous // empty' "$RUNNER_TEMP/version.json")" >> "$GITHUB_OUTPUT"
+          gh release create "$tag" --target "$SHA" --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
+          echo "fresh=true" >> "$GITHUB_OUTPUT"
+
+  ship:
+    name: Ship ${{ matrix.platform }}
+    needs: publish
+    if: needs.publish.outputs.fresh == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [android, ios]
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      TAG: ${{ needs.publish.outputs.tag }}
+      PREVIOUS: ${{ needs.publish.outputs.previous }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # The workspace packages resolve through their gitignored dist/, which
+      # the OTA export needs, as eas-build-post-install does on EAS.
+      - name: Install and build the workspace packages
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec turbo run build --filter=@lifedeck/mobile^...
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # With the fingerprint runtime policy, a store build already carrying this
+      # fingerprint can take the release as an OTA, and only then.
+      - name: Compare the fingerprint with the store builds
+        id: route
+        run: |
+          hash=$(eas fingerprint:generate --platform "$PLATFORM" --build-profile production --json --non-interactive | jq -r .hash)
+          builds=$(eas build:list --platform "$PLATFORM" --fingerprint-hash "$hash" \
+            --distribution store --status finished --limit 1 --json --non-interactive | jq length)
+          if [ "$builds" -gt 0 ]; then
+            echo "route=update" >> "$GITHUB_OUTPUT"
+          else
+            echo "route=build" >> "$GITHUB_OUTPUT"
+          fi
+          echo "$PLATFORM fingerprint \`$hash\` has $builds store build(s)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish the OTA to production
+        if: steps.route.outputs.route == 'update'
+        env:
+          # www, not the apex: the apex answers 308 to www, and a redirect
+          # across origins drops the Authorization header.
+          EXPO_PUBLIC_API_URL: https://www.lifedeck.com.br
+        run: |
+          eas update --branch production --platform "$PLATFORM" \
+            --message "$TAG" --non-interactive
+
+      - name: Check the store notes were rewritten
+        if: steps.route.outputs.route == 'build' && env.PREVIOUS != ''
+        run: $NODE_RUN src/lib/store/store-assets.ts --since "v$PREVIOUS"
+
+      # Play gets the bundle from upload-google-play rather than EAS Submit,
+      # because EAS Submit cannot send the release notes.
+      - name: Build for Play
+        id: android
+        if: steps.route.outputs.route == 'build' && matrix.platform == 'android'
+        run: |
+          url=$(eas build --platform android --profile production --wait --json --non-interactive \
+            | jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl')
+          curl -fsSL "$url" -o "$RUNNER_TEMP/app-release.aab"
+          echo "aab=$RUNNER_TEMP/app-release.aab" >> "$GITHUB_OUTPUT"
+
+      - name: Send the bundle to the Play production track as a draft
+        if: steps.android.outputs.aab != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT }}
+          packageName: com.lifedeck.app
+          releaseFiles: ${{ steps.android.outputs.aab }}
+          releaseName: ${{ needs.publish.outputs.tag }}
+          whatsNewDirectory: apps/mobile/distribution/whatsnew
+          track: production
+          status: draft
+
+      # The key goes in an ignored folder: EAS uploads the project without it,
+      # and the CLI reads it here when it schedules the TestFlight submission.
+      - name: Build for the App Store and submit to TestFlight
+        if: steps.route.outputs.route == 'build' && matrix.platform == 'ios'
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+        run: |
+          mkdir -p .secrets
+          printf '%s' "$ASC_API_KEY_P8" > .secrets/asc-api-key.p8
+          jq --arg id "$ASC_API_KEY_ID" --arg issuer "$ASC_API_KEY_ISSUER_ID" \
+            '.submit.production.ios += {ascApiKeyPath: "./.secrets/asc-api-key.p8", ascApiKeyId: $id, ascApiKeyIssuerId: $issuer}' \
+            eas.json > "$RUNNER_TEMP/eas.json"
+          mv "$RUNNER_TEMP/eas.json" eas.json
+          export EXPO_ASC_API_KEY_PATH="$PWD/.secrets/asc-api-key.p8"
+          export EXPO_ASC_KEY_ID="$ASC_API_KEY_ID"
+          export EXPO_ASC_ISSUER_ID="$ASC_API_KEY_ISSUER_ID"
+          export EXPO_APPLE_TEAM_ID=7NDK3458CP
+          eas build --platform ios --profile production --auto-submit --non-interactive --no-wait

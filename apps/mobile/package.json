@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "eas-build-post-install": "cd ../.. && pnpm exec turbo run build --filter=@lifedeck/mobile^...",
-    "store:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/store/store-assets.ts"
+    "store:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/store/store-assets.ts",
+    "release:version": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/release/release-version.ts"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.7",
