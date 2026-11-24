@@ -12,6 +12,7 @@ import type { WeatherProvider } from '@/ports/weather-provider'
 import type {
   AssistantActivityLog,
   AssistantTools,
+  BookingAssistantTools,
 } from '@/ports/assistant-tools'
 import type { TaskView } from '@/dtos/task-dto'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -71,6 +72,7 @@ export type AssistantToolsDeps = {
   createHabit: ReturnType<typeof makeCreateHabit>
   listHabits: ReturnType<typeof makeListHabits>
   logHabit: ReturnType<typeof makeLogHabit>
+  booking: BookingAssistantTools
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -101,6 +103,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     createHabit,
     listHabits,
     logHabit,
+    booking,
   } = deps
 
   // The assistant emits offset-aware local ISO (e.g. ...-03:00); the calendar
@@ -154,6 +157,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     UNDO[log.kind](userId, log)
 
   return {
+    ...booking,
     async getContext(userId) {
       const user = await users.findById(asEntityId(userId))
       const timezone = user?.timezone ?? DEFAULT_TIME_ZONE

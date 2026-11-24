@@ -68,6 +68,19 @@ function spyTools(overrides: Partial<AssistantTools> = {}): AssistantTools {
     cancelOccurrence: method({ ok: true }),
     deleteEvent: method({ ok: true }),
     findTime: method({ slots: [] }),
+    findClient: method({ clients: [] }),
+    addClient: method({
+      added: true,
+      id: 'client-1',
+      name: 'Bia',
+      matches: [],
+    }),
+    listBookingSlots: method({ services: [], serviceId: null, slots: [] }),
+    bookForClient: method({ booked: true, id: 'booking-1', existing: [] }),
+    listMyBookings: method({ bookings: [] }),
+    cancelBooking: method({ ok: true }),
+    rescheduleBooking: method({ ok: true, id: 'booking-1' }),
+    shareBookingLink: method({ url: 'https://x.test/b/ana', services: [] }),
     ...overrides,
   } as AssistantTools
 }
@@ -294,7 +307,93 @@ describe('buildAssistantToolset', () => {
   })
 })
 
+describe('booking tools', () => {
+  const CLIENT = '11111111-1111-4111-8111-111111111111'
+  const SERVICE = '22222222-2222-4222-8222-222222222222'
+  const BOOKING = '33333333-3333-4333-8333-333333333333'
+
+  it('wires every booking tool through with the user id', async () => {
+    const tools = spyTools()
+    const set = buildAssistantToolset(tools, USER_ID)
+
+    await run(set.findClient, { query: 'joao' })
+    expect(tools.findClient).toHaveBeenCalledWith(USER_ID, 'joao')
+    const client = { name: 'Bia', phone: '+5511912345678' }
+    await run(set.addClient, client)
+    expect(tools.addClient).toHaveBeenCalledWith(USER_ID, client)
+    await run(set.listBookingSlots, { serviceId: SERVICE })
+    expect(tools.listBookingSlots).toHaveBeenCalledWith(USER_ID, {
+      serviceId: SERVICE,
+    })
+    const booking = {
+      clientId: CLIENT,
+      serviceId: SERVICE,
+      startsAt: '2026-07-21T10:00:00-03:00',
+    }
+    await run(set.bookForClient, booking)
+    expect(tools.bookForClient).toHaveBeenCalledWith(USER_ID, booking)
+    await run(set.listMyBookings, { clientId: CLIENT })
+    expect(tools.listMyBookings).toHaveBeenCalledWith(USER_ID, {
+      clientId: CLIENT,
+    })
+    await run(set.cancelBooking, { bookingId: BOOKING })
+    expect(tools.cancelBooking).toHaveBeenCalledWith(USER_ID, {
+      bookingId: BOOKING,
+    })
+    const move = { bookingId: BOOKING, startsAt: '2026-07-22T10:00:00-03:00' }
+    await run(set.rescheduleBooking, move)
+    expect(tools.rescheduleBooking).toHaveBeenCalledWith(USER_ID, move)
+    await run(set.shareBookingLink, {})
+    expect(tools.shareBookingLink).toHaveBeenCalledWith(USER_ID)
+  })
+
+  it('refuses a client name where an id is expected', () => {
+    const set = buildAssistantToolset(spyTools(), USER_ID)
+    const schema = set.bookForClient.inputSchema as {
+      safeParse: (value: unknown) => { success: boolean }
+    }
+    expect(
+      schema.safeParse({
+        clientId: 'João',
+        serviceId: SERVICE,
+        startsAt: '2026-07-21T10:00:00-03:00',
+      }).success,
+    ).toBe(false)
+  })
+
+  it('records booking mutations by the id in their input', () => {
+    const recorded = collectRecordedActions([
+      {
+        toolResults: [
+          {
+            toolName: 'cancelBooking',
+            input: { bookingId: BOOKING },
+            output: { ok: true },
+          },
+          {
+            toolName: 'listMyBookings',
+            input: {},
+            output: { bookings: [] },
+          },
+        ],
+      },
+    ])
+    expect(recorded).toEqual([
+      { tool: 'cancelBooking', id: BOOKING, title: '' },
+    ])
+  })
+})
+
 describe('buildSystemPrompt', () => {
+  it('adds the booking rules only when the booking tools are offered', () => {
+    expect(buildSystemPrompt(CONTEXT)).not.toContain(
+      'Look up before you create',
+    )
+    expect(buildSystemPrompt(CONTEXT, { booking: true })).toContain(
+      'Look up before you create',
+    )
+  })
+
   it('grounds the prompt in the user timezone and weekday', () => {
     const prompt = buildSystemPrompt(CONTEXT)
     expect(prompt).toContain('America/Sao_Paulo')
@@ -329,6 +428,16 @@ describe('gateTools', () => {
     expect(Object.keys(gated)).toEqual(['a'])
   })
 
+  it('drops a granted tool whose feature is switched off', () => {
+    const gated = gateTools(
+      { a: 1, findClient: 2 },
+      ['booking'],
+      { findClient: 'booking' },
+      ['booking'],
+    )
+    expect(Object.keys(gated)).toEqual(['a'])
+  })
+
   it('keeps a gated tool once the entitlement is granted', () => {
     const gated = gateTools({ a: 1, findTime: 2 }, ['smartScheduling'], {
       findTime: 'smartScheduling',
@@ -341,6 +450,34 @@ describe('AiSdkAgentRunner.run', () => {
   function runner(tools = spyTools()) {
     return new AiSdkAgentRunner('flash-model', 'pro-model', tools)
   }
+
+  it('offers the booking tools and rules to a plan that grants booking', async () => {
+    await runner().run({
+      userId: USER_ID,
+      message: 'marca aula pro João amanhã',
+      history: [],
+      entitlements: ['booking'],
+    })
+    const call = genCall()
+    expect(Object.keys(call.tools ?? {})).toContain('bookForClient')
+    expect(call.system).toContain('Look up before you create')
+  })
+
+  it('hides booking from a plan without it and while the flag is off', async () => {
+    await runner().run({ userId: USER_ID, message: 'oi', history: [] })
+    expect(Object.keys(genCall().tools ?? {})).not.toContain('findClient')
+    expect(genCall().system).not.toContain('Look up before you create')
+
+    generateTextMock.mockClear()
+    const off = new AiSdkAgentRunner('flash', 'pro', spyTools(), ['booking'])
+    await off.run({
+      userId: USER_ID,
+      message: 'oi',
+      history: [],
+      entitlements: ['booking'],
+    })
+    expect(Object.keys(genCall().tools ?? {})).not.toContain('findClient')
+  })
 
   it('uses the flash model, the built prompt, and the gated toolset for text', async () => {
     const reply = await runner().run({
@@ -613,6 +750,9 @@ describe('createAgentRunner', () => {
   it('builds a Gemini-backed runner when an API key is present', () => {
     vi.stubEnv('GEMINI_API_KEY', 'key-123')
     expect(createAgentRunner(spyTools())).toBeInstanceOf(AiSdkAgentRunner)
+    expect(
+      createAgentRunner(spyTools(), { disabled: ['booking'] }),
+    ).toBeInstanceOf(AiSdkAgentRunner)
   })
 
   it('falls back to a generic model id when only AI_MODEL is set', () => {

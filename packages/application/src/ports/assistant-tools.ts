@@ -138,11 +138,119 @@ export type AssistantEventUpdate = {
   reminders?: number[]
 }
 
+export type AssistantBookingClient = {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+}
+
+export type AssistantBookingService = {
+  id: string
+  name: string
+  durationMin: number
+}
+
+// Times are local ISO in the user's zone, like the agenda.
+export type AssistantBookingSummary = {
+  id: string
+  title: string
+  serviceId: string
+  serviceName: string | null
+  clientId: string
+  clientName: string | null
+  startsAt: string
+  endsAt: string
+  status: string
+}
+
+export type AssistantClientInput = {
+  name: string
+  email?: string | null
+  phone?: string | null
+  confirmedNew?: boolean
+}
+
+// `added: false` with matches means nothing was created: a client with that
+// name already exists and the user has to say which one, or confirm a new one.
+export type AssistantClientResult = {
+  added: boolean
+  id: string | null
+  name: string
+  matches: AssistantBookingClient[]
+}
+
+export type AssistantBookForClientInput = {
+  clientId: string
+  serviceId: string
+  startsAt: string
+  note?: string | null
+  alsoKeepExisting?: boolean
+}
+
+// `booked: false` means the client already holds a booking of that service
+// close by, which is almost always a reschedule the model mistook for a booking.
+export type AssistantBookForClientResult =
+  | ({ booked: true; existing: [] } & AssistantBookingSummary)
+  | { booked: false; existing: AssistantBookingSummary[] }
+
+export type AssistantBookingSlots = {
+  services: AssistantBookingService[]
+  // Null when the user has several services and must pick one first.
+  serviceId: string | null
+  slots: AssistantFreeSlot[]
+}
+
+export type AssistantBookingsQuery = {
+  from?: string
+  to?: string
+  clientId?: string
+  includeClosed?: boolean
+}
+
+// Booking (Pro and Premium): the user's clients book their services. Every
+// mutation takes ids from a read, so a name never becomes a second client.
+export interface BookingAssistantTools {
+  findClient(
+    userId: string,
+    query: string,
+  ): Promise<{ clients: AssistantBookingClient[] }>
+  addClient(
+    userId: string,
+    input: AssistantClientInput,
+  ): Promise<AssistantClientResult>
+  listBookingSlots(
+    userId: string,
+    input: { serviceId?: string; from?: string; to?: string },
+  ): Promise<AssistantBookingSlots>
+  bookForClient(
+    userId: string,
+    input: AssistantBookForClientInput,
+  ): Promise<AssistantBookForClientResult>
+  listMyBookings(
+    userId: string,
+    query: AssistantBookingsQuery,
+  ): Promise<{ bookings: AssistantBookingSummary[] }>
+  cancelBooking(
+    userId: string,
+    input: { bookingId: string; reason?: string | null },
+  ): Promise<{ ok: boolean }>
+  rescheduleBooking(
+    userId: string,
+    input: { bookingId: string; startsAt: string },
+  ): Promise<{ ok: true } & AssistantBookingSummary>
+  shareBookingLink(userId: string): Promise<{
+    url: string
+    active: boolean
+    services: { name: string; url: string }[]
+  }>
+}
+
 // The surface the WhatsApp assistant can act on. Every mutation references an
 // entity by id, so the reads (getToday/getAgenda/getLists) return ids the model
 // can thread into the mutations. Implementations delegate to the same use cases
 // the REST API uses, so tenant/ownership checks are enforced identically.
-export interface AssistantTools {
+export interface AssistantTools extends BookingAssistantTools {
   // Reads
   getContext(userId: string): Promise<AssistantContext>
   getToday(userId: string): Promise<{ tasks: AssistantTaskSummary[] }>

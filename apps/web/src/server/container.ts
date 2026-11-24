@@ -1,6 +1,7 @@
 import { asEntityId } from '@lifedeck/domain'
 import {
   makeAssistantTools,
+  makeBookingAssistantTools,
   makeAuthenticateApiKey,
   makeBringTaskToToday,
   makeChangePassword,
@@ -244,6 +245,7 @@ import {
 import { log } from '@/server/api/logger'
 import { SITE_NAME, siteUrl } from '@/lib/site'
 import { buildBooking, type BookingContainer } from '@/server/booking-container'
+import { isFeatureEnabled } from '@/server/api/features'
 
 type Container = {
   createTask: ReturnType<typeof makeCreateTask>
@@ -894,6 +896,19 @@ function build(
     lists,
     memberships,
   })
+  const bookingAssistantTools = makeBookingAssistantTools({
+    users,
+    clock,
+    appUrl: siteUrl(),
+    getBookingSetup: booking.getSetup,
+    listBookingClients: booking.listClients,
+    upsertBookingClient: booking.upsertClient,
+    listHostBookingSlots: booking.listHostSlots,
+    listBookings: booking.listBookings,
+    createBookingForClient: booking.createForClient,
+    cancelBooking: booking.cancel,
+    rescheduleBooking: booking.reschedule,
+  })
   const assistantTools = makeAssistantTools({
     users,
     clock,
@@ -919,8 +934,11 @@ function build(
     createHabit,
     listHabits,
     logHabit,
+    booking: bookingAssistantTools,
   })
-  const agent = createAgentRunner(assistantTools)
+  const agent = createAgentRunner(assistantTools, {
+    disabled: isFeatureEnabled('booking') ? [] : ['booking'],
+  })
   return {
     createTask,
     updateTask,

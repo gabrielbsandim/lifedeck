@@ -118,6 +118,13 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
       currentStreak: 4,
       doneToday: true,
     })) as unknown as AssistantToolsDeps['logHabit'],
+    booking: {
+      shareBookingLink: vi.fn(async () => ({
+        url: 'https://lifedeck.test/b/ana',
+        active: true,
+        services: [],
+      })),
+    } as unknown as AssistantToolsDeps['booking'],
     ...overrides,
   }
   return { tools: makeAssistantTools(deps), deps }
@@ -849,5 +856,14 @@ describe('makeAssistantTools', () => {
         endsAt: '2026-07-20T10:00:00-03:00',
       },
     ])
+  })
+})
+
+describe('makeAssistantTools booking surface', () => {
+  it('exposes the booking tools it was given', async () => {
+    const { tools } = build()
+    expect((await tools.shareBookingLink('u')).url).toBe(
+      'https://lifedeck.test/b/ana',
+    )
   })
 })

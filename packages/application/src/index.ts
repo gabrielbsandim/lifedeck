@@ -385,6 +385,12 @@ export type {
   AssistantOccurrenceReschedule,
   AssistantActivityLog,
   AssistantActivityTarget,
+  BookingAssistantTools,
+  AssistantBookingClient,
+  AssistantBookingSummary,
+  AssistantBookingSlots,
+  AssistantBookForClientResult,
+  AssistantClientResult,
 } from '@/ports/assistant-tools'
 export type {
   WeatherProvider,
@@ -652,6 +658,11 @@ export { makeDeleteAvailabilityOverride } from '@/use-cases/delete-availability-
 export { makeListBookingClients } from '@/use-cases/list-booking-clients'
 export { makeUpsertBookingClientForHost } from '@/use-cases/upsert-booking-client'
 export { makeListBookings } from '@/use-cases/list-bookings'
+export { makeListHostBookingSlots } from '@/use-cases/list-host-booking-slots'
+export {
+  makeBookingAssistantTools,
+  type BookingAssistantToolsDeps,
+} from '@/shared/booking-assistant-tools'
 export { makeConfirmBooking } from '@/use-cases/confirm-booking'
 export { makeDeclineBooking } from '@/use-cases/decline-booking'
 export { makeCancelBooking } from '@/use-cases/cancel-booking'
