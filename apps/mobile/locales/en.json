@@ -1,4 +1,6 @@
 {
-  "NSMicrophoneUsageDescription": "Lifedeck uses the microphone so you can send the assistant a voice note.",
-  "NSPhotoLibraryUsageDescription": "Lifedeck uses your photos so you can send the assistant a picture and set a profile photo."
+  "ios": {
+    "NSMicrophoneUsageDescription": "Lifedeck uses the microphone so you can send the assistant a voice note.",
+    "NSPhotoLibraryUsageDescription": "Lifedeck uses your photos so you can send the assistant a picture and set a profile photo."
+  }
 }

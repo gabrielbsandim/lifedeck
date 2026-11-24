@@ -1,4 +1,6 @@
 {
-  "NSMicrophoneUsageDescription": "Lifedeck nutzt das Mikrofon, damit du dem Assistenten eine Sprachnachricht schicken kannst.",
-  "NSPhotoLibraryUsageDescription": "Lifedeck nutzt deine Fotos, damit du dem Assistenten ein Bild schicken und dein Profilbild festlegen kannst."
+  "ios": {
+    "NSMicrophoneUsageDescription": "Lifedeck nutzt das Mikrofon, damit du dem Assistenten eine Sprachnachricht schicken kannst.",
+    "NSPhotoLibraryUsageDescription": "Lifedeck nutzt deine Fotos, damit du dem Assistenten ein Bild schicken und dein Profilbild festlegen kannst."
+  }
 }
