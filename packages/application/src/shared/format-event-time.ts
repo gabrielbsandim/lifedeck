@@ -4,6 +4,9 @@ const LOCALE_TAG: Record<EmailLocale, string> = {
   en: 'en',
   pt: 'pt-BR',
   es: 'es',
+  fr: 'fr',
+  de: 'de',
+  it: 'it',
 }
 
 // Localized, timezone-aware event time (for reminder copy across channels).

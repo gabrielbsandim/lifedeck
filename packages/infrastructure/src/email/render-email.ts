@@ -25,6 +25,9 @@ export const LINK_FALLBACK: Record<EmailLocale, string> = {
   en: 'If the button does not work, paste this link into your browser:',
   pt: 'Se o botão não funcionar, copie e cole este link no navegador:',
   es: 'Si el botón no funciona, copia y pega este enlace en tu navegador:',
+  fr: 'Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :',
+  de: 'Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:',
+  it: 'Se il pulsante non funziona, copia e incolla questo link nel browser:',
 }
 
 type FooterCopy = { automated: string; tagline: string }
@@ -41,6 +44,18 @@ const FOOTER_COPY: Record<EmailLocale, FooterCopy> = {
   es: {
     automated: 'Este es un correo automático, no necesitas responder.',
     tagline: 'Toda tu vida, organizada en un solo lugar.',
+  },
+  fr: {
+    automated: 'Ceci est un e-mail automatique, inutile d’y répondre.',
+    tagline: 'Toute ta vie, organisée en un seul endroit.',
+  },
+  de: {
+    automated: 'Dies ist eine automatische E-Mail, bitte nicht antworten.',
+    tagline: 'Dein ganzes Leben, an einem Ort organisiert.',
+  },
+  it: {
+    automated: 'Questa è un’email automatica, non serve rispondere.',
+    tagline: 'Tutta la tua vita, organizzata in un unico posto.',
   },
 }
 
@@ -121,6 +136,21 @@ const VERIFICATION_COPY: Record<EmailLocale, VerificationCopy> = {
     title: 'Confirma tu correo',
     intro: 'Usa este código para completar el acceso:',
   },
+  fr: {
+    subject: appName => `Ton code de vérification ${appName}`,
+    title: 'Confirme ton e-mail',
+    intro: 'Utilise ce code pour terminer la connexion :',
+  },
+  de: {
+    subject: appName => `Dein ${appName}-Bestätigungscode`,
+    title: 'Bestätige deine E-Mail',
+    intro: 'Gib diesen Code ein, um die Anmeldung abzuschließen:',
+  },
+  it: {
+    subject: appName => `Il tuo codice di verifica ${appName}`,
+    title: 'Conferma la tua email',
+    intro: 'Usa questo codice per completare l’accesso:',
+  },
 }
 
 type InvitationCopy = {
@@ -149,6 +179,25 @@ const INVITATION_COPY: Record<EmailLocale, InvitationCopy> = {
     intro: listTitle => `Puedes colaborar en <strong>${listTitle}</strong>.`,
     cta: 'Abrir la lista',
   },
+  fr: {
+    subject: listTitle => `Tu as été invité à "${listTitle}"`,
+    title: 'Une liste t’attend',
+    intro: listTitle => `Tu peux collaborer sur <strong>${listTitle}</strong>.`,
+    cta: 'Ouvrir la liste',
+  },
+  de: {
+    subject: listTitle => `Du wurdest zu "${listTitle}" eingeladen`,
+    title: 'Eine Liste wartet auf dich',
+    intro: listTitle =>
+      `Du kannst an <strong>${listTitle}</strong> mitarbeiten.`,
+    cta: 'Liste öffnen',
+  },
+  it: {
+    subject: listTitle => `Sei stato invitato a "${listTitle}"`,
+    title: 'Una lista ti aspetta',
+    intro: listTitle => `Puoi collaborare a <strong>${listTitle}</strong>.`,
+    cta: 'Apri la lista',
+  },
 }
 
 type AssignmentCopy = {
@@ -175,6 +224,24 @@ const ASSIGNMENT_COPY: Record<EmailLocale, AssignmentCopy> = {
     title: 'Una tarea es tuya',
     body: (taskTitle, listTitle) =>
       `Se te asignó <strong>${taskTitle}</strong> en <strong>${listTitle}</strong>.`,
+  },
+  fr: {
+    subject: taskTitle => `"${taskTitle}" t’a été attribuée`,
+    title: 'Une tâche pour toi',
+    body: (taskTitle, listTitle) =>
+      `<strong>${taskTitle}</strong> t’a été attribuée dans <strong>${listTitle}</strong>.`,
+  },
+  de: {
+    subject: taskTitle => `Dir wurde "${taskTitle}" zugewiesen`,
+    title: 'Eine Aufgabe für dich',
+    body: (taskTitle, listTitle) =>
+      `Dir wurde <strong>${taskTitle}</strong> in <strong>${listTitle}</strong> zugewiesen.`,
+  },
+  it: {
+    subject: taskTitle => `Ti è stata assegnata "${taskTitle}"`,
+    title: 'Un’attività per te',
+    body: (taskTitle, listTitle) =>
+      `Ti è stata assegnata <strong>${taskTitle}</strong> in <strong>${listTitle}</strong>.`,
   },
 }
 
@@ -211,6 +278,30 @@ const DIGEST_COPY: Record<EmailLocale, DigestCopy> = {
     pendingLabel: 'Aún pendientes:',
     allDone: 'Todo completado. ¡Buen trabajo! 🎉',
   },
+  fr: {
+    subject: 'Ton résumé quotidien Lifedeck',
+    title: 'Aujourd’hui sur Lifedeck',
+    summary: (completed, total) =>
+      `Tu as terminé ${completed} tâches sur ${total}.`,
+    pendingLabel: 'Encore en attente :',
+    allDone: 'Tout est fait. Bravo ! 🎉',
+  },
+  de: {
+    subject: 'Deine tägliche Lifedeck-Zusammenfassung',
+    title: 'Heute bei Lifedeck',
+    summary: (completed, total) =>
+      `Du hast ${completed} von ${total} Aufgaben erledigt.`,
+    pendingLabel: 'Noch offen:',
+    allDone: 'Alles erledigt. Super gemacht! 🎉',
+  },
+  it: {
+    subject: 'Il tuo riepilogo giornaliero di Lifedeck',
+    title: 'Oggi su Lifedeck',
+    summary: (completed, total) =>
+      `Hai completato ${completed} attività su ${total}.`,
+    pendingLabel: 'Ancora in sospeso:',
+    allDone: 'Tutto fatto. Ottimo lavoro! 🎉',
+  },
 }
 
 type ReminderCopy = {
@@ -234,6 +325,21 @@ const REMINDER_COPY: Record<EmailLocale, ReminderCopy> = {
     subject: title => `Recordatorio: ${title}`,
     title: 'Evento próximo',
     body: (title, when) => `<strong>${title}</strong> comienza a las ${when}.`,
+  },
+  fr: {
+    subject: title => `Rappel : ${title}`,
+    title: 'Événement à venir',
+    body: (title, when) => `<strong>${title}</strong> commence à ${when}.`,
+  },
+  de: {
+    subject: title => `Erinnerung: ${title}`,
+    title: 'Anstehender Termin',
+    body: (title, when) => `<strong>${title}</strong> beginnt um ${when}.`,
+  },
+  it: {
+    subject: title => `Promemoria: ${title}`,
+    title: 'Evento in arrivo',
+    body: (title, when) => `<strong>${title}</strong> inizia alle ${when}.`,
   },
 }
 

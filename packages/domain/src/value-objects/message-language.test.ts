@@ -19,6 +19,14 @@ describe('detectMessageLanguage', () => {
     expect(detectMessageLanguage('¿como estas?')).toBe('es')
   })
 
+  it('detects French, German and Italian', () => {
+    expect(detectMessageLanguage('Bonjour, rappelle-moi demain')).toBe('fr')
+    expect(detectMessageLanguage('cœur')).toBe('fr')
+    expect(detectMessageLanguage('Guten Morgen, ich brauche Hilfe')).toBe('de')
+    expect(detectMessageLanguage('schön')).toBe('de')
+    expect(detectMessageLanguage('Ciao, ricordami domani')).toBe('it')
+  })
+
   it('detects English', () => {
     expect(detectMessageLanguage('hi')).toBe('en')
     expect(detectMessageLanguage('Good morning, remind me tomorrow')).toBe('en')
@@ -40,10 +48,13 @@ describe('toMessageLanguage', () => {
     expect(toMessageLanguage('es-MX')).toBe('es')
     expect(toMessageLanguage('en')).toBe('en')
     expect(toMessageLanguage('en-US')).toBe('en')
+    expect(toMessageLanguage('fr-CA')).toBe('fr')
+    expect(toMessageLanguage('de')).toBe('de')
+    expect(toMessageLanguage('it-IT')).toBe('it')
   })
 
   it('falls back to English for unknown or empty', () => {
-    expect(toMessageLanguage('fr')).toBe('en')
+    expect(toMessageLanguage('nl')).toBe('en')
     expect(toMessageLanguage(null)).toBe('en')
     expect(toMessageLanguage(undefined)).toBe('en')
     expect(toMessageLanguage('')).toBe('en')

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { en } from '@/messages/en'
 import { pt } from '@/messages/pt'
 import { es } from '@/messages/es'
+import { fr } from '@/messages/fr'
+import { de } from '@/messages/de'
+import { it as itCatalog } from '@/messages/it'
 
 // The `: Messages` annotation on each catalog already guarantees the typed keys
 // exist at compile time. These runtime checks add what the type system cannot:
@@ -45,18 +48,23 @@ function emptyLeaves(value: Json, prefix = ''): string[] {
 describe('message catalog parity', () => {
   const enPaths = [...structurePaths(en)].sort()
 
-  it('pt has the same structural key paths as en', () => {
-    expect([...structurePaths(pt)].sort()).toEqual(enPaths)
-  })
-
-  it('es has the same structural key paths as en', () => {
-    expect([...structurePaths(es)].sort()).toEqual(enPaths)
+  it.each([
+    ['pt', pt],
+    ['es', es],
+    ['fr', fr],
+    ['de', de],
+    ['it', itCatalog],
+  ])('%s has the same structural key paths as en', (_name, catalog) => {
+    expect([...structurePaths(catalog)].sort()).toEqual(enPaths)
   })
 
   it.each([
     ['en', en],
     ['pt', pt],
     ['es', es],
+    ['fr', fr],
+    ['de', de],
+    ['it', itCatalog],
   ])('%s has no empty string leaves', (_name, catalog) => {
     expect(emptyLeaves(catalog)).toEqual([])
   })

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { InAppMessage } from '@lifedeck/application'
+import { SUPPORTED_LOCALES, isLocale, type Locale } from '@lifedeck/i18n'
 import { getContainer } from '@/server/container'
 import { fail, handleError, ok } from '@/server/api/respond'
 import { getUserIdFromRequest } from '@/server/session/session'
@@ -14,18 +15,15 @@ import {
 // agent the WhatsApp assistant uses.
 const textSchema = z.object({
   text: z.string().trim().min(1).max(4000),
-  locale: z.enum(['en', 'pt', 'es']).optional(),
+  locale: z.enum(SUPPORTED_LOCALES).optional(),
 })
 
-const LOCALES = new Set(['en', 'pt', 'es'])
 // A voice note or photo is small; anything larger is a mistake or abuse, and
 // the model would reject it anyway. Refuse before buffering the whole upload.
 const MAX_MEDIA_BYTES = 12 * 1024 * 1024
 
-function parseLocale(value: unknown): 'en' | 'pt' | 'es' | undefined {
-  return typeof value === 'string' && LOCALES.has(value)
-    ? (value as 'en' | 'pt' | 'es')
-    : undefined
+function parseLocale(value: unknown): Locale | undefined {
+  return typeof value === 'string' && isLocale(value) ? value : undefined
 }
 
 async function toMessage(

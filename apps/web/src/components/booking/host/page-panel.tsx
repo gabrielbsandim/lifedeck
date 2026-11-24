@@ -3,6 +3,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Button, TextField } from '@lifedeck/ui'
 import type { BookingPageView } from '@lifedeck/application'
+import { LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from '@lifedeck/i18n'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSaveBookingPage } from '@/lib/api/use-booking'
 import { timeZoneOptions } from '@/lib/booking/slot-days'
@@ -12,11 +13,6 @@ import {
   errorMessage,
 } from '@/components/booking/host/fields'
 
-const LOCALES = [
-  ['en', 'English'],
-  ['pt', 'Português'],
-  ['es', 'Español'],
-] as const
 const NOTICE_HOURS = [0, 1, 2, 4, 12, 24, 48, 72]
 
 export function PagePanel({ page }: { page: BookingPageView }) {
@@ -43,7 +39,7 @@ export function PagePanel({ page }: { page: BookingPageView }) {
       displayName: displayName.trim(),
       headline: headline.trim() || null,
       timezone,
-      locale: locale as 'en' | 'pt' | 'es',
+      locale: locale as Locale,
       cancelNoticeMin: noticeHours * 60,
     })
   }
@@ -100,9 +96,9 @@ export function PagePanel({ page }: { page: BookingPageView }) {
           value={locale}
           onChange={event => setLocale(event.target.value)}
         >
-          {LOCALES.map(([value, label]) => (
+          {SUPPORTED_LOCALES.map(value => (
             <option key={value} value={value}>
-              {label}
+              {LOCALE_NAMES[value]}
             </option>
           ))}
         </SelectField>

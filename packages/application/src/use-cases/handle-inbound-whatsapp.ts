@@ -100,6 +100,63 @@ export const WHATSAPP_COPY: Record<MessageLanguage, WhatsappCopy> = {
     assistantBusy:
       'Estoy recibiendo muchos mensajes ahora. Inténtalo de nuevo en un momento.',
   },
+  fr: {
+    pairLinked:
+      'Ton WhatsApp est maintenant lié à Lifedeck. Tu peux commencer à envoyer des messages.',
+    pairGuidance:
+      'Ce numéro n’est pas encore lié à un compte Lifedeck. Ouvre Lifedeck, lance l’association WhatsApp et envoie le code affiché.',
+    pairWrongNumber:
+      'Ce code a été généré pour un autre numéro WhatsApp. Ouvre Lifedeck et lance l’association depuis le numéro que tu utilises maintenant.',
+    assistantLocked:
+      'L’assistant Lifedeck fait partie d’un forfait payant. Passe à un forfait supérieur dans l’app pour discuter ici.',
+    assistantQuota:
+      'Tu as atteint ta limite d’utilisation pour le moment. Elle se libérera bientôt.',
+    assistantError:
+      'Un problème est survenu de mon côté. Réessaie dans un instant.',
+    assistantMediaUnavailable:
+      'Je ne comprends pas encore les messages vocaux ni les images. Envoie ta demande par écrit.',
+    assistantDone: 'C’est fait.',
+    assistantBusy:
+      'Je reçois beaucoup de messages en ce moment. Réessaie dans un instant.',
+  },
+  de: {
+    pairLinked:
+      'Dein WhatsApp ist jetzt mit Lifedeck verbunden. Du kannst jetzt Nachrichten senden.',
+    pairGuidance:
+      'Diese Nummer ist noch mit keinem Lifedeck-Konto verbunden. Öffne Lifedeck, starte die WhatsApp-Kopplung und sende den dort angezeigten Code.',
+    pairWrongNumber:
+      'Dieser Code wurde für eine andere WhatsApp-Nummer erstellt. Öffne Lifedeck und starte die Kopplung von der Nummer, mit der du gerade schreibst.',
+    assistantLocked:
+      'Der Lifedeck-Assistent ist Teil eines kostenpflichtigen Tarifs. Wechsle in der App den Tarif, um hier zu chatten.',
+    assistantQuota:
+      'Du hast dein Nutzungslimit vorerst erreicht. Es wird bald wieder freigegeben.',
+    assistantError:
+      'Bei mir ist etwas schiefgelaufen. Versuch es gleich noch einmal.',
+    assistantMediaUnavailable:
+      'Sprach- und Bildnachrichten verstehe ich noch nicht. Bitte schick deine Anfrage als Text.',
+    assistantDone: 'Erledigt.',
+    assistantBusy:
+      'Ich bekomme gerade sehr viele Nachrichten. Versuch es gleich noch einmal.',
+  },
+  it: {
+    pairLinked:
+      'Il tuo WhatsApp ora è collegato a Lifedeck. Puoi iniziare a inviare messaggi.',
+    pairGuidance:
+      'Questo numero non è ancora collegato a un account Lifedeck. Apri Lifedeck, avvia l’abbinamento WhatsApp e invia il codice mostrato.',
+    pairWrongNumber:
+      'Questo codice è stato generato per un altro numero WhatsApp. Apri Lifedeck e avvia l’abbinamento dal numero con cui stai scrivendo ora.',
+    assistantLocked:
+      'L’assistente di Lifedeck fa parte di un piano a pagamento. Passa a un piano superiore nell’app per chattare qui.',
+    assistantQuota:
+      'Hai raggiunto il tuo limite di utilizzo per ora. Si libererà di nuovo a breve.',
+    assistantError:
+      'Qualcosa è andato storto da parte mia. Riprova tra un momento.',
+    assistantMediaUnavailable:
+      'Non riesco ancora a capire messaggi vocali o immagini. Invia la tua richiesta come testo.',
+    assistantDone: 'Fatto.',
+    assistantBusy:
+      'Sto ricevendo molti messaggi in questo momento. Riprova tra un momento.',
+  },
 }
 
 // Back-compat English aliases, still imported by callers and tests.

@@ -7,6 +7,9 @@ const REMINDER_LABEL: Record<MessageLanguage, string> = {
   en: 'Reminder',
   pt: 'Lembrete',
   es: 'Recordatorio',
+  fr: 'Rappel',
+  de: 'Erinnerung',
+  it: 'Promemoria',
 }
 
 export function whatsappReminderText(

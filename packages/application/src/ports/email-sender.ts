@@ -1,15 +1,13 @@
-import type { BookingLocation } from '@lifedeck/domain'
+import {
+  toMessageLanguage,
+  type BookingLocation,
+  type MessageLanguage,
+} from '@lifedeck/domain'
 
-export type EmailLocale = 'en' | 'pt' | 'es'
+export type EmailLocale = MessageLanguage
 
 export function toEmailLocale(locale: string): EmailLocale {
-  if (locale === 'pt') {
-    return 'pt'
-  }
-  if (locale === 'es') {
-    return 'es'
-  }
-  return 'en'
+  return toMessageLanguage(locale)
 }
 
 export type BookingNoticeKind =

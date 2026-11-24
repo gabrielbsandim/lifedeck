@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { BOOKING_STATUSES } from '@lifedeck/domain'
+import { BOOKING_STATUSES, MESSAGE_LANGUAGES } from '@lifedeck/domain'
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 const minuteOfDay = z.number().int().min(0).max(1440)
@@ -16,7 +16,7 @@ export const upsertBookingPageSchema = z.object({
   displayName: z.string().max(120).optional(),
   headline: optionalText(300),
   timezone: z.string().max(64).optional(),
-  locale: z.enum(['en', 'pt', 'es']).optional(),
+  locale: z.enum(MESSAGE_LANGUAGES).optional(),
   cancelNoticeMin: z.number().int().optional(),
   active: z.boolean().optional(),
 })

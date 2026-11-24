@@ -12,6 +12,12 @@ const COPY: Record<MessageLanguage, (data: NudgeData) => string> = {
     `👀 "${taskTitle}" está na sua lista há ${days} dias. Quer que eu reagende ou divida em passos menores? É só responder que eu ajudo.`,
   es: ({ taskTitle, days }) =>
     `👀 "${taskTitle}" lleva ${days} días en tu lista. ¿Quieres que la reprograme o la divida en pasos más pequeños? Responde y te ayudo.`,
+  fr: ({ taskTitle, days }) =>
+    `👀 "${taskTitle}" est sur ta liste depuis ${days} jours. Tu veux que je la replanifie ou que je la découpe en étapes plus petites ? Réponds et je t’aide.`,
+  de: ({ taskTitle, days }) =>
+    `👀 "${taskTitle}" steht seit ${days} Tagen auf deiner Liste. Soll ich sie verschieben oder in kleinere Schritte aufteilen? Antworte einfach, ich helfe dir.`,
+  it: ({ taskTitle, days }) =>
+    `👀 "${taskTitle}" è nella tua lista da ${days} giorni. Vuoi che la ripianifichi o la divida in passi più piccoli? Rispondi e ti aiuto.`,
 }
 
 export function composeNudge(
@@ -31,6 +37,9 @@ const BUTTONS: Record<MessageLanguage, NudgeButtonLabels> = {
   en: { yes: 'Yes, reschedule', no: 'Not today' },
   pt: { yes: 'Sim, reagende', no: 'Hoje não' },
   es: { yes: 'Sí, reprográmala', no: 'Hoy no' },
+  fr: { yes: 'Oui, replanifie', no: 'Pas aujourd’hui' },
+  de: { yes: 'Ja, verschieben', no: 'Heute nicht' },
+  it: { yes: 'Sì, ripianifica', no: 'Oggi no' },
 }
 
 export function nudgeButtonLabels(

@@ -179,6 +179,66 @@ describe('renderEmail', () => {
     expect(digest.html).toContain('Aún pendientes:')
   })
 
+  it.each([
+    [
+      'fr',
+      'Ton code de vérification Lifedeck',
+      'Ouvrir la liste',
+      'Rappel : Vol',
+    ],
+    ['de', 'Dein Lifedeck-Bestätigungscode', 'Liste öffnen', 'Erinnerung: Vol'],
+    [
+      'it',
+      'Il tuo codice di verifica Lifedeck',
+      'Apri la lista',
+      'Promemoria: Vol',
+    ],
+  ] as const)(
+    'renders every template in %s',
+    (locale, verificationSubject, cta, reminderSubject) => {
+      const render = (template: Parameters<typeof renderEmail>[0]) =>
+        renderEmail(template, locale)
+      expect(
+        render({
+          type: 'verification-code',
+          data: { code: '123456', appName: 'Lifedeck' },
+        }).subject,
+      ).toBe(verificationSubject)
+      const invitation = render({
+        type: 'list-invitation',
+        data: { listTitle: 'Trip', url: 'https://lifedeck.app/s/abc' },
+      })
+      expect(invitation.subject).toContain('Trip')
+      expect(invitation.html).toContain(cta)
+      expect(invitation.html).toContain(`lang="${locale}"`)
+      expect(
+        render({
+          type: 'task-assignment',
+          data: { taskTitle: 'Pack', listTitle: 'Trip' },
+        }).subject,
+      ).toContain('Pack')
+      for (const completed of [1, 3]) {
+        expect(
+          render({
+            type: 'daily-digest',
+            data: {
+              date: '2026-06-22',
+              total: 3,
+              completed,
+              pendingTitles: completed === 3 ? [] : ['Pack'],
+            },
+          }).html,
+        ).toContain('Lifedeck')
+      }
+      const reminder = render({
+        type: 'event-reminder',
+        data: { eventTitle: 'Vol', startsAt: '2026-06-25T09:00:00.000Z' },
+      })
+      expect(reminder.subject).toBe(reminderSubject)
+      expect(reminder.html).toContain('Vol')
+    },
+  )
+
   it('renders a task assignment email (en and pt)', () => {
     const en = renderEmail({
       type: 'task-assignment',

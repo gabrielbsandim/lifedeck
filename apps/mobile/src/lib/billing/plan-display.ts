@@ -44,7 +44,7 @@ export function subscriptionBadge(
 }
 
 function formatDate(iso: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale === 'pt' ? 'pt-BR' : 'en', {
+  return new Intl.DateTimeFormat(locale === 'pt' ? 'pt-BR' : locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

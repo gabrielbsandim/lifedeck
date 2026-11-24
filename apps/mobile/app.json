@@ -20,7 +20,8 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Lifedeck uses the microphone so you can send the assistant a voice note.",
-        "NSPhotoLibraryUsageDescription": "Lifedeck uses your photos so you can send the assistant a picture and set a profile photo."
+        "NSPhotoLibraryUsageDescription": "Lifedeck uses your photos so you can send the assistant a picture and set a profile photo.",
+        "CFBundleAllowMixedLocalizations": true
       },
       "config": {
         "usesNonExemptEncryption": false
@@ -183,6 +184,14 @@
         "projectId": "94baca10-33e8-4d9c-a55d-6c97fb79fe19"
       }
     },
-    "owner": "gabrielbsandim"
+    "owner": "gabrielbsandim",
+    "locales": {
+      "en": "./locales/en.json",
+      "pt": "./locales/pt.json",
+      "es": "./locales/es.json",
+      "fr": "./locales/fr.json",
+      "de": "./locales/de.json",
+      "it": "./locales/it.json"
+    }
   }
 }

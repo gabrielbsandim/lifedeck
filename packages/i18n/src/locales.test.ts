@@ -15,7 +15,8 @@ describe('locales', () => {
     expect(isLocale('en')).toBe(true)
     expect(isLocale('pt')).toBe(true)
     expect(isLocale('es')).toBe(true)
-    expect(isLocale('fr')).toBe(false)
+    expect(isLocale('fr')).toBe(true)
+    expect(isLocale('nl')).toBe(false)
   })
 })
 
@@ -29,6 +30,9 @@ describe('resolveLocale', () => {
     expect(resolveLocale('en-GB')).toBe('en')
     expect(resolveLocale('pt-BR')).toBe('pt')
     expect(resolveLocale('es-MX')).toBe('es')
+    expect(resolveLocale('fr-CA')).toBe('fr')
+    expect(resolveLocale('de-AT')).toBe('de')
+    expect(resolveLocale('it-CH')).toBe('it')
   })
 
   it('resolves an unlisted regional variant by its base', () => {
@@ -37,7 +41,7 @@ describe('resolveLocale', () => {
   })
 
   it('returns null for unsupported and empty tags', () => {
-    expect(resolveLocale('fr-FR')).toBeNull()
+    expect(resolveLocale('nl-NL')).toBeNull()
     expect(resolveLocale('   ')).toBeNull()
   })
 })

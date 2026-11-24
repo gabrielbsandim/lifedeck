@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MESSAGE_LANGUAGES } from '@lifedeck/domain'
 
 export const generationBriefSchema = z.object({
   category: z.enum(['wedding', 'trip', 'moving', 'event', 'project', 'other']),
@@ -7,7 +8,7 @@ export const generationBriefSchema = z.object({
   scale: z.enum(['small', 'medium', 'large']),
   peopleInvolved: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
   description: z.string().trim().min(1).max(2000),
-  locale: z.enum(['en', 'pt', 'es']).default('en'),
+  locale: z.enum(MESSAGE_LANGUAGES).default('en'),
 })
 
 export type GenerationBrief = z.infer<typeof generationBriefSchema>

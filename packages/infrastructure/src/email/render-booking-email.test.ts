@@ -111,7 +111,7 @@ describe('booking email copy', () => {
     'reminder',
   ] as const
 
-  it.each(['en', 'pt', 'es'] as const)(
+  it.each(['en', 'pt', 'es', 'fr', 'de', 'it'] as const)(
     'has a subject and title for every kind in %s',
     locale => {
       const subjects = kinds.map(

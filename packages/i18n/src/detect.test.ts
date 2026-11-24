@@ -8,7 +8,8 @@ describe('detectLocale', () => {
   })
 
   it('picks the highest-quality supported language', () => {
-    expect(detectLocale('fr;q=0.9, pt-BR;q=0.8, en;q=0.5')).toBe('pt')
+    expect(detectLocale('nl;q=0.9, pt-BR;q=0.8, en;q=0.5')).toBe('pt')
+    expect(detectLocale('nl, de-DE;q=0.8, en;q=0.5')).toBe('de')
   })
 
   it('matches the base of a regional tag', () => {
@@ -16,7 +17,7 @@ describe('detectLocale', () => {
   })
 
   it('falls back when nothing is supported', () => {
-    expect(detectLocale('fr-FR,de;q=0.7', 'en')).toBe('en')
+    expect(detectLocale('nl-NL,ja;q=0.7', 'en')).toBe('en')
   })
 
   it('honors a custom fallback', () => {

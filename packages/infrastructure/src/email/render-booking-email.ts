@@ -187,6 +187,156 @@ const COPY: Record<EmailLocale, LocaleCopy> = {
       phone: 'Por teléfono',
     },
   },
+  fr: {
+    kinds: {
+      requested: {
+        subject: (s, h) => `Demande reçue : ${s} avec ${h}`,
+        title: 'Demande reçue',
+        intro: (s, h) =>
+          `Ta demande pour <strong>${s}</strong> avec <strong>${h}</strong> attend une confirmation.`,
+      },
+      confirmed: {
+        subject: (s, h) => `Confirmé : ${s} avec ${h}`,
+        title: 'Réservation confirmée',
+        intro: (s, h) =>
+          `Ton rendez-vous <strong>${s}</strong> avec <strong>${h}</strong> est réservé.`,
+      },
+      rescheduled: {
+        subject: (s, h) => `Nouvel horaire : ${s} avec ${h}`,
+        title: 'Réservation déplacée',
+        intro: (s, h) =>
+          `Ton rendez-vous <strong>${s}</strong> avec <strong>${h}</strong> a un nouvel horaire.`,
+      },
+      cancelled: {
+        subject: (s, h) => `Annulé : ${s} avec ${h}`,
+        title: 'Réservation annulée',
+        intro: (s, h) =>
+          `Ton rendez-vous <strong>${s}</strong> avec <strong>${h}</strong> a été annulé.`,
+      },
+      declined: {
+        subject: (s, h) => `Non confirmé : ${s} avec ${h}`,
+        title: 'Demande refusée',
+        intro: (s, h) =>
+          `Ta demande pour <strong>${s}</strong> avec <strong>${h}</strong> n’a pas pu être confirmée.`,
+      },
+      reminder: {
+        subject: (s, h) => `Bientôt : ${s} avec ${h}`,
+        title: 'À bientôt',
+        intro: (s, h) =>
+          `Petit rappel de ton rendez-vous <strong>${s}</strong> avec <strong>${h}</strong>.`,
+      },
+    },
+    when: 'Quand',
+    where: 'Où',
+    reason: 'Note',
+    manage: 'Replanifier ou annuler',
+    places: {
+      'online-meet': 'Réunion en ligne',
+      'online-link': 'En ligne',
+      'in-person': 'En personne',
+      phone: 'Par téléphone',
+    },
+  },
+  de: {
+    kinds: {
+      requested: {
+        subject: (s, h) => `Anfrage erhalten: ${s} mit ${h}`,
+        title: 'Anfrage erhalten',
+        intro: (s, h) =>
+          `Deine Anfrage für <strong>${s}</strong> mit <strong>${h}</strong> wartet auf Bestätigung.`,
+      },
+      confirmed: {
+        subject: (s, h) => `Bestätigt: ${s} mit ${h}`,
+        title: 'Buchung bestätigt',
+        intro: (s, h) =>
+          `Dein Termin <strong>${s}</strong> mit <strong>${h}</strong> ist gebucht.`,
+      },
+      rescheduled: {
+        subject: (s, h) => `Neue Zeit: ${s} mit ${h}`,
+        title: 'Buchung verschoben',
+        intro: (s, h) =>
+          `Dein Termin <strong>${s}</strong> mit <strong>${h}</strong> hat eine neue Zeit.`,
+      },
+      cancelled: {
+        subject: (s, h) => `Storniert: ${s} mit ${h}`,
+        title: 'Buchung storniert',
+        intro: (s, h) =>
+          `Dein Termin <strong>${s}</strong> mit <strong>${h}</strong> wurde storniert.`,
+      },
+      declined: {
+        subject: (s, h) => `Nicht bestätigt: ${s} mit ${h}`,
+        title: 'Anfrage abgelehnt',
+        intro: (s, h) =>
+          `Deine Anfrage für <strong>${s}</strong> mit <strong>${h}</strong> konnte nicht bestätigt werden.`,
+      },
+      reminder: {
+        subject: (s, h) => `Demnächst: ${s} mit ${h}`,
+        title: 'Bis bald',
+        intro: (s, h) =>
+          `Eine Erinnerung an deinen Termin <strong>${s}</strong> mit <strong>${h}</strong>.`,
+      },
+    },
+    when: 'Wann',
+    where: 'Wo',
+    reason: 'Notiz',
+    manage: 'Verschieben oder stornieren',
+    places: {
+      'online-meet': 'Online-Meeting',
+      'online-link': 'Online',
+      'in-person': 'Vor Ort',
+      phone: 'Telefonisch',
+    },
+  },
+  it: {
+    kinds: {
+      requested: {
+        subject: (s, h) => `Richiesta ricevuta: ${s} con ${h}`,
+        title: 'Richiesta ricevuta',
+        intro: (s, h) =>
+          `La tua richiesta per <strong>${s}</strong> con <strong>${h}</strong> è in attesa di conferma.`,
+      },
+      confirmed: {
+        subject: (s, h) => `Confermato: ${s} con ${h}`,
+        title: 'Prenotazione confermata',
+        intro: (s, h) =>
+          `Il tuo appuntamento <strong>${s}</strong> con <strong>${h}</strong> è prenotato.`,
+      },
+      rescheduled: {
+        subject: (s, h) => `Nuovo orario: ${s} con ${h}`,
+        title: 'Prenotazione spostata',
+        intro: (s, h) =>
+          `Il tuo appuntamento <strong>${s}</strong> con <strong>${h}</strong> ha un nuovo orario.`,
+      },
+      cancelled: {
+        subject: (s, h) => `Annullato: ${s} con ${h}`,
+        title: 'Prenotazione annullata',
+        intro: (s, h) =>
+          `Il tuo appuntamento <strong>${s}</strong> con <strong>${h}</strong> è stato annullato.`,
+      },
+      declined: {
+        subject: (s, h) => `Non confermato: ${s} con ${h}`,
+        title: 'Richiesta rifiutata',
+        intro: (s, h) =>
+          `La tua richiesta per <strong>${s}</strong> con <strong>${h}</strong> non è stata confermata.`,
+      },
+      reminder: {
+        subject: (s, h) => `A breve: ${s} con ${h}`,
+        title: 'A presto',
+        intro: (s, h) =>
+          `Un promemoria del tuo appuntamento <strong>${s}</strong> con <strong>${h}</strong>.`,
+      },
+    },
+    when: 'Quando',
+    where: 'Dove',
+    reason: 'Nota',
+    manage: 'Sposta o annulla',
+    places: {
+      'online-meet': 'Riunione online',
+      'online-link': 'Online',
+      'in-person': 'Di persona',
+      phone: 'Per telefono',
+    },
+  },
 }
 
 const METHOD: Record<BookingNoticeKind, 'PUBLISH' | 'CANCEL' | null> = {

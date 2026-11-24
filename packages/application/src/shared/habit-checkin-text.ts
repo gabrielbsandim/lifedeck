@@ -38,6 +38,24 @@ const COPY: Record<MessageLanguage, Copy> = {
     retrospective: title =>
       `✅ ¿Hiciste "${title}" hoy? Responde "sí" y lo registro para mantener tu racha.`,
   },
+  fr: {
+    prospective: title =>
+      `☀️ Aujourd’hui, il y a "${title}". Dis-moi quand c’est fait et je l’enregistre pour garder ta série.`,
+    retrospective: title =>
+      `✅ Tu as fait "${title}" aujourd’hui ? Réponds "oui" et je l’enregistre pour garder ta série.`,
+  },
+  de: {
+    prospective: title =>
+      `☀️ Heute steht "${title}" an. Sag mir, wenn es erledigt ist, dann trage ich es ein und deine Serie läuft weiter.`,
+    retrospective: title =>
+      `✅ Hast du heute "${title}" gemacht? Antworte "ja", dann trage ich es ein und deine Serie läuft weiter.`,
+  },
+  it: {
+    prospective: title =>
+      `☀️ Oggi c’è "${title}". Dimmi quando hai finito e lo registro per mantenere la tua serie.`,
+    retrospective: title =>
+      `✅ Hai fatto "${title}" oggi? Rispondi "sì" e lo registro per mantenere la tua serie.`,
+  },
 }
 
 export function composeHabitCheckin(

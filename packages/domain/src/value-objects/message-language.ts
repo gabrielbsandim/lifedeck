@@ -1,11 +1,11 @@
 /**
- * The three languages Lifedeck speaks. Mirrors the i18n package's supported
+ * The languages Lifedeck speaks. Mirrors the i18n package's supported
  * locales, but lives in the domain so use cases can pick a reply language
  * without depending on the i18n (presentation) layer. Fallback is 'en'.
  */
-export type MessageLanguage = 'en' | 'pt' | 'es'
+export const MESSAGE_LANGUAGES = ['en', 'pt', 'es', 'fr', 'de', 'it'] as const
 
-export const MESSAGE_LANGUAGES: readonly MessageLanguage[] = ['en', 'pt', 'es']
+export type MessageLanguage = (typeof MESSAGE_LANGUAGES)[number]
 
 const DEFAULT_LANGUAGE: MessageLanguage = 'en'
 
@@ -98,7 +98,81 @@ const WORDS: Record<MessageLanguage, ReadonlySet<string>> = {
     'my',
     'me',
   ]),
+  fr: new Set([
+    'bonjour',
+    'bonsoir',
+    'salut',
+    'merci',
+    'oui',
+    'tâche',
+    'tâches',
+    'rappel',
+    'rappelle',
+    'rappeler',
+    'demain',
+    'aujourd',
+    'besoin',
+    'veux',
+    'faire',
+    'avec',
+    'pour',
+    'plaît',
+    'je',
+    'suis',
+    'est',
+  ]),
+  de: new Set([
+    'hallo',
+    'guten',
+    'abend',
+    'danke',
+    'bitte',
+    'nein',
+    'aufgabe',
+    'aufgaben',
+    'erinnerung',
+    'erinnere',
+    'heute',
+    'morgen',
+    'brauche',
+    'möchte',
+    'ich',
+    'und',
+    'nicht',
+    'ist',
+    'mein',
+    'mir',
+  ]),
+  it: new Set([
+    'ciao',
+    'buongiorno',
+    'buonasera',
+    'grazie',
+    'sì',
+    'attività',
+    'promemoria',
+    'ricorda',
+    'ricordami',
+    'domani',
+    'oggi',
+    'bisogno',
+    'voglio',
+    'fare',
+    'sono',
+    'favore',
+    'anche',
+    'questo',
+    'ho',
+  ]),
 }
+
+// Characters that only appear in one of the languages are a strong tell.
+const TELLS: ReadonlyArray<[MessageLanguage, RegExp]> = [
+  ['pt', /[ãõ]|ç/],
+  ['es', /ñ|¿|¡/],
+  ['de', /[äöüß]/],
+  ['fr', /œ/],
+]
 
 /**
  * Best-effort language detection from a short free-text message, so we can reply
@@ -108,17 +182,19 @@ const WORDS: Record<MessageLanguage, ReadonlySet<string>> = {
  */
 export function detectMessageLanguage(text: string): MessageLanguage {
   const lower = text.toLowerCase()
-  const score: Record<MessageLanguage, number> = { en: 0, pt: 0, es: 0 }
+  const score = Object.fromEntries(
+    MESSAGE_LANGUAGES.map(language => [language, 0]),
+  ) as Record<MessageLanguage, number>
 
-  // Characters that only appear in one of the three languages are a strong tell.
-  if (/[ãõ]|ç/.test(lower)) score.pt += 3
-  if (/ñ|¿|¡/.test(lower)) score.es += 3
+  for (const [language, tell] of TELLS) {
+    if (tell.test(lower)) score[language] += 3
+  }
 
   const tokens = lower.match(/[\p{Letter}]+/gu) ?? []
   for (const token of tokens) {
-    if (WORDS.pt.has(token)) score.pt += 1
-    if (WORDS.es.has(token)) score.es += 1
-    if (WORDS.en.has(token)) score.en += 1
+    for (const language of MESSAGE_LANGUAGES) {
+      if (WORDS[language].has(token)) score[language] += 1
+    }
   }
 
   const best = MESSAGE_LANGUAGES.reduce((a, b) => (score[b] > score[a] ? b : a))
@@ -131,13 +207,13 @@ export function detectMessageLanguage(text: string): MessageLanguage {
 
 /**
  * Coerce a stored locale string (e.g. a user's saved preference) to one of the
- * three message languages, falling back to 'en'.
+ * message languages by its base subtag, falling back to 'en'.
  */
 export function toMessageLanguage(
   locale: string | null | undefined,
 ): MessageLanguage {
-  const tag = (locale ?? '').toLowerCase()
-  if (tag.startsWith('pt')) return 'pt'
-  if (tag.startsWith('es')) return 'es'
-  return DEFAULT_LANGUAGE
+  const base = (locale ?? '').toLowerCase().slice(0, 2)
+  return (
+    MESSAGE_LANGUAGES.find(language => language === base) ?? DEFAULT_LANGUAGE
+  )
 }

@@ -79,6 +79,9 @@ const DONE_COPY: Record<MessageLanguage, string> = {
   en: 'Done.',
   pt: 'Feito.',
   es: 'Hecho.',
+  fr: 'C’est fait.',
+  de: 'Erledigt.',
+  it: 'Fatto.',
 }
 
 function wantsProModel(granted: readonly string[], text: string): boolean {
