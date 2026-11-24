@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { User } from '@lifedeck/domain'
+import { describe, expect, it, vi } from 'vitest'
+import { Subscription, User } from '@lifedeck/domain'
 import { makeChangePassword } from '@/use-cases/change-password'
 import { makeRenameUser } from '@/use-cases/rename-user'
 import { makeDeleteUser } from '@/use-cases/delete-user'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { InMemoryConversationStore } from '@/testing/in-memory-conversation-store'
+import { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
 import { FakePasswordHasher } from '@/testing/fake-password-hasher'
 import { InMemorySessionRevocationStore } from '@/testing/in-memory-session-revocation-store'
 import { makeRevokeSessions } from '@/use-cases/revoke-sessions'
@@ -31,7 +32,14 @@ async function setup(withPassword = true) {
   const conversations = new InMemoryConversationStore()
   const sessions = new InMemorySessionRevocationStore()
   const clock = new FixedClock(NOW)
+  const subscriptions = new InMemorySubscriptionRepository()
+  const gateways = {
+    asaas: { cancelSubscription: vi.fn().mockResolvedValue(undefined) },
+    stripe: { cancelSubscription: vi.fn().mockResolvedValue(undefined) },
+  }
   return {
+    subscriptions,
+    gateways,
     users,
     hasher,
     conversations,
@@ -39,7 +47,12 @@ async function setup(withPassword = true) {
     changePassword: makeChangePassword({ users, hasher, sessions, clock }),
     revokeSessions: makeRevokeSessions({ sessions, clock }),
     renameUser: makeRenameUser({ users }),
-    deleteUser: makeDeleteUser({ users, conversations }),
+    deleteUser: makeDeleteUser({
+      users,
+      conversations,
+      subscriptions,
+      gateways,
+    }),
   }
 }
 
@@ -131,4 +144,42 @@ describe('deleteUser', () => {
     const ctx = await setup()
     await expect(ctx.deleteUser(UNKNOWN)).rejects.toThrow()
   })
+
+  it('cancels live subscriptions at their provider before deleting', async () => {
+    const ctx = await setup()
+    await ctx.subscriptions.save(subscription('sub_live', 'active'))
+    await ctx.subscriptions.save(subscription('sub_old', 'canceled'))
+    await ctx.deleteUser(ID.user)
+    expect(ctx.gateways.asaas.cancelSubscription).toHaveBeenCalledTimes(1)
+    expect(ctx.gateways.asaas.cancelSubscription).toHaveBeenCalledWith(
+      'sub_live',
+    )
+    expect(await ctx.users.findById(ID.user)).toBeNull()
+  })
+
+  it('keeps the account when the provider refuses the cancellation', async () => {
+    const ctx = await setup()
+    await ctx.subscriptions.save(subscription('sub_live', 'past_due'))
+    ctx.gateways.asaas.cancelSubscription.mockRejectedValueOnce(
+      new Error('asaas down'),
+    )
+    await expect(ctx.deleteUser(ID.user)).rejects.toThrow('asaas down')
+    expect(await ctx.users.findById(ID.user)).not.toBeNull()
+  })
 })
+
+function subscription(
+  providerRef: string,
+  status: 'active' | 'past_due' | 'canceled',
+) {
+  return Subscription.create({
+    id: providerRef === 'sub_old' ? ID.task : ID.list,
+    userId: ID.user,
+    plan: 'pro',
+    status,
+    provider: 'asaas',
+    providerRef,
+    currentPeriodEnd: new Date('2026-07-22T10:00:00.000Z'),
+    now: NOW,
+  })
+}

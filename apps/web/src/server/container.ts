@@ -991,7 +991,12 @@ function build(
     revokeSessions: makeRevokeSessions({ sessions, clock }),
     sessionsValidFrom: userId => sessions.validFrom(asEntityId(userId)),
     renameUser: makeRenameUser({ users }),
-    deleteUser: makeDeleteUser({ users, conversations }),
+    deleteUser: makeDeleteUser({
+      users,
+      conversations,
+      subscriptions,
+      gateways,
+    }),
     exportUserData: makeExportUserData({
       users,
       lists,
