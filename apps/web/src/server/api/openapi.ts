@@ -35,6 +35,30 @@ import {
   updateCalendarEventSchema,
   updateRecurringTaskSchema,
   updateTaskSchema,
+  availabilityOverrideInputSchema,
+  bookableSlotViewSchema,
+  bookingClientInputSchema,
+  bookingClientViewSchema,
+  bookingReasonSchema,
+  bookingRequestResultSchema,
+  bookingServiceInputSchema,
+  bookingServiceViewSchema,
+  bookingSetupViewSchema,
+  bookingPageViewSchema,
+  bookingViewSchema,
+  createBookingForClientSchema,
+  listBookableSlotsQuerySchema,
+  listBookingsQuerySchema,
+  managedBookingViewSchema,
+  markBookingOutcomeSchema,
+  publicBookingPageViewSchema,
+  reorderBookingServicesSchema,
+  requestBookingSchema,
+  rescheduleBookingSchema,
+  rescheduleByTokenSchema,
+  setAvailabilitySchema,
+  slugAvailabilityViewSchema,
+  upsertBookingPageSchema,
 } from '@lifedeck/application'
 import { SITE_NAME } from '@/lib/site'
 
@@ -831,6 +855,289 @@ registry.registerPath({
     404: errorResponse,
   },
 })
+
+// Booking: the host side takes a session or an API key with booking scopes; the
+// public side takes neither and is rate limited per IP (and per email on a request).
+const BookingView = registry.register('BookingView', bookingViewSchema)
+const BookingClientView = registry.register(
+  'BookingClientView',
+  bookingClientViewSchema,
+)
+const BookingServiceView = registry.register(
+  'BookingServiceView',
+  bookingServiceViewSchema,
+)
+const BookingSetupView = registry.register(
+  'BookingSetupView',
+  bookingSetupViewSchema,
+)
+const ManagedBookingView = registry.register(
+  'ManagedBookingView',
+  managedBookingViewSchema,
+)
+const bookingErrors = {
+  401: errorResponse,
+  403: errorResponse,
+  404: errorResponse,
+  422: errorResponse,
+}
+const publicErrors = {
+  404: errorResponse,
+  422: errorResponse,
+  429: errorResponse,
+}
+const slugParams = z.object({ slug: z.string().openapi({ example: 'ana' }) })
+const tokenParams = z.object({ token: z.string() })
+const done = jsonResponse('Done.', z.unknown())
+
+type BookingPath = {
+  method: 'get' | 'post' | 'put' | 'patch' | 'delete'
+  path: string
+  summary: string
+  operationId: string
+  scope?: 'booking:read' | 'booking:write'
+  request?: Parameters<typeof registry.registerPath>[0]['request']
+  ok: ReturnType<typeof jsonResponse>
+  status?: 200 | 201
+}
+
+const BOOKING_PATHS: BookingPath[] = [
+  {
+    method: 'get',
+    path: '/booking/setup',
+    summary: 'Read the booking page, services and hours',
+    operationId: 'getBookingSetup',
+    scope: 'booking:read',
+    ok: jsonResponse('The setup.', BookingSetupView),
+  },
+  {
+    method: 'get',
+    path: '/booking/slug-check',
+    summary: 'Check whether a page link is free',
+    operationId: 'checkBookingSlug',
+    scope: 'booking:read',
+    request: { query: z.object({ slug: z.string() }) },
+    ok: jsonResponse('Availability.', slugAvailabilityViewSchema),
+  },
+  {
+    method: 'put',
+    path: '/booking/page',
+    summary: 'Create or update the booking page',
+    operationId: 'upsertBookingPage',
+    scope: 'booking:write',
+    request: { body: jsonBody(upsertBookingPageSchema) },
+    ok: jsonResponse('The page.', bookingPageViewSchema),
+  },
+  {
+    method: 'post',
+    path: '/booking/services',
+    summary: 'Add a service',
+    operationId: 'createBookingService',
+    scope: 'booking:write',
+    request: { body: jsonBody(bookingServiceInputSchema) },
+    ok: jsonResponse('Service created.', BookingServiceView),
+    status: 201,
+  },
+  {
+    method: 'patch',
+    path: '/booking/services/{id}',
+    summary: 'Update a service',
+    operationId: 'updateBookingService',
+    scope: 'booking:write',
+    request: {
+      params: z.object({ id: idParam }),
+      body: jsonBody(bookingServiceInputSchema.partial()),
+    },
+    ok: jsonResponse('Service updated.', BookingServiceView),
+  },
+  {
+    method: 'delete',
+    path: '/booking/services/{id}',
+    summary: 'Archive a service',
+    operationId: 'archiveBookingService',
+    scope: 'booking:write',
+    request: { params: z.object({ id: idParam }) },
+    ok: jsonResponse('Service archived.', BookingServiceView),
+  },
+  {
+    method: 'post',
+    path: '/booking/services/reorder',
+    summary: 'Reorder services',
+    operationId: 'reorderBookingServices',
+    scope: 'booking:write',
+    request: { body: jsonBody(reorderBookingServicesSchema) },
+    ok: jsonResponse('New order.', z.array(BookingServiceView)),
+  },
+  {
+    method: 'put',
+    path: '/booking/availability',
+    summary: 'Replace the weekly hours',
+    operationId: 'setAvailability',
+    scope: 'booking:write',
+    request: { body: jsonBody(setAvailabilitySchema) },
+    ok: done,
+  },
+  {
+    method: 'put',
+    path: '/booking/availability/overrides',
+    summary: 'Set the hours of one date',
+    operationId: 'setAvailabilityOverride',
+    scope: 'booking:write',
+    request: { body: jsonBody(availabilityOverrideInputSchema) },
+    ok: done,
+  },
+  {
+    method: 'delete',
+    path: '/booking/availability/overrides/{date}',
+    summary: 'Remove the exception for a date',
+    operationId: 'deleteAvailabilityOverride',
+    scope: 'booking:write',
+    request: { params: z.object({ date: z.string() }) },
+    ok: done,
+  },
+  {
+    method: 'get',
+    path: '/booking/clients',
+    summary: 'List clients',
+    operationId: 'listBookingClients',
+    scope: 'booking:read',
+    request: { query: z.object({ search: z.string().optional() }) },
+    ok: jsonResponse('Clients.', z.array(BookingClientView)),
+  },
+  {
+    method: 'post',
+    path: '/booking/clients',
+    summary: 'Add a client, reusing one with the same email or phone',
+    operationId: 'createBookingClient',
+    scope: 'booking:write',
+    request: { body: jsonBody(bookingClientInputSchema) },
+    ok: jsonResponse('The client.', BookingClientView),
+    status: 201,
+  },
+  {
+    method: 'patch',
+    path: '/booking/clients/{id}',
+    summary: 'Update a client',
+    operationId: 'updateBookingClient',
+    scope: 'booking:write',
+    request: {
+      params: z.object({ id: idParam }),
+      body: jsonBody(bookingClientInputSchema),
+    },
+    ok: jsonResponse('The client.', BookingClientView),
+  },
+  {
+    method: 'get',
+    path: '/booking/bookings',
+    summary: 'List bookings in a range',
+    operationId: 'listBookings',
+    scope: 'booking:read',
+    request: {
+      query: listBookingsQuerySchema.extend({
+        status: z
+          .string()
+          .optional()
+          .openapi({ description: 'Comma-separated statuses.' }),
+      }),
+    },
+    ok: jsonResponse('Bookings.', z.array(BookingView)),
+  },
+  {
+    method: 'post',
+    path: '/booking/bookings',
+    summary: 'Book for a client',
+    operationId: 'createBookingForClient',
+    scope: 'booking:write',
+    request: { body: jsonBody(createBookingForClientSchema) },
+    ok: jsonResponse('Booking created.', BookingView),
+    status: 201,
+  },
+  ...(
+    [
+      ['confirm', 'Approve a pending booking', z.object({})],
+      ['decline', 'Decline a pending booking', bookingReasonSchema],
+      ['cancel', 'Cancel a booking', bookingReasonSchema],
+      ['reschedule', 'Move a booking', rescheduleBookingSchema],
+      ['outcome', 'Record how a past booking went', markBookingOutcomeSchema],
+    ] as const
+  ).map(
+    ([action, summary, body]): BookingPath => ({
+      method: 'post',
+      path: `/booking/bookings/{id}/${action}`,
+      summary,
+      operationId: `${action}Booking`,
+      scope: 'booking:write',
+      request: { params: z.object({ id: idParam }), body: jsonBody(body) },
+      ok: done,
+    }),
+  ),
+  {
+    method: 'get',
+    path: '/public/booking/{slug}',
+    summary: 'Read a public booking page',
+    operationId: 'getPublicBookingPage',
+    request: { params: slugParams },
+    ok: jsonResponse('The page.', publicBookingPageViewSchema),
+  },
+  {
+    method: 'get',
+    path: '/public/booking/{slug}/slots',
+    summary: 'List free slots of a service (31 days at most)',
+    operationId: 'listBookableSlots',
+    request: { params: slugParams, query: listBookableSlotsQuerySchema },
+    ok: jsonResponse('Slots.', z.array(bookableSlotViewSchema)),
+  },
+  {
+    method: 'post',
+    path: '/public/booking/{slug}/requests',
+    summary: 'Book a slot',
+    operationId: 'requestBooking',
+    request: { params: slugParams, body: jsonBody(requestBookingSchema) },
+    ok: jsonResponse('Booked.', bookingRequestResultSchema),
+    status: 201,
+  },
+  {
+    method: 'get',
+    path: '/public/booking/manage/{token}',
+    summary: 'Read a booking from its manage link',
+    operationId: 'getManagedBooking',
+    request: { params: tokenParams },
+    ok: jsonResponse('The booking.', ManagedBookingView),
+  },
+  {
+    method: 'post',
+    path: '/public/booking/manage/{token}/cancel',
+    summary: 'Cancel from the manage link',
+    operationId: 'cancelBookingByToken',
+    request: { params: tokenParams, body: jsonBody(bookingReasonSchema) },
+    ok: jsonResponse('The booking.', ManagedBookingView),
+  },
+  {
+    method: 'post',
+    path: '/public/booking/manage/{token}/reschedule',
+    summary: 'Move from the manage link',
+    operationId: 'rescheduleBookingByToken',
+    request: { params: tokenParams, body: jsonBody(rescheduleByTokenSchema) },
+    ok: jsonResponse('The booking.', ManagedBookingView),
+  },
+]
+
+for (const entry of BOOKING_PATHS) {
+  registry.registerPath({
+    method: entry.method,
+    path: entry.path,
+    summary: entry.summary,
+    operationId: entry.operationId,
+    tags: ['Booking'],
+    ...(entry.scope ? { security: scoped(entry.scope) } : { security: [] }),
+    request: entry.request,
+    responses: {
+      [entry.status ?? 200]: entry.ok,
+      ...(entry.scope ? bookingErrors : publicErrors),
+      409: errorResponse,
+    },
+  })
+}
 
 const generated = new OpenApiGeneratorV31(
   registry.definitions,

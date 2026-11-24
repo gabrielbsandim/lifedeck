@@ -221,6 +221,10 @@ const privacy: LegalDocument = {
           kind: 'p',
           text: 'Delegado de Protección de Datos (DPO) y canal de contacto: {email}.',
         },
+        {
+          kind: 'p',
+          text: 'Cuando publicas una página de reservas, los datos que tus clientes ingresan para reservar contigo (nombre, correo, teléfono, nota y los horarios reservados) se tratan en tu nombre. Para esos datos **tú eres el responsable** y Lifedeck actúa como **encargado del tratamiento**, según la LGPD: los usamos solo para gestionar tus reservas y enviar por correo las confirmaciones, los recordatorios y los cambios, y los conservamos mientras exista tu cuenta. Tú respondes a las solicitudes de tus clientes sobre sus datos, y nosotros te ayudamos a hacerlo. Eliminar tu cuenta elimina también tus clientes y reservas.',
+        },
       ],
     },
     {
@@ -238,6 +242,7 @@ const privacy: LegalDocument = {
             '**Contenido del usuario:** las listas, tareas, notas y comparticiones que creas en la Plataforma;',
             '**Datos de WhatsApp:** tu número de teléfono de WhatsApp y el contenido de los mensajes que envías al asistente (texto, audio, imágenes), cuando vinculas WhatsApp;',
             '**Datos de calendario:** tus eventos del calendario y datos de conexión, cuando conectas Google Calendar;',
+            '**Datos de reservas:** tu página de reservas, servicios y horarios, y los clientes y reservas que recibe (ver en la sección 1 quién controla los datos de los clientes);',
             '**Datos de suscripción:** tu plan y el estado de suscripción y pago (nunca almacenamos números de tarjeta);',
             '**Datos de uso:** registros de acceso, funciones utilizadas y registros de actividad;',
             '**Datos técnicos:** dirección IP, tipo de navegador, sistema operativo y cookies de sesión.',

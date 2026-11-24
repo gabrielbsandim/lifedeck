@@ -997,6 +997,7 @@ function build(
       subscriptions,
       calendarEvents,
       channelIdentities,
+      booking: booking.repos,
     }),
     createList,
     renameList: makeRenameList({ lists, clock }),

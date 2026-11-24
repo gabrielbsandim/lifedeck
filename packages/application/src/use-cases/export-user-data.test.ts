@@ -22,10 +22,17 @@ import { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription
 import { InMemoryCalendarEventRepository } from '@/testing/in-memory-calendar-event-repository'
 import { InMemoryChannelIdentityRepository } from '@/testing/in-memory-channel-identity-repository'
 import { ID } from '@/testing/fakes'
+import {
+  InMemoryAvailabilityRepository,
+  InMemoryBookingClientRepository,
+  InMemoryBookingPageRepository,
+  InMemoryBookingRepository,
+  InMemoryBookingServiceRepository,
+} from '@/testing/in-memory-booking-repositories'
 
 const NOW = new Date('2026-06-22T10:00:00.000Z')
 
-function setup() {
+function setup(withBooking = false) {
   const users = new InMemoryUserRepository()
   const lists = new InMemoryListRepository()
   const tasks = new InMemoryTaskRepository()
@@ -58,6 +65,15 @@ function setup() {
       subscriptions,
       calendarEvents,
       channelIdentities,
+      booking: withBooking
+        ? {
+            pages: new InMemoryBookingPageRepository(),
+            services: new InMemoryBookingServiceRepository(),
+            availability: new InMemoryAvailabilityRepository(),
+            clients: new InMemoryBookingClientRepository(),
+            bookings: new InMemoryBookingRepository(),
+          }
+        : undefined,
     }),
   }
 }
@@ -173,7 +189,7 @@ describe('exportUserData', () => {
   })
 
   it('returns empty v2 sections for a user without that data', async () => {
-    const ctx = setup()
+    const ctx = setup(true)
     await ctx.users.save(
       User.createGuest({
         id: ID.user,
@@ -205,6 +221,7 @@ describe('exportUserData', () => {
     })
     expect(result.calendarEvents).toEqual([])
     expect(result.channels).toEqual([])
+    expect(result.booking).toBeNull()
   })
 
   it('rejects an unknown user', async () => {

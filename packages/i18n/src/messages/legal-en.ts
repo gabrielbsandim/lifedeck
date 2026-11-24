@@ -221,6 +221,10 @@ const privacy: LegalDocument = {
           kind: 'p',
           text: 'Data Protection Officer (DPO) and contact channel: {email}.',
         },
+        {
+          kind: 'p',
+          text: "When you publish a booking page, the data your clients enter to book with you (name, email, phone, note and the booked times) is processed on your behalf. For that data **you are the controller** and Lifedeck acts as **operator** (processor) under the LGPD: we use it only to run your bookings, send the confirmations, reminders and changes by email, and keep it while your account exists. You answer your clients' requests about their data, and we help you do so. Deleting your account deletes your clients and bookings with it.",
+        },
       ],
     },
     {
@@ -238,6 +242,7 @@ const privacy: LegalDocument = {
             '**User content:** the lists, tasks, notes and shares you create on the Platform;',
             '**WhatsApp data:** your WhatsApp phone number and the content of the messages you send to the assistant (text, audio, images), when you link WhatsApp;',
             '**Calendar data:** your calendar events and connection data, when you connect Google Calendar;',
+            '**Booking data:** your booking page, services and hours, and the clients and bookings it receives (see section 1 on who controls client data);',
             '**Subscription data:** your plan and subscription and payment status (we never store card numbers);',
             '**Usage data:** access records, features used and activity logs;',
             '**Technical data:** IP address, browser type, operating system and session cookies.',

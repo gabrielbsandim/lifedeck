@@ -221,6 +221,10 @@ const privacy: LegalDocument = {
           kind: 'p',
           text: 'Encarregado (DPO) e canal de contato: {email}.',
         },
+        {
+          kind: 'p',
+          text: 'Quando você publica uma página de agendamento, os dados que seus clientes informam para agendar com você (nome, e-mail, telefone, observação e os horários marcados) são tratados em seu nome. Para esses dados **você é o controlador** e o Lifedeck atua como **operador**, nos termos da LGPD: usamos esses dados apenas para operar seus agendamentos e enviar por e-mail as confirmações, os lembretes e as alterações, e os mantemos enquanto sua conta existir. Você responde às solicitações dos seus clientes sobre os dados deles, e nós ajudamos você a fazer isso. Excluir sua conta exclui junto seus clientes e agendamentos.',
+        },
       ],
     },
     {
@@ -238,6 +242,7 @@ const privacy: LegalDocument = {
             '**Conteúdo do usuário:** as listas, tarefas, notas e compartilhamentos que você cria na Plataforma;',
             '**Dados do WhatsApp:** seu número de telefone do WhatsApp e o conteúdo das mensagens que você envia ao assistente (texto, áudio, imagens), quando você vincula o WhatsApp;',
             '**Dados de agenda:** seus eventos de agenda e dados de conexão, quando você conecta o Google Agenda;',
+            '**Dados de agendamento:** sua página de agendamento, serviços e horários, e os clientes e agendamentos que ela recebe (veja na seção 1 quem controla os dados dos clientes);',
             '**Dados de assinatura:** seu plano e o status de assinatura e pagamento (nunca armazenamos números de cartão);',
             '**Dados de uso:** registros de acesso, funcionalidades utilizadas e logs de atividade;',
             '**Dados técnicos:** endereço IP, tipo de navegador, sistema operacional e cookies de sessão.',

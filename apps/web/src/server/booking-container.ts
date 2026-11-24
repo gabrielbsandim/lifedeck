@@ -182,6 +182,8 @@ export function buildBooking(deps: BookingDependencies) {
   }
 
   return {
+    // Read by the account data export, which must include the host's clients.
+    repos,
     jobHandlers,
     getSetup: makeGetBookingSetup(shared),
     upsertPage: makeUpsertBookingPage(shared),

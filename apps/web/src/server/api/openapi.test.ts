@@ -40,6 +40,23 @@ describe('openApiDocument', () => {
     ])
   })
 
+  it('documents the booking API, host scoped and public open', () => {
+    type Operation = { security?: Array<Record<string, string[]>> }
+    const path = (key: string) =>
+      doc.paths[key] as Record<string, Operation> | undefined
+    expect(path('/booking/setup')?.get?.security?.[0]?.ApiKeyAuth).toEqual([
+      'booking:read',
+    ])
+    expect(
+      path('/booking/bookings/{id}/confirm')?.post?.security?.[0]?.ApiKeyAuth,
+    ).toEqual(['booking:write'])
+    expect(path('/public/booking/{slug}/requests')?.post?.security).toEqual([])
+    expect(path('/public/booking/manage/{token}/reschedule')).toHaveProperty(
+      'post',
+    )
+    expect(doc.components.schemas.BookingView).toBeDefined()
+  })
+
   it('declares the API key security scheme', () => {
     expect(doc.components.securitySchemes.ApiKeyAuth).toMatchObject({
       type: 'http',

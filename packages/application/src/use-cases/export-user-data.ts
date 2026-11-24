@@ -26,6 +26,11 @@ import type { ApiKeyRepository } from '@/ports/api-key-repository'
 import type { SubscriptionRepository } from '@/ports/subscription-repository'
 import type { CalendarEventRepository } from '@/ports/calendar-event-repository'
 import type { ChannelIdentityRepository } from '@/ports/channel-identity-repository'
+import {
+  exportBookingData,
+  type BookingDataExport,
+  type BookingExportDeps,
+} from '@/shared/booking-export'
 
 const NOTIFICATION_EXPORT_LIMIT = 1000
 
@@ -52,6 +57,9 @@ export type UserDataExport = {
   subscription: SubscriptionExport | null
   calendarEvents: CalendarEventView[]
   channels: ChannelExport[]
+  // Pages, services, hours, the host's clients and every booking; null when the
+  // user never used booking.
+  booking: BookingDataExport | null
 }
 
 type Dependencies = {
@@ -65,6 +73,7 @@ type Dependencies = {
   subscriptions: SubscriptionRepository
   calendarEvents: CalendarEventRepository
   channelIdentities: ChannelIdentityRepository
+  booking?: BookingExportDeps
 }
 
 export function makeExportUserData({
@@ -78,6 +87,7 @@ export function makeExportUserData({
   subscriptions,
   calendarEvents,
   channelIdentities,
+  booking,
 }: Dependencies) {
   return async function exportUserData(
     userId: string,
@@ -111,6 +121,7 @@ export function makeExportUserData({
       subscription,
       events,
       whatsapp,
+      bookingData,
     ] = await Promise.all([
       recurringTasks.listByOwner(owner),
       notifications.listByUser(owner, NOTIFICATION_EXPORT_LIMIT),
@@ -118,6 +129,7 @@ export function makeExportUserData({
       subscriptions.findByUser(owner),
       calendarEvents.listByOwner(owner),
       channelIdentities.findByUser(owner, 'whatsapp'),
+      booking ? exportBookingData(booking, owner) : Promise.resolve(null),
     ])
 
     return {
@@ -146,6 +158,7 @@ export function makeExportUserData({
             },
           ]
         : [],
+      booking: bookingData,
     }
   }
 }

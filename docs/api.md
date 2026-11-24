@@ -67,6 +67,8 @@ endpoint that the key is not scoped for returns `403 FORBIDDEN`.
 | `lists:read`     | Read lists.                                          |
 | `lists:write`    | Create, rename, delete lists; invite; share.        |
 | `analytics:read` | Read completion analytics.                          |
+| `booking:read`   | Read the booking setup, clients and bookings.       |
+| `booking:write`  | Edit the booking page, services, hours, clients; book, approve, cancel, move. |
 
 The session cookie is implicitly granted every scope.
 
@@ -78,7 +80,9 @@ limited **per user** under a looser session window (240 requests per 60
 seconds), and AI list generation carries a tight **per-user** throttle (6
 requests per 60 seconds) on top of that. The unauthenticated
 `GET /shared/{token}` and `POST /vitals` are limited **per IP** (60 requests per
-60 seconds). Responses carry `X-RateLimit-Limit`,
+60 seconds). The public booking routes have their own limits: slot lookups 60
+per minute per IP, booking requests 5 per 10 minutes per IP and per client
+email (see [booking.md](booking.md)). Responses carry `X-RateLimit-Limit`,
 `X-RateLimit-Remaining`, and `X-RateLimit-Reset`; exceeding any window returns
 `429 RATE_LIMITED`. Rate limiting is backed by Upstash Redis and is a no-op when
 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset (local dev).
