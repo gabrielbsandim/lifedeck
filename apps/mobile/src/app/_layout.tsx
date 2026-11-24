@@ -47,6 +47,10 @@ function RootStack() {
       />
       <Stack.Screen name="habits" options={{ title: messages.habits.title }} />
       <Stack.Screen
+        name="booking"
+        options={{ title: messages.bookingHost.title }}
+      />
+      <Stack.Screen
         name="recurring"
         options={{ title: messages.recurring.title }}
       />

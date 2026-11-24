@@ -1007,5 +1007,12 @@ export const en: Messages = {
       language: 'Email language',
     },
     calendarBadge: 'Booking',
+    mobile: {
+      setupHint:
+        'Set up your page, services and hours on the web. Bookings show up here.',
+      editHint: 'To change this, open Booking on the web.',
+      openWeb: 'Open on the web',
+      readOnly: 'View only',
+    },
   },
 }

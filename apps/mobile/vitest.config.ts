@@ -23,6 +23,7 @@ export default mergeConfig(
         'src/lib/billing/prices.ts',
         'src/lib/onboarding/**/*.ts',
         'src/lib/legal/**/*.ts',
+        'src/lib/booking/**/*.ts',
       ],
       coverageExclude: ['src/**/*.test.ts'],
     }),

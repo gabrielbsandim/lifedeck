@@ -1019,5 +1019,12 @@ export const pt: Messages = {
       language: 'Idioma dos emails',
     },
     calendarBadge: 'Agendamento',
+    mobile: {
+      setupHint:
+        'Configure sua página, serviços e horários na web. Os agendamentos aparecem aqui.',
+      editHint: 'Para mudar isso, abra Agendamentos na web.',
+      openWeb: 'Abrir na web',
+      readOnly: 'Só leitura',
+    },
   },
 }

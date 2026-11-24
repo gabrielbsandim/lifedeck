@@ -943,5 +943,11 @@ export type Messages = {
       language: string
     }
     calendarBadge: string
+    mobile: {
+      setupHint: string
+      editHint: string
+      openWeb: string
+      readOnly: string
+    }
   }
 }

@@ -1026,5 +1026,12 @@ export const es: Messages = {
       language: 'Idioma de los emails',
     },
     calendarBadge: 'Reserva',
+    mobile: {
+      setupHint:
+        'Configura tu página, servicios y horarios en la web. Las reservas aparecen aquí.',
+      editHint: 'Para cambiar esto, abre Reservas en la web.',
+      openWeb: 'Abrir en la web',
+      readOnly: 'Solo lectura',
+    },
   },
 }

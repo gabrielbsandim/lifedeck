@@ -11,6 +11,7 @@ import {
   ChartIcon,
   CheckSquareIcon,
   ChevronRightIcon,
+  ClockIcon,
   CodeIcon,
   DeckGlyph,
   LinkIcon,
@@ -180,6 +181,13 @@ export default function ProfileScreen() {
             label={messages.nav.calendar}
             icon={<CalendarIcon size={16} color={colors.brand['500']} />}
             onPress={() => router.push('/calendar')}
+          />
+        ) : null}
+        {user.features?.booking ? (
+          <Row
+            label={messages.nav.booking}
+            icon={<ClockIcon size={16} color={colors.brand.accent} />}
+            onPress={() => router.push('/booking')}
           />
         ) : null}
         <Row
