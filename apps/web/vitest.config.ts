@@ -15,6 +15,7 @@ export default mergeConfig(
       'src/app/api/v1/internal/**/*.ts',
       'src/app/api/v1/account/assistant-profile/**/*.ts',
       'src/app/api/v1/auth/web-handoff/**/*.ts',
+      'src/app/api/v1/auth/apple/**/*.ts',
       'src/app/api/v1/booking/**/*.ts',
       'src/app/api/v1/public/booking/**/*.ts',
     ],

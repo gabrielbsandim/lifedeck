@@ -3,6 +3,12 @@ import { User } from '@lifedeck/domain'
 import { makeSignInWithEmail } from '@/use-cases/sign-in-with-email'
 import { makeSignInWithGoogle } from '@/use-cases/sign-in-with-google'
 import { makeGetGoogleAuthUrl } from '@/use-cases/get-google-auth-url'
+import { makeSignInWithApple } from '@/use-cases/sign-in-with-apple'
+import {
+  FakeIdentityTokenVerifier,
+  VALID_IDENTITY_TOKEN,
+} from '@/testing/fake-identity-token-verifier'
+import { InvalidIdentityTokenError } from '@/errors/use-case-error'
 import { InMemoryUserRepository } from '@/testing/in-memory-user-repository'
 import { FakePasswordHasher } from '@/testing/fake-password-hasher'
 import { FakeOAuthProvider } from '@/testing/fake-oauth-provider'
@@ -270,5 +276,94 @@ describe('getGoogleAuthUrl', () => {
   it('delegates to the provider with the state', () => {
     const getUrl = makeGetGoogleAuthUrl({ oauth: new FakeOAuthProvider() })
     expect(getUrl('xyz')).toBe('https://oauth.test/authorize?state=xyz')
+  })
+})
+
+describe('signInWithApple', () => {
+  function setup(verifier = new FakeIdentityTokenVerifier()) {
+    const users = new InMemoryUserRepository()
+    return {
+      users,
+      signIn: makeSignInWithApple({
+        users,
+        apple: verifier,
+        ids: new SequentialIdGenerator([ID.user]),
+        clock: new FixedClock(NOW),
+      }),
+    }
+  }
+
+  it('creates a verified user named from the first authorization', async () => {
+    const ctx = setup()
+    const view = await ctx.signIn({
+      identityToken: VALID_IDENTITY_TOKEN,
+      fullName: '  Ana Souza  ',
+    })
+    expect(view.email).toBe('apple@example.com')
+    expect(view.isEmailVerified).toBe(true)
+    expect(view.displayName).toBe('Ana Souza')
+  })
+
+  it('never names a user after a hidden relay address', async () => {
+    const ctx = setup(
+      new FakeIdentityTokenVerifier({
+        email: 'x7k2p9@privaterelay.appleid.com',
+        displayName: '',
+        emailVerified: true,
+      }),
+    )
+    const view = await ctx.signIn({ identityToken: VALID_IDENTITY_TOKEN })
+    expect(view.displayName).toBe('Friend')
+  })
+
+  it('signs in to the account that already owns the email', async () => {
+    const ctx = setup()
+    const existing = User.createGuest({
+      id: ID.otherUser,
+      displayName: 'Existing',
+      locale: 'en',
+      createdAt: NOW,
+    })
+    existing.register({
+      email: 'apple@example.com',
+      passwordHash: null,
+      emailVerifiedAt: NOW,
+    })
+    await ctx.users.save(existing)
+    const view = await ctx.signIn({ identityToken: VALID_IDENTITY_TOKEN })
+    expect(view.id).toBe(ID.otherUser)
+  })
+
+  it('claims the guest account that made the request', async () => {
+    const ctx = setup()
+    const guest = User.createGuest({
+      id: ID.otherUser,
+      displayName: 'Guest Name',
+      locale: 'en',
+      createdAt: NOW,
+    })
+    await ctx.users.save(guest)
+    const view = await ctx.signIn(
+      { identityToken: VALID_IDENTITY_TOKEN },
+      ID.otherUser,
+    )
+    expect(view.id).toBe(ID.otherUser)
+    expect(view.isGuest).toBe(false)
+  })
+
+  it('rejects a bad token and an unverified email', async () => {
+    await expect(
+      setup().signIn({ identityToken: 'forged' }),
+    ).rejects.toBeInstanceOf(InvalidIdentityTokenError)
+    const unverified = setup(
+      new FakeIdentityTokenVerifier({
+        email: 'a@example.com',
+        displayName: '',
+        emailVerified: false,
+      }),
+    )
+    await expect(
+      unverified.signIn({ identityToken: VALID_IDENTITY_TOKEN }),
+    ).rejects.toThrow('not verified')
   })
 })

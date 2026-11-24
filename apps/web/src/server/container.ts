@@ -121,6 +121,7 @@ import {
   makeSetAvatar,
   makeRemoveAvatar,
   makeSignInWithEmail,
+  makeSignInWithApple,
   makeSignInWithGoogle,
   makeUpdateCalendarEvent,
   makeUpdateRecurringTask,
@@ -140,6 +141,7 @@ import {
   type PushDeviceRepository,
   type SessionRevocationStore,
   type PushSender,
+  type IdentityTokenVerifier,
   type OAuthProvider,
   type PasswordHasher,
   type RecurringTaskRepository,
@@ -175,6 +177,7 @@ import {
   AiSdkListGenerator,
   ConsoleEmailSender,
   createGoogleListGenerator,
+  AppleIdentityVerifier,
   GoogleOAuthProvider,
   NumericCodeGenerator,
   PrismaAnalyticsRepository,
@@ -265,6 +268,7 @@ type Container = {
   verifyEmail: ReturnType<typeof makeVerifyEmail>
   signInWithEmail: ReturnType<typeof makeSignInWithEmail>
   signInWithGoogle: ReturnType<typeof makeSignInWithGoogle>
+  signInWithApple: ReturnType<typeof makeSignInWithApple>
   getGoogleAuthUrl: ReturnType<typeof makeGetGoogleAuthUrl>
   changePassword: ReturnType<typeof makeChangePassword>
   revokeSessions: ReturnType<typeof makeRevokeSessions>
@@ -403,6 +407,7 @@ type Services = {
   keyHasher: KeyHasher
   emailSender: EmailSender
   oauth: OAuthProvider
+  appleIdentity: IdentityTokenVerifier
   listGenerator: ListGenerator
   healthProbes: HealthProbe[]
   fileStorage: FileStorage
@@ -451,6 +456,7 @@ function build(
     keyHasher,
     emailSender,
     oauth,
+    appleIdentity,
     listGenerator,
     healthProbes,
     fileStorage,
@@ -986,6 +992,12 @@ function build(
     verifyEmail: makeVerifyEmail({ users, emailVerifications, hasher, clock }),
     signInWithEmail: makeSignInWithEmail({ users, hasher }),
     signInWithGoogle: makeSignInWithGoogle({ users, oauth, ids, clock }),
+    signInWithApple: makeSignInWithApple({
+      users,
+      apple: appleIdentity,
+      ids,
+      clock,
+    }),
     getGoogleAuthUrl: makeGetGoogleAuthUrl({ oauth }),
     changePassword: makeChangePassword({ users, hasher, sessions, clock }),
     revokeSessions: makeRevokeSessions({ sessions, clock }),
@@ -1263,6 +1275,9 @@ function buildEmailSender(): EmailSender {
   return new ConsoleEmailSender()
 }
 
+// The iOS app's bundle id, the audience of its Sign in with Apple tokens.
+const APPLE_BUNDLE_ID = 'com.gbs.lifedeck'
+
 function buildGoogleProvider(): GoogleOAuthProvider {
   return new GoogleOAuthProvider({
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
@@ -1325,6 +1340,9 @@ export function getContainer(): Container {
         keyHasher: new Sha256KeyHasher(),
         emailSender: buildEmailSender(),
         oauth: buildGoogleProvider(),
+        appleIdentity: new AppleIdentityVerifier({
+          audiences: [APPLE_BUNDLE_ID],
+        }),
         listGenerator: buildListGenerator(),
         healthProbes: buildHealthProbes(),
         fileStorage: new VercelBlobStorage(),

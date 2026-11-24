@@ -1,8 +1,10 @@
 // RN port of apps/web/src/components/auth-dialog.tsx. Same three states
 // (register / sign in / verify code) and the same Google entry point, which on
-// native opens a system auth session instead of navigating the page.
+// native opens a system auth session instead of navigating the page. iOS adds
+// Sign in with Apple, drawn with Apple's own button as its guidelines require.
 import { useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View, useColorScheme } from 'react-native'
+import * as AppleAuthentication from 'expo-apple-authentication'
 import { Button, Dialog, PasswordField, TextField } from '@/components/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
@@ -11,6 +13,7 @@ import {
   useSignIn,
   useVerifyEmail,
 } from '@/lib/api/use-auth'
+import { useAppleSignIn } from '@/lib/auth/use-apple-auth'
 import { useGoogleSignIn } from '@/lib/auth/use-google-auth'
 
 type Mode = 'register' | 'signin'
@@ -40,6 +43,8 @@ export function AuthDialog({
   const verify = useVerifyEmail()
   const resend = useResendCode()
   const google = useGoogleSignIn()
+  const apple = useAppleSignIn()
+  const scheme = useColorScheme()
 
   function close() {
     setVerifying(false)
@@ -147,6 +152,26 @@ export function AuthDialog({
               ? messages.auth.register
               : messages.auth.signIn}
           </Button>
+          {apple.isAvailable ? (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={
+                AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
+              }
+              buttonStyle={
+                scheme === 'dark'
+                  ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                  : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+              }
+              cornerRadius={12}
+              style={{ height: 44 }}
+              onPress={() =>
+                void apple.start().then(signedIn => signedIn && close())
+              }
+            />
+          ) : null}
+          {apple.isError ? (
+            <Text className="text-danger text-sm">{messages.common.error}</Text>
+          ) : null}
           <Button
             variant="ghost"
             onPress={() => void google.start()}

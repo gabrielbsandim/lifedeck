@@ -64,6 +64,19 @@ export function exchangeNativeAuthCode(code: string): Promise<UserView> {
   return issueSession('/auth/native', { code })
 }
 
+// Trades the identity token from the native Sign in with Apple sheet for a
+// session. The guest token rides along so the guest's lists carry over.
+export async function appleSignInSession(input: {
+  identityToken: string
+  fullName: string | null
+}): Promise<UserView> {
+  const token = await getSessionToken()
+  return issueSession('/auth/apple', input, {
+    method: 'POST',
+    authorization: token ? `Bearer ${token}` : undefined,
+  })
+}
+
 // A password change revokes every session, this one included, and answers with
 // the replacement token, which has to land in the keychain before the next call.
 export async function changePasswordSession(input: {

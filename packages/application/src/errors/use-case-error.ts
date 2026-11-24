@@ -55,3 +55,12 @@ export class SlotTakenError extends Error {
     this.name = 'SlotTakenError'
   }
 }
+
+export class InvalidIdentityTokenError extends Error {
+  readonly code = 'UNAUTHORIZED'
+
+  constructor() {
+    super('The sign-in token is invalid.')
+    this.name = 'InvalidIdentityTokenError'
+  }
+}

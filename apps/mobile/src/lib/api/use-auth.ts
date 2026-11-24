@@ -5,7 +5,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UserView } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
-import { exchangeNativeAuthCode, signInSession } from '@/lib/api/sessions'
+import {
+  appleSignInSession,
+  exchangeNativeAuthCode,
+  signInSession,
+} from '@/lib/api/sessions'
 import { sessionKey } from '@/lib/api/use-session'
 
 export function useRegister() {
@@ -57,6 +61,18 @@ export function useExchangeGoogleCode() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (code: string) => exchangeNativeAuthCode(code),
+    onSuccess: (user: UserView) => {
+      queryClient.setQueryData(sessionKey, user)
+      void queryClient.invalidateQueries()
+    },
+  })
+}
+
+export function useAppleSignInSession() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { identityToken: string; fullName: string | null }) =>
+      appleSignInSession(input),
     onSuccess: (user: UserView) => {
       queryClient.setQueryData(sessionKey, user)
       void queryClient.invalidateQueries()

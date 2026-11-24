@@ -40,6 +40,7 @@ export type {
 export { toEmailLocale } from '@/ports/email-sender'
 export { formatEventTime } from '@/shared/format-event-time'
 export type { OAuthProvider, OAuthProfile } from '@/ports/oauth-provider'
+export type { IdentityTokenVerifier } from '@/ports/identity-token-verifier'
 export type { FileStorage, StoredFile, UploadInput } from '@/ports/file-storage'
 export type { EmailVerificationRepository } from '@/ports/email-verification-repository'
 export type {
@@ -53,6 +54,7 @@ export {
   QuotaExceededError,
   MediaUnderstandingUnavailableError,
   SlotTakenError,
+  InvalidIdentityTokenError,
 } from '@/errors/use-case-error'
 export {
   createTaskSchema,
@@ -481,6 +483,10 @@ export { makeRequestEmailVerification } from '@/use-cases/request-email-verifica
 export { makeVerifyEmail } from '@/use-cases/verify-email'
 export { makeSignInWithEmail } from '@/use-cases/sign-in-with-email'
 export { makeSignInWithGoogle } from '@/use-cases/sign-in-with-google'
+export {
+  makeSignInWithApple,
+  type AppleSignInInput,
+} from '@/use-cases/sign-in-with-apple'
 export { makeGetGoogleAuthUrl } from '@/use-cases/get-google-auth-url'
 export { makeChangePassword } from '@/use-cases/change-password'
 export { makeRevokeSessions } from '@/use-cases/revoke-sessions'
@@ -578,6 +584,10 @@ export { InMemoryApiKeyRepository } from '@/testing/in-memory-api-key-repository
 export { FakeEmailSender } from '@/testing/fake-email-sender'
 export { FakeCodeGenerator } from '@/testing/fake-code-generator'
 export { FakeOAuthProvider } from '@/testing/fake-oauth-provider'
+export {
+  FakeIdentityTokenVerifier,
+  VALID_IDENTITY_TOKEN,
+} from '@/testing/fake-identity-token-verifier'
 export { FakeFileStorage } from '@/testing/fake-file-storage'
 export { FakeAnalyticsRepository } from '@/testing/fake-analytics-repository'
 export { FakeListGenerator } from '@/testing/fake-list-generator'

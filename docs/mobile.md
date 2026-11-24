@@ -265,6 +265,14 @@ the token in Redis under a 2-minute one-time code and redirects to
 over HTTPS. The token never travels through the custom-scheme URL, which any app
 on the device could claim.
 
+Sign in with Apple is iOS only (App Store review asks for it next to Google).
+`expo-apple-authentication` shows Apple's sheet and button, and the identity
+token it returns goes to `POST /api/v1/auth/apple` with the guest's Bearer and
+the name, which Apple shares only on the first authorization. The API checks the
+token against Apple's keys with `aud` `com.gbs.lifedeck` and signs in by email,
+like Google. A hidden email is an `@privaterelay.appleid.com` address, so that
+account can only come back through Apple.
+
 The reverse trip, app to browser, works the same way. `POST
 /api/v1/auth/web-handoff` (Bearer) returns a URL with a one-minute, single-use
 code; the system browser opens it, `GET /api/v1/auth/web-handoff` trades the

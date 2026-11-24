@@ -32,6 +32,10 @@ export {
   type GoogleOAuthConfig,
 } from '@/auth/google-oauth-provider'
 export {
+  AppleIdentityVerifier,
+  type AppleIdentityVerifierConfig,
+} from '@/auth/apple-identity-verifier'
+export {
   toDomainTask,
   toTaskRecord,
   type TaskRecord,

@@ -57,6 +57,17 @@ creates a new verified account. Requires `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET`; `GOOGLE_REDIRECT_URI` is optional and defaults to
 `<NEXT_PUBLIC_SITE_URL>/api/v1/auth/google/callback`.
 
+## Sign in with Apple
+
+`POST /api/v1/auth/apple` takes `{ identityToken, fullName? }` from the iOS app.
+`AppleIdentityVerifier` checks the RS256 signature against
+`https://appleid.apple.com/auth/keys`, the issuer and the audience (the bundle id
+`com.gbs.lifedeck`, a constant in the container), then `signInWithApple` signs in
+by email through the same path as Google, claiming the requesting guest. A bad
+token answers 401. No secret is needed. Revoking the Apple grant on account
+deletion is not built: it needs a Sign in with Apple key and the refresh token
+stored per user.
+
 Native clients use single-use codes in Redis to cross between the app and a
 browser in both directions: `POST /api/v1/auth/native` after Google sign-in, and
 `/api/v1/auth/web-handoff` to open a web page (billing) as the same account. See
