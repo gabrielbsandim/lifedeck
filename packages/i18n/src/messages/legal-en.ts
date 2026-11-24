@@ -436,4 +436,61 @@ const privacy: LegalDocument = {
   ],
 }
 
-export const enLegal = { terms, privacy }
+const deleteAccount: LegalDocument = {
+  title: 'Delete your account',
+  intro:
+    'This page explains how to delete your Lifedeck account, an app by GBS Tecnologia da Informação Ltda, and what happens to your data. Deletion is immediate and cannot be undone.',
+  sections: [
+    {
+      title: 'In the app or on the web',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'In the iPhone or Android app: open **Settings → Account → Delete account** and confirm.',
+            'On the web: sign in at lifedeck.com.br, open **Settings → Account → Delete account** and confirm.',
+            'Before that, you can download a copy in **Settings → Account → Export my data**.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Without access to the account',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Write to {email} from the account email asking for deletion. We confirm the request is yours, delete the account and reply within the legal deadline.',
+        },
+      ],
+    },
+    {
+      title: 'What is deleted',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'Profile, name, email, photo and preferences.',
+            'Lists, tasks, habits, recurring tasks, calendar events and calendar connections.',
+            'Booking page, services, clients and bookings.',
+            'Assistant conversation history, linked WhatsApp numbers, notification devices and API keys.',
+            'Subscription: we cancel the recurring charge at the payment provider before deleting the account.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'What is kept',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'Billing records that tax and accounting law requires, for the legal period.',
+            'Lists owned by other people that you were part of stay theirs; you are removed from them.',
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+export const enLegal = { terms, privacy, deleteAccount }

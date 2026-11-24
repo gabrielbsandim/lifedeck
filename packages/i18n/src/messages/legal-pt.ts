@@ -436,4 +436,61 @@ const privacy: LegalDocument = {
   ],
 }
 
-export const ptLegal = { terms, privacy }
+const deleteAccount: LegalDocument = {
+  title: 'Excluir sua conta',
+  intro:
+    'Esta página explica como excluir sua conta do Lifedeck, app da GBS Tecnologia da Informação Ltda, e o que acontece com os seus dados. A exclusão é imediata e não pode ser desfeita.',
+  sections: [
+    {
+      title: 'No app ou no site',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'No app para iPhone ou Android: abra **Ajustes → Conta → Excluir conta** e confirme.',
+            'No site: entre em lifedeck.com.br, abra **Ajustes → Conta → Excluir conta** e confirme.',
+            'Antes, se quiser, baixe uma cópia em **Ajustes → Conta → Exportar meus dados**.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Sem acesso à conta',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Escreva para {email} a partir do e-mail da conta pedindo a exclusão. Confirmamos que o pedido é seu e excluímos a conta, respondendo no prazo legal.',
+        },
+      ],
+    },
+    {
+      title: 'O que é excluído',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'Perfil, nome, e-mail, foto e preferências.',
+            'Listas, tarefas, hábitos, tarefas recorrentes, eventos e conexões de agenda.',
+            'Página de agendamento, serviços, clientes e agendamentos.',
+            'Histórico de conversa com o assistente, números de WhatsApp vinculados, aparelhos de notificação e chaves de API.',
+            'Assinatura: cancelamos a cobrança recorrente no provedor de pagamento antes de excluir a conta.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'O que fica',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'Registros de cobrança exigidos pela legislação fiscal e contábil, pelo prazo legal.',
+            'Listas de outras pessoas que você integrava continuam sendo delas; você deixa de fazer parte delas.',
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+export const ptLegal = { terms, privacy, deleteAccount }

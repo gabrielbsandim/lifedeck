@@ -28,6 +28,7 @@ export const pt: Messages = {
     updatedAt: 'Última atualização: julho de 2026',
     terms: ptLegal.terms,
     privacy: ptLegal.privacy,
+    deleteAccount: ptLegal.deleteAccount,
   },
   onboarding: {
     title: 'Vamos começar',

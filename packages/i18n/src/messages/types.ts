@@ -39,6 +39,7 @@ export type Messages = {
     updatedAt: string
     terms: LegalDocument
     privacy: LegalDocument
+    deleteAccount: LegalDocument
   }
   onboarding: {
     title: string

@@ -24,6 +24,7 @@ export default mergeConfig(
         'src/lib/onboarding/**/*.ts',
         'src/lib/legal/**/*.ts',
         'src/lib/booking/**/*.ts',
+        'src/lib/store/**/*.ts',
       ],
       coverageExclude: ['src/**/*.test.ts'],
     }),

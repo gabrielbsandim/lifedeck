@@ -167,6 +167,36 @@ through their `dist/`, which is generated and gitignored, so on a clean worker
 the app's workspace dependencies to fill that gap. It has no equivalent in the
 OTA workflow, where the verification steps already build them.
 
+## Stores
+
+Published under the GBS Tecnologia company accounts.
+
+| | iOS | Android |
+| --- | --- | --- |
+| Id | `com.gbs.lifedeck` (Apple refused `com.lifedeck.app`: taken by another team) | `com.lifedeck.app` |
+| Console | App Store Connect app `6838782178`, team `7NDK3458CP` | Play Console app `4972091149099506066` |
+| Submit | `eas submit` with `submit.production` in `eas.json` | Play `production` track, as a draft until the listing is complete |
+
+- **Privacy manifest**: `ios.privacyManifests` in `app.json`.
+  `src/lib/store/privacy-manifest.test.ts` fails when a usage description or
+  plugin collects data the manifest does not declare, when anything is marked as
+  tracking, or when a required-reason API from React Native and Expo loses its
+  reason. Keep the App Privacy labels and the Play Data safety form in step with
+  the manifest.
+- **Export compliance**: `ios.config.usesNonExemptEncryption: false` (HTTPS
+  only), so uploads skip the question.
+- **iPhone only**: `supportsTablet: false` until the iPad layout is checked.
+- **Universal links**: `/share/*` opens the app. The web serves
+  `/.well-known/apple-app-site-association` and
+  `/.well-known/assetlinks.json`; the Android file stays empty until
+  `ANDROID_APP_SIGNING_SHA256` holds the Play App Signing fingerprint (Play
+  Console, Test and release, App integrity), which exists only after the first
+  upload.
+- **Account deletion**: in the app and on the web under Settings, Account, and
+  described for the stores at `/delete-account`. Deleting cancels any live
+  subscription at Asaas or Stripe first; a provider error keeps the account so
+  the user can retry.
+
 ## Push notifications
 
 Delivery goes through Expo's push service, which fronts APNs and FCM so no

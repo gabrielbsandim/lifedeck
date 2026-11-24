@@ -6,7 +6,11 @@ import { useI18n } from '@/lib/i18n/messages-provider'
 import { SiteFooter } from '@/components/site-footer'
 import { renderRichText } from '@/components/legal/rich-text'
 
-export function LegalScreen({ doc }: { doc: 'terms' | 'privacy' }) {
+export function LegalScreen({
+  doc,
+}: {
+  doc: 'terms' | 'privacy' | 'deleteAccount'
+}) {
   const { messages } = useI18n()
   const content = messages.legal[doc]
 

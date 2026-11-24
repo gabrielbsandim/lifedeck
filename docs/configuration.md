@@ -175,6 +175,7 @@ one build-time value plus, optionally, one server-side token.
 | `EXPO_PUBLIC_API_URL` | The API origin the app calls. Set per build profile in `apps/mobile/eas.json`, not here. | The host that answers **without redirecting** (`https://www.lifedeck.com.br`, not the apex). Inlined into the bundle, so never a secret. |
 | `EXPO_ACCESS_TOKEN` | Server-side, lets the API authenticate its push sends. | Expo dashboard, Account settings, Access tokens. Only needed once the Expo account turns on enhanced push security. |
 | `EXPO_TOKEN` | GitHub Actions secret, not an app variable. Lets CI publish OTA updates and queue builds. | Same page as above; add it under Settings, Secrets and variables, Actions. |
+| `ANDROID_APP_SIGNING_SHA256` | Web, optional. Fingerprints (comma separated) served in `/.well-known/assetlinks.json` so Android opens `/share/*` links in the app. | Play Console, Test and release, App integrity, App signing key certificate, SHA-256. Unset, the file is an empty list and Android shows the chooser. |
 
 Push notifications need no other credentials: Expo's push service fronts APNs
 and FCM, and EAS holds the per-platform keys. Full setup lives in

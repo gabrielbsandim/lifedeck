@@ -436,4 +436,61 @@ const privacy: LegalDocument = {
   ],
 }
 
-export const esLegal = { terms, privacy }
+const deleteAccount: LegalDocument = {
+  title: 'Eliminar tu cuenta',
+  intro:
+    'Esta página explica cómo eliminar tu cuenta de Lifedeck, app de GBS Tecnologia da Informação Ltda, y qué pasa con tus datos. La eliminación es inmediata y no se puede deshacer.',
+  sections: [
+    {
+      title: 'En la app o en la web',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'En la app para iPhone o Android: abre **Ajustes → Cuenta → Eliminar cuenta** y confirma.',
+            'En la web: entra en lifedeck.com.br, abre **Ajustes → Cuenta → Eliminar cuenta** y confirma.',
+            'Antes, si quieres, descarga una copia en **Ajustes → Cuenta → Exportar mis datos**.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Sin acceso a la cuenta',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Escribe a {email} desde el correo de la cuenta pidiendo la eliminación. Confirmamos que la solicitud es tuya, eliminamos la cuenta y respondemos en el plazo legal.',
+        },
+      ],
+    },
+    {
+      title: 'Qué se elimina',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'Perfil, nombre, correo, foto y preferencias.',
+            'Listas, tareas, hábitos, tareas recurrentes, eventos y conexiones de calendario.',
+            'Página de reservas, servicios, clientes y reservas.',
+            'Historial de conversación con el asistente, números de WhatsApp vinculados, dispositivos de notificación y claves de API.',
+            'Suscripción: cancelamos el cobro recurrente en el proveedor de pago antes de eliminar la cuenta.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Qué se conserva',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'Registros de cobro que exige la legislación fiscal y contable, durante el plazo legal.',
+            'Las listas de otras personas de las que formabas parte siguen siendo suyas; dejas de formar parte de ellas.',
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+export const esLegal = { terms, privacy, deleteAccount }
