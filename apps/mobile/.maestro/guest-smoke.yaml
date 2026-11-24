@@ -6,6 +6,11 @@ name: Guest smoke
     clearState: true
     permissions:
       all: allow
+# A cold start waits on the session request before the form renders.
+- extendedWaitUntil:
+    visible:
+      id: onboarding-name
+    timeout: 30000
 - tapOn:
     id: onboarding-name
 - inputText: Maestro
@@ -29,6 +34,8 @@ name: Guest smoke
 - assertVisible:
     id: task-checkbox
     checked: true
+# The tab bar hides while the add-task keyboard is up.
+- hideKeyboard
 - tapOn:
     id: tab-profile
 - tapOn:
