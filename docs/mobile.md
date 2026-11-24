@@ -196,6 +196,21 @@ Published under the GBS Tecnologia company accounts.
   described for the stores at `/delete-account`. Deleting cancels any live
   subscription at Asaas or Stripe first; a provider error keeps the account so
   the user can retry.
+- **Listing and release notes**: `distribution/listing.json` holds the store
+  copy per app locale (name, subtitle, promo text, short description, keywords,
+  description) with its Play and App Store locale codes;
+  `distribution/whatsnew/whatsnew-<play locale>` holds the Play notes.
+  `store.config.js` turns the listing into EAS Metadata for the App Store
+  (`eas metadata:push`, `metadataPath` in `eas.json`); the Play listing is kept
+  in the console from the same file. The copy names no price and no way to pay,
+  since the app does not sell (store rules on steering).
+- **`pnpm -C apps/mobile store:check [--since <tag>]`** fails on a missing
+  locale file, a blank field or one over the store limit and, with `--since`,
+  on notes unchanged since that tag. `store-assets.test.ts` also fails when a
+  locale of `@lifedeck/i18n` has no listing.
+- **Credentials**: App Store Connect team key "Lifedeck EAS" (`ASC_API_KEY_P8`,
+  `ASC_API_KEY_ID`, `ASC_API_KEY_ISSUER_ID`) and the GBS Play service account
+  `play-publisher@kapi-d6f2d` (`PLAY_SERVICE_ACCOUNT`), all GitHub secrets.
 
 ## Push notifications
 
