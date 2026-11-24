@@ -594,6 +594,16 @@ export { InMemoryMembershipRepository } from '@/testing/in-memory-membership-rep
 export { InMemoryScheduledJobRepository } from '@/testing/in-memory-scheduled-job-repository'
 export { FakeDispatchWatermark } from '@/testing/fake-dispatch-watermark'
 export { InMemorySubscriptionRepository } from '@/testing/in-memory-subscription-repository'
+export type {
+  FeatureTrial,
+  FeatureTrialRepository,
+} from '@/ports/feature-trial-repository'
+export { InMemoryFeatureTrialRepository } from '@/testing/in-memory-feature-trial-repository'
+export {
+  BOOKING_TRIAL_DAYS,
+  makeGetBookingTrial,
+  makeStartBookingTrial,
+} from '@/use-cases/booking-trial'
 export { InMemoryCheckoutIntentRepository } from '@/testing/in-memory-checkout-intent-repository'
 export { InMemoryBillingCustomerRepository } from '@/testing/in-memory-billing-customer-repository'
 export type { BookingPageRepository } from '@/ports/booking-page-repository'

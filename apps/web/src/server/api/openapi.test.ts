@@ -44,6 +44,9 @@ describe('openApiDocument', () => {
     type Operation = { security?: Array<Record<string, string[]>> }
     const path = (key: string) =>
       doc.paths[key] as Record<string, Operation> | undefined
+    expect(path('/booking/trial')?.post?.security?.[0]?.ApiKeyAuth).toEqual([
+      'booking:write',
+    ])
     expect(path('/booking/setup')?.get?.security?.[0]?.ApiKeyAuth).toEqual([
       'booking:read',
     ])

@@ -10,7 +10,11 @@ import type { Messages } from '@lifedeck/i18n'
 import { BookingsList } from '@/components/booking/bookings-list'
 import { Badge, Button, Card, Screen, Skeleton, Tabs } from '@/components/ui'
 import { API_BASE_URL } from '@/lib/api/config'
-import { useBookingSetup } from '@/lib/api/use-booking'
+import {
+  useBookingSetup,
+  useBookingTrial,
+  useStartBookingTrial,
+} from '@/lib/api/use-booking'
 import { useSession } from '@/lib/api/use-session'
 import { useWebCheckout } from '@/lib/billing/use-web-checkout'
 import {
@@ -186,6 +190,32 @@ function HoursView({
   )
 }
 
+function TrialButton({ t }: { t: HostCopy }) {
+  const trial = useBookingTrial()
+  const start = useStartBookingTrial()
+  if (trial.data?.endsAt) {
+    return <Text className="text-[12.5px] text-white/80">{t.trialEnded}</Text>
+  }
+  if (!trial.data?.available) {
+    return null
+  }
+  return (
+    <View className="gap-1">
+      <Pressable
+        accessibilityRole="button"
+        disabled={start.isPending}
+        onPress={() => start.mutate()}
+        className="h-10 justify-center self-start rounded-full border border-white/60 px-5"
+      >
+        <Text className="text-sm font-semibold text-white">{t.trialCta}</Text>
+      </Pressable>
+      {start.isError ? (
+        <Text className="text-[12.5px] text-white">{t.failed}</Text>
+      ) : null}
+    </View>
+  )
+}
+
 function Upsell({ t }: { t: HostCopy }) {
   const router = useRouter()
   const checkout = useWebCheckout()
@@ -207,6 +237,7 @@ function Upsell({ t }: { t: HostCopy }) {
           </Text>
         </Pressable>
       ) : null}
+      <TrialButton t={t} />
     </View>
   )
 }

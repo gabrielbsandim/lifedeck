@@ -204,6 +204,15 @@ export const bookingSetupViewSchema = z.object({
 
 export type BookingSetupView = z.infer<typeof bookingSetupViewSchema>
 
+// `available`: the plan lacks booking and no trial was ever started.
+export const bookingTrialViewSchema = z.object({
+  available: z.boolean(),
+  active: z.boolean(),
+  endsAt: z.string().datetime().nullable(),
+})
+
+export type BookingTrialView = z.infer<typeof bookingTrialViewSchema>
+
 export const slugAvailabilityViewSchema = z.object({
   slug: z.string(),
   available: z.boolean(),

@@ -889,6 +889,9 @@ export const en: Messages = {
     upsellBody:
       'A public page with your services and free times, synced with your calendar.',
     upsellCta: 'See plans',
+    trialCta: 'Try it free for 14 days',
+    trialActive: 'Free trial until {date}. Keep booking with Pro or Premium.',
+    trialEnded: 'Your free trial has ended.',
     failed: 'Something went wrong. Try again.',
     saved: 'Saved',
     save: 'Save',

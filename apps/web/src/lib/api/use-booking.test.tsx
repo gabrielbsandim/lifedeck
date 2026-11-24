@@ -8,6 +8,8 @@ import {
   useBookingClients,
   useBookingSetup,
   useBookings,
+  useBookingTrial,
+  useStartBookingTrial,
   useCreateBookingForClient,
   useCreateBookingService,
   useDeleteAvailabilityOverride,
@@ -21,6 +23,7 @@ import {
   type BookingAction,
 } from '@/lib/api/use-booking'
 import { createWrapper, mockFetchOnce } from '@/lib/api/test-utils'
+import { sessionKey } from '@/lib/api/use-session'
 
 type FetchMock = ReturnType<typeof vi.fn>
 
@@ -229,5 +232,21 @@ describe('booking host mutations', () => {
     expect(
       await runMutation(() => useCreateBookingForClient(), input),
     ).toMatchObject({ url: '/api/v1/booking/bookings', body: input })
+  })
+
+  it('reads the trial and, once started, refreshes the session', async () => {
+    const trial = { available: false, active: true, endsAt: 'x' }
+    const read = mockFetchOnce({ data: trial })
+    const { Wrapper } = createWrapper()
+    const query = renderHook(() => useBookingTrial(), { wrapper: Wrapper })
+    await waitFor(() => expect(query.result.current.isSuccess).toBe(true))
+    expect(call(read).url).toBe('/api/v1/booking/trial')
+
+    const started = await runMutation(() => useStartBookingTrial(), undefined)
+    expect(started).toMatchObject({
+      url: '/api/v1/booking/trial',
+      method: 'POST',
+    })
+    expect(started.invalidate).toHaveBeenCalledWith({ queryKey: sessionKey })
   })
 })

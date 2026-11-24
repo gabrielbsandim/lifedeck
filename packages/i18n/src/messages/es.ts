@@ -905,6 +905,9 @@ export const es: Messages = {
     upsellBody:
       'Una página pública con tus servicios y horarios libres, sincronizada con tu agenda.',
     upsellCta: 'Ver planes',
+    trialCta: 'Probar gratis 14 días',
+    trialActive: 'Prueba gratis hasta {date}. Sigue con Pro o Premium.',
+    trialEnded: 'Tu prueba gratis terminó.',
     failed: 'Algo salió mal. Inténtalo de nuevo.',
     saved: 'Guardado',
     save: 'Guardar',

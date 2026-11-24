@@ -21,6 +21,8 @@ import {
   makeListBookingClients,
   makeListBookings,
   makeListHostBookingSlots,
+  makeGetBookingTrial,
+  makeStartBookingTrial,
   makeLoadManagedBooking,
   makeLoadPublicPage,
   makeMarkBookingOutcome,
@@ -40,6 +42,7 @@ import {
   type Clock,
   type EmailSender,
   type EntitlementService,
+  type FeatureTrialRepository,
   type IdGenerator,
   type JobQueue,
   type Logger,
@@ -67,6 +70,7 @@ type JobHandler = (payload: Record<string, unknown>) => Promise<void>
 
 export type BookingDependencies = {
   db: ReturnType<typeof createTransactionalClient>
+  featureTrials: FeatureTrialRepository
   users: UserRepository
   emailSender: EmailSender
   entitlements: EntitlementService
@@ -174,6 +178,11 @@ export function buildBooking(deps: BookingDependencies) {
     publishNotification: deps.publishNotification,
   }
 
+  const trialDeps = {
+    trials: deps.featureTrials,
+    entitlements: deps.entitlements,
+    clock,
+  }
   const deliverBookingNotice = makeDeliverBookingNotice(shared)
   const deliverBookingReminder = makeDeliverBookingReminder(shared)
   const jobHandlers: Record<string, JobHandler> = {
@@ -207,6 +216,8 @@ export function buildBooking(deps: BookingDependencies) {
     getPublicPage: makeGetPublicBookingPage(shared),
     listSlots: makeListBookableSlots(shared),
     listHostSlots: makeListHostBookingSlots(shared),
+    getTrial: makeGetBookingTrial(trialDeps),
+    startTrial: makeStartBookingTrial(trialDeps),
     request: makeRequestBooking(shared),
     getManaged: makeGetManagedBooking(shared),
     cancelByToken: makeCancelBookingByToken(shared),

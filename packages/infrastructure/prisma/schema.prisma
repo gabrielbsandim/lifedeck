@@ -78,6 +78,7 @@ model User {
   bookingServices     BookingService[]
   bookingClients      BookingClient[]
   bookings            Booking[]
+  featureTrials       FeatureTrial[]
 
   @@map("users")
 }
@@ -321,6 +322,21 @@ model Subscription {
   @@unique([provider, providerRef])
   @@index([userId])
   @@map("subscriptions")
+}
+
+// One free trial per user and entitlement, granted without a gateway. Kept after
+// it ends so the same trial cannot be started twice.
+model FeatureTrial {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  entitlement String
+  startedAt   DateTime @map("started_at")
+  endsAt      DateTime @map("ends_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entitlement])
+  @@map("feature_trials")
 }
 
 model CheckoutIntent {

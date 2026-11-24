@@ -21,6 +21,8 @@ const booking = {
   cancel: vi.fn(),
   reschedule: vi.fn(),
   markOutcome: vi.fn(),
+  getTrial: vi.fn(),
+  startTrial: vi.fn(),
 }
 const entitlementsFor = vi.fn()
 const getUserIdFromRequest = vi.fn()
@@ -55,6 +57,7 @@ const clients = await import('@/app/api/v1/booking/clients/route')
 const client = await import('@/app/api/v1/booking/clients/[id]/route')
 const bookings = await import('@/app/api/v1/booking/bookings/route')
 const action = await import('@/app/api/v1/booking/bookings/[id]/[action]/route')
+const trial = await import('@/app/api/v1/booking/trial/route')
 
 const BASE = 'https://app.test/api/v1/booking'
 
@@ -217,5 +220,27 @@ describe('host booking records routes', () => {
       )
       expect(response.status).toBe(404)
     }
+  })
+})
+
+describe('booking trial route', () => {
+  it('reads and starts the trial without the booking entitlement', async () => {
+    entitlementsFor.mockResolvedValue({ plan: 'free', entitlements: [] })
+    expect((await trial.GET(call('GET', '/trial'))).status).toBe(200)
+    expect(booking.getTrial).toHaveBeenCalledWith('user-1')
+    expect((await trial.POST(call('POST', '/trial'))).status).toBe(200)
+    expect(booking.startTrial).toHaveBeenCalledWith('user-1')
+  })
+
+  it('is hidden with the feature, needs a session and maps failures', async () => {
+    getUserIdFromRequest.mockResolvedValue(null)
+    expect((await trial.POST(call('POST', '/trial'))).status).toBe(401)
+
+    getUserIdFromRequest.mockResolvedValue('user-1')
+    booking.startTrial.mockRejectedValueOnce(new Error('db down'))
+    expect((await trial.POST(call('POST', '/trial'))).status).toBe(500)
+
+    vi.stubEnv('FEATURE_BOOKING', 'false')
+    expect((await trial.GET(call('GET', '/trial'))).status).toBe(404)
   })
 })

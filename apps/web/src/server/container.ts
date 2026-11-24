@@ -227,6 +227,7 @@ import {
   ScryptPasswordHasher,
   Sha256KeyHasher,
   PlanEntitlementService,
+  PrismaFeatureTrialRepository,
   OpenMeteoWeatherProvider,
   StubListGenerator,
   SystemClock,
@@ -687,7 +688,11 @@ function build(
     clock,
   })
   const refundCredits = makeRefundCredits({ usageMeter })
-  const entitlementService = new PlanEntitlementService(resolvePlan)
+  const featureTrials = new PrismaFeatureTrialRepository(db)
+  const entitlementService = new PlanEntitlementService(resolvePlan, {
+    repository: featureTrials,
+    clock,
+  })
   const createTask = makeCreateTask({ tasks, lists, memberships, ids, clock })
   const updateTask = makeUpdateTask({
     tasks,
@@ -819,6 +824,7 @@ function build(
 
   const booking = buildBooking({
     db,
+    featureTrials,
     users,
     emailSender,
     entitlements: entitlementService,

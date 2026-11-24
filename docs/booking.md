@@ -108,7 +108,14 @@ the booking POST.
 
 ## Plans and data
 
-Booking needs the `booking` entitlement (Pro and Premium). The account data
+Booking needs the `booking` entitlement (Pro and Premium). A user on a plan
+without it can start one free 14-day trial (`POST /booking/trial`, no gateway):
+a `feature_trials` row, unique per user and entitlement and kept after it ends,
+that `PlanEntitlementService` adds to the plan's entitlements while `endsAt` is
+in the future. When it ends the screens fall back to the upsell; the page, its
+clients and bookings stay, and the public side answers 404 (the loader checks
+the owner's entitlement; the cached page view lives up to 5 minutes, but slots
+and requests are never cached) until the host subscribes. The account data
 export includes the page, services, hours, clients and every booking. Deleting
 the account cascades to all of them. For client data the host is the controller
 and Lifedeck the operator under the LGPD; the privacy policy says so.

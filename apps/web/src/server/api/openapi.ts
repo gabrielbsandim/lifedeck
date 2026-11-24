@@ -44,6 +44,7 @@ import {
   bookingServiceInputSchema,
   bookingServiceViewSchema,
   bookingSetupViewSchema,
+  bookingTrialViewSchema,
   bookingPageViewSchema,
   bookingViewSchema,
   createBookingForClientSchema,
@@ -871,6 +872,10 @@ const BookingSetupView = registry.register(
   'BookingSetupView',
   bookingSetupViewSchema,
 )
+const BookingTrialView = registry.register(
+  'BookingTrialView',
+  bookingTrialViewSchema,
+)
 const ManagedBookingView = registry.register(
   'ManagedBookingView',
   managedBookingViewSchema,
@@ -909,6 +914,22 @@ const BOOKING_PATHS: BookingPath[] = [
     operationId: 'getBookingSetup',
     scope: 'booking:read',
     ok: jsonResponse('The setup.', BookingSetupView),
+  },
+  {
+    method: 'get',
+    path: '/booking/trial',
+    summary: 'Read the free booking trial (open without the entitlement)',
+    operationId: 'getBookingTrial',
+    scope: 'booking:read',
+    ok: jsonResponse('The trial.', BookingTrialView),
+  },
+  {
+    method: 'post',
+    path: '/booking/trial',
+    summary: 'Start the one 14-day booking trial; repeating it changes nothing',
+    operationId: 'startBookingTrial',
+    scope: 'booking:write',
+    ok: jsonResponse('The trial.', BookingTrialView),
   },
   {
     method: 'get',

@@ -8,6 +8,7 @@ import type {
   BookingServiceInput,
   BookingServiceView,
   BookingSetupView,
+  BookingTrialView,
   BookingView,
   CreateBookingForClientInput,
   RescheduleBookingInput,
@@ -17,6 +18,7 @@ import type {
 } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
 import { INLINE_ERROR } from '@/lib/api/mutation-feedback'
+import { sessionKey } from '@/lib/api/use-session'
 
 const BASE = '/api/v1/booking'
 
@@ -24,6 +26,7 @@ export const bookingKey = ['booking'] as const
 export const bookingSetupKey = [...bookingKey, 'setup'] as const
 export const bookingClientsKey = [...bookingKey, 'clients'] as const
 export const bookingListKey = [...bookingKey, 'bookings'] as const
+export const bookingTrialKey = [...bookingKey, 'trial'] as const
 
 export type BookingListQuery = {
   from: string
@@ -66,6 +69,28 @@ export function useBookingSetup(enabled = true) {
     queryKey: bookingSetupKey,
     queryFn: () => apiRequest<BookingSetupView>(`${BASE}/setup`),
     enabled,
+  })
+}
+
+export function useBookingTrial(enabled = true) {
+  return useQuery({
+    queryKey: bookingTrialKey,
+    queryFn: () => apiRequest<BookingTrialView>(`${BASE}/trial`),
+    enabled,
+  })
+}
+
+// The session carries the entitlements, so it must refetch for the screen to open.
+export function useStartBookingTrial() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    meta: INLINE_ERROR,
+    mutationFn: () =>
+      apiRequest<BookingTrialView>(`${BASE}/trial`, json('POST', {})),
+    onSuccess: async trial => {
+      queryClient.setQueryData(bookingTrialKey, trial)
+      await queryClient.invalidateQueries({ queryKey: sessionKey })
+    },
   })
 }
 

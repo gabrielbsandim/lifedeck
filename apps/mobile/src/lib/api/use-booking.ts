@@ -5,15 +5,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   BookingReasonInput,
   BookingSetupView,
+  BookingTrialView,
   BookingView,
 } from '@lifedeck/application'
 import { apiRequest } from '@/lib/api/client'
+import { sessionKey } from '@/lib/api/use-session'
 
 const BASE = '/api/v1/booking'
 
 export const bookingKey = ['booking'] as const
 export const bookingSetupKey = [...bookingKey, 'setup'] as const
 export const bookingListKey = [...bookingKey, 'bookings'] as const
+export const bookingTrialKey = [...bookingKey, 'trial'] as const
 
 export type BookingListQuery = {
   from: string
@@ -43,6 +46,29 @@ export function useBookingSetup(enabled = true) {
     queryKey: bookingSetupKey,
     queryFn: () => apiRequest<BookingSetupView>(`${BASE}/setup`),
     enabled,
+  })
+}
+
+export function useBookingTrial(enabled = true) {
+  return useQuery({
+    queryKey: bookingTrialKey,
+    queryFn: () => apiRequest<BookingTrialView>(`${BASE}/trial`),
+    enabled,
+  })
+}
+
+export function useStartBookingTrial() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      apiRequest<BookingTrialView>(`${BASE}/trial`, {
+        method: 'POST',
+        body: '{}',
+      }),
+    onSuccess: async trial => {
+      queryClient.setQueryData(bookingTrialKey, trial)
+      await queryClient.invalidateQueries({ queryKey: sessionKey })
+    },
   })
 }
 

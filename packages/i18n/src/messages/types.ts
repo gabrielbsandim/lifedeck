@@ -841,6 +841,9 @@ export type Messages = {
     upsellTitle: string
     upsellBody: string
     upsellCta: string
+    trialCta: string
+    trialActive: string
+    trialEnded: string
     failed: string
     saved: string
     save: string
