@@ -50,10 +50,11 @@ name: Review tour
     end: 50%, 95%
     duration: 500
 - waitForAnimationToEnd
-- tapOn: Lists
+# The tab bar reads each label with its position, so match by prefix.
+- tapOn: 'Lists.*'
 - waitForAnimationToEnd:
     timeout: 4000
-- tapOn: Assistant
+- tapOn: 'Assistant.*'
 - waitForAnimationToEnd:
     timeout: 4000
 - tapOn:
@@ -62,8 +63,8 @@ name: Review tour
     timeout: 3000
 - scrollUntilVisible:
     element:
-      text: Habits
-- tapOn: Habits
+      text: 'Habits.*'
+- tapOn: 'Habits.*'
 - waitForAnimationToEnd:
     timeout: 4000
 - swipe:
@@ -72,9 +73,9 @@ name: Review tour
     duration: 400
 - runFlow:
     when:
-      visible: Analytics
+      visible: 'Analytics.*'
     commands:
-      - tapOn: Analytics
+      - tapOn: 'Analytics.*'
       - waitForAnimationToEnd:
           timeout: 4000
       - swipe:
