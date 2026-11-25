@@ -111,6 +111,7 @@ export const it: Messages = {
     upsellTitle: 'Abitudini illimitate con Pro',
     upsellBody:
       'Il piano Gratis include 1 abitudine. Passa a Pro per crearne quante vuoi e attivare i check-in su WhatsApp.',
+    freeLimitBody: 'Il piano gratuito include 1 abitudine.',
     upsellCta: 'Vedi i piani',
     emptyTitle: 'Inizia una serie',
     emptyBody:
@@ -801,6 +802,9 @@ export const it: Messages = {
     quotaTitle: 'Per ora hai raggiunto il limite',
     quotaBody:
       'Il piano gratuito include alcune conversazioni al giorno. Passa a Pro per chattare senza limiti.',
+    lockedBodyPlain: 'Il tuo piano attuale non include l’assistente.',
+    quotaBodyPlain:
+      'Il piano gratuito include alcune conversazioni al giorno. Torna più tardi per continuare.',
     upgrade: 'Passa a Pro',
   },
   auth: {

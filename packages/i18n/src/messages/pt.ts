@@ -108,6 +108,7 @@ export const pt: Messages = {
     upsellTitle: 'Hábitos ilimitados no Pro',
     upsellBody:
       'O plano grátis inclui 1 hábito. Assine o Pro para criar quantos quiser e ativar o check-in no WhatsApp.',
+    freeLimitBody: 'O plano grátis inclui 1 hábito.',
     upsellCta: 'Ver planos',
     emptyTitle: 'Comece uma sequência',
     emptyBody:
@@ -788,6 +789,9 @@ export const pt: Messages = {
     quotaTitle: 'Você atingiu seu limite por agora',
     quotaBody:
       'O plano gratuito inclui algumas conversas por dia. Assine o Pro para conversar sem limites.',
+    lockedBodyPlain: 'Seu plano atual não inclui o assistente.',
+    quotaBodyPlain:
+      'O plano gratuito inclui algumas conversas por dia. Volte mais tarde para continuar.',
     upgrade: 'Assinar o Pro',
   },
   auth: {

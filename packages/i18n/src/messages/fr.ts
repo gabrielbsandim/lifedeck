@@ -110,6 +110,7 @@ export const fr: Messages = {
     upsellTitle: 'Habitudes illimitées avec Pro',
     upsellBody:
       'L’offre gratuite inclut 1 habitude. Passez à Pro pour en créer autant que vous voulez et activer le suivi sur WhatsApp.',
+    freeLimitBody: 'L’offre gratuite inclut 1 habitude.',
     upsellCta: 'Voir les offres',
     emptyTitle: 'Lancez une série',
     emptyBody:
@@ -801,6 +802,9 @@ export const fr: Messages = {
     quotaTitle: 'Vous avez atteint votre limite pour le moment',
     quotaBody:
       'L’offre gratuite inclut quelques conversations par jour. Passez à Pro pour discuter sans limite.',
+    lockedBodyPlain: 'Votre offre actuelle n’inclut pas l’assistant.',
+    quotaBodyPlain:
+      'L’offre gratuite inclut quelques conversations par jour. Revenez plus tard pour continuer.',
     upgrade: 'Passer à Pro',
   },
   auth: {

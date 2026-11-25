@@ -275,11 +275,14 @@ export default function HabitsScreen() {
                 {t.freePlan}
               </Text>
             </View>
-            <Text className="mt-2 text-[17px] font-bold text-white">
-              {t.upsellTitle}
-            </Text>
+            {/* Without a store-approved checkout, a call to buy elsewhere breaks App Store 3.1.1. */}
+            {checkout.allowed ? (
+              <Text className="mt-2 text-[17px] font-bold text-white">
+                {t.upsellTitle}
+              </Text>
+            ) : null}
             <Text className="mt-1 text-[13.5px] text-white/85">
-              {t.upsellBody}
+              {checkout.allowed ? t.upsellBody : t.freeLimitBody}
             </Text>
           </View>
           {checkout.allowed ? (

@@ -113,6 +113,7 @@ export const de: Messages = {
     upsellTitle: 'Unbegrenzte Gewohnheiten mit Pro',
     upsellBody:
       'Free enthält 1 Gewohnheit. Wechsle zu Pro, um beliebig viele zu erstellen und WhatsApp-Check-ins zu aktivieren.',
+    freeLimitBody: 'Der Free-Plan enthält 1 Gewohnheit.',
     upsellCta: 'Pläne ansehen',
     emptyTitle: 'Starte eine Serie',
     emptyBody:
@@ -806,6 +807,9 @@ export const de: Messages = {
     quotaTitle: 'Du hast dein Limit vorerst erreicht',
     quotaBody:
       'Der Free-Plan enthält ein paar Unterhaltungen pro Tag. Wechsle zu Pro, um ohne Limit zu chatten.',
+    lockedBodyPlain: 'Dein aktueller Plan enthält den Assistenten nicht.',
+    quotaBodyPlain:
+      'Der Free-Plan enthält ein paar Unterhaltungen pro Tag. Komm später wieder, um weiterzuchatten.',
     upgrade: 'Zu Pro wechseln',
   },
   auth: {

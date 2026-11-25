@@ -117,6 +117,7 @@ export type Messages = {
     delete: string
     upsellTitle: string
     upsellBody: string
+    freeLimitBody: string
     upsellCta: string
     emptyTitle: string
     emptyBody: string
@@ -733,6 +734,8 @@ export type Messages = {
     lockedBody: string
     quotaTitle: string
     quotaBody: string
+    lockedBodyPlain: string
+    quotaBodyPlain: string
     upgrade: string
   }
   auth: {

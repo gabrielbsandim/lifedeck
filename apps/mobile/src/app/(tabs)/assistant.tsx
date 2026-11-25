@@ -504,6 +504,23 @@ function AssistantRow({
   )
 }
 
+// Without a store-approved checkout, a call to buy elsewhere breaks App Store 3.1.1.
+function bodyCopy(
+  t: {
+    lockedBody: string
+    quotaBody: string
+    lockedBodyPlain: string
+    quotaBodyPlain: string
+  },
+  variant: 'locked' | 'quota',
+  canUpgrade: boolean,
+): string {
+  if (variant === 'locked') {
+    return canUpgrade ? t.lockedBody : t.lockedBodyPlain
+  }
+  return canUpgrade ? t.quotaBody : t.quotaBodyPlain
+}
+
 function UpsellCard({
   variant,
   onUpgrade,
@@ -525,7 +542,7 @@ function UpsellCard({
           {variant === 'locked' ? t.lockedTitle : t.quotaTitle}
         </Text>
         <Text className="mt-1 text-[13.5px] text-white/85">
-          {variant === 'locked' ? t.lockedBody : t.quotaBody}
+          {bodyCopy(t, variant, Boolean(onUpgrade))}
         </Text>
       </View>
       {onUpgrade ? (
