@@ -28,6 +28,13 @@ export type Messages = {
     pickDate: string
     keepGoing: string
   }
+  whatsNew: {
+    title: string
+    items: string[]
+    getTheApp: string
+    appStore: string
+    googlePlay: string
+  }
   footer: {
     description: string
     rights: string

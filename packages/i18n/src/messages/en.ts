@@ -16,6 +16,18 @@ export const en: Messages = {
     pickDate: 'Pick a date',
     keepGoing: 'Keep going at your own pace.',
   },
+  whatsNew: {
+    title: "What's new",
+    items: [
+      'The Lifedeck app for iPhone and Android, synced with the web.',
+      'Booking page: clients pick a free time on your calendar and get the confirmation with a Meet link.',
+      'The assistant checks what you already have before creating, so tasks and habits are not duplicated.',
+      'Google Calendar sync that keeps up with recurring events in your time zone.',
+    ],
+    getTheApp: 'Get the app',
+    appStore: 'Download on the App Store',
+    googlePlay: 'Get it on Google Play',
+  },
   footer: {
     description:
       'Plan, share and stay in control of your whole life - together, in one calm place.',

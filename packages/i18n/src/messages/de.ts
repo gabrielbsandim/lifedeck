@@ -16,6 +16,18 @@ export const de: Messages = {
     pickDate: 'Datum wählen',
     keepGoing: 'Mach weiter, in deinem eigenen Tempo.',
   },
+  whatsNew: {
+    title: 'Neu',
+    items: [
+      'Die Lifedeck-App für iPhone und Android, synchronisiert mit dem Web.',
+      'Buchungsseite: Ihre Kunden wählen einen freien Termin in Ihrem Kalender und erhalten die Bestätigung mit Meet-Link.',
+      'Der Assistent prüft vor dem Anlegen, was schon da ist, ohne doppelte Aufgaben und Gewohnheiten.',
+      'Zuverlässigere Synchronisierung mit Google Kalender, mit Serienterminen in Ihrer Zeitzone.',
+    ],
+    getTheApp: 'App laden',
+    appStore: 'Laden im App Store',
+    googlePlay: 'Jetzt bei Google Play',
+  },
   footer: {
     description:
       'Plane, teile und behalte dein ganzes Leben im Griff: gemeinsam, an einem ruhigen Ort.',

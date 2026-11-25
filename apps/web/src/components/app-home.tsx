@@ -9,6 +9,7 @@ import { useSyncTimezone } from '@/lib/api/use-account'
 import { todayIso } from '@/lib/api/dates'
 import { returnToFrom } from '@/lib/navigation/return-to'
 import { OnboardingCard } from '@/components/onboarding-card'
+import { WhatsNewCard } from '@/components/whats-new-card'
 import { DailyBoard } from '@/components/daily-board'
 import { OnboardingModal } from '@/components/onboarding-modal'
 import { AppShell } from '@/components/app-shell'
@@ -46,6 +47,7 @@ export function AppHome() {
       <div className="flex min-h-dvh flex-col">
         <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-10 px-5 py-16 sm:py-24">
           <OnboardingCard />
+          <WhatsNewCard />
         </main>
         <SiteFooter />
       </div>
