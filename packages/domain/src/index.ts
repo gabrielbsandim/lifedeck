@@ -212,6 +212,7 @@ export { isValidCpf, normalizeCpf } from '@/value-objects/cpf'
 export { UsageEvent, type UsageEventProps } from '@/entities/usage-event'
 export {
   CalendarEvent,
+  clampCalendarEventText,
   type CalendarEventProps,
 } from '@/entities/calendar-event'
 export {

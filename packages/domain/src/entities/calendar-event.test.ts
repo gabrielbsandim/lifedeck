@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { ValidationError } from '@/shared/domain-error'
 import { asEntityId } from '@/shared/id'
-import { CalendarEvent } from '@/entities/calendar-event'
+import {
+  CalendarEvent,
+  clampCalendarEventText,
+} from '@/entities/calendar-event'
 
 const ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const OWNER_ID = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
@@ -262,5 +265,27 @@ describe('CalendarEvent', () => {
     expect(meet.conferenceUrl).toBeNull()
     meet.setConferenceUrl(null)
     expect(meet.toJSON().conferenceUrl).toBeNull()
+  })
+})
+
+describe('clampCalendarEventText', () => {
+  it('cuts each field to its limit and keeps the rest', () => {
+    const clamped = clampCalendarEventText({
+      title: 't'.repeat(201),
+      description: 'd'.repeat(2001),
+      location: 'l'.repeat(301),
+      busy: true,
+    })
+
+    expect(clamped.title).toHaveLength(200)
+    expect(clamped.description).toHaveLength(2000)
+    expect(clamped.location).toHaveLength(300)
+    expect(clamped.busy).toBe(true)
+  })
+
+  it('keeps missing text missing', () => {
+    expect(
+      clampCalendarEventText({ title: 'x', description: null, location: null }),
+    ).toEqual({ title: 'x', description: null, location: null })
   })
 })

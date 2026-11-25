@@ -746,6 +746,99 @@ describe('pullCalendarChanges', () => {
     expect((await pull(OWNER_ID)).applied).toBe(1)
   })
 
+  it('imports remote text longer than the local limits, cut to fit', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const provider = providerWith({
+      events: [
+        external({
+          title: 't'.repeat(250),
+          description: 'd'.repeat(2500),
+          location: 'l'.repeat(400),
+        }),
+      ],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    const result = await pull(OWNER_ID)
+
+    expect(result).toEqual({ applied: 1, failed: 0 })
+    const stored = await calendarEvents.findByExternalId(
+      asEntityId(OWNER_ID),
+      'g-1',
+    )
+    expect(stored?.title).toHaveLength(200)
+    expect(stored?.description).toHaveLength(2000)
+    expect(stored?.location).toHaveLength(300)
+  })
+
+  it('skips an event the domain rejects and keeps the rest of the page', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    const warn = vi.fn()
+    const provider = providerWith({
+      events: [
+        external({
+          externalId: 'g-bad',
+          endsAt: new Date('2026-06-25T08:00:00.000Z'),
+        }),
+        external({ externalId: 'g-ok' }),
+      ],
+      nextSyncToken: 'sync-2',
+    })
+    const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
+      ids,
+      clock: { now: () => NOW },
+      logger: { info: vi.fn(), warn, error: vi.fn() },
+    })
+
+    const result = await pull(OWNER_ID)
+
+    expect(result).toEqual({ applied: 1, failed: 0 })
+    expect(warn).toHaveBeenCalledWith(
+      'calendar_event_skipped',
+      expect.objectContaining({ externalId: 'g-bad' }),
+    )
+    const owner = asEntityId(OWNER_ID)
+    expect(await calendarEvents.findByExternalId(owner, 'g-ok')).not.toBeNull()
+    const connection = await calendarConnections.findDefaultByOwner(owner)
+    expect(connection?.syncToken).toBe('sync-2')
+  })
+
+  it('still fails the connection on an error that is not validation', async () => {
+    const calendarConnections = await withConnection()
+    const calendarEvents = new InMemoryCalendarEventRepository()
+    vi.spyOn(calendarEvents, 'save').mockRejectedValue(new Error('db down'))
+    const provider = providerWith({ events: [external()], nextSyncToken: null })
+    const pull = makePullCalendarChanges({
+      users: { findById: async () => null },
+      calendarConnections,
+      calendarEvents,
+      providers: { get: () => provider },
+      jobQueue: { enqueue: vi.fn() },
+      ids,
+      clock: { now: () => NOW },
+    })
+
+    const result = await pull(OWNER_ID)
+
+    expect(result).toEqual({ applied: 0, failed: 1 })
+  })
+
   it('rejects when the user has no calendar connection', async () => {
     const calendarConnections = new InMemoryCalendarConnectionRepository()
     const pull = makePullCalendarChanges({

@@ -1,6 +1,8 @@
 import {
   CalendarEvent,
+  ValidationError,
   asEntityId,
+  clampCalendarEventText,
   type CalendarConnection,
 } from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
@@ -108,7 +110,7 @@ export function makePullCalendarChanges({
       const page = await provider.listChanges(connection)
       let count = 0
       for (const external of page.events) {
-        if (await applyExternal(connection, external)) {
+        if (await applyOne(connection, external)) {
           count += 1
         }
       }
@@ -116,6 +118,27 @@ export function makePullCalendarChanges({
       connection.setSyncToken(page.nextSyncToken, clock.now())
       await calendarConnections.save(connection)
       return count
+    }
+
+    // One event the domain rejects used to abort the whole page, so the cursor
+    // never advanced and every later change on that calendar was lost.
+    async function applyOne(
+      connection: CalendarConnection,
+      external: ExternalCalendarEvent,
+    ): Promise<boolean> {
+      try {
+        return await applyExternal(connection, clampCalendarEventText(external))
+      } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error
+        }
+        logger?.warn('calendar_event_skipped', {
+          connectionId: connection.id as string,
+          externalId: external.externalId,
+          error: error.message,
+        })
+        return false
+      }
     }
 
     async function applyExternal(

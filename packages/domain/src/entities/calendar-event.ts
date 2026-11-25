@@ -47,6 +47,22 @@ export type CalendarEventProps = {
   updatedAt: Date
 }
 
+type EventText = {
+  title: string
+  description: string | null
+  location: string | null
+}
+
+/** Cuts remote text to this entity's limits; another calendar allows longer. */
+export function clampCalendarEventText<T extends EventText>(event: T): T {
+  return {
+    ...event,
+    title: event.title.slice(0, MAX_TITLE_LENGTH),
+    description: event.description?.slice(0, MAX_DESCRIPTION_LENGTH) ?? null,
+    location: event.location?.slice(0, MAX_LOCATION_LENGTH) ?? null,
+  }
+}
+
 function normalizeReminders(reminders: number[]): number[] {
   for (const minutes of reminders) {
     if (!Number.isInteger(minutes) || minutes < 0) {
