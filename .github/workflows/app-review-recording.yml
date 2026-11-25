@@ -1,0 +1,91 @@
+name: App Review recording
+
+# App Review asks for a screen recording of the app; without an iPhone at hand
+# this records the e2e build on a simulator while Maestro walks the features.
+on:
+  workflow_dispatch:
+    inputs:
+      rebuild:
+        description: Build a fresh e2e binary instead of reusing the last one
+        type: boolean
+        default: false
+
+jobs:
+  record:
+    runs-on: macos-15
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      MAESTRO_APP_ID: com.gbs.lifedeck
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install the workspace
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Fetch the iOS simulator binary
+        env:
+          REBUILD: ${{ inputs.rebuild }}
+        run: |
+          url=""
+          if [ "$REBUILD" != "true" ]; then
+            url=$(eas build:list --platform ios --build-profile e2e-test --status finished --limit 1 --json --non-interactive | jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl // empty')
+          fi
+          if [ -z "$url" ]; then
+            eas build --platform ios --profile e2e-test --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
+            url=$(jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")
+          fi
+          mkdir -p "$RUNNER_TEMP/app"
+          curl -fsSL "$url" -o "$RUNNER_TEMP/app/build"
+          tar -xzf "$RUNNER_TEMP/app/build" -C "$RUNNER_TEMP/app"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Record the tour on an iPhone simulator
+        run: |
+          app=$(find "$RUNNER_TEMP/app" -maxdepth 3 -name '*.app' -type d | head -1)
+          udid=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone 16 Pro"))][0].udid // empty')
+          [ -n "$udid" ] || udid=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl status_bar "$udid" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
+          xcrun simctl install "$udid" "$app"
+          mkdir -p "$RUNNER_TEMP/out"
+          xcrun simctl io "$udid" recordVideo --codec=h264 --force "$RUNNER_TEMP/out/lifedeck-review.mp4" &
+          recorder=$!
+          sleep 3
+          status=0
+          maestro --device "$udid" test --debug-output "$RUNNER_TEMP/out/maestro" .maestro/review-tour.yaml || status=$?
+          sleep 2
+          kill -INT "$recorder"
+          wait "$recorder" || true
+          exit "$status"
+
+      - name: Keep the recording
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-review-recording
+          path: ${{ runner.temp }}/out
+          if-no-files-found: ignore
+          include-hidden-files: true
