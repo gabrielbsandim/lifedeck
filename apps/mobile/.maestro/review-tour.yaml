@@ -35,13 +35,21 @@ name: Review tour
 - inputText: Call the dentist
 - tapOn:
     id: add-task-submit
-- hideKeyboard
+# hideKeyboard taps into the list on iOS, so tapping the header closes it.
+- tapOn:
+    point: 50%, 12%
 - tapOn:
     id: task-checkbox
     index: 0
+- waitForAnimationToEnd
+- tapOn: Call the dentist
+- waitForAnimationToEnd:
+    timeout: 3000
 - swipe:
-    direction: UP
-    duration: 1500
+    start: 50%, 55%
+    end: 50%, 95%
+    duration: 500
+- waitForAnimationToEnd
 - tapOn: Lists
 - waitForAnimationToEnd:
     timeout: 4000
