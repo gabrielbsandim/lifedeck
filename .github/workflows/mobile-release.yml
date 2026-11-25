@@ -233,7 +233,8 @@ jobs:
           target: google_apis
           working-directory: apps/mobile
           script: |
-            adb install "$RUNNER_TEMP/app/build"
+            cp "$RUNNER_TEMP/app/build" "$RUNNER_TEMP/app/build.apk"
+            adb install "$RUNNER_TEMP/app/build.apk"
             maestro test --debug-output "$RUNNER_TEMP/maestro" .maestro/guest-smoke.yaml
 
       - name: Run the smoke flow on an iOS simulator
