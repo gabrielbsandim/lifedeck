@@ -11,7 +11,7 @@ export default function TodayScreen() {
   const [date, setDate] = useState(() => todayIso())
 
   return (
-    <Screen>
+    <Screen safeTop>
       <DailyBoard date={date} onDateChange={setDate} />
     </Screen>
   )

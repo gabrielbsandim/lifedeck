@@ -17,6 +17,8 @@ export type ScreenProps = {
   onRefresh?: () => void
   className?: string
   contentClassName?: string
+  // Tabs without a navigation header draw under the edge-to-edge status bar.
+  safeTop?: boolean
 }
 
 export function Screen({
@@ -26,20 +28,27 @@ export function Screen({
   onRefresh,
   className,
   contentClassName,
+  safeTop = false,
 }: ScreenProps) {
   const colors = useThemeColors()
   const insets = useSafeAreaInsets()
   // The tab bar already reserves its own height; this is the extra breathing
   // room the web gets from `pb-28`.
   const paddingBottom = insets.bottom + 24
+  const paddingTop = safeTop ? insets.top : 0
 
   if (!scroll) {
-    return <View className={cn('bg-bg flex-1', className)}>{children}</View>
+    return (
+      <View className={cn('bg-bg flex-1', className)} style={{ paddingTop }}>
+        {children}
+      </View>
+    )
   }
 
   return (
     <ScrollView
       className={cn('bg-bg flex-1', className)}
+      style={{ paddingTop }}
       contentContainerClassName={cn('gap-6 px-4 pt-4', contentClassName)}
       contentContainerStyle={{ paddingBottom }}
       keyboardShouldPersistTaps="handled"

@@ -58,12 +58,12 @@ export default function ProfileScreen() {
   const [authOpen, setAuthOpen] = useState(false)
 
   if (!user) {
-    return <Screen />
+    return <Screen safeTop />
   }
 
   if (user.isGuest || user.email === null) {
     return (
-      <Screen>
+      <Screen safeTop>
         <Text className="text-ink-900 text-2xl font-bold">
           {messages.settings.title}
         </Text>
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
     router.push({ pathname: '/settings', params: { section } })
 
   return (
-    <Screen>
+    <Screen safeTop>
       <Text className="text-ink-900 text-[28px] font-bold">
         {messages.settings.profile}
       </Text>
