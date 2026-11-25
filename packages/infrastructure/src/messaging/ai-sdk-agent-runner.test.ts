@@ -688,6 +688,75 @@ describe('AiSdkAgentRunner.run', () => {
     expect(reply.unverifiedClaim).toBe(true)
   })
 
+  it('asks for the closing words when a turn ends on a tool result', async () => {
+    const toolTurn = [{ role: 'assistant', content: [] }]
+    generateTextMock
+      .mockResolvedValueOnce({
+        text: '',
+        steps: [
+          { toolResults: [{ toolName: 'getLists', input: {}, output: [] }] },
+        ],
+        response: { messages: toolTurn },
+      } as never)
+      .mockResolvedValueOnce({ text: 'Suas listas: *Mercado*.' } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'quais são minhas listas?',
+      history: [],
+    })
+
+    expect(generateTextMock).toHaveBeenCalledTimes(2)
+    const closing = generateTextMock.mock.calls[1]![0]
+    expect(closing.toolChoice).toBe('none')
+    expect(closing.messages).toEqual([
+      { role: 'user', content: 'quais são minhas listas?' },
+      ...toolTurn,
+    ])
+    expect(reply.text).toBe('Suas listas: *Mercado*.')
+    expect(reply.toolCalls).toEqual(['getLists'])
+  })
+
+  it('closes a corrected turn that ends on a tool result', async () => {
+    generateTextMock
+      .mockResolvedValueOnce({ text: 'Certo, registrei seu treino.' } as never)
+      .mockResolvedValueOnce({
+        text: '',
+        steps: [
+          {
+            toolResults: [
+              { toolName: 'logActivity', input: {}, output: { kind: 'habit' } },
+            ],
+          },
+        ],
+      } as never)
+      .mockResolvedValueOnce({ text: 'Registrei seu treino.' } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'eu treinei ontem',
+      history: [],
+    })
+
+    expect(generateTextMock).toHaveBeenCalledTimes(3)
+    expect(generateTextMock.mock.calls[2]?.[0]?.system).toContain('CORRECTION')
+    expect(generateTextMock.mock.calls[2]?.[0]?.messages).toHaveLength(1)
+    expect(reply.text).toBe('Registrei seu treino.')
+  })
+
+  it('keeps an empty reply when no tool ran', async () => {
+    generateTextMock.mockResolvedValue({ text: '' } as never)
+
+    const reply = await runner().run({
+      userId: USER_ID,
+      message: 'ok',
+      history: [],
+    })
+
+    expect(generateTextMock).toHaveBeenCalledTimes(1)
+    expect(reply.text).toBe('')
+  })
+
   it('does not retry a turn that only answers a question', async () => {
     generateTextMock.mockResolvedValue({
       text: 'Você tem 3 tarefas hoje.',

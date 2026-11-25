@@ -961,11 +961,30 @@ export class AiSdkAgentRunner implements AgentRunner {
         stopWhen: stepCountIs(MAX_STEPS),
       })
 
+    // Gemini sometimes ends a turn on the tool result with no words, which left
+    // a read like "quais são minhas listas?" answered by the bare "Done." copy.
+    const closingText = async (
+      result: Awaited<ReturnType<typeof run>>,
+      systemPrompt: string,
+    ) => {
+      if (result.text.trim() || collectToolNames(result.steps).length === 0) {
+        return result.text
+      }
+      const closing = await generateText({
+        model,
+        system: systemPrompt,
+        messages: [...messages, ...(result.response?.messages ?? [])],
+        tools,
+        toolChoice: 'none',
+      })
+      return closing.text
+    }
+
     const result = await run(system)
     const toolCalls = collectToolNames(result.steps)
     if (!claimsUnbackedAction(result.text, toolCalls)) {
       return {
-        text: result.text,
+        text: await closingText(result, system),
         actions: collectActions(result.steps),
         recorded: collectRecordedActions(result.steps),
         toolCalls,
@@ -974,10 +993,11 @@ export class AiSdkAgentRunner implements AgentRunner {
 
     // The reply announces work nothing performed. Nothing was mutated, so the
     // turn can simply be redone with the discrepancy pointed out.
-    const retry = await run(`${system}\n${CLAIM_CORRECTION}`)
+    const retrySystem = `${system}\n${CLAIM_CORRECTION}`
+    const retry = await run(retrySystem)
     const retryToolCalls = collectToolNames(retry.steps)
     return {
-      text: retry.text,
+      text: await closingText(retry, retrySystem),
       actions: collectActions(retry.steps),
       recorded: collectRecordedActions(retry.steps),
       toolCalls: retryToolCalls,
