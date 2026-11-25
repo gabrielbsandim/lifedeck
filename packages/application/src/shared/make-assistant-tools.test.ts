@@ -633,6 +633,17 @@ describe('makeAssistantTools', () => {
     ])
   })
 
+  it('lists only the user’s own lists, never the daily ones', async () => {
+    const { tools, deps } = build()
+
+    await tools.getLists(USER_ID)
+
+    expect(deps.listUserLists).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ type: 'standalone' }),
+    )
+  })
+
   it('adds a task to an explicit list without reading the board', async () => {
     const { tools, deps } = build()
 

@@ -1,7 +1,8 @@
-import type {
-  AiOperation,
-  Entitlement,
-  MessageLanguage,
+import {
+  detectMessageLanguage,
+  type AiOperation,
+  type Entitlement,
+  type MessageLanguage,
 } from '@lifedeck/domain'
 import {
   MediaUnderstandingUnavailableError,
@@ -82,6 +83,14 @@ const DONE_COPY: Record<MessageLanguage, string> = {
   fr: 'C’est fait.',
   de: 'Erledigt.',
   it: 'Fatto.',
+}
+
+// Detection falls back to English when it finds no tell, so only a non-English
+// hit outranks the screen locale.
+function replyLanguage(message: InAppMessage): MessageLanguage {
+  const detected =
+    message.kind === 'text' ? detectMessageLanguage(message.text) : 'en'
+  return detected === 'en' ? (message.locale ?? 'en') : detected
 }
 
 function wantsProModel(granted: readonly string[], text: string): boolean {
@@ -280,8 +289,9 @@ export function makeHandleInAppMessage({
     // The model sometimes runs a tool but returns no words; fall back to a short
     // acknowledgement so a completed action is always confirmed and history
     // never holds an empty assistant turn.
-    const locale = message.locale ?? 'en'
-    const replyText = reply.text.trim() ? reply.text : DONE_COPY[locale]
+    const replyText = reply.text.trim()
+      ? reply.text
+      : DONE_COPY[replyLanguage(message)]
     // Persisting history must never cost the user their reply: if the store
     // fails, log it and still return the answer.
     try {

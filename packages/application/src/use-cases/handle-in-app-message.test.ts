@@ -389,6 +389,21 @@ describe('handleInAppMessage', () => {
     expect(stored[1]).toEqual({ role: 'assistant', content: 'Feito.' })
   })
 
+  it('confirms in the language the user wrote in, not the screen locale', async () => {
+    const ctx = setup({
+      agentRun: async () => ({ text: '', toolCalls: ['getLists'] }),
+    })
+
+    const result = await ctx.handleInAppMessage({
+      userId: USER,
+      locale: 'en',
+      kind: 'text',
+      text: 'quais são minhas listas?',
+    })
+
+    expect(result).toMatchObject({ status: 'reply', text: 'Feito.' })
+  })
+
   it('still returns the reply when persisting history fails', async () => {
     const ctx = setup({ agentRun: async () => ({ text: 'Ok.' }) })
     vi.spyOn(ctx.conversations, 'append').mockRejectedValueOnce(

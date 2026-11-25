@@ -182,8 +182,9 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
       }
     },
     async getLists(userId) {
+      // Daily lists are reached by date, and listing them buried the user's own.
       const page = await listUserLists(userId, {
-        type: null,
+        type: 'standalone',
         limit: 100,
         cursor: null,
       })
