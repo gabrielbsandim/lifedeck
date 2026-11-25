@@ -38,7 +38,7 @@ export function WhatsNewCard() {
             alt={copy.googlePlay}
             width={155}
             height={60}
-            className="-my-2.5 h-[60px] w-auto"
+            className="-m-2.5 h-[60px] w-auto"
           />
         </a>
       </div>
