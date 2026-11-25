@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Card } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { APP_STORE_URL, GOOGLE_PLAY_URL } from '@/lib/site'
@@ -20,7 +21,8 @@ export function WhatsNewCard() {
       <p className="text-ink-500 mt-6 text-sm font-medium">{copy.getTheApp}</p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
-          <img
+          <Image
+            unoptimized
             src={`/badges/app-store-${locale}.svg`}
             alt={copy.appStore}
             width={120}
@@ -30,7 +32,8 @@ export function WhatsNewCard() {
         </a>
         <a href={GOOGLE_PLAY_URL} target="_blank" rel="noopener noreferrer">
           {/* Google's badge carries its own padding, so it renders taller to match. */}
-          <img
+          <Image
+            unoptimized
             src={`/badges/google-play-${locale}.png`}
             alt={copy.googlePlay}
             width={155}
