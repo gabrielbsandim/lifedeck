@@ -1,7 +1,7 @@
 // Ported from apps/web/src/lib/api/use-assistant.ts. The refresh map and the
 // reply shape are identical; only the outbound media differs — the browser has
 // a Blob, the app has a local file URI, which RN's FormData uploads natively.
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api/client'
 import { userListsKey } from '@/lib/api/use-lists'
 import { habitsKey } from '@/lib/api/use-habits'
@@ -110,13 +110,34 @@ export function useSendAssistantMessage() {
   })
 }
 
+export type AssistantHistoryMessage = {
+  role: 'user' | 'assistant'
+  text: string
+}
+
+export const assistantHistoryKey = ['assistant-history'] as const
+
+// The thread the model reads lives on the server, so the screen shows it on
+// open; an empty screen over a live thread hides the New chat button.
+export function useAssistantHistory() {
+  return useQuery({
+    queryKey: assistantHistoryKey,
+    queryFn: () =>
+      apiRequest<AssistantHistoryMessage[]>('/api/v1/assistant/chat'),
+  })
+}
+
 // The server keeps the thread the model reads, so a new conversation has to
 // drop it there too, or the next answer leans on the old context.
 export function useClearAssistantHistory() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () =>
       apiRequest<{ cleared: boolean }>('/api/v1/assistant/chat', {
         method: 'DELETE',
       }),
+    onSuccess: () => {
+      queryClient.setQueryData(assistantHistoryKey, [])
+    },
   })
 }

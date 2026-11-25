@@ -3,7 +3,7 @@
 // action cards, same locked and quota upsells. Recording swaps MediaRecorder
 // for expo-audio and the file input for expo-image-picker; everything else is
 // the web logic.
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Alert,
   Image,
@@ -28,9 +28,11 @@ import {
 } from '@/components/icons'
 import { ApiError } from '@/lib/api/client'
 import {
+  useAssistantHistory,
   useClearAssistantHistory,
   useSendAssistantMessage,
   type AssistantAction,
+  type AssistantHistoryMessage,
   type AssistantSendInput,
 } from '@/lib/api/use-assistant'
 import { useWebCheckout } from '@/lib/billing/use-web-checkout'
@@ -58,6 +60,12 @@ function nextId(): string {
   return `item-${counter}`
 }
 
+function historyItem(message: AssistantHistoryMessage): ChatItem {
+  return message.role === 'user'
+    ? { id: nextId(), kind: 'user', text: message.text }
+    : { id: nextId(), kind: 'assistant', text: message.text }
+}
+
 function formatElapsed(seconds: number): string {
   const mm = Math.floor(seconds / 60)
   const ss = seconds % 60
@@ -72,6 +80,7 @@ export default function AssistantScreen() {
   const router = useRouter()
   const checkout = useWebCheckout()
   const send = useSendAssistantMessage()
+  const history = useAssistantHistory()
   const clearHistory = useClearAssistantHistory()
   const voice = useVoiceRecorder()
 
@@ -80,8 +89,21 @@ export default function AssistantScreen() {
   const [locked, setLocked] = useState(false)
   const lastTurn = useRef<AssistantSendInput | null>(null)
   const scroller = useRef<ScrollView>(null)
+  const seeded = useRef(false)
+
+  // Seed once, from a fresh fetch: cached data from an earlier visit would miss
+  // the turns sent since, and a later refetch must not wipe the live thread.
+  useEffect(() => {
+    if (seeded.current || !history.isSuccess || history.isFetching) {
+      return
+    }
+    seeded.current = true
+    const restored = history.data.map(historyItem)
+    setItems(prev => (prev.length > 0 ? prev : restored))
+  }, [history.isSuccess, history.isFetching, history.data])
 
   const isEmpty = items.length === 0
+  const showIntro = isEmpty && !history.isPending
   const pending = send.isPending
 
   // Send one turn (text, image, or voice) and fold the reply into the thread.
@@ -248,7 +270,7 @@ export default function AssistantScreen() {
         contentContainerClassName="gap-3 px-4 py-4"
         keyboardShouldPersistTaps="handled"
       >
-        {isEmpty ? (
+        {showIntro ? (
           <>
             <AssistantRow>
               <Text className="text-ink-800 text-[14.5px] font-semibold">
