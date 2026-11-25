@@ -109,3 +109,14 @@ export function useSendAssistantMessage() {
     },
   })
 }
+
+// The server keeps the thread the model reads, so a new conversation has to
+// drop it there too, or the next answer leans on the old context.
+export function useClearAssistantHistory() {
+  return useMutation({
+    mutationFn: () =>
+      apiRequest<{ cleared: boolean }>('/api/v1/assistant/chat', {
+        method: 'DELETE',
+      }),
+  })
+}

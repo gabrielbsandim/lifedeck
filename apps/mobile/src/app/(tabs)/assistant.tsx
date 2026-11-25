@@ -28,6 +28,7 @@ import {
 } from '@/components/icons'
 import { ApiError } from '@/lib/api/client'
 import {
+  useClearAssistantHistory,
   useSendAssistantMessage,
   type AssistantAction,
   type AssistantSendInput,
@@ -71,6 +72,7 @@ export default function AssistantScreen() {
   const router = useRouter()
   const checkout = useWebCheckout()
   const send = useSendAssistantMessage()
+  const clearHistory = useClearAssistantHistory()
   const voice = useVoiceRecorder()
 
   const [items, setItems] = useState<ChatItem[]>([])
@@ -199,6 +201,7 @@ export default function AssistantScreen() {
   }
 
   function reset() {
+    clearHistory.mutate()
     setItems([])
     setInput('')
     setLocked(false)
