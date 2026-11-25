@@ -37,7 +37,7 @@ workflow is `.github/workflows/mobile-release.yml`; the version logic is
 | No store build has it | EAS build, then the bundle goes to the Play `production` track as a **draft** with the `whatsnew` notes | EAS build with auto-submit to **TestFlight** |
 
 The store review stays a manual click: roll out the Play draft (staged at 20%
-first) and submit the TestFlight build for review in App Store Connect, pasting
+first; 1.0.0 went out at 100% because nobody had the app yet) and submit the TestFlight build for review in App Store Connect, pasting
 the notes into What's New.
 
 `fingerprint.config.js` skips the version fields, so the bump alone never
@@ -48,15 +48,24 @@ the last binary and reaches phones as an OTA.
 
 - No tag exists yet, so pass the version: `gh workflow run mobile-release.yml
   -f version=1.0.0`. The notes say "First store release".
-- Play takes the first bundle only by hand. Run the Android build from
-  `Mobile build` (production, no submit), upload the `.aab` in the Play
-  Console, then set `ANDROID_APP_SIGNING_SHA256` on Vercel from Test and
-  release, App integrity. Releases after that go through the workflow.
-- iOS credentials (distribution certificate and profile) are created by the
-  first build. Run it once from a terminal, `eas build -p ios --profile
-  production`, and let EAS generate them; CI builds reuse them.
+- Play accepts the first bundle from the workflow, but only as a draft while
+  the app itself is a draft. The first publish happens in the Console: give
+  the production track its countries (it starts with none), save the release
+  and send the changes for review. Then set `ANDROID_APP_SIGNING_SHA256` on
+  Vercel from Test and release, App integrity, and redeploy so
+  `/.well-known/assetlinks.json` serves it.
+- iOS credentials were created through the App Store Connect API (distribution
+  certificate and profile, valid until 2027-11-25) and handed to EAS with a
+  temporary `credentials.json`, because EAS's own login with the team key
+  fails. CI builds reuse them; renew before they expire.
 - App Store Connect refuses What's New on a first version, so
   `store.config.js` sends no release notes.
+- The first review submission needed the content rights declaration (no
+  third party content), the App Review contact, and China mainland out of the
+  availability list, since it asks for an ICP filing and a local security
+  assessment. Attach the TestFlight build to the version, then submit.
+- Apple warns that from April 2027 uploads must be built with the iOS 27 SDK;
+  bump the Expo SDK before then.
 
 ## OTA by hand
 
@@ -87,8 +96,10 @@ All of them are GitHub secrets on the repository.
 | `PLAY_SERVICE_ACCOUNT` | key of `play-publisher@kapi-d6f2d`, created 2026-11-24 | when revoked, unless the Cloud org sets a key lifetime |
 
 Also on a clock: the Apple Developer Program membership (yearly) and the iOS
-distribution certificate and provisioning profile EAS keeps (one year from the
-first iOS build; `eas credentials` renews them). The App Store key IDs are
+distribution certificate and provisioning profile EAS keeps (until
+2027-11-25; `eas credentials` renews them), and the Sign in with Apple key
+behind `APPLE_SIGNIN_KEY_ID` and `APPLE_SIGNIN_PRIVATE_KEY` on Vercel, which
+the web uses to revoke the Apple grant when an account is deleted. The App Store key IDs are
 injected into `eas.json` at build time, so they stay out of this public
 repository.
 
