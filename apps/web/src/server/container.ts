@@ -142,6 +142,7 @@ import {
   type SessionRevocationStore,
   type PushSender,
   type IdentityTokenVerifier,
+  type AppleGrants,
   type OAuthProvider,
   type PasswordHasher,
   type RecurringTaskRepository,
@@ -178,6 +179,8 @@ import {
   ConsoleEmailSender,
   createGoogleListGenerator,
   AppleIdentityVerifier,
+  HttpAppleTokenClient,
+  PrismaAppleGrantStore,
   GoogleOAuthProvider,
   NumericCodeGenerator,
   PrismaAnalyticsRepository,
@@ -695,6 +698,7 @@ function build(
   })
   const refundCredits = makeRefundCredits({ usageMeter })
   const featureTrials = new PrismaFeatureTrialRepository(db)
+  const appleGrants = buildAppleGrants(db)
   const entitlementService = new PlanEntitlementService(resolvePlan, {
     repository: featureTrials,
     clock,
@@ -997,6 +1001,7 @@ function build(
       apple: appleIdentity,
       ids,
       clock,
+      grants: appleGrants,
     }),
     getGoogleAuthUrl: makeGetGoogleAuthUrl({ oauth }),
     changePassword: makeChangePassword({ users, hasher, sessions, clock }),
@@ -1008,6 +1013,7 @@ function build(
       conversations,
       subscriptions,
       gateways,
+      appleGrants,
     }),
     exportUserData: makeExportUserData({
       users,
@@ -1277,6 +1283,29 @@ function buildEmailSender(): EmailSender {
 
 // The iOS app's bundle id, the audience of its Sign in with Apple tokens.
 const APPLE_BUNDLE_ID = 'com.gbs.lifedeck'
+
+const APPLE_TEAM_ID = '7NDK3458CP'
+
+// Without the Sign in with Apple key the app still signs in; only the grant
+// revocation on account deletion is skipped.
+function buildAppleGrants(
+  db: ReturnType<typeof createTransactionalClient>,
+): AppleGrants | undefined {
+  const keyId = process.env.APPLE_SIGNIN_KEY_ID?.trim()
+  const privateKey = process.env.APPLE_SIGNIN_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  if (!keyId || !privateKey) {
+    return undefined
+  }
+  return {
+    client: new HttpAppleTokenClient({
+      teamId: APPLE_TEAM_ID,
+      keyId,
+      privateKey,
+      clientId: APPLE_BUNDLE_ID,
+    }),
+    store: new PrismaAppleGrantStore(db),
+  }
+}
 
 function buildGoogleProvider(): GoogleOAuthProvider {
   return new GoogleOAuthProvider({

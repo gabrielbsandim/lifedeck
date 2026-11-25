@@ -59,14 +59,21 @@ creates a new verified account. Requires `GOOGLE_CLIENT_ID` and
 
 ## Sign in with Apple
 
-`POST /api/v1/auth/apple` takes `{ identityToken, fullName? }` from the iOS app.
+`POST /api/v1/auth/apple` takes `{ identityToken, fullName?, authorizationCode? }`
+from the iOS app.
 `AppleIdentityVerifier` checks the RS256 signature against
 `https://appleid.apple.com/auth/keys`, the issuer and the audience (the bundle id
 `com.gbs.lifedeck`, a constant in the container), then `signInWithApple` signs in
 by email through the same path as Google, claiming the requesting guest. A bad
-token answers 401. No secret is needed. Revoking the Apple grant on account
-deletion is not built: it needs a Sign in with Apple key and the refresh token
-stored per user.
+token answers 401. Sign-in itself needs no secret.
+
+App Store review requires revoking the grant when the account is deleted. With
+`APPLE_SIGNIN_KEY_ID` and `APPLE_SIGNIN_PRIVATE_KEY` (a Sign in with Apple .p8
+key of team `7NDK3458CP`, PEM text, `\n` escapes accepted) the sign-in trades
+`authorizationCode` at `/auth/token` for a refresh token, stored encrypted in
+`apple_grants`, and `deleteUser` posts it to `/auth/revoke` before deleting.
+Both calls are best effort: a failure never blocks a sign-in or a deletion.
+Without the key the grant is neither stored nor revoked.
 
 Native clients use single-use codes in Redis to cross between the app and a
 browser in both directions: `POST /api/v1/auth/native` after Google sign-in, and

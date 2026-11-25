@@ -57,6 +57,14 @@ beforeEach(() => {
 })
 
 describe('POST /api/v1/auth/apple', () => {
+  it('forwards the authorization code so the grant can be revoked later', async () => {
+    signInWithApple.mockClear()
+    await post({ identityToken: VALID_IDENTITY_TOKEN, authorizationCode: 'c1' })
+    expect(signInWithApple.mock.calls[0]?.[0]).toMatchObject({
+      authorizationCode: 'c1',
+    })
+  })
+
   it('answers with the user and a session token', async () => {
     const response = await post({
       identityToken: VALID_IDENTITY_TOKEN,

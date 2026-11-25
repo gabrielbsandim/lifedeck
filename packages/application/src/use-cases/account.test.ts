@@ -10,6 +10,10 @@ import { FakePasswordHasher } from '@/testing/fake-password-hasher'
 import { InMemorySessionRevocationStore } from '@/testing/in-memory-session-revocation-store'
 import { makeRevokeSessions } from '@/use-cases/revoke-sessions'
 import { FixedClock, ID } from '@/testing/fakes'
+import {
+  FakeAppleTokenClient,
+  InMemoryAppleGrantStore,
+} from '@/testing/in-memory-apple-grants'
 
 const NOW = new Date('2026-06-22T10:00:00.000Z')
 const UNKNOWN = '00000000-0000-4000-8000-000000000000'
@@ -37,7 +41,11 @@ async function setup(withPassword = true) {
     asaas: { cancelSubscription: vi.fn().mockResolvedValue(undefined) },
     stripe: { cancelSubscription: vi.fn().mockResolvedValue(undefined) },
   }
+  const appleClient = new FakeAppleTokenClient()
+  const appleStore = new InMemoryAppleGrantStore()
   return {
+    appleClient,
+    appleStore,
     subscriptions,
     gateways,
     users,
@@ -52,9 +60,34 @@ async function setup(withPassword = true) {
       conversations,
       subscriptions,
       gateways,
+      appleGrants: { client: appleClient, store: appleStore },
     }),
   }
 }
+
+describe('deleteUser apple grant', () => {
+  it('revokes the stored Sign in with Apple grant', async () => {
+    const ctx = await setup()
+    await ctx.appleStore.save(ID.user, 'refresh-1')
+    await ctx.deleteUser(ID.user)
+    expect(ctx.appleClient.revoked).toEqual(['refresh-1'])
+    expect(await ctx.users.findById(ID.user)).toBeNull()
+  })
+
+  it('deletes the account even when Apple fails to revoke', async () => {
+    const ctx = await setup()
+    await ctx.appleStore.save(ID.user, 'refresh-1')
+    ctx.appleClient.failWith = new Error('down')
+    await ctx.deleteUser(ID.user)
+    expect(await ctx.users.findById(ID.user)).toBeNull()
+  })
+
+  it('calls Apple only for accounts that have a grant', async () => {
+    const ctx = await setup()
+    await ctx.deleteUser(ID.user)
+    expect(ctx.appleClient.revoked).toEqual([])
+  })
+})
 
 describe('revokeSessions', () => {
   it('marks every earlier session of the user as revoked', async () => {

@@ -1,5 +1,10 @@
-import { asEntityId, type PaymentProvider } from '@lifedeck/domain'
+import {
+  asEntityId,
+  type EntityId,
+  type PaymentProvider,
+} from '@lifedeck/domain'
 import { NotFoundError } from '@/errors/use-case-error'
+import type { AppleGrants } from '@/ports/apple-grant'
 import type { ConversationStore } from '@/ports/conversation-store'
 import type { PaymentGateway } from '@/ports/payment-gateway'
 import type { SubscriptionRepository } from '@/ports/subscription-repository'
@@ -10,6 +15,7 @@ type Dependencies = {
   conversations: ConversationStore
   subscriptions: Pick<SubscriptionRepository, 'listByUser'>
   gateways: Record<PaymentProvider, Pick<PaymentGateway, 'cancelSubscription'>>
+  appleGrants?: AppleGrants
 }
 
 export function makeDeleteUser({
@@ -17,6 +23,7 @@ export function makeDeleteUser({
   conversations,
   subscriptions,
   gateways,
+  appleGrants,
 }: Dependencies) {
   return async function deleteUser(userId: string): Promise<void> {
     const id = asEntityId(userId)
@@ -34,9 +41,23 @@ export function makeDeleteUser({
         subscription.providerRef,
       )
     }
+    await revokeAppleGrant(appleGrants, id)
     // Relational children are removed by Postgres FK cascade; the conversation
     // log lives in Redis and must be cleared explicitly.
     await conversations.clear(userId)
     await users.delete(id)
   }
+}
+
+// Apple requires revoking the grant on deletion. Unlike a charge, a grant left
+// behind costs the user nothing, so an Apple outage must not block the delete.
+async function revokeAppleGrant(
+  grants: AppleGrants | undefined,
+  userId: EntityId,
+): Promise<void> {
+  const token = await grants?.store.find(userId)
+  if (!grants || !token) {
+    return
+  }
+  await grants.client.revoke(token).catch(() => undefined)
 }

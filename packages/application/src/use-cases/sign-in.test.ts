@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { User } from '@lifedeck/domain'
+import { User, asEntityId } from '@lifedeck/domain'
 import { makeSignInWithEmail } from '@/use-cases/sign-in-with-email'
 import { makeSignInWithGoogle } from '@/use-cases/sign-in-with-google'
 import { makeGetGoogleAuthUrl } from '@/use-cases/get-google-auth-url'
 import { makeSignInWithApple } from '@/use-cases/sign-in-with-apple'
+import {
+  FakeAppleTokenClient,
+  InMemoryAppleGrantStore,
+} from '@/testing/in-memory-apple-grants'
 import {
   FakeIdentityTokenVerifier,
   VALID_IDENTITY_TOKEN,
@@ -276,6 +280,47 @@ describe('getGoogleAuthUrl', () => {
   it('delegates to the provider with the state', () => {
     const getUrl = makeGetGoogleAuthUrl({ oauth: new FakeOAuthProvider() })
     expect(getUrl('xyz')).toBe('https://oauth.test/authorize?state=xyz')
+  })
+})
+
+describe('signInWithApple grant', () => {
+  function setup() {
+    const client = new FakeAppleTokenClient()
+    const store = new InMemoryAppleGrantStore()
+    const signIn = makeSignInWithApple({
+      users: new InMemoryUserRepository(),
+      apple: new FakeIdentityTokenVerifier(),
+      ids: new SequentialIdGenerator([ID.user]),
+      clock: new FixedClock(NOW),
+      grants: { client, store },
+    })
+    return { client, store, signIn }
+  }
+
+  it('stores the refresh token traded for the authorization code', async () => {
+    const ctx = setup()
+    const view = await ctx.signIn({
+      identityToken: VALID_IDENTITY_TOKEN,
+      authorizationCode: 'code-1',
+    })
+    expect(await ctx.store.find(asEntityId(view.id))).toBe('refresh:code-1')
+  })
+
+  it('stores nothing without an authorization code', async () => {
+    const ctx = setup()
+    const view = await ctx.signIn({ identityToken: VALID_IDENTITY_TOKEN })
+    expect(await ctx.store.find(asEntityId(view.id))).toBeNull()
+  })
+
+  it('still signs in when Apple refuses the code', async () => {
+    const ctx = setup()
+    ctx.client.failWith = new Error('invalid_grant')
+    const view = await ctx.signIn({
+      identityToken: VALID_IDENTITY_TOKEN,
+      authorizationCode: 'code-1',
+    })
+    expect(view.email).toBe('apple@example.com')
+    expect(await ctx.store.find(asEntityId(view.id))).toBeNull()
   })
 })
 

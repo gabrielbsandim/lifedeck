@@ -10,6 +10,7 @@ import {
 
 const TOKEN_MAX = 8192
 const NAME_MAX = 200
+const CODE_MAX = 1024
 
 function text(value: unknown, max: number): string | null {
   return typeof value === 'string' && value.length <= max ? value : null
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     const body = (await request.json().catch(() => ({}))) as {
       identityToken?: unknown
       fullName?: unknown
+      authorizationCode?: unknown
     }
     const identityToken = text(body.identityToken, TOKEN_MAX)
     if (!identityToken) {
@@ -34,7 +36,11 @@ export async function POST(request: Request) {
     }
     const guestId = await getUserIdFromRequest(request)
     const user = await getContainer().signInWithApple(
-      { identityToken, fullName: text(body.fullName, NAME_MAX) },
+      {
+        identityToken,
+        fullName: text(body.fullName, NAME_MAX),
+        authorizationCode: text(body.authorizationCode, CODE_MAX),
+      },
       guestId,
     )
     const token = await createSessionToken(user.id, new Date())

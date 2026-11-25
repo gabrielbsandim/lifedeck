@@ -79,6 +79,7 @@ model User {
   bookingClients      BookingClient[]
   bookings            Booking[]
   featureTrials       FeatureTrial[]
+  appleGrant          AppleGrant?
 
   @@map("users")
 }
@@ -326,6 +327,16 @@ model Subscription {
 
 // One free trial per user and entitlement, granted without a gateway. Kept after
 // it ends so the same trial cannot be started twice.
+model AppleGrant {
+  userId       String   @id @map("user_id")
+  refreshToken String   @map("refresh_token")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("apple_grants")
+}
+
 model FeatureTrial {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")

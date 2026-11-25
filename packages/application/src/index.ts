@@ -609,6 +609,15 @@ export type {
   FeatureTrialRepository,
 } from '@/ports/feature-trial-repository'
 export { InMemoryFeatureTrialRepository } from '@/testing/in-memory-feature-trial-repository'
+export type {
+  AppleGrantStore,
+  AppleGrants,
+  AppleTokenClient,
+} from '@/ports/apple-grant'
+export {
+  FakeAppleTokenClient,
+  InMemoryAppleGrantStore,
+} from '@/testing/in-memory-apple-grants'
 export {
   BOOKING_TRIAL_DAYS,
   makeGetBookingTrial,

@@ -37,6 +37,7 @@ export default mergeConfig(
         'src/database/prisma-channel-identity-repository.ts',
         'src/database/prisma-booking-repositories.ts',
         'src/database/prisma-feature-trial-repository.ts',
+        'src/database/prisma-apple-grant-store.ts',
         'src/database/prisma-health-probe.ts',
         'src/messaging/whatsapp-cloud-channel.ts',
         'src/messaging/abracode-channel.ts',

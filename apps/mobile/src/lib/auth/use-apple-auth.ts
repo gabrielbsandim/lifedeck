@@ -53,6 +53,7 @@ export function useAppleSignIn(): AppleSignIn {
       await session.mutateAsync({
         identityToken: credential.identityToken,
         fullName: fullName || null,
+        authorizationCode: credential.authorizationCode,
       })
       return true
     } catch (error) {

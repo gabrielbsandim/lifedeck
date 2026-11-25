@@ -127,6 +127,11 @@ export {
 } from '@/scheduling/redis-dispatch-watermark'
 export { PrismaSubscriptionRepository } from '@/database/prisma-subscription-repository'
 export { PrismaFeatureTrialRepository } from '@/database/prisma-feature-trial-repository'
+export { PrismaAppleGrantStore } from '@/database/prisma-apple-grant-store'
+export {
+  HttpAppleTokenClient,
+  type AppleTokenClientConfig,
+} from '@/auth/apple-token-client'
 export { PrismaCheckoutIntentRepository } from '@/database/prisma-checkout-intent-repository'
 export { PrismaBillingCustomerRepository } from '@/database/prisma-billing-customer-repository'
 export {

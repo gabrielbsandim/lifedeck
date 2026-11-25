@@ -71,8 +71,11 @@ export function useExchangeGoogleCode() {
 export function useAppleSignInSession() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: { identityToken: string; fullName: string | null }) =>
-      appleSignInSession(input),
+    mutationFn: (input: {
+      identityToken: string
+      fullName: string | null
+      authorizationCode: string | null
+    }) => appleSignInSession(input),
     onSuccess: (user: UserView) => {
       queryClient.setQueryData(sessionKey, user)
       void queryClient.invalidateQueries()
