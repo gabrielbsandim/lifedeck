@@ -55,7 +55,7 @@ export default function TabsLayout() {
           // The web raises this tab into a gradient pill; the same treatment
           // reads as the primary action here too.
           tabBarIcon: () => (
-            <View className="bg-brand-600 h-[38px] w-[38px] items-center justify-center rounded-full">
+            <View className="bg-brand-600 -mt-3 h-[38px] w-[38px] items-center justify-center rounded-full">
               <SparkleIcon size={20} color="#ffffff" />
             </View>
           ),
