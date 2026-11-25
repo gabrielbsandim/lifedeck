@@ -254,6 +254,8 @@ jobs:
           name: maestro-${{ matrix.platform }}
           path: ${{ runner.temp }}/maestro
           if-no-files-found: ignore
+          # Maestro nests its output under a .maestro folder, which v4 skips by default.
+          include-hidden-files: true
 
   publish:
     name: Tag and publish the release

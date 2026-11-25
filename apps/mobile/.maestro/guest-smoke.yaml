@@ -31,9 +31,14 @@ name: Guest smoke
     timeout: 15000
 - tapOn:
     id: task-checkbox
-- assertVisible:
-    id: task-checkbox
-    checked: true
+# XCUITest exposes no checked state, so only Android can assert it.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - assertVisible:
+          id: task-checkbox
+          checked: true
 # The tab bar hides while the add-task keyboard is up.
 - hideKeyboard
 - tapOn:
