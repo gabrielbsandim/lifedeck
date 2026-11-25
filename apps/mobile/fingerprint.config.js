@@ -5,6 +5,9 @@ const { SourceSkips } = require('expo/fingerprint')
 
 /** @type {import('expo/fingerprint').Config} */
 module.exports = {
+  // EAS writes the GOOGLE_SERVICES_JSON file variable outside the project, so
+  // hashing it would split the EAS and CI fingerprints.
+  ignorePaths: ['google-services.json', '**/eas-environment-secrets/**'],
   sourceSkips:
     SourceSkips.ExpoConfigVersions |
     SourceSkips.PackageJsonAndroidAndIosScriptsIfNotContainRun,
