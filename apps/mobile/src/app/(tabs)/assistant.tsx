@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ActionCard } from '@/components/assistant/action-card'
+import { ChatText } from '@/components/assistant/chat-text'
 import {
   ImageIcon,
   MicIcon,
@@ -334,7 +335,7 @@ export default function AssistantScreen() {
           if (item.kind === 'assistant') {
             return (
               <AssistantRow key={item.id}>
-                <Text className="text-ink-800 text-[14.5px]">{item.text}</Text>
+                <ChatText text={item.text} />
               </AssistantRow>
             )
           }

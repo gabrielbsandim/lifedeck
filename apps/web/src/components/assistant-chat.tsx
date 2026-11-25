@@ -19,6 +19,7 @@ import {
   type AssistantHistoryMessage,
   type AssistantSendInput,
 } from '@/lib/api/use-assistant'
+import { ChatText } from '@/components/chat-text'
 import { CalendarIcon, CheckIcon, SparkleIcon } from '@/components/icons'
 
 // One entry in the visible thread. User turns and the assistant's words are
@@ -366,7 +367,7 @@ export function AssistantChat() {
             return (
               <AssistantRow key={item.id}>
                 <div className="text-ink-800 text-[14.5px] leading-snug">
-                  {item.text}
+                  <ChatText text={item.text} />
                 </div>
               </AssistantRow>
             )
