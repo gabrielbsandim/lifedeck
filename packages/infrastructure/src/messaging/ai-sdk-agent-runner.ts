@@ -494,14 +494,20 @@ export function buildAssistantToolset(tools: AssistantTools, userId: string) {
           .optional()
           .describe('Civil date YYYY-MM-DD it happened. Omit for today.'),
         as: z
-          .enum(['habit', 'task'])
+          .enum(['auto', 'habit', 'task'])
           .optional()
           .describe(
-            'Only when the user said which one they meant, e.g. correcting a habit log that should have been a task.',
+            'auto unless the user said which one they meant, e.g. correcting a habit log that should have been a task.',
           ),
       }),
+      // Some models fill every optional field, so a blank or padded date and an
+      // "auto" kind must read as not given.
       execute: async ({ title, date, as }) =>
-        tools.logActivity(userId, { title, date, as }),
+        tools.logActivity(userId, {
+          title,
+          date: date?.match(/\d{4}-\d{2}-\d{2}/)?.[0],
+          as: as === 'auto' ? undefined : as,
+        }),
     }),
     undoActivity: tool({
       description:

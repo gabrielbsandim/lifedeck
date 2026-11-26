@@ -41,7 +41,10 @@ function build(overrides: Partial<AssistantToolsDeps> = {}) {
       async () => [],
     ) as unknown as AssistantToolsDeps['listListTasks'],
     listUserLists: vi.fn(async () => ({
-      items: [{ id: 'list-1', title: 'Today' }],
+      items: [
+        { id: 'list-1', title: 'Today' },
+        { id: 'list-9', title: 'Groceries' },
+      ],
     })) as unknown as AssistantToolsDeps['listUserLists'],
     listCalendarEvents: vi.fn(
       async () => [],
@@ -630,6 +633,7 @@ describe('makeAssistantTools', () => {
     ])
     expect((await tools.getLists(USER_ID)).lists).toEqual([
       { id: 'list-1', title: 'Today' },
+      { id: 'list-9', title: 'Groceries' },
     ])
   })
 
@@ -654,6 +658,21 @@ describe('makeAssistantTools', () => {
       title: 'Ship it',
     })
     expect(deps.getDailyBoard).not.toHaveBeenCalled()
+  })
+
+  it('falls back to today when the listId is not one of the user’s lists', async () => {
+    const { tools, deps } = build()
+
+    await tools.addTask(USER_ID, {
+      title: 'Buy bread',
+      listId: '00000000-0000-0000-0000-000000000000',
+    })
+
+    expect(deps.listListTasks).not.toHaveBeenCalled()
+    expect(deps.createTask).toHaveBeenCalledWith(USER_ID, {
+      listId: 'list-1',
+      title: 'Buy bread',
+    })
   })
 
   it('reports empty memory when the user has saved nothing', async () => {

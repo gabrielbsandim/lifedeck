@@ -118,6 +118,16 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
 
   // The tasks a new title is checked against: the target list, plus the
   // pending tasks offered for carry-over when the target is today's board.
+  // Daily lists are reached by date, and listing them buried the user's own.
+  const standaloneLists = async (userId: string) => {
+    const page = await listUserLists(userId, {
+      type: 'standalone',
+      limit: 100,
+      cursor: null,
+    })
+    return page.items.map(list => ({ id: list.id, title: list.title }))
+  }
+
   const addTaskTarget = async (
     userId: string,
     listId: string | undefined,
@@ -126,7 +136,12 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
     candidates: TaskView[]
     carryOverIds: Set<string>
   }> => {
-    if (listId) {
+    // Some models fill the optional id with a made-up or all-zero uuid, and a
+    // list the user does not have can only mean "no list chosen".
+    const chosen =
+      listId !== undefined &&
+      (await standaloneLists(userId)).some(list => list.id === listId)
+    if (chosen) {
       return {
         listId,
         candidates: await listListTasks(userId, listId),
@@ -182,15 +197,7 @@ export function makeAssistantTools(deps: AssistantToolsDeps): AssistantTools {
       }
     },
     async getLists(userId) {
-      // Daily lists are reached by date, and listing them buried the user's own.
-      const page = await listUserLists(userId, {
-        type: 'standalone',
-        limit: 100,
-        cursor: null,
-      })
-      return {
-        lists: page.items.map(list => ({ id: list.id, title: list.title })),
-      }
+      return { lists: await standaloneLists(userId) }
     },
     async getAgenda(userId, range) {
       const timezone = await timezoneOf(userId)

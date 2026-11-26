@@ -183,6 +183,24 @@ describe('buildAssistantToolset', () => {
       as: 'task',
     })
 
+    await run(toolset.logActivity, {
+      title: 'treinei',
+      date: '',
+      as: 'auto',
+    })
+    expect(tools.logActivity).toHaveBeenLastCalledWith(USER_ID, {
+      title: 'treinei',
+      date: undefined,
+      as: undefined,
+    })
+
+    await run(toolset.logActivity, { title: 'li', date: '2026-07-18}' })
+    expect(tools.logActivity).toHaveBeenLastCalledWith(USER_ID, {
+      title: 'li',
+      date: '2026-07-18',
+      as: undefined,
+    })
+
     const log = {
       kind: 'habit',
       id: 'h1',

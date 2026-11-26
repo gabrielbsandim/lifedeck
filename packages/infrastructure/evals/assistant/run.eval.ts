@@ -48,7 +48,14 @@ type CaseResult = {
   error?: string
 }
 
-function baseModel(id: string): LanguageModel {
+// "gpt-6-luna@low" runs Luna with that reasoning effort; no suffix keeps the API default.
+function parseModel(name: string) {
+  const [id = name, effort] = name.split('@')
+  return { id, effort }
+}
+
+function baseModel(name: string): LanguageModel {
+  const { id } = parseModel(name)
   const spec = MODELS[id]
   if (!spec) {
     throw new Error(
@@ -69,11 +76,25 @@ function requireEnv(name: string): string {
   return value
 }
 
-function metered(id: string, usage: Usage) {
+function metered(name: string, usage: Usage) {
+  const { effort } = parseModel(name)
   return wrapLanguageModel({
-    model: baseModel(id) as Parameters<typeof wrapLanguageModel>[0]['model'],
+    model: baseModel(name) as Parameters<typeof wrapLanguageModel>[0]['model'],
     middleware: {
       specificationVersion: 'v3',
+      transformParams: async ({ params }) =>
+        effort === undefined
+          ? params
+          : {
+              ...params,
+              providerOptions: {
+                ...params.providerOptions,
+                openai: {
+                  ...params.providerOptions?.openai,
+                  reasoningEffort: effort,
+                },
+              },
+            },
       wrapGenerate: async ({ doGenerate }) => {
         const result = await doGenerate()
         usage.input += result.usage.inputTokens.total ?? 0
@@ -153,7 +174,7 @@ async function pool<T>(jobs: (() => Promise<T>)[], size: number): Promise<T[]> {
 }
 
 function costOf(model: string, usage: Usage): number | undefined {
-  const price = MODELS[model]?.price
+  const price = MODELS[parseModel(model).id]?.price
   if (!price) {
     return undefined
   }
