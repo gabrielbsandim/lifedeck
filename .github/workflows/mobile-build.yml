@@ -87,10 +87,26 @@ jobs:
           PLATFORM: ${{ inputs.platform }}
           PROFILE: ${{ inputs.profile }}
           SUBMIT: ${{ inputs.submit }}
+          PLAY_SERVICE_ACCOUNT: ${{ secrets.PLAY_SERVICE_ACCOUNT }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
         run: |
           args="--platform $PLATFORM --profile $PROFILE --non-interactive --no-wait"
           if [ "$SUBMIT" = "true" ]; then
             args="$args --auto-submit"
+            # The keys stay in an ignored folder: the CLI reads them when it
+            # schedules the submission, and EAS uploads the project without them.
+            mkdir -p .secrets
+            printf '%s' "$PLAY_SERVICE_ACCOUNT" > .secrets/play-service-account.json
+            printf '%s' "$ASC_API_KEY_P8" > .secrets/asc-api-key.p8
+            jq '.submit.production.android.serviceAccountKeyPath = "./.secrets/play-service-account.json"' \
+              eas.json > "$RUNNER_TEMP/eas.json"
+            mv "$RUNNER_TEMP/eas.json" eas.json
+            export EXPO_ASC_API_KEY_PATH="$PWD/.secrets/asc-api-key.p8"
+            export EXPO_ASC_KEY_ID="$ASC_API_KEY_ID"
+            export EXPO_ASC_ISSUER_ID="$ASC_API_KEY_ISSUER_ID"
+            export EXPO_APPLE_TEAM_ID=7NDK3458CP
           fi
           # shellcheck disable=SC2086
           eas build $args
