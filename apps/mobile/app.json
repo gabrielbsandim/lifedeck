@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "scheme": "lifedeck",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "fingerprint"
@@ -158,6 +157,9 @@
       [
         "expo-build-properties",
         {
+          "ios": {
+            "enableSceneSupport": true
+          },
           "android": {
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
