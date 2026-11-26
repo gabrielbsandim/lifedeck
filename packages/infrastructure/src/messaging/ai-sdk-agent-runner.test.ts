@@ -9,6 +9,7 @@ import {
   collectRecordedActions,
   collectToolNames,
   createAgentRunner,
+  reasoningEffortFor,
   gateTools,
   renderTurn,
 } from '@/messaging/ai-sdk-agent-runner'
@@ -621,6 +622,33 @@ describe('AiSdkAgentRunner.run', () => {
     )
   })
 
+  it('routes a voice note to the audio model when one is set', async () => {
+    const withAudio = new AiSdkAgentRunner(
+      'flash-model',
+      'pro-model',
+      spyTools(),
+      [],
+      'audio-model',
+    )
+    await withAudio.run({ userId: USER_ID, audio: AUDIO, history: [] })
+    expect(genCall().model).toBe('audio-model')
+
+    await withAudio.run({ userId: USER_ID, message: 'oi', history: [] })
+    expect(generateTextMock.mock.lastCall?.[0].model).toBe('flash-model')
+  })
+
+  it('asks for the reasoning effort of the user’s plan', async () => {
+    await runner().run({
+      userId: USER_ID,
+      message: 'oi',
+      history: [],
+      entitlements: ['whatsappAssistant', 'calendarSync'],
+    })
+    expect(genCall().providerOptions).toEqual({
+      openai: { reasoningEffort: 'medium' },
+    })
+  })
+
   it('threads prior history before the new user turn', async () => {
     await runner().run({
       userId: USER_ID,
@@ -833,7 +861,31 @@ describe('claimsUnbackedAction', () => {
   })
 })
 
+describe('reasoningEffortFor', () => {
+  it('thinks more on richer plans', () => {
+    expect(reasoningEffortFor(['whatsappAssistant'])).toBe('low')
+    expect(reasoningEffortFor(['whatsappAssistant', 'calendarSync'])).toBe(
+      'medium',
+    )
+    expect(
+      reasoningEffortFor(['whatsappAssistant', 'calendarSync', 'premiumModel']),
+    ).toBe('high')
+  })
+})
+
 describe('createAgentRunner', () => {
+  beforeEach(() => {
+    vi.stubEnv('OPENAI_API_KEY', '')
+  })
+
+  it('prefers OpenAI when its key is present, with or without Gemini for audio', () => {
+    vi.stubEnv('OPENAI_API_KEY', 'sk-test')
+    vi.stubEnv('GEMINI_API_KEY', 'key-123')
+    expect(createAgentRunner(spyTools())).toBeInstanceOf(AiSdkAgentRunner)
+    vi.stubEnv('GEMINI_API_KEY', '')
+    expect(createAgentRunner(spyTools())).toBeInstanceOf(AiSdkAgentRunner)
+  })
+
   it('builds a Gemini-backed runner when an API key is present', () => {
     vi.stubEnv('GEMINI_API_KEY', 'key-123')
     expect(createAgentRunner(spyTools())).toBeInstanceOf(AiSdkAgentRunner)

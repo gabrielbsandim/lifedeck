@@ -1,6 +1,7 @@
 import { generateText, stepCountIs, tool, type LanguageModel } from 'ai'
 import type { ModelMessage } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
 import type { Entitlement } from '@lifedeck/domain'
 import type {
@@ -15,6 +16,7 @@ import type {
 } from '@lifedeck/application'
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
+const DEFAULT_OPENAI_MODEL = 'gpt-6-luna'
 
 // Tool-calling rounds allowed in one turn. Enough for a read, a handful of
 // mutations and the closing sentence, so a message reporting several things at
@@ -908,6 +910,9 @@ export class AiSdkAgentRunner implements AgentRunner {
     private readonly proModel: LanguageModel,
     private readonly tools: AssistantTools,
     private readonly disabled: readonly Entitlement[] = [],
+    // Voice notes stay on a model proven to understand audio while the main
+    // model is one the audio path was never evaluated on.
+    private readonly audioModel?: LanguageModel,
   ) {}
 
   private toolsFor(userId: string) {
@@ -947,7 +952,11 @@ export class AiSdkAgentRunner implements AgentRunner {
       ...input.history.map(renderTurn),
       userMessage,
     ]
-    const model = input.model === 'pro' ? this.proModel : this.flashModel
+    const tierModel = input.model === 'pro' ? this.proModel : this.flashModel
+    const model = (input.audio && this.audioModel) || tierModel
+    const providerOptions = {
+      openai: { reasoningEffort: reasoningEffortFor(input.entitlements ?? []) },
+    }
     const tools = gateTools(
       this.toolsFor(input.userId),
       input.entitlements ?? [],
@@ -961,6 +970,7 @@ export class AiSdkAgentRunner implements AgentRunner {
         system: systemPrompt,
         messages,
         tools,
+        providerOptions,
         // A turn that handles two reported activities can legitimately take a
         // read, two actions and the closing sentence; five steps cut those off
         // halfway, leaving the work half done.
@@ -981,6 +991,7 @@ export class AiSdkAgentRunner implements AgentRunner {
         system: systemPrompt,
         messages: [...messages, ...(result.response?.messages ?? [])],
         tools,
+        providerOptions,
         toolChoice: 'none',
       })
       return closing.text
@@ -1016,15 +1027,42 @@ export class AiSdkAgentRunner implements AgentRunner {
 
 // `disabled` switches off entitlements whose feature flag is off, so a plan that
 // grants booking still gets no booking tools before the feature launches.
+// Entitlements are cumulative per plan, so the richest one names the plan:
+// free thinks least, premium most. Providers without the option ignore it.
+export function reasoningEffortFor(
+  entitlements: readonly Entitlement[],
+): 'low' | 'medium' | 'high' {
+  if (entitlements.includes('premiumModel')) {
+    return 'high'
+  }
+  return entitlements.includes('calendarSync') ? 'medium' : 'low'
+}
+
 export function createAgentRunner(
   tools: AssistantTools,
   options: { disabled?: readonly Entitlement[] } = {},
 ): AgentRunner {
   const disabled = options.disabled ?? []
   const geminiKey = process.env.GEMINI_API_KEY?.trim()
-  if (geminiKey) {
-    const google = createGoogleGenerativeAI({ apiKey: geminiKey })
-    const flashId = process.env.GEMINI_MODEL_ID?.trim() || DEFAULT_GEMINI_MODEL
+  const google = geminiKey
+    ? createGoogleGenerativeAI({ apiKey: geminiKey })
+    : undefined
+  const flashId = process.env.GEMINI_MODEL_ID?.trim() || DEFAULT_GEMINI_MODEL
+  const openaiKey = process.env.OPENAI_API_KEY?.trim()
+  if (openaiKey) {
+    const openai = createOpenAI({ apiKey: openaiKey })
+    const model = openai(
+      process.env.OPENAI_MODEL_ID?.trim() || DEFAULT_OPENAI_MODEL,
+    )
+    return new AiSdkAgentRunner(
+      model,
+      model,
+      tools,
+      disabled,
+      google?.(flashId),
+    )
+  }
+  if (google) {
     const proId =
       process.env.GEMINI_PRO_MODEL_ID?.trim() || DEFAULT_GEMINI_PRO_MODEL
     return new AiSdkAgentRunner(google(flashId), google(proId), tools, disabled)

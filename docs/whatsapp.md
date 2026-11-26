@@ -98,10 +98,15 @@ retries on slow responses.
 
 `AgentRunner` (port) is implemented by `AiSdkAgentRunner`
 (`packages/infrastructure/src/messaging/ai-sdk-agent-runner.ts`) on the Vercel AI
-SDK `generateText`. Provider resolution mirrors list generation: `GEMINI_API_KEY`
-direct, else the `AI_MODEL` gateway, else a stub. Default model is Gemini Flash
-(`GEMINI_MODEL_ID`); the registry caps tool steps with `stopWhen: stepCountIs(10)`,
-enough for a read, a few mutations and the closing sentence in one turn.
+SDK `generateText`. Provider resolution: `OPENAI_API_KEY` first (model
+`OPENAI_MODEL_ID`, default `gpt-6-luna`), else `GEMINI_API_KEY` direct (Gemini
+Flash, `GEMINI_MODEL_ID`), else the `AI_MODEL` gateway, else a stub. On OpenAI the
+reasoning effort follows the plan (free `low`, pro `medium`, premium `high`, see
+`reasoningEffortFor`), and voice notes still go to Gemini Flash when its key is set,
+since Luna was never evaluated on audio. The registry caps tool steps with
+`stopWhen: stepCountIs(10)`, enough for a read, a few mutations and the closing
+sentence in one turn. `pnpm --filter @lifedeck/infrastructure eval:assistant`
+compares models (see [assistant-chat.md](assistant-chat.md)).
 
 Tools are thin adapters over existing use cases, exposed through the `AssistantTools`
 port (`packages/application/src/ports/assistant-tools.ts`) and wired in the
@@ -293,6 +298,7 @@ friends) is not subject to any of this and stays warm.
 
 `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`,
 `WHATSAPP_VERIFY_TOKEN`,
+`OPENAI_API_KEY`, `OPENAI_MODEL_ID`,
 `GEMINI_API_KEY`, `GEMINI_MODEL_ID`, `GEMINI_PRO_MODEL_ID`, `AI_MODEL`,
 `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. When the Abracode gateway
 is used instead of Meta-direct: `ABRACODE_API_KEY`, `ABRACODE_FROM`,
