@@ -1,0 +1,74 @@
+name: Mobile E2E
+
+# Checks a native change, such as a build setting, on a release-like Android
+# binary before it waits for the next release to be exercised.
+on:
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      MAESTRO_APP_ID: com.lifedeck.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install the workspace
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build the E2E binary on EAS
+        run: |
+          eas build --platform android --profile e2e-test --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
+          url=$(jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")
+          mkdir -p "$RUNNER_TEMP/app"
+          curl -fsSL "$url" -o "$RUNNER_TEMP/app/build.apk"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Let the emulator use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the smoke flow on an Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          working-directory: apps/mobile
+          script: |
+            adb install "$RUNNER_TEMP/app/build.apk"
+            maestro test --debug-output "$RUNNER_TEMP/maestro" .maestro/guest-smoke.yaml
+
+      - name: Keep the Maestro screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-android
+          path: ${{ runner.temp }}/maestro
+          if-no-files-found: ignore
+          include-hidden-files: true
