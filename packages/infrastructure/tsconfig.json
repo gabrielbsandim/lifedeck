@@ -3,8 +3,17 @@
   "compilerOptions": {
     "rootDir": ".",
     "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] },
+    "paths": {
+      "@/*": ["src/*"],
+      "@evals/*": ["evals/*"]
+    },
     "noEmit": true
   },
-  "include": ["src", "vitest.config.ts", "tsup.config.ts"]
+  "include": [
+    "src",
+    "vitest.config.ts",
+    "tsup.config.ts",
+    "evals",
+    "vitest.eval.config.ts"
+  ]
 }

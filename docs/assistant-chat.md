@@ -128,3 +128,26 @@ None beyond the WhatsApp assistant's: `GEMINI_API_KEY` (and `GEMINI_MODEL_ID` /
 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` back the shared conversation
 history and the rate limiter. See [WhatsApp assistant](./whatsapp.md) for the full
 agent, tools, and multimodal details this feature reuses.
+
+## Model evals
+
+`packages/infrastructure/evals/assistant` runs the production agent runner
+against real models over an in-memory Life Deck, one fresh user per case. Each
+scenario seeds tasks or habits, sends one message and checks the resulting
+state (habit logged, task completed, nothing duplicated), so a model is judged
+by what it changed, not by its wording. The scenarios come from the bot's known
+comprehension failures: creating instead of reconciling, a habit logged as a
+task, a correction that duplicates.
+
+It calls paid APIs, so it never runs in `pnpm test` or CI:
+
+```sh
+NODE_USE_ENV_PROXY=1 OPENAI_API_KEY=... GEMINI_API_KEY=... \
+EVAL_MODELS=gemini-2.5-flash,gpt-6-luna EVAL_RUNS=3 \
+pnpm --filter @lifedeck/infrastructure eval:assistant
+```
+
+`EVAL_ONLY` takes scenario ids and `EVAL_OUT` writes every case as JSON. The
+summary shows the pass rate, unbacked "I did it" claims, p50 latency, tokens per
+turn and an estimated cost per thousand turns from the price table in
+`run.eval.ts`.
