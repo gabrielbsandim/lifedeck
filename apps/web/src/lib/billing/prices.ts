@@ -20,7 +20,7 @@ export const MARKET_BY_CURRENCY: Record<Currency, Market> = {
 }
 
 // Locale used only to render each currency in its conventional style, so a
-// Brazilian sees "R$ 14,90" and an international user sees "$4.99" regardless of
+// Brazilian sees "R$ 6,90" and an international user sees "$1.99" regardless of
 // the app's UI language.
 const FORMAT_LOCALE: Record<Currency, string> = {
   BRL: 'pt-BR',
@@ -35,12 +35,12 @@ export const PRICE_AMOUNTS: Record<
   Record<PaidPlan, Record<Interval, number>>
 > = {
   BR: {
-    pro: { monthly: 14.9, annual: 149 },
-    premium: { monthly: 29.9, annual: 299 },
+    pro: { monthly: 6.9, annual: 59 },
+    premium: { monthly: 12.9, annual: 119 },
   },
   INTL: {
-    pro: { monthly: 4.99, annual: 49 },
-    premium: { monthly: 9.99, annual: 99 },
+    pro: { monthly: 1.99, annual: 19 },
+    premium: { monthly: 3.99, annual: 39 },
   },
 }
 
@@ -70,7 +70,7 @@ export function priceLabel(
   )
 }
 
-// What one month of the annual plan effectively costs, shown as the "≈ R$ 12,42/mo"
+// What one month of the annual plan effectively costs, shown as the "≈ R$ 4,92/mo"
 // hint on annual pricing so the saving over monthly is legible at a glance.
 export function annualEquivalentMonthly(
   market: Market,

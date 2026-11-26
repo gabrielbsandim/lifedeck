@@ -55,7 +55,7 @@ describe('billing prices', () => {
     for (const currency of CURRENCIES) {
       expect(CURRENCY_BY_MARKET[MARKET_BY_CURRENCY[currency]]).toBe(currency)
     }
-    expect(PRICE_AMOUNTS.BR.pro.monthly).toBe(14.9)
+    expect(PRICE_AMOUNTS.BR.pro.monthly).toBe(6.9)
     expect(formatPrice(4.99, 'USD')).toContain('4.99')
   })
 
@@ -68,8 +68,8 @@ describe('billing prices', () => {
         )
       }
     }
-    // The R$149 annual Pro plan works out to about R$12.42 a month.
-    expect(annualEquivalentMonthly('BR', 'pro')).toBeCloseTo(12.4166, 3)
+    // The R$59 annual Pro plan works out to about R$4.92 a month.
+    expect(annualEquivalentMonthly('BR', 'pro')).toBeCloseTo(4.9166, 3)
   })
 
   it('reports the yearly saving of annual over twelve monthly payments', () => {
@@ -82,8 +82,8 @@ describe('billing prices', () => {
         expect(annualSavings(market, plan)).toBeGreaterThan(0)
       }
     }
-    // 12 × R$14.90 − R$149 = R$29.80 (the "2 months free" promise).
-    expect(annualSavings('BR', 'pro')).toBeCloseTo(29.8, 2)
+    // 12 × R$6.90 − R$59 = R$23.80, past the "2 months free" promise.
+    expect(annualSavings('BR', 'pro')).toBeCloseTo(23.8, 2)
   })
 })
 

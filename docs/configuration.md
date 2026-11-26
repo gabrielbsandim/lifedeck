@@ -107,7 +107,7 @@ Console: https://www.asaas.com (use sandbox first:
 | `ASAAS_BASE_URL` | API base (sandbox or production). | Set it. Sandbox: `https://sandbox.asaas.com/api`. |
 | `ASAAS_API_KEY` | API key. | Asaas → Integrations → API Key. |
 | `ASAAS_WEBHOOK_TOKEN` | Token that validates the webhook. | You set it in Asaas → Webhooks (header `asaas-access-token`). |
-| `ASAAS_VALUE_PRO_MONTHLY` | Pro monthly price (BRL). | You set it. E.g. `14.90`. |
+| `ASAAS_VALUE_PRO_MONTHLY` | Pro monthly price (BRL). | You set it. E.g. `6.90`. |
 | `ASAAS_VALUE_PRO_ANNUAL` | Pro annual price (BRL). | You set it. E.g. `149.00`. |
 | `ASAAS_VALUE_PREMIUM_MONTHLY` | Premium monthly price (BRL). | You set it. E.g. `29.90`. |
 | `ASAAS_VALUE_PREMIUM_ANNUAL` | Premium annual price (BRL). | You set it. E.g. `299.00`. |
