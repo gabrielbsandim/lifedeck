@@ -14,6 +14,7 @@ import {
 import { useSession } from '@/lib/api/use-session'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { cn } from '@/lib/cn'
+import { relativeTime } from '@/lib/relative-time'
 import { useThemeColors } from '@/theme/tokens'
 
 const BCP47: Record<string, string> = {
@@ -94,28 +95,6 @@ function formatEventTime(
     minute: '2-digit',
     timeZone,
   }).format(date)
-}
-
-function relativeTime(iso: string, locale: string): string {
-  const then = new Date(iso).getTime()
-  if (Number.isNaN(then)) {
-    return ''
-  }
-  const diffSec = Math.round((then - Date.now()) / 1000)
-  const abs = Math.abs(diffSec)
-  const rtf = new Intl.RelativeTimeFormat(BCP47[locale] ?? locale, {
-    numeric: 'auto',
-  })
-  if (abs < 60) {
-    return rtf.format(diffSec, 'second')
-  }
-  if (abs < 3600) {
-    return rtf.format(Math.round(diffSec / 60), 'minute')
-  }
-  if (abs < 86_400) {
-    return rtf.format(Math.round(diffSec / 3600), 'hour')
-  }
-  return rtf.format(Math.round(diffSec / 86_400), 'day')
 }
 
 function NotificationIcon({ type }: { type: string }) {
@@ -216,7 +195,7 @@ export function NotificationBell() {
                         {rendered.title}
                       </Text>
                       <Text className="text-ink-400 text-[11px]">
-                        {relativeTime(item.createdAt, locale)}
+                        {relativeTime(item.createdAt, BCP47[locale] ?? locale)}
                       </Text>
                     </View>
                     {rendered.subtitle ? (
