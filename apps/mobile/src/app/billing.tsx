@@ -190,26 +190,26 @@ export default function BillingScreen() {
         currentLabel={t.yourPlanBadge}
       />
 
-      <Card className="gap-2 p-4">
-        <Text className="text-ink-700 text-sm font-semibold">
-          {t.yourPlan}: {planName(currentPlan, messages)}
-        </Text>
-        {choose ? (
-          <>
-            <Text className="text-ink-500 text-xs">{t.footerCancel}</Text>
-            <Pressable accessibilityRole="button" onPress={choose}>
-              <Text className="text-brand-accent text-sm font-semibold">
-                {t.manage}
-              </Text>
-            </Pressable>
-          </>
-        ) : null}
-        {checkout.failed ? (
-          <Text className="text-danger text-xs" accessibilityRole="alert">
-            {messages.common.error}
+      {/* Read-only builds already mark the current plan with a badge, and a
+          card holding only that line reads as a banner with its content missing. */}
+      {choose ? (
+        <Card className="gap-2 p-4">
+          <Text className="text-ink-700 text-sm font-semibold">
+            {t.yourPlan}: {planName(currentPlan, messages)}
           </Text>
-        ) : null}
-      </Card>
+          <Text className="text-ink-500 text-xs">{t.footerCancel}</Text>
+          <Pressable accessibilityRole="button" onPress={choose}>
+            <Text className="text-brand-accent text-sm font-semibold">
+              {t.manage}
+            </Text>
+          </Pressable>
+          {checkout.failed ? (
+            <Text className="text-danger text-xs" accessibilityRole="alert">
+              {messages.common.error}
+            </Text>
+          ) : null}
+        </Card>
+      ) : null}
 
       <Text className="text-ink-400 text-center text-xs">
         {t.pricesIn.replace('{currency}', currency)}
