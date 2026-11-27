@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import Link from 'next/link'
+import { cn } from '@lifedeck/ui'
 import { useSearchParams } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
@@ -227,7 +228,7 @@ export function PlansScreen() {
             <button
               type="button"
               aria-pressed={!annual}
-              className={`ldp-seg-btn${annual ? '' : 'is-active'}`}
+              className={cn('ldp-seg-btn', !annual && 'is-active')}
               onClick={() => setInterval('monthly')}
             >
               {t.monthly}
@@ -235,7 +236,7 @@ export function PlansScreen() {
             <button
               type="button"
               aria-pressed={annual}
-              className={`ldp-seg-btn${annual ? 'is-active' : ''}`}
+              className={cn('ldp-seg-btn', annual && 'is-active')}
               onClick={() => setInterval('annual')}
             >
               {t.annual}
@@ -246,7 +247,7 @@ export function PlansScreen() {
             <button
               type="button"
               aria-pressed={currency === 'BRL'}
-              className={`ldp-cur-btn${currency === 'BRL' ? 'is-active' : ''}`}
+              className={cn('ldp-cur-btn', currency === 'BRL' && 'is-active')}
               onClick={() => setCurrencyOverride('BRL')}
             >
               R$ BRL
@@ -254,7 +255,7 @@ export function PlansScreen() {
             <button
               type="button"
               aria-pressed={currency === 'USD'}
-              className={`ldp-cur-btn${currency === 'USD' ? 'is-active' : ''}`}
+              className={cn('ldp-cur-btn', currency === 'USD' && 'is-active')}
               onClick={() => setCurrencyOverride('USD')}
             >
               US$ USD
