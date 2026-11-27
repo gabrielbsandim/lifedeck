@@ -110,7 +110,7 @@ export default function RootLayout() {
 
 // Replaces the whole tree when a render throws, so it cannot lean on the
 // providers above it: the copy is resolved straight from the device locale.
-export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   const messages = getMessages(
     detectLocale(getLocales()[0]?.languageTag ?? null),
   )
@@ -127,6 +127,11 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
           {t.crashTitle}
         </Text>
         <Text className="text-ink-500 text-sm">{t.crashBody}</Text>
+        {/* Release builds keep no console a tester can read, so the message is
+            the only trace of what broke. */}
+        <Text selectable className="text-ink-400 text-xs">
+          {error.message}
+        </Text>
       </View>
       <Button className="self-start" onPress={() => void retry()}>
         {messages.common.retry}

@@ -5,7 +5,13 @@
 import { useState } from 'react'
 import { Pressable, Text, View, useColorScheme } from 'react-native'
 import * as AppleAuthentication from 'expo-apple-authentication'
-import { Button, Dialog, PasswordField, TextField } from '@/components/ui'
+import {
+  Button,
+  Dialog,
+  GoogleIcon,
+  PasswordField,
+  TextField,
+} from '@/components/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
   useRegister,
@@ -176,9 +182,12 @@ export function AuthDialog({
             variant="ghost"
             onPress={() => void google.start()}
             isLoading={google.isPending}
-            className="border-line border"
+            className="border-line bg-surface active:bg-bg gap-3 border"
           >
-            {messages.auth.continueWithGoogle}
+            <GoogleIcon />
+            <Text className="text-ink-700 text-sm font-medium">
+              {messages.auth.continueWithGoogle}
+            </Text>
           </Button>
           {google.isError ? (
             <Text className="text-danger text-sm">{messages.common.error}</Text>

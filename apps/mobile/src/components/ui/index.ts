@@ -26,6 +26,7 @@ export {
   type LogoProps,
   type LogoMarkProps,
 } from '@/components/ui/logo'
+export { GoogleIcon, type GoogleIconProps } from '@/components/ui/google-icon'
 export { Screen, type ScreenProps } from '@/components/ui/screen'
 export { Row, type RowProps } from '@/components/ui/row'
 export {
