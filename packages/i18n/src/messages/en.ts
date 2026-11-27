@@ -428,8 +428,6 @@ export const en: Messages = {
       faq4Title: 'Works without WhatsApp too',
       faq4Body:
         'Prefer just the web? Everything works in the app; WhatsApp is a bonus, not a requirement.',
-      founderNote:
-        'reserved space — founder note or a real testimonial (add a true quote + photo later)',
       finalTitle: 'Your assistant wakes up with you.',
       finalBody:
         'Start free today. Turn on Pro for {price}{per} when you want the good-morning brief, the reminders, and the full assistant.',

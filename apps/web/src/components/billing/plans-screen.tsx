@@ -643,10 +643,6 @@ function FaqBand() {
             </div>
           ))}
         </div>
-        <div className="ldp-founder">
-          <div className="ldp-founder-av" aria-hidden />
-          <div className="ldp-founder-txt">{p.founderNote}</div>
-        </div>
       </div>
     </section>
   )

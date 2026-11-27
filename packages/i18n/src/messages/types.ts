@@ -394,7 +394,6 @@ export type Messages = {
       faq3Body: string
       faq4Title: string
       faq4Body: string
-      founderNote: string
       finalTitle: string
       finalBody: string
       footerLine: string

@@ -441,8 +441,6 @@ export const fr: Messages = {
       faq4Title: 'Fonctionne aussi sans WhatsApp',
       faq4Body:
         'Vous préférez le web ? Tout fonctionne dans l’app ; WhatsApp est un bonus, pas une obligation.',
-      founderNote:
-        'espace réservé : note du fondateur ou vrai témoignage (ajouter une vraie citation + photo plus tard)',
       finalTitle: 'Votre assistant se réveille avec vous.',
       finalBody:
         'Commencez gratuitement dès aujourd’hui. Activez Pro pour {price}{per} quand vous voulez le brief du matin, les rappels et l’assistant complet.',

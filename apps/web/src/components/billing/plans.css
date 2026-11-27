@@ -916,30 +916,6 @@
   line-height: 1.5;
   color: var(--ink-600);
 }
-.ldp-founder {
-  margin-top: 24px;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  background: var(--surface);
-  border: 1.5px dashed var(--line-strong);
-  border-radius: 16px;
-  padding: 22px;
-}
-.ldp-founder-av {
-  width: 52px;
-  height: 52px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--surface-3);
-  border: 1.5px dashed var(--line-strong);
-}
-.ldp-founder-txt {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--ink-500);
-  line-height: 1.5;
-}
 
 /* final cta */
 .ldp-final-box {
