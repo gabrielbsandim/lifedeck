@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { cn } from '@lifedeck/ui'
+import { AnimatedValue, SegmentedControl } from '@lifedeck/ui'
 import { useSearchParams } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
@@ -224,43 +224,32 @@ export function PlansScreen() {
         )}
 
         <div className="ldp-controls">
-          <div className="ldp-seg" role="group" aria-label={t.billingPeriod}>
-            <button
-              type="button"
-              aria-pressed={!annual}
-              className={cn('ldp-seg-btn', !annual && 'is-active')}
-              onClick={() => setInterval('monthly')}
-            >
-              {t.monthly}
-            </button>
-            <button
-              type="button"
-              aria-pressed={annual}
-              className={cn('ldp-seg-btn', annual && 'is-active')}
-              onClick={() => setInterval('annual')}
-            >
-              {t.annual}
-              <span className="ldp-seg-badge">{t.annualHint}</span>
-            </button>
-          </div>
-          <div className="ldp-seg" role="group" aria-label={t.currency}>
-            <button
-              type="button"
-              aria-pressed={currency === 'BRL'}
-              className={cn('ldp-cur-btn', currency === 'BRL' && 'is-active')}
-              onClick={() => setCurrencyOverride('BRL')}
-            >
-              R$ BRL
-            </button>
-            <button
-              type="button"
-              aria-pressed={currency === 'USD'}
-              className={cn('ldp-cur-btn', currency === 'USD' && 'is-active')}
-              onClick={() => setCurrencyOverride('USD')}
-            >
-              US$ USD
-            </button>
-          </div>
+          <SegmentedControl
+            label={t.billingPeriod}
+            value={interval}
+            onChange={setInterval}
+            options={[
+              { value: 'monthly', label: t.monthly },
+              {
+                value: 'annual',
+                label: (
+                  <>
+                    {t.annual}
+                    <span className="ldp-seg-badge">{t.annualHint}</span>
+                  </>
+                ),
+              },
+            ]}
+          />
+          <SegmentedControl
+            label={t.currency}
+            value={currency}
+            onChange={setCurrencyOverride}
+            options={[
+              { value: 'BRL', label: 'R$ BRL' },
+              { value: 'USD', label: 'US$ USD' },
+            ]}
+          />
         </div>
 
         <div className="ldp-plans-grid">
@@ -269,7 +258,10 @@ export function PlansScreen() {
             <div className="ldp-plan-name">{t.free}</div>
             <div className="ldp-plan-tag">{p.tagFree}</div>
             <div className="ldp-price-row">
-              <span className="ldp-price">{formatPrice(0, currency)}</span>
+              <AnimatedValue
+                className="ldp-price"
+                value={formatPrice(0, currency)}
+              />
             </div>
             <div className="ldp-plan-sub">{p.freeForever}</div>
             {currentPlan === 'free' ? (
@@ -299,12 +291,16 @@ export function PlansScreen() {
             <div className="ldp-plan-name ldp-plan-name--pro">{t.pro}</div>
             <div className="ldp-plan-tag">{p.tagPro}</div>
             <div className="ldp-price-row">
-              <span className="ldp-price ldp-price--pro">
-                {priceLabel(market, 'pro', interval)}
-              </span>
-              <span className="ldp-per">{per}</span>
+              <AnimatedValue
+                className="ldp-price ldp-price--pro"
+                value={priceLabel(market, 'pro', interval)}
+              />
+              <AnimatedValue className="ldp-per" value={per} />
             </div>
-            <div className="ldp-plan-sub--pro">{paidSub('pro')}</div>
+            <AnimatedValue
+              className="ldp-plan-sub--pro"
+              value={paidSub('pro')}
+            />
             {trialEligible && currentPlan !== 'pro' ? (
               <span className="ldp-trial-pill">{t.trialBadge}</span>
             ) : null}
@@ -337,12 +333,16 @@ export function PlansScreen() {
             <div className="ldp-plan-name">{t.premium}</div>
             <div className="ldp-plan-tag">{p.tagPremium}</div>
             <div className="ldp-price-row">
-              <span className="ldp-price">
-                {priceLabel(market, 'premium', interval)}
-              </span>
-              <span className="ldp-per">{per}</span>
+              <AnimatedValue
+                className="ldp-price"
+                value={priceLabel(market, 'premium', interval)}
+              />
+              <AnimatedValue className="ldp-per" value={per} />
             </div>
-            <div className="ldp-plan-sub">{paidSub('premium')}</div>
+            <AnimatedValue
+              className="ldp-plan-sub"
+              value={paidSub('premium')}
+            />
             {currentPlan === 'premium' ? (
               <div className="ldp-plan-current">{t.yourPlanBadge}</div>
             ) : (

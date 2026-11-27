@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
+  AnimatedValue,
   Badge,
   Button,
   Card,
@@ -289,10 +290,10 @@ export function StandaloneListView({ listId }: { listId: string }) {
         <Celebration active={allDone} />
         <div className="flex items-baseline justify-between">
           <span className="text-ink-700 text-sm font-semibold">
-            {progressLabel}
+            <AnimatedValue value={progressLabel} />
           </span>
           <span className="text-brand-accent-strong text-[19px] font-extrabold">
-            {pct}%
+            <AnimatedValue value={`${pct}%`} />
           </span>
         </div>
         <div className="bg-line h-[7px] overflow-hidden rounded-full">

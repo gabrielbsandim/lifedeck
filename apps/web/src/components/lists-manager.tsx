@@ -2,7 +2,15 @@
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { Avatar, Badge, Button, Card, Skeleton, TextField } from '@lifedeck/ui'
+import {
+  AnimatedValue,
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Skeleton,
+  TextField,
+} from '@lifedeck/ui'
 import type { ListView, TaskView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import {
@@ -137,7 +145,9 @@ function ListSummaryCard({ list, index }: { list: ListView; index: number }) {
           <Skeleton className="h-3 w-16 rounded-full" />
         ) : (
           <span className="text-ink-500 flex-none text-xs font-semibold tabular-nums">
-            {total > 0 ? `${done}/${total} · ${pct}%` : `${pct}%`}
+            <AnimatedValue
+              value={total > 0 ? `${done}/${total} · ${pct}%` : `${pct}%`}
+            />
           </span>
         )}
       </div>

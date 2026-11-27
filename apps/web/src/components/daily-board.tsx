@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent, type TouchEvent } from 'react'
 import type { TaskView, UpdateTaskInput } from '@lifedeck/application'
 import {
+  AnimatedValue,
   Button,
   Card,
   Celebration,
@@ -295,12 +296,12 @@ export function DailyBoard({
             />
           </svg>
           <span className="text-brand-accent-strong absolute text-[15px] font-extrabold tracking-tight sm:text-base">
-            {pct}%
+            <AnimatedValue value={`${pct}%`} />
           </span>
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-ink-900 text-[15px] font-semibold sm:text-base">
-            {progressLabel}
+            <AnimatedValue value={progressLabel} />
           </span>
           <span
             className={

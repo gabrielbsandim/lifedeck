@@ -1,3 +1,5 @@
+import { useId } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 
 export type TabItem = {
@@ -13,6 +15,7 @@ export type TabsProps = {
 }
 
 export function Tabs({ tabs, value, onChange, className }: TabsProps) {
+  const thumbId = useId()
   return (
     <div
       role="tablist"
@@ -28,13 +31,21 @@ export function Tabs({ tabs, value, onChange, className }: TabsProps) {
             aria-selected={active}
             onClick={() => onChange(tab.value)}
             className={cn(
-              'flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition',
+              'relative flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors duration-200',
               active
-                ? 'text-brand-accent-strong bg-surface shadow-sm'
+                ? 'text-brand-accent-strong'
                 : 'text-ink-500 hover:text-ink-700',
             )}
           >
-            {tab.label}
+            {active ? (
+              <motion.span
+                layoutId={thumbId}
+                aria-hidden
+                className="bg-surface absolute inset-0 rounded-lg shadow-sm"
+                transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+              />
+            ) : null}
+            <span className="relative">{tab.label}</span>
           </button>
         )
       })}

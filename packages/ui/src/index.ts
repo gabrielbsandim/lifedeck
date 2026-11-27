@@ -15,6 +15,15 @@ export {
   type PasswordFieldProps,
 } from '@/components/password-field'
 export { Tabs, type TabsProps, type TabItem } from '@/components/tabs'
+export {
+  SegmentedControl,
+  type SegmentedControlProps,
+  type SegmentedOption,
+} from '@/components/segmented-control'
+export {
+  AnimatedValue,
+  type AnimatedValueProps,
+} from '@/components/animated-value'
 export { Toast, type ToastProps } from '@/components/toast'
 export { Skeleton, type SkeletonProps } from '@/components/skeleton'
 export { EmptyState, type EmptyStateProps } from '@/components/empty-state'

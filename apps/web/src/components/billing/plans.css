@@ -394,44 +394,6 @@
   align-items: center;
   margin-bottom: 34px;
 }
-.ldp-seg {
-  display: flex;
-  gap: 4px;
-  background: var(--surface-3);
-  padding: 4px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-}
-.ldp-seg-btn {
-  flex: 1;
-  min-width: 76px;
-  height: 38px;
-  border: none;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: inherit;
-  background: transparent;
-  color: var(--ink-500);
-  transition: all 0.18s var(--ease-standard);
-}
-.ldp-seg-btn.is-active {
-  background: var(--surface);
-  color: var(--brand-700);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-.ldp-seg-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 14px;
-}
-.ldp-seg-btn:not(.is-active):hover,
-.ldp-cur-btn:not(.is-active):hover {
-  color: var(--ink-800);
-}
 .ldp-trial-pill {
   display: inline-flex;
   align-self: flex-start;
@@ -456,25 +418,6 @@
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
-}
-.ldp-cur-btn {
-  height: 38px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  font-family: inherit;
-  background: transparent;
-  color: var(--ink-500);
-  transition: all 0.18s var(--ease-standard);
-}
-.ldp-cur-btn.is-active {
-  background: var(--surface);
-  color: var(--brand-700);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 /* plan cards */

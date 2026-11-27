@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, Skeleton } from '@lifedeck/ui'
+import { AnimatedValue, Card, Skeleton } from '@lifedeck/ui'
 import type { AnalyticsView } from '@lifedeck/application'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useAnalytics } from '@/lib/api/use-analytics'
@@ -175,7 +175,7 @@ function StreakBadge({ streak, label }: { streak: number; label: string }) {
       >
         <path d="M12 2c1 3 3 4 3 7a3 3 0 0 1-6 0c0-1 .3-1.7.8-2.6C9 8 7.5 9.6 7.5 12.5A4.5 4.5 0 0 0 12 22a6 6 0 0 0 6-6c0-4.5-3.5-6.5-6-14z" />
       </svg>
-      {streak}
+      <AnimatedValue value={streak} />
     </span>
   )
 }
