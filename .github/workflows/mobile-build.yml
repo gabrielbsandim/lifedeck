@@ -100,7 +100,9 @@ jobs:
             mkdir -p .secrets
             printf '%s' "$PLAY_SERVICE_ACCOUNT" > .secrets/play-service-account.json
             printf '%s' "$ASC_API_KEY_P8" > .secrets/asc-api-key.p8
-            jq '.submit.production.android.serviceAccountKeyPath = "./.secrets/play-service-account.json"' \
+            jq --arg id "$ASC_API_KEY_ID" --arg issuer "$ASC_API_KEY_ISSUER_ID" \
+              '.submit.production.android.serviceAccountKeyPath = "./.secrets/play-service-account.json"
+               | .submit.production.ios += {ascApiKeyPath: "./.secrets/asc-api-key.p8", ascApiKeyId: $id, ascApiKeyIssuerId: $issuer}' \
               eas.json > "$RUNNER_TEMP/eas.json"
             mv "$RUNNER_TEMP/eas.json" eas.json
             export EXPO_ASC_API_KEY_PATH="$PWD/.secrets/asc-api-key.p8"
