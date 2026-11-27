@@ -15,6 +15,8 @@ export type CheckoutInput = {
   interval: PaymentInterval
   successUrl: string
   cancelUrl: string
+  // Days before the first charge; 0 charges at once. The use case decides it.
+  trialDays: number
 }
 
 export type CheckoutSession = {
@@ -63,6 +65,7 @@ export type LocalSubscriptionInput = {
   userId: string
   plan: Plan
   interval: PaymentInterval
+  trialDays: number
 }
 
 export type PixCharge = {
@@ -91,7 +94,7 @@ export type CardHolderInfo = {
   phone: string | null
 }
 
-export type CardSubscriptionResult = {
+export type SubscriptionHandle = {
   subscriptionRef: string
   reference: string
 }
@@ -101,11 +104,16 @@ export interface LocalPaymentGateway extends PaymentGateway {
   // Asaas for Pix and card; we pass it through and never store it locally.
   createCustomer(input: LocalCustomerInput): Promise<string>
   createPixSubscription(input: LocalSubscriptionInput): Promise<PixCharge>
+  // A Pix subscription whose first charge falls due when the trial ends; Asaas
+  // sends that charge to the customer, so there is no QR to show today.
+  createPixTrialSubscription(
+    input: LocalSubscriptionInput,
+  ): Promise<SubscriptionHandle>
   createCardSubscription(
     input: LocalSubscriptionInput & {
       card: CardInput
       holder: CardHolderInfo
       remoteIp: string
     },
-  ): Promise<CardSubscriptionResult>
+  ): Promise<SubscriptionHandle>
 }

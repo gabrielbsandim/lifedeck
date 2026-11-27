@@ -242,6 +242,17 @@ export const de: Messages = {
     annual: 'Jährlich',
     currency: 'Währung',
     annualHint: '2 Monate gratis',
+    billingPeriod: 'Abrechnungszeitraum',
+    trialBadge: '7 Tage gratis',
+    startTrial: '7 Tage gratis testen',
+    trialNote:
+      'Heute wird nichts berechnet. Die erste Abbuchung erfolgt nach 7 Tagen; kündigst du vorher, zahlst du nichts.',
+    trialThen: '{total} nach dem Test',
+    trialStartedTitle: 'Dein Test hat begonnen',
+    trialStartedBody:
+      '{plan} ist bis {date} freigeschaltet. Dann erfolgt die erste Abbuchung, außer du kündigst.',
+    trialPixHint:
+      'Die Pix-Zahlung für die erste Abbuchung kommt per E-Mail, wenn der Test endet.',
     free: 'Free',
     pro: 'Pro',
     premium: 'Premium',

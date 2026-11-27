@@ -64,3 +64,17 @@ export function planGrants(plan: Plan, entitlement: Entitlement): boolean {
 export function quotaForPlan(plan: Plan): PlanQuota {
   return PLAN_CATALOG[plan].quota
 }
+
+export const PRO_TRIAL_DAYS = 7
+
+// One trial per person: anyone who ever held a subscription, even a canceled
+// one, pays from day one, so cancel and resubscribe cannot farm free weeks.
+export function trialDaysFor(
+  plan: Plan,
+  hasSubscriptionHistory: boolean,
+): number {
+  if (plan !== 'pro' || hasSubscriptionHistory) {
+    return 0
+  }
+  return PRO_TRIAL_DAYS
+}

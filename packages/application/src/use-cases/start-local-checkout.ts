@@ -1,9 +1,19 @@
-import { BillingCustomer, CheckoutIntent, asEntityId } from '@lifedeck/domain'
+import {
+  BillingCustomer,
+  CheckoutIntent,
+  Subscription,
+  asEntityId,
+  trialDaysFor,
+} from '@lifedeck/domain'
 import type { BillingCustomerRepository } from '@/ports/billing-customer-repository'
 import type { CheckoutIntentRepository } from '@/ports/checkout-intent-repository'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
-import type { LocalPaymentGateway } from '@/ports/payment-gateway'
+import type {
+  LocalPaymentGateway,
+  SubscriptionHandle,
+} from '@/ports/payment-gateway'
+import type { SubscriptionRepository } from '@/ports/subscription-repository'
 import type { UserRepository } from '@/ports/user-repository'
 import type {
   LocalCheckoutRequest,
@@ -15,9 +25,12 @@ type Dependencies = {
   users: UserRepository
   billingCustomers: BillingCustomerRepository
   checkoutIntents: CheckoutIntentRepository
+  subscriptions: SubscriptionRepository
   ids: IdGenerator
   clock: Clock
 }
+
+const DAY_MS = 24 * 60 * 60_000
 
 export type StartLocalCheckoutInput = LocalCheckoutRequest & {
   userId: string
@@ -31,12 +44,17 @@ export type StartLocalCheckoutInput = LocalCheckoutRequest & {
  * shared webhook can authorize activation once the payment confirms. Returns the
  * Pix QR for the Pix flow, or an acknowledgement for the card flow (which the
  * client confirms by polling the subscription until it goes active).
+ *
+ * A first time Pro subscriber starts a trial instead: the subscription is
+ * stored as trialing right away, because no payment webhook arrives until the
+ * first charge falls due at the end of the trial.
  */
 export function makeStartLocalCheckout({
   gateway,
   users,
   billingCustomers,
   checkoutIntents,
+  subscriptions,
   ids,
   clock,
 }: Dependencies) {
@@ -73,11 +91,14 @@ export function makeStartLocalCheckout({
       )
     }
 
+    const history = await subscriptions.listByUser(asEntityId(input.userId))
+    const trialDays = trialDaysFor(input.plan, history.length > 0)
     const subscription = {
       customerId,
       userId: input.userId,
       plan: input.plan,
       interval: input.interval,
+      trialDays,
     }
 
     const recordIntent = (reference: string) =>
@@ -89,6 +110,31 @@ export function makeStartLocalCheckout({
           createdAt: clock.now(),
         }),
       )
+
+    const startTrial = async (
+      handle: SubscriptionHandle,
+    ): Promise<LocalCheckoutResult> => {
+      await recordIntent(handle.reference)
+      const now = clock.now()
+      const endsAt = new Date(now.getTime() + trialDays * DAY_MS)
+      await subscriptions.save(
+        Subscription.create({
+          id: ids.generate(),
+          userId: asEntityId(input.userId),
+          plan: input.plan,
+          status: 'trialing',
+          provider,
+          providerRef: handle.subscriptionRef,
+          currentPeriodEnd: endsAt,
+          now,
+        }),
+      )
+      return { method: 'trial', endsAt: endsAt.toISOString() }
+    }
+
+    if (input.method === 'pix' && trialDays > 0) {
+      return startTrial(await gateway.createPixTrialSubscription(subscription))
+    }
 
     if (input.method === 'pix') {
       const charge = await gateway.createPixSubscription(subscription)
@@ -114,6 +160,9 @@ export function makeStartLocalCheckout({
       },
       remoteIp: input.remoteIp,
     })
+    if (trialDays > 0) {
+      return startTrial(result)
+    }
     await recordIntent(result.reference)
     return { method: 'card' }
   }

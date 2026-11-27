@@ -238,6 +238,17 @@ export const fr: Messages = {
     annual: 'Annuel',
     currency: 'Devise',
     annualHint: '2 mois offerts',
+    billingPeriod: 'Période de facturation',
+    trialBadge: '7 jours gratuits',
+    startTrial: 'Commencer l’essai gratuit de 7 jours',
+    trialNote:
+      'Rien n’est débité aujourd’hui. Le premier prélèvement arrive après 7 jours ; annulez avant et vous ne payez rien.',
+    trialThen: '{total} après l’essai',
+    trialStartedTitle: 'Votre essai a commencé',
+    trialStartedBody:
+      '{plan} est débloqué jusqu’au {date}. Le premier prélèvement a lieu ce jour-là, sauf si vous annulez.',
+    trialPixHint:
+      'Le Pix du premier paiement arrive par e-mail à la fin de l’essai.',
     free: 'Gratuit',
     pro: 'Pro',
     premium: 'Premium',

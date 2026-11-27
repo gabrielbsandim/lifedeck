@@ -90,6 +90,9 @@ export class StripePaymentGateway implements PaymentGateway {
     form.set('client_reference_id', input.userId)
     form.set('subscription_data[metadata][userId]', input.userId)
     form.set('subscription_data[metadata][plan]', input.plan)
+    if (input.trialDays > 0) {
+      form.set('subscription_data[trial_period_days]', String(input.trialDays))
+    }
     form.set('metadata[userId]', input.userId)
     form.set('metadata[plan]', input.plan)
     if (input.email) {

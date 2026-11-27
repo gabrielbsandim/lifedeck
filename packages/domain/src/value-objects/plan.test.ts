@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_PLAN,
   PLANS,
+  PRO_TRIAL_DAYS,
   entitlementsForPlan,
   isPlan,
   planGrants,
   planRank,
   quotaForPlan,
+  trialDaysFor,
 } from '@/value-objects/plan'
 
 describe('plan', () => {
@@ -90,5 +92,13 @@ describe('plan', () => {
     expect(planRank('free')).toBe(0)
     expect(planRank('pro')).toBeGreaterThan(planRank('free'))
     expect(planRank('premium')).toBeGreaterThan(planRank('pro'))
+  })
+
+  it('gives a first time Pro subscriber a 7 day trial and nobody else', () => {
+    expect(trialDaysFor('pro', false)).toBe(PRO_TRIAL_DAYS)
+    expect(PRO_TRIAL_DAYS).toBe(7)
+    expect(trialDaysFor('pro', true)).toBe(0)
+    expect(trialDaysFor('premium', false)).toBe(0)
+    expect(trialDaysFor('free', false)).toBe(0)
   })
 })

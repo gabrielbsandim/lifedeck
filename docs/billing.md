@@ -68,6 +68,28 @@ the future, and the webhook handler preserves the paid-through date on a schedul
 cancel. An involuntary cancellation (refund, chargeback) carries no such flag and
 revokes access immediately.
 
+### Pro trial
+
+A first time Pro subscriber gets 7 days free (`PRO_TRIAL_DAYS`, `trialDaysFor`
+in `packages/domain/src/value-objects/plan.ts`). "First time" means no
+subscription row at all, canceled ones included, so cancel and resubscribe
+cannot farm trials; Premium never has one. The checkout use cases compute
+`trialDays` and pass it to the gateway:
+
+- Stripe sets `subscription_data[trial_period_days]`; the subscription webhooks
+  report `trialing` and then `active` on their own.
+- Asaas has no trial, so the first `nextDueDate` moves to the trial end. No
+  webhook arrives before that charge, so `startLocalCheckout` stores the
+  subscription as `trialing` with `currentPeriodEnd` at the trial end, and the
+  first `PAYMENT_CONFIRMED` flips the same row to `active`. A refused or unpaid
+  first charge turns it `past_due`. On Pix nothing is shown today: Asaas sends
+  the charge to the customer's email, which a guest without email never gets.
+- The hosted Asaas payment link (`startCheckout` with market `BR`) has no trial
+  and charges at once; the web UI uses the in-app flow instead.
+
+The web plans page shows the offer when `GET /billing/subscription` returns
+`null` (or to a visitor not signed in yet).
+
 Plan upgrades and downgrades still go through a new checkout rather than a mutate
 call. The normalized `SubscriptionEvent` also carries an optional
 `cancelAtPeriodEnd`, so Stripe's `cancel_at_period_end` flows back into local state.

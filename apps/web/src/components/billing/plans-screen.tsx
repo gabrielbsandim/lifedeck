@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { useSession } from '@/lib/api/use-session'
+import { useSubscription } from '@/lib/api/use-subscription'
 import {
   CURRENCY_BY_MARKET,
   MARKET_BY_CURRENCY,
@@ -81,6 +82,16 @@ export function PlansScreen() {
   const [checkoutPlan, setCheckoutPlan] = useState<PaidPlan | null>(null)
 
   const currentPlan = session.data?.plan ?? 'free'
+  // The server grants the Pro trial only to someone with no subscription
+  // history; a visitor not signed in yet has none, so the offer shows for them.
+  const signedIn = Boolean(session.data)
+  const subscription = useSubscription(signedIn)
+  const trialEligible = signedIn
+    ? subscription.data?.subscription === null
+    : session.isSuccess
+  const proCta = trialEligible
+    ? t.startTrial
+    : t.subscribePlan.replace('{plan}', t.pro)
   const detected = defaultMarket(session.data?.country, session.data?.locale)
   const market: Market = currencyOverride
     ? MARKET_BY_CURRENCY[currencyOverride]
@@ -134,7 +145,7 @@ export function PlansScreen() {
                 href="#planos"
                 className="ldp-btn ldp-btn-primary ldp-btn-glow"
               >
-                {t.subscribePlan.replace('{plan}', t.pro)}
+                {proCta}
               </a>
               <a href="#planos" className="ldp-btn ldp-btn-ghost">
                 {t.seePlans}
@@ -212,39 +223,41 @@ export function PlansScreen() {
         )}
 
         <div className="ldp-controls">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="ldp-seg">
-              <button
-                type="button"
-                className={`ldp-seg-btn${!annual ? 'is-active' : ''}`}
-                onClick={() => setInterval('monthly')}
-              >
-                {t.monthly}
-              </button>
-              <button
-                type="button"
-                className={`ldp-seg-btn${annual ? 'is-active' : ''}`}
-                onClick={() => setInterval('annual')}
-              >
-                {t.annual}
-              </button>
-            </div>
-            <span className="ldp-2mo">{t.annualHint}</span>
-          </div>
-          <div className="ldp-seg">
+          <div className="ldp-seg" role="group" aria-label={t.billingPeriod}>
             <button
               type="button"
-              className={`ldp-cur-btn${currency === 'BRL' ? 'is-active' : ''}`}
-              onClick={() => setCurrencyOverride('BRL')}
+              aria-pressed={!annual}
+              className={`ldp-seg-btn${annual ? '' : 'is-active'}`}
+              onClick={() => setInterval('monthly')}
             >
-              BRL
+              {t.monthly}
             </button>
             <button
               type="button"
+              aria-pressed={annual}
+              className={`ldp-seg-btn${annual ? 'is-active' : ''}`}
+              onClick={() => setInterval('annual')}
+            >
+              {t.annual}
+              <span className="ldp-seg-badge">{t.annualHint}</span>
+            </button>
+          </div>
+          <div className="ldp-seg" role="group" aria-label={t.currency}>
+            <button
+              type="button"
+              aria-pressed={currency === 'BRL'}
+              className={`ldp-cur-btn${currency === 'BRL' ? 'is-active' : ''}`}
+              onClick={() => setCurrencyOverride('BRL')}
+            >
+              R$ BRL
+            </button>
+            <button
+              type="button"
+              aria-pressed={currency === 'USD'}
               className={`ldp-cur-btn${currency === 'USD' ? 'is-active' : ''}`}
               onClick={() => setCurrencyOverride('USD')}
             >
-              USD
+              US$ USD
             </button>
           </div>
         </div>
@@ -291,6 +304,9 @@ export function PlansScreen() {
               <span className="ldp-per">{per}</span>
             </div>
             <div className="ldp-plan-sub--pro">{paidSub('pro')}</div>
+            {trialEligible && currentPlan !== 'pro' ? (
+              <span className="ldp-trial-pill">{t.trialBadge}</span>
+            ) : null}
             {currentPlan === 'pro' ? (
               <div className="ldp-plan-current">{t.yourPlanBadge}</div>
             ) : (
@@ -299,7 +315,7 @@ export function PlansScreen() {
                 className="ldp-plan-cta ldp-plan-cta--pro"
                 onClick={() => setCheckoutPlan('pro')}
               >
-                {t.subscribePlan.replace('{plan}', t.pro)}
+                {proCta}
               </button>
             )}
             <div className="ldp-more">{p.moreThanFree}</div>
@@ -373,7 +389,7 @@ export function PlansScreen() {
               className="ldp-btn ldp-btn-primary"
               onClick={() => setCheckoutPlan('pro')}
             >
-              {t.subscribePlan.replace('{plan}', t.pro)}
+              {proCta}
             </button>
             <a href="#planos" className="ldp-btn ldp-btn-ghost">
               {t.compare}
@@ -396,6 +412,7 @@ export function PlansScreen() {
           interval={interval}
           market={market}
           currency={currency}
+          trial={trialEligible && checkoutPlan === 'pro'}
           onClose={() => setCheckoutPlan(null)}
         />
       )}

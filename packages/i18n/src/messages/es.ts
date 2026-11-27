@@ -236,6 +236,17 @@ export const es: Messages = {
     annual: 'Anual',
     currency: 'Moneda',
     annualHint: '2 meses gratis',
+    billingPeriod: 'Período de facturación',
+    trialBadge: '7 días gratis',
+    startTrial: 'Empezar 7 días gratis',
+    trialNote:
+      'Hoy no se cobra nada. El primer cobro llega a los 7 días; si cancelas antes, no pagas nada.',
+    trialThen: '{total} después de la prueba',
+    trialStartedTitle: 'Tu prueba empezó',
+    trialStartedBody:
+      '{plan} está activo hasta el {date}. El primer cobro se hace ese día, salvo que canceles.',
+    trialPixHint:
+      'El Pix del primer cobro llega por correo cuando termine la prueba.',
     free: 'Gratis',
     pro: 'Pro',
     premium: 'Premium',

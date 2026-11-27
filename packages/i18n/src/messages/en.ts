@@ -231,6 +231,17 @@ export const en: Messages = {
     annual: 'Annual',
     currency: 'Currency',
     annualHint: '2 months free',
+    billingPeriod: 'Billing period',
+    trialBadge: '7 days free',
+    startTrial: 'Start 7-day free trial',
+    trialNote:
+      'Nothing is charged today. The first charge comes after 7 days; cancel before then and you pay nothing.',
+    trialThen: '{total} after the trial',
+    trialStartedTitle: 'Your trial has started',
+    trialStartedBody:
+      '{plan} is unlocked until {date}. The first charge happens then, unless you cancel.',
+    trialPixHint:
+      'The Pix for the first charge arrives by email when the trial ends.',
     free: 'Free',
     pro: 'Pro',
     premium: 'Premium',

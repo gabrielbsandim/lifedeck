@@ -60,9 +60,17 @@ export const cardChargeViewSchema = z.object({
   method: z.literal('card'),
 })
 
+// A trial starts at once on either method: nothing is charged today, and the
+// first charge falls due on endsAt.
+export const trialStartedViewSchema = z.object({
+  method: z.literal('trial'),
+  endsAt: z.string().datetime(),
+})
+
 export const localCheckoutResultSchema = z.discriminatedUnion('method', [
   pixChargeViewSchema,
   cardChargeViewSchema,
+  trialStartedViewSchema,
 ])
 
 export type LocalCheckoutResult = z.infer<typeof localCheckoutResultSchema>

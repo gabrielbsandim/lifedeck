@@ -1138,6 +1138,7 @@ function build(
     startCheckout: makeStartCheckout({
       gateways,
       checkoutIntents,
+      subscriptions,
       ids,
       clock,
     }),
@@ -1153,6 +1154,7 @@ function build(
       users,
       billingCustomers,
       checkoutIntents,
+      subscriptions,
       ids,
       clock,
     }),

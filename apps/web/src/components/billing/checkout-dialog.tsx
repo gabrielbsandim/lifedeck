@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { SubscriptionView } from '@lifedeck/application'
+import type {
+  LocalCheckoutResult,
+  SubscriptionView,
+} from '@lifedeck/application'
 import { Button, cn } from '@lifedeck/ui'
 import { useI18n } from '@/lib/i18n/messages-provider'
 import { apiRequest } from '@/lib/api/client'
@@ -27,22 +30,24 @@ import { CheckIcon, CloseIcon } from '@/components/icons'
 const inputCls =
   'border-line text-ink-800 focus:border-brand-300 h-[46px] w-full rounded-xl border bg-surface px-3.5 text-[15px] outline-none'
 
-type Phase = 'form' | 'pix' | 'card'
+type Phase = 'form' | 'pix' | 'card' | 'trial'
 
 export function CheckoutDialog({
   plan,
   interval,
   market,
   currency,
+  trial,
   onClose,
 }: {
   plan: PaidPlan
   interval: Interval
   market: Market
   currency: Currency
+  trial: boolean
   onClose: () => void
 }) {
-  const { messages } = useI18n()
+  const { messages, locale } = useI18n()
   const t = messages.billing
   const isBR = market === 'BR'
   const annual = interval === 'annual'
@@ -57,6 +62,7 @@ export function CheckoutDialog({
     payload: string
   } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null)
   const [form, setForm] = useState({
     cpf: '',
     holderName: '',
@@ -75,7 +81,7 @@ export function CheckoutDialog({
   // Once a payment has been started, poll the subscription until the provider
   // webhook flips it to active. Success is DERIVED from the poll (not stored),
   // so the effect only runs cache-invalidation side effects, never setState.
-  const polling = phase !== 'form'
+  const polling = phase === 'pix' || phase === 'card'
   const activation = useQuery({
     queryKey: ['billing-activation'],
     queryFn: () =>
@@ -86,7 +92,9 @@ export function CheckoutDialog({
     refetchInterval: query =>
       query.state.data?.subscription?.status === 'active' ? false : 3000,
   })
-  const success = polling && activation.data?.subscription?.status === 'active'
+  const activated =
+    polling && activation.data?.subscription?.status === 'active'
+  const success = activated || phase === 'trial'
 
   useEffect(() => {
     if (success) {
@@ -105,6 +113,22 @@ export function CheckoutDialog({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // A trial on either method is live as soon as the request succeeds: nothing
+  // is charged today, so there is no payment to wait for.
+  function onLocalResult(result: LocalCheckoutResult) {
+    if (result.method === 'trial') {
+      setTrialEndsAt(result.endsAt)
+      setPhase('trial')
+      return
+    }
+    if (result.method === 'pix') {
+      setPix({ encodedImage: result.encodedImage, payload: result.payload })
+      setPhase('pix')
+      return
+    }
+    setPhase('card')
+  }
+
   const set = (key: keyof typeof form) => (value: string) =>
     setForm(prev => ({ ...prev, [key]: value }))
 
@@ -119,17 +143,7 @@ export function CheckoutDialog({
     if (method === 'pix') {
       local.mutate(
         { method: 'pix', plan, interval, cpfCnpj: form.cpf },
-        {
-          onSuccess: result => {
-            if (result.method === 'pix') {
-              setPix({
-                encodedImage: result.encodedImage,
-                payload: result.payload,
-              })
-              setPhase('pix')
-            }
-          },
-        },
+        { onSuccess: onLocalResult },
       )
       return
     }
@@ -150,12 +164,29 @@ export function CheckoutDialog({
         addressNumber: form.addressNumber,
         phone: form.phone || undefined,
       },
-      {
-        onSuccess: () => {
-          setPhase('card')
-        },
-      },
+      { onSuccess: onLocalResult },
     )
+  }
+
+  function submitLabel(): string {
+    if (trial) {
+      return t.startTrial
+    }
+    return method === 'pix' ? t.generatePix : t.payNow
+  }
+
+  function successBody(): string {
+    if (phase !== 'trial' || !trialEndsAt) {
+      return t.activatedBody.replace('{plan}', name)
+    }
+    const date = new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+    }).format(new Date(trialEndsAt))
+    const body = t.trialStartedBody
+      .replace('{plan}', name)
+      .replace('{date}', date)
+    return method === 'pix' ? `${body} ${t.trialPixHint}` : body
   }
 
   async function copyPix() {
@@ -187,9 +218,7 @@ export function CheckoutDialog({
       <div className="bg-surface relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-3xl p-6 shadow-[0_24px_64px_rgba(20,10,60,0.3)] [animation:ld-slide-in_0.2s_cubic-bezier(0.2,0,0,1)]">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-ink-900 text-lg font-bold">
-            {success
-              ? t.activatedTitle
-              : t.subscribePlan.replace('{plan}', name)}
+            {successTitle(phase, success, t, name)}
           </h3>
           <button
             type="button"
@@ -202,11 +231,7 @@ export function CheckoutDialog({
         </div>
 
         {success ? (
-          <Success
-            body={t.activatedBody.replace('{plan}', name)}
-            close={t.close}
-            onClose={onClose}
-          />
+          <Success body={successBody()} close={t.close} onClose={onClose} />
         ) : (
           <>
             <div className="border-line mb-4 flex items-center justify-between rounded-2xl border p-4">
@@ -214,7 +239,12 @@ export function CheckoutDialog({
                 <div className="text-ink-900 text-sm font-semibold">
                   {name} · {annual ? t.annual : t.monthly}
                 </div>
-                {annual && (
+                {trial && (
+                  <div className="text-success text-xs font-medium">
+                    {t.trialBadge} · {t.trialThen.replace('{total}', total)}
+                  </div>
+                )}
+                {annual && !trial && (
                   <div className="text-success text-xs font-medium">
                     {t.checkoutSavings}:{' '}
                     {formatPrice(annualSavings(market, plan), currency)}
@@ -241,7 +271,7 @@ export function CheckoutDialog({
                   </p>
                 )}
                 <p className="text-ink-500 mt-3 text-center text-xs leading-relaxed">
-                  {t.checkoutNote}
+                  {trial ? t.trialNote : t.checkoutNote}
                 </p>
               </>
             ) : phase === 'pix' && pix ? (
@@ -358,10 +388,10 @@ export function CheckoutDialog({
                   isLoading={local.isPending}
                   disabled={!form.cpf}
                 >
-                  {method === 'pix' ? t.generatePix : t.payNow}
+                  {submitLabel()}
                 </Button>
                 <p className="text-ink-500 mt-3 text-center text-xs leading-relaxed">
-                  {t.footerCancel}
+                  {trial ? t.trialNote : t.footerCancel}
                 </p>
               </>
             )}
@@ -447,4 +477,20 @@ function Success({
       </Button>
     </div>
   )
+}
+
+function successTitle(
+  phase: Phase,
+  success: boolean,
+  t: {
+    activatedTitle: string
+    trialStartedTitle: string
+    subscribePlan: string
+  },
+  name: string,
+): string {
+  if (phase === 'trial') {
+    return t.trialStartedTitle
+  }
+  return success ? t.activatedTitle : t.subscribePlan.replace('{plan}', name)
 }

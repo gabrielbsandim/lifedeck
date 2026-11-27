@@ -81,6 +81,8 @@ export {
   DEFAULT_PLAN,
   isPlan,
   planRank,
+  PRO_TRIAL_DAYS,
+  trialDaysFor,
   entitlementsForPlan,
   planGrants,
   quotaForPlan,

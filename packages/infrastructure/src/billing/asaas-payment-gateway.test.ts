@@ -48,6 +48,7 @@ const checkout: CheckoutInput = {
   interval: 'monthly',
   successUrl: 'https://app/success',
   cancelUrl: 'https://app/cancel',
+  trialDays: 0,
 }
 
 describe('AsaasPaymentGateway', () => {
@@ -365,6 +366,7 @@ describe('AsaasPaymentGateway', () => {
       userId: 'user-1',
       plan: 'pro',
       interval: 'monthly',
+      trialDays: 0,
     } as const
 
     function pixStub() {
@@ -412,6 +414,33 @@ describe('AsaasPaymentGateway', () => {
       expect(body.cycle).toBe('MONTHLY')
       expect(body.externalReference).toBe('user-1|pro|monthly')
       expect(body.nextDueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    })
+
+    it('anchors the first charge today when there is no trial', async () => {
+      const mock = pixStub()
+      await new AsaasPaymentGateway().createPixSubscription(pixSub)
+      const body = JSON.parse(
+        (mock.mock.calls[0] as [string, RequestInit])[1].body as string,
+      )
+      expect(body.nextDueDate).toBe(new Date().toISOString().slice(0, 10))
+    })
+
+    it('creates a Pix trial due when the trial ends, without fetching a QR', async () => {
+      const mock = pixStub()
+      const handle = await new AsaasPaymentGateway().createPixTrialSubscription(
+        { ...pixSub, trialDays: 7 },
+      )
+      expect(handle).toEqual({
+        subscriptionRef: 'sub_1',
+        reference: 'user-1|pro|monthly',
+      })
+      expect(mock).toHaveBeenCalledTimes(1)
+      const body = JSON.parse(
+        (mock.mock.calls[0] as [string, RequestInit])[1].body as string,
+      )
+      const due = new Date(Date.now() + 7 * 24 * 60 * 60_000)
+      expect(body.nextDueDate).toBe(due.toISOString().slice(0, 10))
+      expect(body.billingType).toBe('PIX')
     })
 
     it('defaults expiresAt to null when Asaas omits it', async () => {
@@ -517,6 +546,7 @@ describe('AsaasPaymentGateway', () => {
       userId: 'user-1',
       plan: 'premium',
       interval: 'annual',
+      trialDays: 0,
       card: {
         holderName: 'Gabriel Bastos',
         number: '4111111111111111',
@@ -553,6 +583,19 @@ describe('AsaasPaymentGateway', () => {
       expect(body.creditCard.number).toBe('4111111111111111')
       expect(body.creditCardHolderInfo.cpfCnpj).toBe('11144477735')
       expect(body.remoteIp).toBe('1.2.3.4')
+    })
+
+    it('holds the first card charge until the trial ends', async () => {
+      const mock = stub(() => jsonResponse({ id: 'sub_9' }))
+      await new AsaasPaymentGateway().createCardSubscription({
+        ...cardSub,
+        trialDays: 7,
+      })
+      const body = JSON.parse(
+        (mock.mock.calls[0] as [string, RequestInit])[1].body as string,
+      )
+      const due = new Date(Date.now() + 7 * 24 * 60 * 60_000)
+      expect(body.nextDueDate).toBe(due.toISOString().slice(0, 10))
     })
 
     it('throws when the card subscription is refused', async () => {

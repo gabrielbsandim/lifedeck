@@ -238,6 +238,17 @@ export const it: Messages = {
     annual: 'Annuale',
     currency: 'Valuta',
     annualHint: '2 mesi gratis',
+    billingPeriod: 'Periodo di fatturazione',
+    trialBadge: '7 giorni gratis',
+    startTrial: 'Inizia 7 giorni gratis',
+    trialNote:
+      'Oggi non paghi nulla. Il primo addebito arriva dopo 7 giorni; se annulli prima, non paghi nulla.',
+    trialThen: '{total} dopo la prova',
+    trialStartedTitle: 'La tua prova è iniziata',
+    trialStartedBody:
+      '{plan} è sbloccato fino al {date}. Il primo addebito avviene quel giorno, salvo disdetta.',
+    trialPixHint:
+      'Il Pix del primo addebito arriva via email alla fine della prova.',
     free: 'Gratis',
     pro: 'Pro',
     premium: 'Premium',

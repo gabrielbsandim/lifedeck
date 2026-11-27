@@ -4,7 +4,7 @@ import { isPlan, type Plan, type SubscriptionStatus } from '@lifedeck/domain'
 import type {
   CardHolderInfo,
   CardInput,
-  CardSubscriptionResult,
+  SubscriptionHandle,
   CheckoutInput,
   CheckoutSession,
   LocalCustomerInput,
@@ -101,10 +101,13 @@ function subscriptionDescription(interval: PaymentInterval): string {
   return `Lifedeck: assinatura ${interval === 'annual' ? 'anual' : 'mensal'}`
 }
 
-// nextDueDate the first charge anchors on: today, as the provider's date-only
-// (YYYY-MM-DD) value.
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+const DAY_MS = 24 * 60 * 60_000
+
+// nextDueDate the first charge anchors on, as the provider's date-only
+// (YYYY-MM-DD) value: today, or the day the trial ends. Asaas has no trial of its
+// own, so a later first due date is how a trial is expressed.
+function firstDueDate(trialDays: number): string {
+  return new Date(Date.now() + trialDays * DAY_MS).toISOString().slice(0, 10)
 }
 
 function authHeaders(config: AsaasConfig): Record<string, string> {
@@ -310,6 +313,32 @@ export class AsaasPaymentGateway implements LocalPaymentGateway {
     input: LocalSubscriptionInput,
   ): Promise<PixCharge> {
     const config = readConfig()
+    const { subscriptionRef, reference } = await this.createPixRecord(
+      config,
+      input,
+    )
+    const paymentId = await this.firstPaymentId(config, subscriptionRef)
+    const qr = await this.fetchPixQrCode(config, paymentId)
+    return {
+      subscriptionRef,
+      paymentId,
+      encodedImage: qr.encodedImage,
+      payload: qr.payload,
+      expiresAt: qr.expiresAt,
+      reference,
+    }
+  }
+
+  async createPixTrialSubscription(
+    input: LocalSubscriptionInput,
+  ): Promise<SubscriptionHandle> {
+    return this.createPixRecord(readConfig(), input)
+  }
+
+  private async createPixRecord(
+    config: AsaasConfig,
+    input: LocalSubscriptionInput,
+  ): Promise<SubscriptionHandle> {
     const amount = resolveAmount(config, input.plan, input.interval)
     const reference = encodeRefParts(input.userId, input.plan, input.interval)
 
@@ -321,7 +350,7 @@ export class AsaasPaymentGateway implements LocalPaymentGateway {
         billingType: 'PIX',
         value: amount,
         cycle: cycleFor(input.interval),
-        nextDueDate: todayIso(),
+        nextDueDate: firstDueDate(input.trialDays),
         externalReference: reference,
         description: subscriptionDescription(input.interval),
       }),
@@ -335,17 +364,7 @@ export class AsaasPaymentGateway implements LocalPaymentGateway {
     if (!subscription.id) {
       throw new Error('Asaas subscription has no id')
     }
-
-    const paymentId = await this.firstPaymentId(config, subscription.id)
-    const qr = await this.fetchPixQrCode(config, paymentId)
-    return {
-      subscriptionRef: subscription.id,
-      paymentId,
-      encodedImage: qr.encodedImage,
-      payload: qr.payload,
-      expiresAt: qr.expiresAt,
-      reference,
-    }
+    return { subscriptionRef: subscription.id, reference }
   }
 
   async createCardSubscription(
@@ -354,7 +373,7 @@ export class AsaasPaymentGateway implements LocalPaymentGateway {
       holder: CardHolderInfo
       remoteIp: string
     },
-  ): Promise<CardSubscriptionResult> {
+  ): Promise<SubscriptionHandle> {
     const config = readConfig()
     const amount = resolveAmount(config, input.plan, input.interval)
     const reference = encodeRefParts(input.userId, input.plan, input.interval)
@@ -367,7 +386,7 @@ export class AsaasPaymentGateway implements LocalPaymentGateway {
         billingType: 'CREDIT_CARD',
         value: amount,
         cycle: cycleFor(input.interval),
-        nextDueDate: todayIso(),
+        nextDueDate: firstDueDate(input.trialDays),
         externalReference: reference,
         description: subscriptionDescription(input.interval),
         creditCard: {

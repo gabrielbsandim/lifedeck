@@ -51,6 +51,7 @@ const checkout: CheckoutInput = {
   interval: 'monthly',
   successUrl: 'https://app/success',
   cancelUrl: 'https://app/cancel',
+  trialDays: 0,
 }
 
 describe('StripePaymentGateway', () => {
@@ -90,6 +91,18 @@ describe('StripePaymentGateway', () => {
       expect(body).toContain('line_items%5B0%5D%5Bprice%5D=price_pro_m')
       expect(body).toContain('client_reference_id=user-1')
       expect(body).toContain('customer_email=gab%40example.com')
+      expect(body).not.toContain('trial_period_days')
+    })
+
+    it('asks Stripe for a trial when the checkout carries one', async () => {
+      const mock = stub(() => jsonResponse({ url: 'https://stripe/pay' }))
+      await new StripePaymentGateway().startCheckout({
+        ...checkout,
+        trialDays: 7,
+      })
+      const body = (mock.mock.calls[0] as [string, RequestInit])[1]
+        .body as string
+      expect(body).toContain('subscription_data%5Btrial_period_days%5D=7')
     })
 
     it('maps the premium annual price', async () => {

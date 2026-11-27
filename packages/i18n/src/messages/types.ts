@@ -232,6 +232,14 @@ export type Messages = {
     monthly: string
     annual: string
     annualHint: string
+    billingPeriod: string
+    trialBadge: string
+    startTrial: string
+    trialNote: string
+    trialThen: string
+    trialStartedTitle: string
+    trialStartedBody: string
+    trialPixHint: string
     free: string
     pro: string
     premium: string

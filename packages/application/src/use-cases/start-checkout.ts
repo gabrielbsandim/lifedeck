@@ -1,4 +1,9 @@
-import { CheckoutIntent, type PaymentProvider } from '@lifedeck/domain'
+import {
+  CheckoutIntent,
+  asEntityId,
+  trialDaysFor,
+  type PaymentProvider,
+} from '@lifedeck/domain'
 import type { CheckoutIntentRepository } from '@/ports/checkout-intent-repository'
 import type { Clock } from '@/ports/clock'
 import type { IdGenerator } from '@/ports/id-generator'
@@ -8,10 +13,12 @@ import type {
   Market,
   PaymentGateway,
 } from '@/ports/payment-gateway'
+import type { SubscriptionRepository } from '@/ports/subscription-repository'
 
 type Dependencies = {
   gateways: Record<PaymentProvider, PaymentGateway>
   checkoutIntents: CheckoutIntentRepository
+  subscriptions: SubscriptionRepository
   ids: IdGenerator
   clock: Clock
 }
@@ -23,15 +30,21 @@ export function gatewayForMarket(market: Market): PaymentProvider {
 export function makeStartCheckout({
   gateways,
   checkoutIntents,
+  subscriptions,
   ids,
   clock,
 }: Dependencies) {
   return async function startCheckout(
-    input: CheckoutInput & { market: Market },
+    input: Omit<CheckoutInput, 'trialDays'> & { market: Market },
   ): Promise<CheckoutSession> {
     const { market, ...checkout } = input
     const provider = gatewayForMarket(market)
-    const session = await gateways[provider].startCheckout(checkout)
+    const history = await subscriptions.listByUser(asEntityId(input.userId))
+    const trialDays = trialDaysFor(input.plan, history.length > 0)
+    const session = await gateways[provider].startCheckout({
+      ...checkout,
+      trialDays,
+    })
 
     if (session.reference) {
       await checkoutIntents.save(

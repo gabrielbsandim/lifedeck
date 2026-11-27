@@ -178,7 +178,7 @@ export type {
   PixCharge,
   CardInput,
   CardHolderInfo,
-  CardSubscriptionResult,
+  SubscriptionHandle,
 } from '@/ports/payment-gateway'
 export { makeStartCheckout, gatewayForMarket } from '@/use-cases/start-checkout'
 export {
